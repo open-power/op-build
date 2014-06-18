@@ -2,4 +2,10 @@ menu "OpenPower"
 
 source "$BR2_EXTERNAL/platform/Config.in"
 
+menu "OpenPower Packages"
+if BR2_OPENPOWER_PLATFORM
+source "$BR2_EXTERNAL/package/Config.in"
+endif
+endmenu
+
 endmenu
