@@ -1,0 +1,4 @@
+config BR2_OPENPOWER_PLATFORM
+    bool "Enable the OpenPower Platform"
+    default n
+    depends on BR2_powerpc64

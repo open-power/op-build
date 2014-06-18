@@ -1,0 +1,5 @@
+BR2_powerpc64=y
+BR2_powerpc_power8=y
+BR2_OPENPOWER_PLATFORM=y
+
+BR2_LINUX_KERNEL=n

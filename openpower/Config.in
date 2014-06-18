@@ -1,0 +1,5 @@
+menu "OpenPower"
+
+source "$BR2_EXTERNAL/platform/Config.in"
+
+endmenu
