@@ -1,0 +1,13 @@
+config BR2_PACKAGE_HOSTBOOT
+        bool "hostboot"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        select BR2_CPP
+        help
+            Project to build the hostboot firmware codebase
+
+
+config BR2_HOSTBOOT_CONFIG_FILE
+        string "Hostboot configuration file for compilation"
+        default default
+        help
+            String used to define hw specific make config file

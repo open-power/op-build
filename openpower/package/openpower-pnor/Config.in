@@ -1,0 +1,42 @@
+config BR2_PACKAGE_OPENPOWER_PNOR
+        bool "openpower_pnor"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        help
+            Utilites for building a targeting binary image
+
+config BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME
+        string "Name of Openpower pnor xml layout file"
+        help
+            String used to define hw specific make config file
+
+config BR2_OPENPOWER_CONFIG_NAME
+        string "Name of configuration"
+        help
+            String used to define configuration name
+
+config BR2_OPENPOWER_PNOR_FILENAME
+        string "Name of pnor file to be created"
+        help
+            String used to define pnor filename to be created
+
+config BR2_SKIBOOT_LID_NAME
+        string "Name of skiboot lid name to be used"
+        default "skiboot.lid"
+        help
+            String used to define sapphire lid filename
+
+config BR2_HOSTBOOT_BINARY_SBE_FILENAME
+        string "Name of sbe hostboot binary"
+        help
+            String used to define name of sbe hostboot binary file
+
+
+config BR2_HOSTBOOT_BINARY_SBEC_FILENAME
+        string "Name of sbec hostboot binary"
+        help
+            String used to define name of sbec hostboot binary file
+
+config BR2_OPENPOWER_TARGETING_BIN_FILENAME
+        string "Name of openpower binary targeting file"
+        help
+            String used to define name of openpower targeting binary file
