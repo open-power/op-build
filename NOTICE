@@ -1,0 +1,6 @@
+All files under the buildroot subdirectory are licensed under their respective
+terms in ./buildroot.
+
+All other files contained within are licensed under the terms of the GNU
+General Public License v2.0.  A copy may be obtained at:
+    http://www.gnu.org/licenses/gpl-2.0
