@@ -1,0 +1,5 @@
+=== Building an image ===
+
+git clone --recursive git@github.com:open-power/op-build.git
+. op-build-env
+op-build palmetto_defconfig && op-build
