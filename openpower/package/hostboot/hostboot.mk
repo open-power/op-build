@@ -17,7 +17,7 @@ HOSTBOOT_ENV_VARS=$(TARGET_MAKE_ENV) \
     OPENPOWER_BUILD=1 CROSS_PREFIX=$(TARGET_CROSS) HOST_PREFIX="" HOST_BINUTILS_DIR=$(HOST_BINUTILS_DIR) 
 
 define HOSTBOOT_BUILD_CMDS
-        $(HOSTBOOT_ENV_VARS) sh -c 'cd $(@D) && source ./env.bash && $(MAKE)'
+        $(HOSTBOOT_ENV_VARS) bash -c 'cd $(@D) && source ./env.bash && $(MAKE)'
 endef
 
 define HOSTBOOT_INSTALL_IMAGES_CMDS
