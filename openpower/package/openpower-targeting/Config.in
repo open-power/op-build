@@ -10,6 +10,12 @@ config BR2_OPENPOWER_TARGETING_BIN_FILENAME
         help
             Defines targeting binary file name created
 
+config BR2_OPENPOWER_TARGETING_ECC_FILENAME
+        string "openpower targeting binary file name - ecc injected"
+        default ""
+        help
+            Defines targeting binary ecc file name created
+
 config BR2_OPENPOWER_TARGETING_SYSTEM_XML_FILENAME
         string "openpower targeting system xml filename"
         default ""
