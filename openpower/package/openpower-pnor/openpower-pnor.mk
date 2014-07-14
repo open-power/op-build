@@ -4,10 +4,10 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION = a7f9b25eb1e7fac405bc1a54597cfc812a07fb3f
+OPENPOWER_PNOR_VERSION = cbbad9d46f77de6e9e845561ed6bea6d55cb862c
 OPENPOWER_PNOR_SITE = $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 OPENPOWER_PNOR_LICENSE = Apache-2.0
-OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries openpower-targeting skiboot host-openpower-ffs 
+OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries openpower-targeting skiboot host-openpower-ffs
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
 OPENPOWER_PNOR_INSTALL_TARGET = NO
