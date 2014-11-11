@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= aa4f2ef89ed6b0e12cbadc076f2e748fe7c2a3bc
+
+OPENPOWER_PNOR_VERSION ?= 121e1ff744eb87b2bcfa277f5eb10511fd78019e
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries openpower-targeting skiboot host-openpower-ffs
@@ -19,13 +20,15 @@ OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         mkdir -p $(OPENPOWER_PNOR_SCRATCH_DIR)
-        $(TARGET_MAKE_ENV) $(@D)/update_image_$(BR2_OPENPOWER_CONFIG_NAME).pl \
+        $(TARGET_MAKE_ENV) $(@D)/update_image.pl \
             -op_target_dir $(STAGING_DIR)/openpower_targeting/ \
             -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
             -hb_binary_dir $(HOSTBOOT_BINARY_DIR) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
-            -targeting_binary_source $(BR2_OPENPOWER_TARGETING_BIN_FILENAME)
+            -targeting_binary_source $(BR2_OPENPOWER_TARGETING_BIN_FILENAME) \
+            -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
+            -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME)
 
         mkdir -p $(STAGING_DIR)/pnor/
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
