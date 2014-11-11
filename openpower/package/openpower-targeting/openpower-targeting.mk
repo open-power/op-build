@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_TARGETING_VERSION ?= 8fcf5ac8a0d3b1773323c92bef0209424f152434
+OPENPOWER_TARGETING_VERSION ?= 2edcd0986d27a35910bee8718eb28f4bb7df496e
 OPENPOWER_TARGETING_SITE ?= $(call github,open-power,hostboot-targeting,$(OPENPOWER_TARGETING_VERSION))
 OPENPOWER_TARGETING_LICENSE = Apache-2.0
 OPENPOWER_TARGETING_DEPENDENCIES = hostboot-install-images
