@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_TARGETING_VERSION ?= e1376ce4b33d303f342e26b88d6b2fa53fcfba0c
+OPENPOWER_TARGETING_VERSION ?= 9ce8c2454580037cf2f5572379536408152d19f0
 OPENPOWER_TARGETING_SITE ?= $(call github,open-power,hostboot-targeting,$(OPENPOWER_TARGETING_VERSION))
 
 OPENPOWER_TARGETING_LICENSE = Apache-2.0
