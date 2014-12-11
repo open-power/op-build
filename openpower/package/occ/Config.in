@@ -1,0 +1,11 @@
+config BR2_PACKAGE_OCC
+        bool "occ"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        select BR2_CPP
+        help
+            Project to build OCC
+
+config BR2_OCC_BIN_FILENAME
+        string "Name of OCC image file"
+        help
+            String used to define name of the OCC binary image file
