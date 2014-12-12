@@ -8,8 +8,8 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= e0e46ec7327edd6b24947706f074cd04d239cc86
-OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
+OPENPOWER_PNOR_VERSION ?= 1e9747e0a88f3672eadcababc4c44e1e0bd419df
+OPENPOWER_PNOR_SITE ?= $(call github,rjknight,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot host-openpower-ffs occ
