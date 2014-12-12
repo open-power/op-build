@@ -1,0 +1,67 @@
+From 8056846566045eab511ab134c4a04662ce3e1cea Mon Sep 17 00:00:00 2001
+From: Patrick Williams <iawillia@us.ibm.com>
+Date: Thu, 11 Dec 2014 16:30:42 -0600
+Subject: [PATCH] Skip docs.
+
+---
+ binutils/Makefile.am | 2 +-
+ binutils/Makefile.in | 2 +-
+ gas/Makefile.am      | 2 +-
+ gas/Makefile.in      | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/binutils/Makefile.am b/binutils/Makefile.am
+index 7f5f0c4..26bf327 100644
+--- a/binutils/Makefile.am
++++ b/binutils/Makefile.am
+@@ -20,7 +20,7 @@
+ AUTOMAKE_OPTIONS = dejagnu no-dist foreign
+ ACLOCAL_AMFLAGS = -I .. -I ../config -I ../bfd
+ 
+-SUBDIRS = doc po
++SUBDIRS = po
+ 
+ tooldir = $(exec_prefix)/$(target_alias)
+ 
+diff --git a/binutils/Makefile.in b/binutils/Makefile.in
+index c6e0003..5f34bf9 100644
+--- a/binutils/Makefile.in
++++ b/binutils/Makefile.in
+@@ -434,7 +434,7 @@ top_builddir = @top_builddir@
+ top_srcdir = @top_srcdir@
+ AUTOMAKE_OPTIONS = dejagnu no-dist foreign
+ ACLOCAL_AMFLAGS = -I .. -I ../config -I ../bfd
+-SUBDIRS = doc po
++SUBDIRS = po
+ tooldir = $(exec_prefix)/$(target_alias)
+ 
+ # Automake 1.10+ disables lex and yacc output file regeneration if
+diff --git a/gas/Makefile.am b/gas/Makefile.am
+index f65225f..3850223 100644
+--- a/gas/Makefile.am
++++ b/gas/Makefile.am
+@@ -20,7 +20,7 @@
+ AUTOMAKE_OPTIONS = 1.11 dejagnu foreign no-dist
+ ACLOCAL_AMFLAGS = -I .. -I ../config -I ../bfd
+ 
+-SUBDIRS = doc po
++SUBDIRS = po
+ 
+ tooldir = $(exec_prefix)/$(target_alias)
+ 
+diff --git a/gas/Makefile.in b/gas/Makefile.in
+index c7b3597..162d2c1 100644
+--- a/gas/Makefile.in
++++ b/gas/Makefile.in
+@@ -300,7 +300,7 @@ top_builddir = @top_builddir@
+ top_srcdir = @top_srcdir@
+ AUTOMAKE_OPTIONS = 1.11 dejagnu foreign no-dist
+ ACLOCAL_AMFLAGS = -I .. -I ../config -I ../bfd
+-SUBDIRS = doc po
++SUBDIRS = po
+ tooldir = $(exec_prefix)/$(target_alias)
+ 
+ # Automake 1.10+ disables lex and yacc output file regeneration if
+-- 
+2.1.1
+

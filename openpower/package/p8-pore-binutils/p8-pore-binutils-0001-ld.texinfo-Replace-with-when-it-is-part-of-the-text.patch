@@ -1,0 +1,134 @@
+From 7ca01ed925b6be550d5d46bd2f0a68bb3e63ff7b Mon Sep 17 00:00:00 2001
+From: Nick Clifton <nickc@redhat.com>
+Date: Mon, 7 Jan 2013 12:11:13 +0000
+Subject: [PATCH] 	* ld.texinfo: Replace @ with @@ when it is part of the
+ text. 	Correct ordering of M68HC11 entry.
+
+	* doc/binutils.texi: Fix ordering of top level nodes.
+	Replace erroneous uses of @itemx with @item.
+
+	* bfd.texinfo: Replace @ with @@ when it is part of the text.
+---
+ bfd/doc/bfd.texinfo        | 12 +++++++-----
+ binutils/doc/binutils.texi |  8 ++++----
+ ld/ld.texinfo              | 26 ++++++++++++++------------
+ 6 files changed, 39 insertions(+), 21 deletions(-)
+
+diff --git a/bfd/doc/bfd.texinfo b/bfd/doc/bfd.texinfo
+index 45ffa73..3aa3300 100644
+--- a/bfd/doc/bfd.texinfo
++++ b/bfd/doc/bfd.texinfo
+@@ -322,7 +324,7 @@ All of BFD lives in one directory.
+ @printindex cp
+ 
+ @tex
+-% I think something like @colophon should be in texinfo.  In the
++% I think something like @@colophon should be in texinfo.  In the
+ % meantime:
+ \long\def\colophon{\hbox to0pt{}\vfill
+ \centerline{The body of this manual is set in}
+@@ -333,7 +335,7 @@ All of BFD lives in one directory.
+ \centerline{{\sl\fontname\tensl\/}}
+ \centerline{are used for emphasis.}\vfill}
+ \page\colophon
+-% Blame: doc@cygnus.com, 28mar91.
++% Blame: doc@@cygnus.com, 28mar91.
+ @end tex
+ 
+ @bye
+diff --git a/binutils/doc/binutils.texi b/binutils/doc/binutils.texi
+index 56a0510..fb1802b 100644
+--- a/binutils/doc/binutils.texi
++++ b/binutils/doc/binutils.texi
+@@ -148,18 +148,18 @@ in the section entitled ``GNU Free Documentation License''.
+ * objcopy::			Copy and translate object files
+ * objdump::                     Display information from object files
+ * ranlib::                      Generate index to archive contents
+-* readelf::                     Display the contents of ELF format files
+ * size::                        List section sizes and total size
+ * strings::                     List printable strings from files
+ * strip::                       Discard symbols
+-* elfedit::                     Update the ELF header of ELF files
+ * c++filt::			Filter to demangle encoded C++ symbols
+ * cxxfilt: c++filt.             MS-DOS name for c++filt
+ * addr2line::			Convert addresses to file and line
+ * nlmconv::                     Converts object code into an NLM
+-* windres::			Manipulate Windows resources
+ * windmc::			Generator for Windows message resources
++* windres::			Manipulate Windows resources
+ * dlltool::			Create files needed to build and use DLLs
++* readelf::                     Display the contents of ELF format files
++* elfedit::                     Update the ELF header of ELF files
+ * Common Options::              Command-line options for all utilities
+ * Selecting the Target System:: How these utilities determine the target
+ * Reporting Bugs::              Reporting Bugs
+@@ -2907,7 +2907,7 @@ the Info entries for @file{binutils}.
+ @c man end
+ @end ignore
+ 
+-@node c++filt, addr2line, elfedit, Top
++@node c++filt, addr2line, strip, Top
+ @chapter c++filt
+ 
+ @kindex c++filt
+diff --git a/ld/ld.texinfo b/ld/ld.texinfo
+index c7ae2a5..4777ad5 100644
+--- a/ld/ld.texinfo
++++ b/ld/ld.texinfo
+@@ -142,12 +144,12 @@ in the section entitled ``GNU Free Documentation License''.
+ @ifset ARM
+ * ARM::				ld and the ARM family
+ @end ifset
+-@ifset HPPA
+-* HPPA ELF32::                  ld and HPPA 32-bit ELF
+-@end ifset
+ @ifset M68HC11
+ * M68HC11/68HC12::              ld and the Motorola 68HC11 and 68HC12 families
+ @end ifset
++@ifset HPPA
++* HPPA ELF32::                  ld and HPPA 32-bit ELF
++@end ifset
+ @ifset M68K
+ * M68K::                        ld and Motorola 68K family
+ @end ifset
+@@ -6012,6 +6014,9 @@ functionality are not listed.
+ @ifset I960
+ * i960::                        @command{ld} and the Intel 960 family
+ @end ifset
++@ifset M68HC11
++* M68HC11/68HC12::		@code{ld} and the Motorola 68HC11 and 68HC12 families
++@end ifset
+ @ifset ARM
+ * ARM::				@command{ld} and the ARM family
+ @end ifset
+@@ -6027,9 +6032,6 @@ functionality are not listed.
+ @ifset MSP430
+ * MSP430::			@command{ld} and MSP430
+ @end ifset
+-@ifset M68HC11
+-* M68HC11/68HC12::		@code{ld} and the Motorola 68HC11 and 68HC12 families
+-@end ifset
+ @ifset POWERPC
+ * PowerPC ELF32::		@command{ld} and PowerPC 32-bit ELF Support
+ @end ifset
+@@ -7877,7 +7879,7 @@ If you have more than one @code{SECT} statement for the same
+ @printindex cp
+ 
+ @tex
+-% I think something like @colophon should be in texinfo.  In the
++% I think something like @@colophon should be in texinfo.  In the
+ % meantime:
+ \long\def\colophon{\hbox to0pt{}\vfill
+ \centerline{The body of this manual is set in}
+@@ -7888,7 +7890,7 @@ If you have more than one @code{SECT} statement for the same
+ \centerline{{\sl\fontname\tensl\/}}
+ \centerline{are used for emphasis.}\vfill}
+ \page\colophon
+-% Blame: doc@cygnus.com, 28mar91.
++% Blame: doc@@cygnus.com, 28mar91.
+ @end tex
+ 
+ @bye
+-- 
+2.1.1
+
