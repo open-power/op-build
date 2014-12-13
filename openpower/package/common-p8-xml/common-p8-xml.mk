@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-COMMON_P8_XML_VERSION ?= 1afe70931836abbe896220e3824cbbeb730ee5d7
+COMMON_P8_XML_VERSION ?= e02b6f6ddd5f225ddb70c286a10685df5b9267db
 COMMON_P8_XML_SITE ?= $(call github,open-power,common-p8-xml,$(COMMON_P8_XML_VERSION))
 
 COMMON_P8_XML_LICENSE = Apache-2.0
