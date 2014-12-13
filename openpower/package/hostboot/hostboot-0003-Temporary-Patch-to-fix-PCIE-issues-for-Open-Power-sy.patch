@@ -1,0 +1,26 @@
+From 0c0bb4c8d003ccb8bede57d3576f23d4a6aec3b9 Mon Sep 17 00:00:00 2001
+From: Mike Baiocchi <baiocchi@us.ibm.com>
+Date: Sat, 13 Dec 2014 00:53:50 -0600
+Subject: [PATCH] Temporary Patch to fix PCIE issues for Open Power systems
+
+Change-Id: I447f172431562818290932a2d733add687dd0f3d
+---
+ src/usr/targeting/common/genHwsvMrwXml.pl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/usr/targeting/common/genHwsvMrwXml.pl b/src/usr/targeting/common/genHwsvMrwXml.pl
+index eac3860..3e55aca 100755
+--- a/src/usr/targeting/common/genHwsvMrwXml.pl
++++ b/src/usr/targeting/common/genHwsvMrwXml.pl
+@@ -2742,7 +2742,7 @@ sub generate_proc
+             $pcie_list{$ipath}{0}{0}{'lane-mask'},
+             $pcie_list{$ipath}{0}{1}{'lane-mask'},
+             $pcie_list{$ipath}{1}{0}{'lane-mask'},
+-            $pcie_list{$ipath}{1}{1}{'lane-mask'}
++            0x0FF
+         </default>
+     </attribute>
+     <attribute>
+-- 
+1.8.2.2
+

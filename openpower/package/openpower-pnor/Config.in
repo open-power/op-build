@@ -14,6 +14,11 @@ config BR2_OPENPOWER_CONFIG_NAME
         help
             String used to define configuration name
 
+config BR2_OPENPOWER_XML_PACKAGE
+        string "Name of xml/targeting package"
+        help
+            String defines the xml/targeting package used
+
 config BR2_OPENPOWER_PNOR_FILENAME
         string "Name of pnor file to be created"
         help
@@ -40,3 +45,8 @@ config BR2_OPENPOWER_TARGETING_BIN_FILENAME
         string "Name of openpower binary targeting file"
         help
             String used to define name of openpower targeting binary file
+
+config BR2_OPENPOWER_TARGETING_ECC_FILENAME
+        string "Name of openpower binary targeting file"
+        help
+            String used to define name of openpower targeting binary file, ecc protected

@@ -4,25 +4,28 @@
 #
 ################################################################################
 
+# remove the quotes from the XML/Targeting package as
+# make doesn't care for quotes in the dependencies.
+XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
 OPENPOWER_PNOR_VERSION ?= e0e46ec7327edd6b24947706f074cd04d239cc86
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
-OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries openpower-targeting skiboot host-openpower-ffs occ
+OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot host-openpower-ffs occ
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
 OPENPOWER_PNOR_INSTALL_TARGET = NO
 
-OPENPOWER_TARGETING_DIR=$(STAGING_DIR)/openpower_targeting/
 HOSTBOOT_IMAGE_DIR=$(STAGING_DIR)/hostboot_build_images/
 HOSTBOOT_BINARY_DIR = $(STAGING_DIR)/hostboot_binaries/
 OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         mkdir -p $(OPENPOWER_PNOR_SCRATCH_DIR)
+
         $(TARGET_MAKE_ENV) $(@D)/update_image.pl \
-            -op_target_dir $(STAGING_DIR)/openpower_targeting/ \
+            -op_target_dir $(HOSTBOOT_IMAGE_DIR) \
             -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
             -hb_binary_dir $(HOSTBOOT_BINARY_DIR) \
