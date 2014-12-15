@@ -31,6 +31,9 @@ define PALMETTO_XML_BUILD_CMDS
         # run the mrw parsers
         $(PALMETTO_XML_ENV_VARS) bash -c 'cd $(MRW_SCRATCH) && $(MAKE) palmetto'
 
+        # move the APSS xml to the output area
+        cp $(MRW_SCRATCH)/PALMETTO_APSS.xml $(MRW_INSTALL_DIRECTORY)
+
         # generate the system mrm xml
         $(MRW_HB_TOOLS)/genHwsvMrwXml.pl \
             --system=$(BR2_OPENPOWER_CONFIG_NAME) \
