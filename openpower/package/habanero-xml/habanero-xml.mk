@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-HABANERO_XML_VERSION ?= 6d06d60723c16c813c769e144352589a59a85014
+HABANERO_XML_VERSION ?= e33dbb614962b487417cadc9187582af2be7d262
 HABANERO_XML_SITE ?= $(call github,open-power,habanero-xml,$(HABANERO_XML_VERSION))
 
 HABANERO_XML_LICENSE = Apache-2.0
@@ -30,6 +30,9 @@ define HABANERO_XML_BUILD_CMDS
 
         # run the mrw parsers
         $(HABANERO_XML_ENV_VARS) bash -c 'cd $(MRW_SCRATCH) && $(MAKE) habanero'
+
+        # move the APSS xml to the output area
+        cp $(MRW_SCRATCH)/HABANERO_APSS.xml $(MRW_INSTALL_DIRECTORY)
 
         # generate the system mrm xml
         $(MRW_HB_TOOLS)/genHwsvMrwXml.pl \
