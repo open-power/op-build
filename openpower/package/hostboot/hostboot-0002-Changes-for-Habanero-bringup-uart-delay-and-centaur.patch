@@ -22,43 +22,6 @@ index 385a05c..a269168 100644
  
                  uint8_t data = 0;
                  uint64_t loops = 0;
-diff --git a/src/usr/hwpf/hwp/dram_training/palmetto_vddr.C b/src/usr/hwpf/hwp/dram_training/palmetto_vddr.C
-index 5286d26..9642a36 100644
---- a/src/usr/hwpf/hwp/dram_training/palmetto_vddr.C
-+++ b/src/usr/hwpf/hwp/dram_training/palmetto_vddr.C
-@@ -88,19 +88,27 @@ static errlHndl_t for_each_centaur(errlHndl_t (*func)(Target *))
- 
-     errlHndl_t l_err = NULL;
- 
--    for (TargetHandleList::iterator
--            l_membuf_iter = l_membufTargetList.begin();
--            l_membuf_iter != l_membufTargetList.end();
--            ++l_membuf_iter)
-+    for (TargetHandleList::iterator l_membuf_iter = l_membufTargetList.begin();
-+         l_membuf_iter != l_membufTargetList.end();
-+         ++l_membuf_iter)
-     {
-         Target* l_pCentaur = *l_membuf_iter;
- 
--        l_err = (*func)(l_pCentaur);
-+        TRACFCOMP(g_trac_vddr, "Performing VDDR for %x", l_pCentaur->getAttr<ATTR_HUID>());
-+        if (2 == l_pCentaur->getAttr<ATTR_FSI_MASTER_PORT>())
-+        {
-+            l_err = (*func)(l_pCentaur);
-+        }
-+        else
-+        {
-+            TRACFCOMP(g_trac_vddr, "Skipped VDDR");
-+        }
- 
-         if( l_err )
-         {
-             break;
-         }
-+        TRACFCOMP(g_trac_vddr, "No error in VDDR.");
-     }
- 
-     return l_err;
 -- 
 1.9.1
 
