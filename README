@@ -20,7 +20,7 @@ Building on *64-bit* Fedora systems
 
 1. Install Fedora 20 64-bit.
 2. Install the packages necessary for the build:
-> sudo yum install vim gcc-c++ flex bison git ctags cscope cpan expat-devel patch glibc-devel-i686 libgcc.i686 zlib-devel libstdc++.i686
+> sudo yum install vim gcc-c++ flex bison git ctags cscope cpan expat-devel patch glibc-devel.i686 libgcc.i686 zlib-devel libstdc++.i686
 3. Install PERL modules necessary for the build:
 >  sudo yum install "perl(XML::Simple)" "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" "perl(Env)"
 
