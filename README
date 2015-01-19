@@ -22,7 +22,7 @@ Building on *64-bit* Fedora systems
 2. Install the packages necessary for the build:
 > sudo yum install vim gcc-c++ flex bison git ctags cscope cpan expat-devel patch glibc-devel-i686 libgcc.i686 zlib-devel libstdc++.i686
 3. Install PERL modules necessary for the build:
->  sudo cpan install XML::Simple YAML XML::SAX Fatal Thread/Queue.pm Env
+>  sudo yum install "perl(XML::Simple)" "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" "perl(Env)"
 
 Troubleshooting
 ===============
