@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PALMETTO_XML_VERSION = f346cbc0e7837ff560ed5fd3197e5c887ac3f564
+PALMETTO_XML_VERSION = 227fdb14b0f03a422964ddc19563fdfd3a38e909
 PALMETTO_XML_SITE = $(call github,open-power,palmetto-xml,$(PALMETTO_XML_VERSION))
 
 PALMETTO_XML_LICENSE = Apache-2.0
