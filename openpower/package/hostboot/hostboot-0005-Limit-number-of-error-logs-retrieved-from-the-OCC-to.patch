@@ -1,0 +1,156 @@
+From 1fe250207a9cda3203839ec0df06030b8a627b50 Mon Sep 17 00:00:00 2001
+From: Chris Cain <cjcain@us.ibm.com>
+Date: Wed, 17 Dec 2014 15:56:28 -0600
+Subject: [PATCH] Limit number of error logs retrieved from the OCC to prevent
+ holding off IPL
+
+Change-Id: Ibb82a8776e40c17097c952b80f7b5536ad7503b4
+RTC: 119981
+Reviewed-on: http://gfw160.aus.stglabs.ibm.com:8080/gerrit/14964
+Tested-by: Jenkins Server
+Reviewed-by: Douglas R. Gilbert <dgilbert@us.ibm.com>
+Reviewed-by: Matt Spinler <spinler@us.ibm.com>
+Reviewed-by: A. Patrick Williams III <iawillia@us.ibm.com>
+---
+ src/usr/htmgt/HBconfig       |  6 ++++++
+ src/usr/htmgt/htmgt.C        | 19 +++++++++++++++++++
+ src/usr/htmgt/htmgt_occcmd.C |  8 ++++----
+ src/usr/htmgt/htmgt_poll.C   | 17 +++++++++++++++--
+ src/usr/htmgt/occError.C     |  2 +-
+ 5 files changed, 45 insertions(+), 7 deletions(-)
+
+diff --git a/src/usr/htmgt/HBconfig b/src/usr/htmgt/HBconfig
+index 6a13251..61c20ac 100644
+--- a/src/usr/htmgt/HBconfig
++++ b/src/usr/htmgt/HBconfig
+@@ -2,3 +2,9 @@ config HTMGT
+     default n
+     help
+         Enable Host TMGT in hostboot/HBRT
++
++config DELAY_AFTER_OCC_ACTIVATION
++    default n
++    help
++        After OCC has been activated, wait for 30 seconds for any
++        potential errors to be reported before continuing the IPL
+diff --git a/src/usr/htmgt/htmgt.C b/src/usr/htmgt/htmgt.C
+index 6430759..53a01be 100644
+--- a/src/usr/htmgt/htmgt.C
++++ b/src/usr/htmgt/htmgt.C
+@@ -34,6 +34,7 @@
+ #include "htmgt_memthrottles.H"
+ #include "htmgt_poll.H"
+ #include <devicefw/userif.H>
++#include <config.h>
+ 
+ //  Targeting support
+ #include <targeting/common/commontargeting.H>
+@@ -124,6 +125,24 @@ namespace HTMGT
+                             ERRORLOG::errlCommit(l_err, HTMGT_COMP_ID);
+                             l_err = NULL;
+                         }
++
++                        // @TODO RTC 120059 remove after elog alerts supported
++#ifdef CONFIG_DELAY_AFTER_OCC_ACTIVATION
++                        // Delay to allow the OCC to complete several
++                        // sensor readings and create errors if necessary
++                        TMGT_INF("Delay after OCC activation");
++                        nanosleep(30, 0);
++                        // Poll the OCCs to retrieve any errors that may
++                        // have been created
++                        TMGT_INF("Send final poll to all OCCs");
++                        l_err = sendOccPoll(true);
++                        if (l_err)
++                        {
++                            ERRORLOG::errlCommit(l_err, HTMGT_COMP_ID);
++                            l_err = NULL;
++                        }
++#endif
++
+                     } while(0);
+                 }
+                 else
+diff --git a/src/usr/htmgt/htmgt_occcmd.C b/src/usr/htmgt/htmgt_occcmd.C
+index ef2194f..749efbd 100644
+--- a/src/usr/htmgt/htmgt_occcmd.C
++++ b/src/usr/htmgt/htmgt_occcmd.C
+@@ -269,7 +269,7 @@ namespace HTMGT
+             }
+             if (iv_OccCmd.dataLength > 0)
+             {
+-                TMGT_BIN("cmd data", iv_OccCmd.cmdData,
++                TMGT_BIN("cmd data (up to 16 bytes)", iv_OccCmd.cmdData,
+                          std::min(iv_OccCmd.dataLength,(uint16_t)16));
+             }
+         }
+@@ -296,7 +296,7 @@ namespace HTMGT
+                  l_rsp_status_string, iv_OccRsp.dataLength);
+         if (iv_OccRsp.dataLength > 0)
+         {
+-            TMGT_BIN("rsp data:", iv_OccRsp.rspData,
++            TMGT_BIN("rsp data: (up to 16 bytes)", iv_OccRsp.rspData,
+                      std::min(iv_OccRsp.dataLength,(uint16_t)16));
+         }
+     }
+@@ -955,8 +955,8 @@ namespace HTMGT
+         if (G_debug_trace & DEBUG_TRACE_OCCCMD)
+         {
+             // Trace the command
+-            TMGT_BIN("buildOccCmdBuffer: OCC command",
+-                     cmdBuffer, l_send_length);
++            TMGT_BIN("buildOccCmdBuffer: OCC command (up to 256 bytes)",
++                     cmdBuffer, std::min(l_send_length, (uint16_t)256));
+         }
+ #endif
+ 
+diff --git a/src/usr/htmgt/htmgt_poll.C b/src/usr/htmgt/htmgt_poll.C
+index 6cf0a5e..bd78a07 100644
+--- a/src/usr/htmgt/htmgt_poll.C
++++ b/src/usr/htmgt/htmgt_poll.C
+@@ -58,6 +58,7 @@ namespace HTMGT
+             const uint8_t occInstance = occ->getInstance();
+ 
+             bool continuePolling = false;
++            size_t elogCount = 10;
+             do
+             {
+                 // create 1 byte buffer for poll command data
+@@ -83,8 +84,20 @@ namespace HTMGT
+                                 (occPollRspStruct_t *) l_poll_rsp;
+                             if (currentPollRsp->errorId != 0)
+                             {
+-                                // An error was returned, keep polling OCC
+-                                continuePolling = true;
++                                if (--elogCount > 0)
++                                {
++                                    // An error was returned, keep polling OCC
++                                    continuePolling = true;
++                                }
++                                else
++                                {
++                                    // Limit number of elogs retrieved so
++                                    // we do not get stuck in loop
++                                    TMGT_INF("sendOccPoll: OCC%d still has"
++                                             "more errors to report.",
++                                             occInstance);
++                                    continuePolling = false;
++                                }
+                             }
+                             else
+                             {
+diff --git a/src/usr/htmgt/occError.C b/src/usr/htmgt/occError.C
+index ab200fc..8b2963b 100644
+--- a/src/usr/htmgt/occError.C
++++ b/src/usr/htmgt/occError.C
+@@ -59,7 +59,7 @@ namespace HTMGT
+             // Skip 8 byte ecmd header
+             const occErrlEntry_t *l_occElog=(occErrlEntry_t *)&l_sram_data[8];
+ 
+-            TMGT_BIN("OCC ELOG", l_occElog, 64);
++            TMGT_BIN("OCC ELOG", l_occElog, 256);
+ 
+             const uint32_t l_occSrc = OCCC_COMP_ID | l_occElog->reasonCode;
+             ERRORLOG::errlSeverity_t l_errlSeverity =
+-- 
+1.9.1
+
