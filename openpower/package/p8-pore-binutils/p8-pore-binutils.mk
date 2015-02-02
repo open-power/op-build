@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-P8_PORE_BINUTILS_VERSION ?= 94a1a56cb3ce72a2d6202ab54206912cf9e1feb1
+P8_PORE_BINUTILS_VERSION ?= dcf4f87c0d9e8c8092ace0eb696189ee1056da30
 P8_PORE_BINUTILS_SITE ?= $(call github,open-power,p8-pore-binutils,$(P8_PORE_BINUTILS_VERSION))
 P8_PORE_BINUTILS_LICENSE = GPLv3+
 
