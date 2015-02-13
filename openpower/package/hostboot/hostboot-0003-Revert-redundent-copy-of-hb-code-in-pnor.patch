@@ -1,0 +1,2809 @@
+From a05bf62e7eb14354ca2d6ca45b149aac6dbd193c Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Wed, 11 Feb 2015 11:41:48 -0600
+Subject: [PATCH] Revert "Support for Redundant Copy of HB code in PNOR"
+
+This reverts commit 67c5a1ebe73f81bca1bb6608bbb8f204f0f37fa8.
+---
+ src/build/buildpnor/buildpnor.pl            | 590 +++++++++++-----------------
+ src/build/buildpnor/defaultPnorLayout.xml   |  91 ++---
+ src/build/mkrules/hbfw/img/makefile         |   4 +-
+ src/include/usr/hwas/hwasPlatDeconfigGard.H |  19 +-
+ src/include/usr/pnor/pnor_reasoncodes.H     |   2 -
+ src/include/usr/pnor/pnorif.H               |  39 +-
+ src/usr/hwas/hwasPlatDeconfigGard.C         |  89 +----
+ src/usr/pnor/HBconfig                       |   5 -
+ src/usr/pnor/common/ffs_hb.H                |   7 +-
+ src/usr/pnor/makefile                       |   1 -
+ src/usr/pnor/pnor_common.C                  | 182 ++-------
+ src/usr/pnor/pnor_common.H                  |  19 +-
+ src/usr/pnor/pnorrp.C                       | 152 +++----
+ src/usr/pnor/pnorrp.H                       |  26 +-
+ src/usr/pnor/pnorsbe.C                      |  87 ----
+ src/usr/pnor/pnorvalid.C                    |   5 +-
+ src/usr/pnor/runtime/rt_pnor.C              |  11 +-
+ src/usr/pnor/runtime/rt_pnor.H              |   2 +-
+ src/usr/pnor/test/pnorrptest.H              | 104 +----
+ src/usr/sbe/sbe_update.C                    |  95 +++--
+ src/usr/sbe/sbe_update.H                    |  38 +-
+ src/usr/sbe/test/sbeupdatetest.H            |  24 +-
+ 22 files changed, 535 insertions(+), 1057 deletions(-)
+ delete mode 100644 src/usr/pnor/pnorsbe.C
+
+diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
+index f6df6c8..51b6922 100755
+--- a/src/build/buildpnor/buildpnor.pl
++++ b/src/build/buildpnor/buildpnor.pl
+@@ -6,7 +6,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2012,2015
++# Contributors Listed Below - COPYRIGHT 2012,2014
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -62,20 +62,16 @@ my $g_trace = 1;
+ my $programName = File::Basename::basename $0;
+ my %pnorLayout;
+ my %binFiles;
++
++
+ my $pnorLayoutFile;
+ my $pnorBinName = "";
+ my $tocVersion = 0x1;
+ my $g_TOCEyeCatch = "part";
+ my $emitTestSections = 0;
++my $g_ffsCmd = "";
+ my $g_fpartCmd = "";
+ my $g_fcpCmd = "";
+-my %sidelessSecFilled = ();
+-
+-my %SideOptions = (
+-        A => "A",
+-        B => "B",
+-        sideless => "sideless",
+-    );
+ 
+ if ($#ARGV < 0) {
+     usage();
+@@ -106,6 +102,9 @@ for (my $i=0; $i < $#ARGV + 1; $i++)
+         my $argVal = $ARGV[++$i];
+         saveInputFile("--binFile", $argName, $argVal, \%binFiles);
+     }
++    elsif($ARGV[$i] =~ /--ffsCmd/) {
++        $g_ffsCmd = $ARGV[++$i];
++    }
+     elsif($ARGV[$i] =~ /--fpartCmd/) {
+         $g_fpartCmd = $ARGV[++$i];
+     }
+@@ -122,14 +121,12 @@ for (my $i=0; $i < $#ARGV + 1; $i++)
+     }
+ }
+ 
+-############################## Begin Actions ##################################
+-
+-#Delete File (pnorBinName) if exists to prevent errors when making layout
+-#changes
+-if (-e $pnorBinName)
+-{
+-    unlink $pnorBinName or warn "Could not unlink $pnorBinName: $!";
+-}
++#Extract ffs version number from help text.
++#Use to trigger using proper input parms..
++#my $ffsParms = 0;
++#my $ffsVersion = `$g_ffsCmd 2>&1  | grep "Partition Tool" `;
++#$ffsVersion =~ s/.*(v[0-9\.]*).*/\1/;
++#$ffsVersion = $1;
+ 
+ #Load PNOR Layout XML file
+ my $rc = loadPnorLayout($pnorLayoutFile, \%pnorLayout);
+@@ -139,6 +136,9 @@ if($rc != 0)
+     exit 1;
+ }
+ 
++#trace(1, Dumper(%pnorLayout->{1576960}));
++#trace(1, Dumper(%binFiles));
++
+ #Verify all the section files exist
+ my $rc = verifyFilesExist(\%pnorLayout, \%binFiles);
+ if($rc != 0)
+@@ -161,48 +161,42 @@ if($rc != 0)
+     trace(0, "Error detected from call to checkSpaceConstraints().  Exiting");
+     exit 1;
+ }
+-trace(1, "Done checkSpaceConstraints");
+-
+-# @TODO RTC: 120062 - Determine which side is Golden, possibly handle a new
+-#                    xml tag
+-# Create all Partition Tables at each TOC offset
+-# Each side has 2 TOC's created at different offsets for backup purposes.
+-# Loop all side sections
+-foreach my $sideId ( keys %{$pnorLayout{metadata}{sides}} )
++
++#create the PNOR image
++#two copies of TOC created at different offsets
++my $sideAOffset =  $pnorLayout{metadata}{sideAOffset};
++my $sideBOffset =  $pnorLayout{metadata}{sideBOffset};
++
++$rc = createPnorImg($tocVersion, $pnorBinName, \%pnorLayout, $sideAOffset, 'A');
++if($rc != 0)
+ {
+-    # Loop all tocs (primary and backup)
+-    foreach my $toc ( keys %{$pnorLayout{metadata}{sides}{$sideId}{toc}})
+-    {
+-        my $tocOffset = $pnorLayout{metadata}{sides}{$sideId}{toc}{$toc};
++    trace(0, "Error detected from createPnorImg() sideAOffset. Exiting");
++    exit 1;
++}
+ 
+-        $rc = createPnorPartition($tocVersion, $pnorBinName, \%pnorLayout,
+-                                  $sideId, $tocOffset);
+-        if($rc != 0)
+-        {
+-            trace(0, "Error detected from createPnorPartition() $tocOffset Exiting");
+-            exit 1;
+-        }
+-    }
++$rc = createPnorImg($tocVersion, $pnorBinName, \%pnorLayout, $sideBOffset, 'B');
++if($rc != 0)
++{
++    trace(0, "Error detected from createPnorImg() sideBOffset. Exiting");
++    exit 1;
+ }
+ 
+-# Fill all sides
+-foreach my $sideId ( keys %{$pnorLayout{metadata}{sides}} )
++$rc = fillPnorImage($pnorBinName, \%pnorLayout, \%binFiles, $sideAOffset, 'A');
++if($rc != 0)
+ {
+-    my $tocOffset = $pnorLayout{metadata}{sides}{$sideId}{toc}{primary};
++    trace(0, "Error detected from call to fillPnorImage() sideAOffset. Exiting");
++    exit 1;
++}
+ 
+-    $rc = fillPnorImage($pnorBinName, \%pnorLayout, \%binFiles, $sideId,
+-                        $tocOffset);
+-    if($rc != 0)
+-    {
+-        trace(0, "Error detected from call to fillPnorImage() sideATocOffset. Exiting");
+-        exit 1;
+-    }
++$rc = fillPnorImage($pnorBinName, \%pnorLayout, \%binFiles, $sideBOffset, 'B');
++if($rc != 0)
++{
++    trace(0, "Error detected from call to fillPnorImage() sideBOffset. Exiting");
++    exit 1;
+ }
+ 
+ exit 0;
+ 
+-#########################  Begin Utility Subroutines ###########################
+-
+ ################################################################################
+ # loadPnorLayout
+ ################################################################################
+@@ -221,52 +215,33 @@ sub loadPnorLayout
+     my $xs = new XML::Simple(keyattr=>[], forcearray => 1);
+     my $xml = $xs->XMLin($i_pnorFile);
+ 
++    #trace(1, "pnorLayoutXML \n ".Dumper($xml));
++
+     #Save the meatadata - imageSize, blockSize, etc.
+-    # @TODO RTC:120062 enhance metadata section, fix metadataE1 to match xml
+-    # and change TOC names accordingly
+     foreach my $metadataEl (@{$xml->{metadata}})
+     {
+-        # Get meta data
+         my $imageSize = $metadataEl->{imageSize}[0];
+         my $blockSize = $metadataEl->{blockSize}[0];
++        my $sideAOffset = $metadataEl->{sideAOffset}[0];
++        my $sideBOffset = $metadataEl->{sideBOffset}[0];
++
++        trace(3, "$this_func: metadata: imageSize = $imageSize, blockSize=$blockSize, sideAOffset=$sideAOffset, sideBOffset=$sideBOffset");
++
+         $imageSize = getNumber($imageSize);
+         $blockSize = getNumber($blockSize);
++        $sideAOffset = getNumber($sideAOffset);
++        $sideBOffset = getNumber($sideBOffset);
++
+         $$i_pnorLayoutRef{metadata}{imageSize} = $imageSize;
+         $$i_pnorLayoutRef{metadata}{blockSize} = $blockSize;
+-
+-        # Get Side A
+-        my $sideATocOffset = $metadataEl->{sideATocOffset}[0];
+-        my $sideATocBackupOffset = $metadataEl->{sideATocBackupOffset}[0];
+-        $sideATocOffset = getNumber($sideATocOffset);
+-        $sideATocBackupOffset = getNumber($sideATocBackupOffset);
+-        # @TODO RTC: 120062 change pnorLayoutRef hash to match new xml
+-        $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{A}}{toc}{primary} = $sideATocOffset;
+-        $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{A}}{toc}{backup} = $sideATocBackupOffset;
+-
+-        # Get side B info (if it exists)
+-        if (exists $metadataEl->{sideBTocOffset}[0])
+-        {
+-            trace(1, "Adding Side B information ....");
+-            my $sideBTocOffset = $metadataEl->{sideBTocOffset}[0];
+-            my $sideBTocBackupOffset = $metadataEl->{sideBTocBackupOffset}[0];
+-            $sideBTocOffset = getNumber($sideBTocOffset);
+-            $sideBTocBackupOffset = getNumber($sideBTocBackupOffset);
+-            # @TODO RTC: 120062 change pnorLayoutRef hash to match new xml
+-            $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{B}}{toc}{primary} = $sideBTocOffset;
+-            $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{B}}{toc}{backup} = $sideBTocBackupOffset;
+-
+-            trace(3, "$this_func: metadata: imageSize = $imageSize, blockSize=$blockSize, sideATocOffset=$sideATocOffset, sideATocBackupOffset=$sideATocBackupOffset, sideBTocOffset=$sideBTocOffset, sideBTocBackupOffset=$sideBTocBackupOffset");
+-        }
+-        else
+-        {
+-           trace(3, "$this_func: metadata: imageSize = $imageSize, blockSize=$blockSize, sideATocOffset=$sideATocOffset, sideATocBackupOffset=$sideATocBackupOffset");
+-        }
+-
++        $$i_pnorLayoutRef{metadata}{sideAOffset} = $sideAOffset;
++        $$i_pnorLayoutRef{metadata}{sideBOffset} = $sideBOffset;
+     }
+ 
+     #Iterate over the <section> elements.
+     foreach my $sectionEl (@{$xml->{section}})
+     {
++        #trace(1, "current Element: \n ".Dumper($sectionEl));
+         my $description = $sectionEl->{description}[0];
+         my $eyeCatch = $sectionEl->{eyeCatch}[0];
+         my $physicalOffset = $sectionEl->{physicalOffset}[0];
+@@ -276,9 +251,7 @@ sub loadPnorLayout
+         my $ecc = (exists $sectionEl->{ecc} ? "yes" : "no");
+         my $sha512Version = (exists $sectionEl->{sha512Version} ? "yes" : "no");
+         my $sha512perEC = (exists $sectionEl->{sha512perEC} ? "yes" : "no");
+-        my $sideless = (exists $sectionEl->{sideless} ? "yes" : "no");
+-        my $preserved = (exists $sectionEl->{preserved} ? "yes" : "no");
+-        my $readOnly = (exists $sectionEl->{readOnly} ? "yes" : "no");
++
+         if (($emitTestSections == 0) && ($sectionEl->{testonly}[0] eq "yes"))
+         {
+             next;
+@@ -289,6 +262,8 @@ sub loadPnorLayout
+         $physicalOffset = getNumber($physicalOffset);
+         $physicalRegionSize = getNumber($physicalRegionSize);
+ 
++        # trace(4, "$this_func: physicalOffset=$physicalOffset, physicalRegionSize=$physicalRegionSize");
++
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{description} = $description;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{eyeCatch} = $eyeCatch;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{physicalOffset} = $physicalOffset;
+@@ -297,9 +272,6 @@ sub loadPnorLayout
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{ecc} = $ecc;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{sha512Version} = $sha512Version;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{sha512perEC} = $sha512perEC;
+-        $$i_pnorLayoutRef{sections}{$physicalOffset}{sideless} = $sideless;
+-        $$i_pnorLayoutRef{sections}{$physicalOffset}{preserved} = $preserved;
+-        $$i_pnorLayoutRef{sections}{$physicalOffset}{readOnly} = $readOnly;
+ 
+     }
+ 
+@@ -307,16 +279,23 @@ sub loadPnorLayout
+ }
+ 
+ ################################################################################
+-# createPnorImg - Create PNOR image based on input data.
++# createPnorImg - Create PNOR image and partitions based on input data.
+ ################################################################################
+ sub createPnorImg
+ {
+-    my ($i_tocVersion, $i_pnorBinName, $i_pnorLayoutRef, $i_offset) = @_;
++    my ($i_tocVersion, $i_pnorBinName, $i_pnorLayoutRef, $offset, $side) = @_;
+     my $this_func = (caller(0))[3];
+     my $rc = 0;
++    my $key;
++    my $other_side = 'B';
+     trace(4, "$this_func: >>Enter");
+ 
+-    trace(1, "createPnorImg:: $i_offset");
++    trace(1, "createPnorImg:: $offset");
++
++    if($side eq 'B')
++    {
++        $other_side = 'A';
++    }
+ 
+     #get Block size
+     my $blockSize = $$i_pnorLayoutRef{metadata}{blockSize};
+@@ -324,212 +303,154 @@ sub createPnorImg
+     #Get size of image in blocks
+     my $imageSize = $$i_pnorLayoutRef{metadata}{imageSize};
+     my $blockCount = $imageSize/$blockSize;
+-    do{
+-        if ($blockCount != int($blockCount))
+-        {
+-            trace(0, "$this_func: Image size ($imageSize) is not an even multiple of erase blocks ($blockSize).  This is not supported.  Aborting!");
+-            $rc = 1;
+-            last;
+-        }
+-
+-        #f{fs,part} --create tuleta.pnor --partition-offset 0 --size 8MiB --block 4KiB --force
+-        trace(2, "$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --create --size $imageSize --block $blockSize --force");
+-        $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --create --size $imageSize --block $blockSize --force`;
+-        if($rc)
+-        {
+-            trace(0, "$this_func: Call to creating image failed.  rc=$rc.  Aborting!");
+-            last;
+-        }
+-    }while(0);
+-
+-    return $rc;
+-}
+-
+-################################################################################
+-# addUserData - Add partition user data.
+-################################################################################
+-sub addUserData
+-{
+-    my $i_pnorBinName = shift;
+-    my $i_offset = shift;
+-    my $i_key = shift;
+-    my %i_sectionHash = @_;
+-
+-    my $this_func = (caller(0))[3];
+-    my $rc = 0;
+-    trace(4, "$this_func: >>Enter");
+-
+-    my $eyeCatch = $i_sectionHash{$i_key}{eyeCatch};
+-
+-    # User data Flags based on FFS entry user data (ffs_hb_user_t)
+-    my $chip = 0;
+-    my $compressType = 0;
+-    my $dataInteg = 0;
+-    my $verCheck = 0;
+-    my $miscFlags = 0;
+-
+-    # DataInteg flag
+-    if( ($i_sectionHash{$i_key}{ecc} eq "yes") )
+-    {
+-        $dataInteg = 0x8000;
+-    }
+-
+-    # VerCheck Flag
+-    if( ($i_sectionHash{$i_key}{sha512Version} eq "yes") )
++    if ($blockCount != int($blockCount))
+     {
+-        $verCheck = 0x80;
+-    }
+-    elsif( ($i_sectionHash{$i_key}{sha512perEC} eq "yes") )
+-    {
+-        $verCheck = 0x40;
++        trace(0, "$this_func: Image size ($imageSize) is not an even multiple of erase blocks ($blockSize).  This is not supported.  Aborting!");
++        $rc = 1;
++        return $rc;
+     }
+ 
+-    # Misc Flags
+-    if( ($i_sectionHash{$i_key}{preserved} eq "yes") )
+-    {
+-        $miscFlags |= 0x80;
++    #f{fs,part} --create tuleta.pnor --partition-offset 0 --size 8MiB --block 4KiB --force
++    if ($g_ffsCmd eq "") {
++        my $Out = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --create --size $imageSize --block $blockSize --force`;
++    } else {
++        my $Out = `$g_ffsCmd --target $i_pnorBinName --partition-offset $offset --create --size $imageSize --block $blockSize --force`;
+     }
+-    if( ($i_sectionHash{$i_key}{readOnly} eq "yes") )
++    $rc = $?;
++    if($rc)
+     {
+-        $miscFlags |= 0x40;
++        trace(0, "$this_func: Call to creating image failed.  rc=$rc.  Aborting!");
++        return $rc;
+     }
+ 
++    #key into hash data is the physical offset of section.  Need to sort the keys
++    #so we put things in the correct order in toc.
++    #Generally speaking, this loop is populating the FFS Header with records based on the
++    #section data specified in the XML + actual sizes of the input binary files.
++    my %sectionHash = %{$$i_pnorLayoutRef{sections}};
+ 
+-    #First User Data Word
+-    #[1:chip][1:compressType][2:dataInteg]
+-    my $userflags0 = ($chip << 24)
+-      | ($compressType << 16)
+-      | $dataInteg;
++    for $key ( sort {$a<=> $b} keys %sectionHash)
++    {
++        my $eyeCatch = "UNDEF";
++        my $physicalOffset = 0xFFFFFFFF;
++        my $physicalRegionSize = 0xFFFFFFFF;
+ 
+-    #Second User Data Word
+-    #[1:sha512Version/sha512perEC][1:miscFlags]
+-    my $userflags1 = ($verCheck << 24)
+-        | ($miscFlags << 16);
++        # eyecatcher
++        my $eyeCatch = $sectionHash{$key}{eyeCatch};
++        my $myside = $sectionHash{$key}{side};
+ 
+-    do{
+-        trace(2, "$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --user 0 --name $eyeCatch --value userflags0=$userflags0");
+-        $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --user 0 --name $eyeCatch --value $userflags0`;
+-        if($rc)
+-        {
+-            trace(0, "$this_func: Call to add userdata to $eyeCatch failed.  rc=$rc.  Aborting!");
+-            last;
+-        }
+-        trace(2, "$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --user 1 --name $eyeCatch --value userflags1=$userflags1");
+-        $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --user 1 --name $eyeCatch --value $userflags1`;
+-        if($rc)
++        #don't try to add the TOC, but need to update all other paritions
++        #Add if side matches (or not set) -- so if it isn't equal to other side
++        if(( $eyeCatch ne $g_TOCEyeCatch ) && ( $myside ne $other_side ))
+         {
+-            trace(0, "$this_func: Call to add userdata to $eyeCatch failed.  rc=$rc.  Aborting!");
+-            last;
+-        }
+-    }while(0);
+-
+-    return $rc;
+-}
+-
+-################################################################################
+-# createPnorPartition - Create PNOR partitions based on input data.
+-################################################################################
+-sub createPnorPartition
+-{
+-    my ($i_tocVersion, $i_pnorBinName, $i_pnorLayoutRef, $side, $offset) = @_;
+-    my $this_func = (caller(0))[3];
+-    my $rc = 0;
+-    my $key;
+-    my $other_side = getOtherSide($side);
+ 
+-    trace(4, "$this_func: >>Enter");
+-
+-    trace(1, "createPnorPartition:: $offset");
+-
+-    do{
+-        # Create pnor image at partition offset
+-        $rc = createPnorImg($i_tocVersion, $i_pnorBinName, $i_pnorLayoutRef,
+-                            $offset);
+-        if($rc)
+-        {
+-            last;
+-        }
++            # base/physical offset
++            my $physicalOffset = $sectionHash{$key}{physicalOffset};
++            #make sure offset is on a block boundary
++            my $val = $physicalOffset/$blockSize;
++            if ($val != int($val))
++            {
++                trace(0, "$this_func: Partition offset ($val) is does not fall on an erase block ($blockSize) boundary.  This is not supported.  Aborting!");
++                $rc = -1;
++                last;
++            }
+ 
+-        #get Block size
+-        my $blockSize = $$i_pnorLayoutRef{metadata}{blockSize};
++            #physical size
++            my $physicalRegionSize = $sectionHash{$key}{physicalRegionSize};
++            $val = $physicalRegionSize/$blockSize;
++            if($val != int($val))
++            {
++                trace(0, "$this_func: Partition size ($val) is not an even multiple of erase blocks ($blockSize).  This is not supported.  Aborting!");
++                exit 1;
++            }
+ 
+-        # key into hash data is the physical offset of section.  Need to sort the
+-        # keys so we put things in the correct order in toc. Generally speaking,
+-        # this loop is populating the FFS Header with records based on the section
+-        # data specified in the XML + actual sizes of the input binary files.
+-        my %sectionHash = %{$$i_pnorLayoutRef{sections}};
++            #Add Partition
++            #f{fs,part} --add --target tuleta.pnor --partition-offset 0 --offset 0x1000   --size 0x280000 --name HBI --flags 0x0
++            if ($g_ffsCmd eq "") {
++                trace(1, "$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0");
++                my $Out = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0`;
++            } else {
++                my $Out = `$g_ffsCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0`;
++            }
++            $rc = $?;
++            if($rc)
++            {
++                trace(0, "$this_func: Call to add partition $eyeCatch failed.  rc=$rc.  Aborting!");
++                last;
++            }
+ 
+-        for $key ( sort {$a<=> $b} keys %sectionHash)
+-        {
+-            my $eyeCatch = "UNDEF";
+-            my $physicalOffset = 0xFFFFFFFF;
+-            my $physicalRegionSize = 0xFFFFFFFF;
++            # User data Flags
++            my $chip = 0;
++            my $compress = 0;
++            my $ecc = 0;
++            my $version = 0;
+ 
+-            # eyecatcher
+-            my $eyeCatch = $sectionHash{$key}{eyeCatch};
++            if( ($sectionHash{$key}{ecc} eq "yes") )
++            {
++                $ecc = 0x8000;
++            }
++            if( ($sectionHash{$key}{sha512Version} eq "yes") )
++            {
++                $version = 0x80;
++            }
++            elsif( ($sectionHash{$key}{sha512perEC} eq "yes") )
++            {
++                $version = 0x40;
++            }
+ 
+-            my $sideInfo = getSideInfo($key, %sectionHash);
++            #First User Data Word
++            #[1:chip][1:compression][2:ecc]
++            my $userflags0 = ($chip << 24)
++              | ($compress << 16)
++              | $ecc;
++
++            #Second User Data Word
++            #[1:sha512Version/sha512perEC]
++            my $userflags1 = ($version << 24);
++
++            trace(1,"userflags0 = $userflags0");
++            trace(1,"userflags1 = $userflags1");
++            if ($g_ffsCmd eq "") {
++                trace(1, "$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --user 0 --name $eyeCatch --value $userflags0");
++                my $Out = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --user 0 --name $eyeCatch --value $userflags0`;
++                trace(1, "$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --user 1 --name $eyeCatch --value $userflags1");
++                my $Out = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --user 1 --name $eyeCatch --value $userflags1`;
++            }
++            $rc = $?;
++            if($rc)
++            {
++                trace(0, "$this_func: Call to add userdata to $eyeCatch failed.  rc=$rc.  Aborting!");
++                last;
++            }
+ 
+-            #don't try to add the TOC, but need to update all other paritions
+-            #Add if side matches (or not set) -- so if it isn't equal to other side
+-            #Also add if sideless
+-            if( ($eyeCatch ne $g_TOCEyeCatch ) &&
+-                ($sideInfo ne $other_side ))
++            #Trunc Partition
++            #f{fs,part} --target tuleta.pnor --partition-offset 0 --name HBI --trunc
++            if ($g_ffsCmd eq "") {
++                my $Out = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --trunc --name $eyeCatch`;
++            } else {
++                my $Out = `$g_ffsCmd --target $i_pnorBinName --partition-offset $offset --trunc --name $eyeCatch`;
++            }
++            $rc = $?;
++            if($rc)
+             {
+-                # base/physical offset
+-                my $physicalOffset = $sectionHash{$key}{physicalOffset};
+-                #make sure offset is on a block boundary
+-                my $val = $physicalOffset/$blockSize;
+-                if ($val != int($val))
+-                {
+-                    trace(0, "$this_func: Partition offset ($val) does not fall on an erase block ($blockSize) boundary.  This is not supported.  Aborting!");
+-                    $rc = -1;
+-                    last;
+-                }
+-
+-                #physical size
+-                my $physicalRegionSize = $sectionHash{$key}{physicalRegionSize};
+-                $val = $physicalRegionSize/$blockSize;
+-                if($val != int($val))
+-                {
+-                    trace(0, "$this_func: Partition size ($val) is not an even multiple of erase blocks ($blockSize).  This is not supported.  Aborting!");
+-                    exit 1;
+-                }
+-
+-                #Add Partition
+-                #f{fs,part} --add --target tuleta.pnor --partition-offset 0 --offset 0x1000   --size 0x280000 --name HBI --flags 0x0
+-                trace(2, "$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0");
+-                $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0`;
+-                if($rc)
+-                {
+-                    trace(0, "$this_func: Call to add partition $eyeCatch failed.  rc=$rc.  Aborting!");
+-                    last;
+-                }
+-
+-                # Add User Partition data
+-                $rc = addUserData($i_pnorBinName, $offset, $key, %sectionHash);
+-                if($rc)
+-                {
+-                    trace(0, "$this_func: Call to add user data to partition $eyeCatch failed.  rc=$rc.  Aborting!");
+-                    last;
+-                }
+-
+-                #Trunc Partition
+-                #f{fs,part} --target tuleta.pnor --partition-offset 0 --name HBI --trunc
+-                $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --trunc --name $eyeCatch`;
+-                if($rc)
+-                {
+-                    trace(0, "$this_func: Call to trunc partition $eyeCatch failed.  rc=$rc.  Aborting!");
+-                    last;
+-                }
++                trace(0, "$this_func: Call to trunc partition $eyeCatch failed.  rc=$rc.  Aborting!");
++                last;
+             }
+         }
+-        # Added in case more functionality added before while ends
+-        if ($rc)
+-        {
+-            last;
+-        }
+-    }while(0);
++
++        #Disable usewords for now.  Will get re-enabled and fixed up as
++        #we add support for underlying functions
++
++#        my $Out = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset
++#        		--user 0 --name $eyeCatch --value $actualRegionSize`;
++#        $rc = $?;
++#        if($rc)
++#        {
++#            trace(0, "$this_func: Call to fpart setting user 0 for partition $eyeCatch failed.  rc=$rc.  Aborting!");
++#            last;
++#        }
++
++    }
+ 
+     return $rc;
+ }
+@@ -649,13 +570,21 @@ sub checkSpaceConstraints
+ ################################################################################
+ sub fillPnorImage
+ {
+-    my ($i_pnorBinName, $i_pnorLayoutRef, $i_binFiles, $side, $offset) = @_;
++    my ($i_pnorBinName, $i_pnorLayoutRef, $i_binFiles, $offset, $side) = @_;
+     my $this_func = (caller(0))[3];
+     my $rc = 0;
+     my $key;
+-    my $other_side = getOtherSide($side);
++    my $other_side = 'B';
++
++
++    if($side eq 'B')
++    {
++        $other_side = 'A';
++    }
++
+ 
+     trace(1, "fillPnorImage:: $offset");
++
+     #key is the physical offset into the file, however don't need to sort
+     #since FFS allows populating partitions in any order
+     my %sectionHash = %{$$i_pnorLayoutRef{sections}};
+@@ -676,26 +605,27 @@ sub fillPnorImage
+             next;
+         }
+ 
+-        my $sideInfo = getSideInfo($key, %sectionHash);
++        my $myside = $sectionHash{$key}{side};
+ 
+-        # Add if side matches (or not set) -- so if it isn't equal to other side
+-        # Only fill sideless sections once
+-        if( ($sideInfo ne $other_side) &&
+-            (!exists($sidelessSecFilled{$eyeCatch})))
++        #Add if side matches (or not set) -- so if it isn't equal to other side
++        if( $myside ne $other_side )
+         {
+-            if($sideInfo eq $SideOptions{sideless})
+-            {
+-                $sidelessSecFilled{$eyeCatch} = 1;
+-            }
+-            trace(5, "$this_func: populating section $sideInfo:$eyeCatch, filename=$inputFile");
++            trace(5, "$this_func: populating section $myside:$eyeCatch, filename=$inputFile");
++
+             #fcp --target tuleta.pnor --partition-offset 0 --name HBI --write hostboot_extended.bin
+-            $rc = `$g_fcpCmd $inputFile $i_pnorBinName:$eyeCatch --offset $offset --write --buffer 0x40000000`;
++            if ($g_ffsCmd eq "") {
++                my $Out = `$g_fcpCmd $inputFile $i_pnorBinName:$eyeCatch --offset $offset --write --buffer 0x40000000`;
++            } else {
++                my $Out = `$g_ffsCmd --target $i_pnorBinName --partition-offset $offset --name $eyeCatch  --write $inputFile`;
++            }
++            $rc = $?;
+             if($rc)
+             {
+                 trace(0, "$this_func: Call to fcp adding data to partition $eyeCatch failed.  rc=$rc.  Aborting!");
+                 last;
+             }
+          }
++
+     }
+ 
+     return $rc;
+@@ -723,6 +653,28 @@ sub saveInputFile
+ }
+ 
+ #################################################
++# getFFSEntrySize: Returns number of bytes in an ffs_entry based on specified version
++#################################################
++sub getFFSEntrySize
++{
++    my($i_tocVersion, $i_pnorLayoutRef) = @_;
++    my $this_func = (caller(0))[3];
++    my $ffsEntrySize = 0;
++
++    if($i_tocVersion == 0x1)
++    {
++        #16 char name + 12 fixed words + 16 user data words
++        $ffsEntrySize = 16+(12*4)+(16*4);
++    }
++    else
++    {
++        trace(0, "$this_func:  Layout Version Unsupported!  i_tocVersion=$i_tocVersion");
++        exit 1;
++    }
++    return $ffsEntrySize;
++}
++
++#################################################
+ # Insert specifed number of pad bytes into file
+ #
+ #################################################
+@@ -780,70 +732,6 @@ sub trace
+     }
+ }
+ 
+-################################################################################
+-# getSideInfo - return side info of certain sections and determine if value is
+-#               a supported value
+-################################################################################
+-sub getSideInfo
+-{
+-    my $i_key = shift;
+-    my %i_sectionHash = @_;
+-
+-    my $side = "";
+-    my $eyeCatch = $i_sectionHash{$i_key}{eyeCatch};
+-
+-
+-    if($i_sectionHash{$i_key}{sideless} eq "yes")
+-    {
+-        return $SideOptions{sideless};
+-    }
+-    else
+-    {
+-        $side = $i_sectionHash{$i_key}{side};
+-    }
+-
+-    # Error paths
+-    if ($side eq "")
+-    {
+-        trace(0, "Error detected from call to getSideInfo() - $eyeCatch has no side info specified Exiting");
+-        exit 1;
+-    }
+-    elsif (!exists($SideOptions{$side}))
+-    {
+-        trace(0, "Error detected from call to getSideInfo() - $eyeCatch has sideInfo = $side which is not supported Exiting");
+-        exit 1;
+-    }
+-
+-    return $side;
+-}
+-
+-################################################################################
+-# getOtherSide - return other side of the given side
+-#                does not default to main side in case more sides are added
+-################################################################################
+-sub getOtherSide
+-{
+-    my $i_side = shift;
+-    my $other_side = "";
+-
+-    if($i_side eq $SideOptions{A})
+-    {
+-        $other_side = $SideOptions{B};
+-    }
+-    elsif($i_side eq $SideOptions{B})
+-    {
+-        $other_side = $SideOptions{A};
+-    }
+-
+-    # Error paths
+-    if ($other_side eq "")
+-    {
+-        trace(0, "Error detected from call to getOtherSide() - Could not get other side of side = $i_side Exiting");
+-        exit 1;
+-    }
+-
+-    return $other_side;
+-}
+ 
+ 
+ ################################################################################
+diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
+index 249bdb4..e34f0fe 100644
+--- a/src/build/buildpnor/defaultPnorLayout.xml
++++ b/src/build/buildpnor/defaultPnorLayout.xml
+@@ -5,9 +5,7 @@
+ <!--                                                                        -->
+ <!-- OpenPOWER HostBoot Project                                             -->
+ <!--                                                                        -->
+-<!-- Contributors Listed Below - COPYRIGHT 2012,2015                        -->
+-<!-- [+] International Business Machines Corp.                              -->
+-<!--                                                                        -->
++<!-- COPYRIGHT International Business Machines Corp. 2012,2014              -->
+ <!--                                                                        -->
+ <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
+ <!-- you may not use this file except in compliance with the License.       -->
+@@ -24,50 +22,48 @@
+ <!-- IBM_PROLOG_END_TAG                                                     -->
+ <!--
+ Layout Description
+-<metadata> Element -> Contains high-level information about the PNOR layout.
+-    <imageSize>           -> Size of PNOR image in bytes.
+-    <blockSize>           -> size of erase blocks in bytes.
+-    <sideATocOffset>      -> Location of Side A Partition Table
+-    <sideATocBackupOffset>-> Location of Side A Backup Partition Table
+-    <sideBTocOffset>      -> Location of Side B Partition Table
+-    <sideBTocBackupOffset>-> Location of Side B Backup Partition Table
+-</metadata>
+-<section> Element -> Contains information about a PNOR Partition
+-    <description>   -> Text description of the partition.
+-                       Does not have to be machine readable.
+-    <eyeCatch>      -> Name of the Partition
+-    <physicalOffset>-> Offset of the Partition in PNOR
+-                       in bytes.
+-    <physicalSize>  -> Size of the Partition in bytes.
+-    <side>          -> Side the Partition should be associated with. This
+-                       determines if the partition should be added to the
+-                       partition table at <sideATocOffset> or <sideBTocOffset>
+-    <sideless/>     -> Indicates partition will be in both TOCs but only one
+-                       copy of the partition should be created
+-    <testonly/>     -> Indicates partition is used for internal testing only.
+-                       Partition should be skipped in production environments.
+-    <ecc/>          -> Indicates Partition should be ECC protected
+-    <sha512Version/>-> Indicates Partition uses SHA512 for version information.
+-    <sha512perEC/>  -> Indicates SHA512 is used to indicate version for each
+-                       EC-specific image within the Partition.
+-    <preserved/>    -> Indicates Partition is preserved across code updates.
+-</section>
++<metadata> Element -> Contains high-level information about
++   the PNOR layout.
++    <imageSize> -> Size of PNOR image in bytes.
++    <blockSize> -> size of erase blocks in bytes.
++    <sideAOffset> -> Location of Side A Partition Table
++    <sideBOffset> -> Location of Side B Partition Table
++<section> -> Contains information about a PNOR Partition
++    <description> -> Text description of the partition.
++                     Does not have to be machine readable.
++    <eyeCatch> -> Name of the Partition
++    <physicalOffset> -> Offset of the Partition in PNOR
++                        in bytes.
++    <physicalSize> -> Size of the Partition in bytes.
++    <side> -> Side the partition should be associated with.
++              This determines if the partition should be
++              added to the partition table at <sideAOffset>
++              or <sideBOffset>
++    <testonly/> Indicates partition is used for internal
++                testing only.  Partition should be skipped
++                 in production environments.
++    <ecc/>  Indicates Partition should be ECC protected
++    <sha512Version/> Indicates Partition uses SHA512 for
++                     version information.
++    <sha512perEC/> Indicates SHA512 is used to indicate
++                   version for each EC-specific image
++                   within the Partition.
++    <preserved/>   Indicates Partition is preserved
++                   across code updates.
+ -->
+ 
+ <pnor>
+     <metadata>
+         <imageSize>0x4000000</imageSize>
+         <blockSize>0x1000</blockSize>
+-        <!-- @TODO RTC: 120062 - Enhance meta info -->
+-        <sideATocOffset>0x0</sideATocOffset>
+-        <sideATocBackupOffset>0x8000</sideATocBackupOffset>
++        <sideAOffset>0x0</sideAOffset>
++        <sideBOffset>0x8000</sideBOffset>
+     </metadata>
+     <section>
+         <description>Hostboot Error Logs (144K)</description>
+         <eyeCatch>HBEL</eyeCatch>
+         <physicalOffset>0x10000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -75,7 +71,6 @@ Layout Description
+         <eyeCatch>GUARD</eyeCatch>
+         <physicalOffset>0x58000</physicalOffset>
+         <physicalRegionSize>0x5000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -83,7 +78,6 @@ Layout Description
+         <eyeCatch>HBD</eyeCatch>
+         <physicalOffset>0x5D000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -92,7 +86,6 @@ Layout Description
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+          <physicalOffset>0x17D000</physicalOffset>
+         <physicalRegionSize>0x48000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -101,7 +94,6 @@ Layout Description
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+         <physicalOffset>0x1C5000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -110,7 +102,6 @@ Layout Description
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+         <physicalOffset>0x255000</physicalOffset>
+         <physicalRegionSize>0x48000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -119,7 +110,6 @@ Layout Description
+         <physicalOffset>0x29D000</physicalOffset>
+         <physicalRegionSize>0x5A0000</physicalRegionSize>
+         <sha512Version/>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -128,7 +118,6 @@ Layout Description
+         <physicalOffset>0x83D000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+         <sha512perEC/>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -137,7 +126,6 @@ Layout Description
+         <physicalOffset>0x8CD000</physicalOffset>
+         <physicalRegionSize>0x48000</physicalRegionSize>
+         <sha512perEC/>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -146,7 +134,6 @@ Layout Description
+         <physicalOffset>0x915000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+         <sha512Version/>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -155,7 +142,6 @@ Layout Description
+         <physicalOffset>0xA35000</physicalOffset>
+         <physicalRegionSize>0x240000</physicalRegionSize>
+         <sha512Version/>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -163,7 +149,6 @@ Layout Description
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0xC75000</physicalOffset>
+         <physicalRegionSize>0x1680000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -172,18 +157,6 @@ Layout Description
+         <physicalOffset>0x3590000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+         <testonly/>
+-        <sideless/>
+-        <ecc/>
+-    </section>
+-    <section>
+-        <description>Special PNOR Test Space (36K)</description>
+-        <eyeCatch>TESTRO</eyeCatch>
+-        <physicalOffset>0x3599000</physicalOffset>
+-        <physicalRegionSize>0x9000</physicalRegionSize>
+-        <testonly/>
+-        <sideless/>
+-        <preserved/>
+-        <readOnly/>
+         <ecc/>
+     </section>
+     <section>
+@@ -193,7 +166,6 @@ Layout Description
+         <physicalOffset>0x3F67000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+         <sha512Version/>
+-        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -201,7 +173,6 @@ Layout Description
+         <eyeCatch>GLOBAL</eyeCatch>
+         <physicalOffset>0x3FF7000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+-        <sideless/>
+         <ecc/>
+     </section>
+ </pnor>
+diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
+index 925061e..c0b0900 100755
+--- a/src/build/mkrules/hbfw/img/makefile
++++ b/src/build/mkrules/hbfw/img/makefile
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2012,2015
++# Contributors Listed Below - COPYRIGHT 2012,2014
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -226,7 +226,7 @@ PNOR_BUILD_SCRIPT = ${buildpnor.pl:P}
+ #so need to use tryinclude for now.
+ .tryinclude <${.PATH:Ffips_pnor.mk}>
+ 
+-HOSTBOOT_DEFAULT_SECTIONS = HBB=${BASE_W_HEADER_ECC_IMAGE},HBI=${EXT_ECC_HEADER_IMAGE},HBRT=${HBRT_ECC_HEADER_IMAGE},TEST=${TESTDATA_ECC},TESTRO=${TESTDATA_ECC},HBEL=${HBEL_ECC_IMAGE},GUARD=${GUARD_ECC_IMAGE},GLOBAL=${GLOBAL_ECC_IMAGE},PAYLOAD=${PAYLOAD_ECC_IMAGE},CVPD=${CVPD_ECC_IMAGE},MVPD=${MVPD_ECC_IMAGE},DJVPD=${DJVPD_ECC_IMAGE}
++HOSTBOOT_DEFAULT_SECTIONS = HBB=${BASE_W_HEADER_ECC_IMAGE},HBI=${EXT_ECC_HEADER_IMAGE},HBRT=${HBRT_ECC_HEADER_IMAGE},TEST=${TESTDATA_ECC},HBEL=${HBEL_ECC_IMAGE},GUARD=${GUARD_ECC_IMAGE},GLOBAL=${GLOBAL_ECC_IMAGE},PAYLOAD=${PAYLOAD_ECC_IMAGE},CVPD=${CVPD_ECC_IMAGE},MVPD=${MVPD_ECC_IMAGE},DJVPD=${DJVPD_ECC_IMAGE}
+ 
+ 
+ HBFW_OBJPATH = ${.PATH:M*obj*}
+diff --git a/src/include/usr/hwas/hwasPlatDeconfigGard.H b/src/include/usr/hwas/hwasPlatDeconfigGard.H
+index c439a42..4b89353 100644
+--- a/src/include/usr/hwas/hwasPlatDeconfigGard.H
++++ b/src/include/usr/hwas/hwasPlatDeconfigGard.H
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2012,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2012,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -32,8 +30,6 @@
+ #ifndef HWASPLATDECONFIGGARD_H_
+ #define HWASPLATDECONFIGGARD_H_
+ 
+-#include <pnor/pnorif.H>
+-
+ /**
+  *  @brief Adapt common singleton declaration to specific platform
+  *
+@@ -68,19 +64,6 @@ struct HBDeconfigGard
+     void *iv_pGardRecords;          // Pointer to the GARD Records in PNOR
+ };
+ 
+-/**
+- *  @brief Gets iv_gardSectionInfo and sets it if first time called.
+- *         Sets o_sectionInfo based on iv_gardSectionInfo for the caller
+- *
+- *  @param[out] Guard PNOR section info
+- *
+- *  @return errlHndl_t Error log handle, depending on config options will
+- *          ignore error because no Guard section exists in PNOR
+- *          (e.g. CONFIG_GOLDEN_PNOR_SIDE_SUPPORT)
+- *
+- */
+-errlHndl_t getGardSectionInfo(PNOR::SectionInfo_t& o_sectionInfo);
+-
+ } // namespace HWAS
+ 
+ #endif // HWASPLATDECONFIGGARD_H_
+diff --git a/src/include/usr/pnor/pnor_reasoncodes.H b/src/include/usr/pnor/pnor_reasoncodes.H
+index 4857c1b..a9854a4 100644
+--- a/src/include/usr/pnor/pnor_reasoncodes.H
++++ b/src/include/usr/pnor/pnor_reasoncodes.H
+@@ -136,8 +136,6 @@ namespace PNOR
+         RC_PNOR_READ_NOT_SUPPORTED   = PNOR_COMP_ID | 0x1F,
+         RC_PNOR_WRITE_NOT_SUPPORTED  = PNOR_COMP_ID | 0x20,
+         RC_NON_ECC_PROTECTED_SECTION = PNOR_COMP_ID | 0x21,
+-        RC_WRITABLE_PERM_FAIL        = PNOR_COMP_ID | 0x22,
+-        RC_WRITE_TRACKED_PERM_FAIL   = PNOR_COMP_ID | 0x23,
+     };
+ 
+     enum UserDetailsTypes
+diff --git a/src/include/usr/pnor/pnorif.H b/src/include/usr/pnor/pnorif.H
+index 2689077..a9856f8 100644
+--- a/src/include/usr/pnor/pnorif.H
++++ b/src/include/usr/pnor/pnorif.H
+@@ -29,7 +29,6 @@
+ #include <stdint.h>
+ #include <builtins.h>
+ #include <errl/errlentry.H>
+-#include <utility>
+ 
+ namespace PNOR
+ {
+@@ -62,7 +61,6 @@ enum SectionId
+     ATTR_PERM,      /**< Permanent Attribute Override */
+     CAPP,           /**< CAPP lid */
+     TEST,           /**< Scratch space for PNOR test cases */
+-    TESTRO,         /**< Scratch space for PNOR ReadOnly test cases */
+ 
+     NUM_SECTIONS,   /**< Number of defined sections */
+ 
+@@ -84,8 +82,7 @@ struct SectionInfo_t
+     uint64_t size;      /**< Size of partition in bytes */
+     bool eccProtected;  /**< Section is ECC protected */
+     bool sha512Version; /**< Version Checking */
+-    bool sha512perEC; /**< Version Checking perEC */
+-    bool readOnly; /**< Section is read only */
++    bool sha512perEC;   /**< Version Checking perEC */
+ };
+ 
+ /**
+@@ -124,7 +121,6 @@ errlHndl_t fixECC (SectionId i_section);
+  *         true = PNOR DD is using L3 Cache for fake PNOR
+  *         false = PNOR DD not using L3 Cache for fake PNOR
+  */
+- bool usingL3Cache();
+ 
+ /**
+  * @brief  Clears the specified PNOR section with all FF's (w/ good ECC)
+@@ -135,6 +131,8 @@ errlHndl_t fixECC (SectionId i_section);
+  */
+ errlHndl_t clearSection(PNOR::SectionId i_section);
+ 
++bool usingL3Cache();
++
+ /**
+  * @brief Validate the Alternative Master Processor's LPC
+  *        Connection to PNOR
+@@ -143,14 +141,6 @@ errlHndl_t clearSection(PNOR::SectionId i_section);
+  */
+ errlHndl_t validateAltMaster( void );
+ 
+-//@ TODO RTC: 120061 add golden info
+-//@ TODO RTC: 109703 make golden changes for informing OPAL
+-struct TocInfo_t
+-{
+-    std::pair<uint64_t, uint64_t> activeTocOffsets;
+-    std::pair<uint64_t, uint64_t> altTocOffsets;
+-};
+-
+ /** @brief PNOR::TEST section offsets for test cases to prevent
+  *         concurrency problems
+  */
+@@ -160,29 +150,6 @@ enum TestSectionOffset{
+     pnorTestSec_rt_readwrite_offset = 0x6000,
+ };
+ 
+-////////////////////////////////////////////////////////////////////////////////
+-// SBE functionality that lives in PNOR
+-
+-// Used to keep track of perm/temp, and cur/alt
+-enum sbeSeepromSide_t
+-{
+-    SBE_SEEPROM0         = 0x00,   // corresponds to EEPROM::SBE_PRIMARY
+-    SBE_SEEPROM1         = 0x01,   // corresponts to EEPROM::SBE_BACKUP
+-    SBE_SEEPROM_INVALID  = 0xFF,
+-};
+-
+-/**
+- * @brief Determines which Seeprom was used to boot the SBE
+- *
+- * @param[in] i_target      Target processor to customize
+- *
+- * @param[out] o_bootSide   The Seeprom the SBE booted from
+- *
+- * @return errlHndl_t       Error log handle on failure.
+- */
+-errlHndl_t getSbeBootSeeprom(TARGETING::Target* i_target,
+-                             sbeSeepromSide_t& o_bootSide);
+-
+ }
+ 
+ #endif
+diff --git a/src/usr/hwas/hwasPlatDeconfigGard.C b/src/usr/hwas/hwasPlatDeconfigGard.C
+index 2911cf3..912f7d4 100644
+--- a/src/usr/hwas/hwasPlatDeconfigGard.C
++++ b/src/usr/hwas/hwasPlatDeconfigGard.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2014                        */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+@@ -52,15 +52,6 @@ using namespace HWAS::COMMON;
+ using namespace TARGETING;
+ 
+ const uint32_t EMPTY_GARD_RECORDID = 0xFFFFFFFF;
+-/**
+- * @brief Guard PNOR section info, obtained once for efficiency
+- */
+-static PNOR::SectionInfo_t g_GardSectionInfo;
+-
+-/**
+- * @brief Flag indicating if getGardSectionInfo() was called previously
+- */
+-static bool getGardSectionInfoCalled;
+ 
+ void _flush(void *i_addr);
+ errlHndl_t _GardRecordIdSetup(void *&io_platDeconfigGard);
+@@ -99,7 +90,7 @@ errlHndl_t DeconfigGard::platClearGardRecords(
+ 
+     HWAS_MUTEX_LOCK(iv_mutex);
+     l_pErr = _GardRecordIdSetup(iv_platDeconfigGard);
+-    if (!l_pErr && iv_platDeconfigGard)
++    if (!l_pErr)
+     {
+         uint32_t l_gardRecordsCleared = 0;
+         HBDeconfigGard *l_hbDeconfigGard =
+@@ -136,6 +127,10 @@ errlHndl_t DeconfigGard::platClearGardRecords(
+ 
+         HWAS_INF("GARD Records Cleared: %d", l_gardRecordsCleared);
+     }
++    else
++    {
++        HWAS_ERR("Error from _GardRecordIdSetup");
++    }
+ 
+     HWAS_MUTEX_UNLOCK(iv_mutex);
+ #endif // CONFIG_NO_GARD_SUPPORT
+@@ -158,7 +153,7 @@ errlHndl_t DeconfigGard::platGetGardRecords(
+ 
+     HWAS_MUTEX_LOCK(iv_mutex);
+     l_pErr = _GardRecordIdSetup(iv_platDeconfigGard);
+-    if (!l_pErr && iv_platDeconfigGard)
++    if (!l_pErr)
+     {
+         HBDeconfigGard *l_hbDeconfigGard =
+                 (HBDeconfigGard *)iv_platDeconfigGard;
+@@ -188,6 +183,10 @@ errlHndl_t DeconfigGard::platGetGardRecords(
+             }
+         } // for
+     }
++    else
++    {
++        HWAS_ERR("Error from _GardRecordIdSetup");
++    }
+ 
+     HWAS_MUTEX_UNLOCK(iv_mutex);
+     HWAS_INF("Get returning %d GARD Records", o_records.size());
+@@ -270,8 +269,9 @@ errlHndl_t DeconfigGard::platCreateGardRecord(
+         }
+ 
+         l_pErr = _GardRecordIdSetup(iv_platDeconfigGard);
+-        if (l_pErr && iv_platDeconfigGard)
++        if (l_pErr)
+         {
++            HWAS_ERR("Error from _GardRecordIdSetup");
+             break;
+         }
+ 
+@@ -394,27 +394,20 @@ errlHndl_t _GardRecordIdSetup( void *&io_platDeconfigGard)
+             break;
+         }
+ 
+-        // Get the PNOR Guard information
++        // allocate our memory and set things up
++        io_platDeconfigGard = malloc(sizeof(HBDeconfigGard));
++        HBDeconfigGard *l_hbDeconfigGard =
++                (HBDeconfigGard *)io_platDeconfigGard;
++
++        // get the PNOR address.
+         PNOR::SectionInfo_t l_section;
+-        l_pErr = getGardSectionInfo(l_section);
++        l_pErr = PNOR::getSectionInfo(PNOR::GUARD_DATA, l_section);
+         if (l_pErr)
+         {
+-            HWAS_ERR("_GardRecordIdSetup: getGardSectionInfo failed!!!");
++            HWAS_ERR("PNOR::getSectionInfo failed!!!");
+             // no support for GARD in this configuration.
+             break;
+         }
+-        // Check if guard section exists, as certain configs ignore the above
+-        // error (e.g. golden side has no GARD section)
+-        if (l_section.size == 0)
+-        {
+-            HWAS_ERR("_GardRecordIdSetup: No guard section skipping function");
+-            break;
+-        }
+-
+-        // allocate our memory and set things up
+-        io_platDeconfigGard = malloc(sizeof(HBDeconfigGard));
+-        HBDeconfigGard *l_hbDeconfigGard =
+-                (HBDeconfigGard *)io_platDeconfigGard;
+ 
+         l_hbDeconfigGard->iv_pGardRecords =
+             reinterpret_cast<DeconfigGard::GardRecord *> (l_section.vaddr);
+@@ -473,44 +466,4 @@ void _flush(void *i_addr)
+     }
+ }
+ 
+-errlHndl_t getGardSectionInfo(PNOR::SectionInfo_t& o_sectionInfo)
+-{
+-    errlHndl_t l_errl = NULL;
+-    do
+-    {
+-        // getSectionInfo has already been called for GUARD_DATA
+-        if(getGardSectionInfoCalled)
+-        {
+-            o_sectionInfo = g_GardSectionInfo;
+-            break;
+-        }
+-
+-        // Get Guard Section Info and set gardSectionInfo
+-        l_errl = PNOR::getSectionInfo(PNOR::GUARD_DATA, g_GardSectionInfo);
+-        if (l_errl)
+-        {
+-            g_GardSectionInfo.size = 0;
+-// @TODO RTC: 120061 - replace config flag with a pnor interface call to say if
+-//                     there is a guard section on the current (active) side
+-//                     of pnor
+-#ifdef CONFIG_TWO_SIDE_SUPPORT
+-            HWAS_INF("getGardSectionInfo: No guard section disabling guard support");
+-            l_errl = NULL;
+-#else
+-            HWAS_ERR("getGardSectionInfo:getSectionInfo failed");
+-#endif
+-        }
+-        else
+-        {
+-            HWAS_INF("getGardSectionInfo: Section %s found, size %d",
+-                      g_GardSectionInfo.name, g_GardSectionInfo.size);
+-        }
+-
+-        o_sectionInfo = g_GardSectionInfo;
+-        getGardSectionInfoCalled = true;
+-    } while(0);
+-
+-    return l_errl;
+-}
+-
+ } // namespace HWAS
+diff --git a/src/usr/pnor/HBconfig b/src/usr/pnor/HBconfig
+index 21082f4..298144c 100644
+--- a/src/usr/pnor/HBconfig
++++ b/src/usr/pnor/HBconfig
+@@ -37,8 +37,3 @@ config PNOR_IS_32MB
+     default n
+     help
+         Size of the attached flash chip is 32MB, if not set then 64MB is default
+-
+-config TWO_SIDE_SUPPORT
+-    default n
+-    help
+-        This is used to turn on/off two sided pnor support
+diff --git a/src/usr/pnor/common/ffs_hb.H b/src/usr/pnor/common/ffs_hb.H
+index c96911b..b638021 100644
+--- a/src/usr/pnor/common/ffs_hb.H
++++ b/src/usr/pnor/common/ffs_hb.H
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2012,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2012,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -27,7 +25,7 @@
+ 
+ /*
+  * FSP Destination: src/hbfw/fsp/pnor/common/ffs_hb.H
+- *
++ * 
+  * NOTE: Do NOT modify this file in CMVC directly!  It comes from the Hostboot
+  *      repository and will be overwritten.
+ */
+@@ -65,7 +63,6 @@ enum
+ 
+     /* Miscellaneous Bits : 1 byte */
+     FFS_MISC_PRESERVED     = 0x80,    /**< Preserved across code updates */
+-    FFS_MISC_READ_ONLY     = 0x40,    /**< Read only section */
+     FFS_MISC_UNUSED        = 0x1F,    /**< Unused MISC Flags */
+ };
+ 
+diff --git a/src/usr/pnor/makefile b/src/usr/pnor/makefile
+index 2f0a4e1..31087a4 100644
+--- a/src/usr/pnor/makefile
++++ b/src/usr/pnor/makefile
+@@ -32,7 +32,6 @@ OBJS += pnor_common.o
+ OBJS += pnorvalid.o
+ OBJS += ecc.o
+ OBJS += sfcdd.o
+-OBJS += pnorsbe.o
+ 
+ #SFC Implementations
+ OBJS += $(if $(CONFIG_SFC_IS_IBM_DPSS),sfc_ibm.o)
+diff --git a/src/usr/pnor/pnor_common.C b/src/usr/pnor/pnor_common.C
+index 00931ec..e8972e2 100644
+--- a/src/usr/pnor/pnor_common.C
++++ b/src/usr/pnor/pnor_common.C
+@@ -24,15 +24,14 @@
+ /* IBM_PROLOG_END_TAG                                                     */
+ 
+ #include "pnor_common.H"
++#include <pnor/pnorif.H>
+ #include <pnor/pnor_reasoncodes.H>
+ 
+ #include "ffs.h"           //Common header file with BuildingBlock.
+ #include "common/ffs_hb.H" //Hostboot def of user data in ffs_entry struct
+-#include <sys/mm.h>
+ 
+ #include <initservice/initserviceif.H>
+ #include <util/align.H>
+-#include <errl/errlmanager.H>
+ 
+ // Trace definition
+ trace_desc_t* g_trac_pnor = NULL;
+@@ -46,29 +45,28 @@ TRAC_INIT(&g_trac_pnor, PNOR_COMP_NAME, 4*KILOBYTE, TRACE::BUFFER_SLOW); //4K
+  * Eyecatcher strings for PNOR TOC entries
+  */
+ const char* cv_EYECATCHER[] = {
+-    "part",      /**< PNOR::TOC            : Table of Contents */
+-    "HBI",       /**< PNOR::HB_EXT_CODE    : Hostboot Extended Image */
+-    "GLOBAL",    /**< PNOR::GLOBAL_DATA    : Global Data */
+-    "HBB",       /**< PNOR::HB_BASE_CODE   : Hostboot Base Image */
+-    "SBEC",      /**< PNOR::CENTAUR_SBE    : Centaur Self-Boot Engine image */
+-    "SBE",       /**< PNOR::SBE_IPL        : Self-Boot Enginer IPL image */
+-    "WINK",      /**< PNOR::WINK           : Sleep Winkle Reference image */
+-    "PAYLOAD",   /**< PNOR::PAYLOAD        : HAL/OPAL */
+-    "HBRT",      /**< PNOR::HB_RUNTIME     : Hostboot Runtime (for Sapphire) */
+-    "HBD",       /**< PNOR::HB_DATA        : Hostboot Data */
+-    "GUARD",     /**< PNOR::GUARD_DATA     : Hostboot Data */
+-    "HBEL",      /**< PNOR::HB_ERRLOGS     : Hostboot Error log Repository */
+-    "DJVPD",     /**< PNOR::DIMM_JEDEC_VPD : Dimm JEDEC VPD */
+-    "MVPD",      /**< PNOR::MODULE_VPD     : Module VPD */
+-    "CVPD",      /**< PNOR::CENTAUR_VPD    : Centaur VPD */
+-    "NVRAM",     /**< PNOR::NVRAM          : OPAL Storage */
+-    "OCC",       /**< PNOR::OCC            : OCC LID */
+-    "FIRDATA",   /**< PNOR::FIRDATA        : FIRDATA */
++    "part",     /**< PNOR::TOC            : Table of Contents */
++    "HBI",      /**< PNOR::HB_EXT_CODE    : Hostboot Extended Image */
++    "GLOBAL",   /**< PNOR::GLOBAL_DATA    : Global Data */
++    "HBB",      /**< PNOR::HB_BASE_CODE   : Hostboot Base Image */
++    "SBEC",     /**< PNOR::CENTAUR_SBE    : Centaur Self-Boot Engine image */
++    "SBE",      /**< PNOR::SBE_IPL        : Self-Boot Enginer IPL image */
++    "WINK",     /**< PNOR::WINK           : Sleep Winkle Reference image */
++    "PAYLOAD",  /**< PNOR::PAYLOAD        : HAL/OPAL */
++    "HBRT",     /**< PNOR::HB_RUNTIME     : Hostboot Runtime (for Sapphire) */
++    "HBD",      /**< PNOR::HB_DATA        : Hostboot Data */
++    "GUARD",    /**< PNOR::GUARD_DATA     : Hostboot Data */
++    "HBEL",     /**< PNOR::HB_ERRLOGS     : Hostboot Error log Repository */
++    "DJVPD",    /**< PNOR::DIMM_JEDEC_VPD : Dimm JEDEC VPD */
++    "MVPD",     /**< PNOR::MODULE_VPD     : Module VPD */
++    "CVPD",     /**< PNOR::CENTAUR_VPD    : Centaur VPD */
++    "NVRAM",    /**< PNOR::NVRAM          : OPAL Storage */
++    "OCC",      /**< PNOR::OCC            : OCC LID */
++    "FIRDATA",  /**< PNOR::FIRDATA        : FIRDATA */
+     "ATTR_TMP",  /**< PNOR::ATTR_TMP       : Temporary Attribute Overrides */
+     "ATTR_PERM", /**< PNOR::ATTR_PERM      : Permanent Attribute Overrides */
+-    "CAPP",      /**< PNOR::CAPP            : CAPP LID */
+-    "TEST",      /**< PNOR::TEST           : Test space for PNOR*/
+-    "TESTRO",    /**< PNOR::TESTRO         : ReadOnly Test space for PNOR */
++    "CAPP",     /**< PNOR::CAPP           : CAPP LID */
++    "TEST",     /**< PNOR::TEST           : Test space for PNOR*/
+     //Not currently used
+ //    "XXX",    /**< NUM_SECTIONS       : Used as invalid entry */
+ };
+@@ -91,7 +89,7 @@ uint32_t PNOR::pnor_ffs_checksum(void* data, size_t size)
+ }
+ 
+ errlHndl_t PNOR::parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+-           TOCS & o_TOC_used, SectionData_t * o_TOC, uint64_t i_baseVAddr)
++           uint32_t & o_TOC_used, SectionData_t * o_TOC, uint64_t i_baseVAddr)
+ {
+     TRACUCOMP(g_trac_pnor,"PNOR::parseTOC>");
+     errlHndl_t l_errhdl = NULL;
+@@ -99,10 +97,9 @@ errlHndl_t PNOR::parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+     bool TOC_0_failed = false;
+ 
+     do{
+-        o_TOC_used = TOC_0;
++        o_TOC_used = 0;
+ 
+-        for (TOCS cur_TOC = TOC_0; cur_TOC < NUM_TOCS;
+-            cur_TOC = (TOCS)(cur_TOC+1))
++        for (uint32_t cur_TOC = 0; cur_TOC < NUM_TOCS; ++cur_TOC)
+         {
+             TRACFCOMP(g_trac_pnor, "PNOR::parseTOC verifying TOC: %d",cur_TOC);
+             uint64_t nextVAddr = i_baseVAddr;
+@@ -137,10 +134,10 @@ errlHndl_t PNOR::parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+                 {
+                     TRACFCOMP(g_trac_pnor, "PNOR::parseTOC TOC 0 failed header checksum");
+                     TOC_0_failed = true;
+-                    o_TOC_used = TOC_1;
++                    o_TOC_used = 1;
+                     continue;
+                 }
+-                else if (cur_TOC == TOC_1 && TOC_0_failed)
++                else if (cur_TOC == 1 && TOC_0_failed)
+                 {
+                     // Both TOC's failed
+                     TRACFCOMP(g_trac_pnor, "PNOR::parseTOC both TOCs are corrupted");
+@@ -167,7 +164,7 @@ errlHndl_t PNOR::parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+             }
+ 
+             // Only check header if on first TOC or the first TOC failed
+-            if (cur_TOC == TOC_0 || TOC_0_failed)
++            if (cur_TOC == 0 || TOC_0_failed)
+             {
+                 TRACFCOMP(g_trac_pnor, "PNOR::parseTOC: FFS Block size=0x%.8X,"
+                  " Partition Table Size = 0x%.8x, entry_count=%d",
+@@ -273,15 +270,15 @@ errlHndl_t PNOR::parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+                     // in SP-less config
+                     TRACFCOMP(g_trac_pnor, "PNOR::parseTOC pnor_ffs_checksum"
+                             " entry checksums do not match");
+-                    if (cur_TOC == TOC_0)
++                    if (cur_TOC == 0)
+                     {
+                         TRACFCOMP(g_trac_pnor,"PNOR::parseTOC TOC 0 entry"
+                                 " checksum failed");
+                         TOC_0_failed = true;
+-                        o_TOC_used = TOC_1;
++                        o_TOC_used = 1;
+                         break;
+                     }
+-                    else if (cur_TOC == TOC_1 && TOC_0_failed)
++                    else if (cur_TOC == 1 && TOC_0_failed)
+                     {
+                         // Both TOC's failed
+                         TRACFCOMP(g_trac_pnor, "PNOR::parseTOC both TOC's are"
+@@ -309,7 +306,7 @@ errlHndl_t PNOR::parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+                 }
+ 
+                 // Only set data if on first TOC or the first TOC failed
+-                if (cur_TOC == TOC_0 || TOC_0_failed)
++                if (cur_TOC == 0 || TOC_0_failed)
+                 {
+                     //Figure out section enum
+                     for(uint32_t eyeIndex=PNOR::TOC;eyeIndex<PNOR::NUM_SECTIONS;
+@@ -396,120 +393,25 @@ errlHndl_t PNOR::parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+                                               0, 0, true);
+                         break;
+                     }
+-
+-# ifndef __HOSTBOOT_RUNTIME
+-                    // Handle section permissions
+-                    if (o_TOC[secId].misc & FFS_MISC_READ_ONLY)
+-                    {
+-                        // Need to set permissions to allow writing to virtual
+-                        // addresses, but prevents the kernel from ejecting
+-                        // dirty pages (no WRITE_TRACKED).
+-                        int rc = mm_set_permission(
+-                                                (void*)o_TOC[secId].virtAddr,
+-                                                o_TOC[secId].size,
+-                                                WRITABLE);
+-                        if (rc)
+-                        {
+-                            TRACFCOMP(g_trac_pnor, "E>PnorRP::readTOC: Failed to set block permissions to WRITABLE for section %s.",
+-                                      cv_EYECATCHER[secId]);
+-                            /*@
+-                            * @errortype
+-                            * @moduleid PNOR::MOD_PNORRP_READTOC
+-                            * @reasoncode PNOR::RC_WRITABLE_PERM_FAIL
+-                            * @userdata1 PNOR section id
+-                            * @userdata2 PNOR section vaddr
+-                            * @devdesc Could not set permissions of the
+-                            * given PNOR section to WRITABLE
+-                            * @custdesc A problem occurred while reading PNOR partition table
+-                            */
+-                            l_errhdl = new ERRORLOG::ErrlEntry(
+-                                            ERRORLOG::ERRL_SEV_UNRECOVERABLE,
+-                                            PNOR::MOD_PNORRP_READTOC,
+-                                            PNOR::RC_WRITABLE_PERM_FAIL,
+-                                            secId,
+-                                            o_TOC[secId].virtAddr,
+-                                            true /*Add HB SW Callout*/);
+-                            l_errhdl->collectTrace(PNOR_COMP_NAME);
+-                        }
+-                    }
+-                    else
+-                    {
+-                        // Need to set permissions to R/W
+-                        int rc = mm_set_permission(
+-                                            (void*)o_TOC[secId].virtAddr,
+-                                            o_TOC[secId].size,
+-                                            WRITABLE | WRITE_TRACKED);
+-                        if (rc)
+-                        {
+-                            TRACFCOMP(g_trac_pnor, "E>PnorRP::readTOC: Failed to set block permissions to WRITABLE/WRITE_TRACKED for section %s.",
+-                                      cv_EYECATCHER[secId]);
+-                            /*@
+-                            * @errortype
+-                            * @moduleid PNOR::MOD_PNORRP_READTOC
+-                            * @reasoncode PNOR::RC_WRITE_TRACKED_PERM_FAIL
+-                            * @userdata1 PNOR section id
+-                            * @userdata2 PNOR section vaddr
+-                            * @devdesc Could not set permissions of the
+-                            * given PNOR section to
+-                            * WRITABLE/WRITE_TRACKED
+-                            * @custdesc A problem occurred while reading
+-                            * PNOR partition table
+-                            */
+-                            l_errhdl = new ERRORLOG::ErrlEntry(
+-                                            ERRORLOG::ERRL_SEV_UNRECOVERABLE,
+-                                            PNOR::MOD_PNORRP_READTOC,
+-                                            PNOR::RC_WRITE_TRACKED_PERM_FAIL,
+-                                            secId,
+-                                            o_TOC[secId].virtAddr,
+-                                            true /*Add HB SW Callout*/);
+-                            l_errhdl->collectTrace(PNOR_COMP_NAME);
+-                        }
+-                    }
+-#endif
+-                    if( l_errhdl )
+-                    {
+-                        // If both toc0 and toc1 fail break and return the error
+-                        if ( (cur_TOC == TOC_1) && (TOC_0_failed) )
+-                        {
+-                            TRACFCOMP(g_trac_pnor, "PNOR::parseTOC readFromDevice Failed on both TOCs");
+-                            break;
+-                        }
+-
+-                        // Toc 1 has not been read yet or Toc 0 was read
+-                        // successfully
+-                        // Commit error and break to continue checking the next
+-                        // TOC
+-                        else
+-                        {
+-                            TRACFCOMP(g_trac_pnor, "PNOR::parseTOC readFromDevice Failed on TOC %d, commit error",
+-                                      cur_TOC);
+-                            errlCommit(l_errhdl,PNOR_COMP_ID);
+-                            l_errhdl = NULL;
+-                            break;
+-                        }
+-                    }
+                 }
+-            } // For TOC Entries
++            }
+             if (l_errhdl)
+             {
++                TRACFCOMP(g_trac_pnor, ERR_MRK"PNOR::parseTOC: error parsing");
+                 break;
+             }
+-        } // For TOC's
+-        if (l_errhdl)
+-        {
+-            break;
++
++            for(PNOR::SectionId tmpId = PNOR::FIRST_SECTION;
++                tmpId < PNOR::NUM_SECTIONS;
++                tmpId = (PNOR::SectionId) (tmpId + 1) )
++            {
++                TRACFCOMP(g_trac_pnor, "%s:    size=0x%.8X  flash=0x%.8X  "
++                       "virt=0x%.16X", cv_EYECATCHER[tmpId], o_TOC[tmpId].size,
++                       o_TOC[tmpId].flashAddr, o_TOC[tmpId].virtAddr );
++            }
+         }
+     } while(0);
+ 
+-    for(PNOR::SectionId tmpId = PNOR::FIRST_SECTION;
+-        tmpId < PNOR::NUM_SECTIONS;
+-        tmpId = (PNOR::SectionId) (tmpId + 1) )
+-    {
+-        TRACFCOMP(g_trac_pnor, "%s:    size=0x%.8X  flash=0x%.8X  "
+-               "virt=0x%.16X", cv_EYECATCHER[tmpId], o_TOC[tmpId].size,
+-               o_TOC[tmpId].flashAddr, o_TOC[tmpId].virtAddr );
+-    }
+-
+     TRACUCOMP(g_trac_pnor, "< PNOR::parseTOC" );
+     return l_errhdl;
+ }
+diff --git a/src/usr/pnor/pnor_common.H b/src/usr/pnor/pnor_common.H
+index 5eb8934..3944e27 100644
+--- a/src/usr/pnor/pnor_common.H
++++ b/src/usr/pnor/pnor_common.H
+@@ -41,22 +41,11 @@ namespace PNOR {
+         uint8_t misc; /**< Misc Flags */
+     } PACKED;
+ 
+-    // Simple enum of TOC's per PNOR side
+-    enum TOCS
+-    {
+-        TOC_0 = 0,
+-        TOC_1 = 1,
+-        NUM_TOCS,
+-    };
+-
+     enum
+     {
+-        // @TODO RTC: 120061 - Determine TOC locations
+-        // TOC offsets based on pnor layout
+-        SIDE_A_TOC_0_OFFSET = 0,
+-        SIDE_A_TOC_1_OFFSET = 0x8000,
+-        SIDE_B_TOC_0_OFFSET = 0x2000000,
+-        SIDE_B_TOC_1_OFFSET = 0x2008000,
++        NUM_TOCS = 2,
++        TOC_0_OFFSET = 0,
++        TOC_1_OFFSET = 0x8000,
+ 
+         /** Real number of bytes required to read 1 logical page */
+         PAGESIZE_PLUS_ECC = ((PAGESIZE * 9)/8),  // 8B data + 1B of ECC
+@@ -90,7 +79,7 @@ namespace PNOR {
+      * @return Error
+      */
+     errlHndl_t parseTOC(uint8_t* i_toc0Buffer, uint8_t* i_toc1Buffer,
+-           TOCS & o_TOC_used, SectionData_t * o_TOC, uint64_t i_baseVAddr);
++           uint32_t & o_TOC_used, SectionData_t * o_TOC, uint64_t i_baseVAddr);
+ }
+ 
+ #endif
+diff --git a/src/usr/pnor/pnorrp.C b/src/usr/pnor/pnorrp.C
+index aeaeb22..299a063 100644
+--- a/src/usr/pnor/pnorrp.C
++++ b/src/usr/pnor/pnorrp.C
+@@ -44,7 +44,6 @@
+ #include <endian.h>
+ #include <util/align.H>
+ #include <config.h>
+-#include "pnor_common.H"
+ 
+ 
+ extern trace_desc_t* g_trac_pnor;
+@@ -193,9 +192,7 @@ void* wait_for_message( void* unused )
+  * @brief  Constructor
+  */
+ PnorRP::PnorRP()
+-: iv_activeTocOffsets(SIDE_A_TOC_0_OFFSET,SIDE_A_TOC_1_OFFSET)
+-,iv_altTocOffsets(SIDE_B_TOC_0_OFFSET,SIDE_B_TOC_1_OFFSET)
+-,iv_TOC_used(TOC_0)
++: iv_TOC_used(0)
+ ,iv_msgQ(NULL)
+ ,iv_startupRC(0)
+ {
+@@ -234,28 +231,12 @@ void PnorRP::initDaemon()
+ 
+     do
+     {
+-        // @TODO RTC: 120062 - Determine which side is Golden
+-        // Default TOC offsets set to side A. If two side support is enabled,
+-        // check which SEEPROM hostboot booted from
+-#ifdef CONFIG_TWO_SIDE_SUPPORT
+-        TARGETING::Target* pnor_target = TARGETING::
+-                                         MASTER_PROCESSOR_CHIP_TARGET_SENTINEL;
+-        // Get correct TOC
+-        PNOR::sbeSeepromSide_t l_bootSide;
+-        PNOR::getSbeBootSeeprom(pnor_target, l_bootSide);
+-        if (l_bootSide == PNOR::SBE_SEEPROM1)
+-        {
+-            TRACFCOMP( g_trac_pnor, "PnorRP::initDaemon> Booting from Side B");
+-            iv_activeTocOffsets.first = SIDE_B_TOC_0_OFFSET;
+-            iv_activeTocOffsets.second = SIDE_B_TOC_1_OFFSET;
+-            iv_altTocOffsets.first = SIDE_A_TOC_0_OFFSET;
+-            iv_altTocOffsets.second = SIDE_A_TOC_0_OFFSET;
+-        }
+-        else
++        // read the TOC in the PNOR to compute the sections
++        l_errhdl = readTOC();
++        if( l_errhdl )
+         {
+-            TRACFCOMP( g_trac_pnor, "PnorRP::initDaemon> Booting from Side A");
++            break;
+         }
+-#endif
+ 
+         // create a message queue
+         iv_msgQ = msg_q_create();
+@@ -272,7 +253,7 @@ void PnorRP::initDaemon()
+              * @userdata1    Requested Address
+              * @userdata2    rc from mm_alloc_block
+              * @devdesc      PnorRP::initDaemon> Error from mm_alloc_block
+-             * @custdesc     A problem occurred while accessing the boot flash.
++             * @custdesc    A problem occurred while accessing the boot flash.
+              */
+             l_errhdl = new ERRORLOG::ErrlEntry(
+                            ERRORLOG::ERRL_SEV_UNRECOVERABLE,
+@@ -289,14 +270,9 @@ void PnorRP::initDaemon()
+         INITSERVICE::registerBlock(reinterpret_cast<void*>(BASE_VADDR),
+                                    TOTAL_SIZE,PNOR_PRIORITY);
+ 
+-        // Read the TOC in the PNOR to compute the sections and set their
+-        // correct permissions
+-        l_errhdl = readTOC();
+-        if( l_errhdl )
+-        {
+-            TRACFCOMP(g_trac_pnor, ERR_MRK"PnorRP::initDaemon: Failed to readTOC");
+-            break;
+-        }
++        // Need to set permissions to R/W
++        rc = mm_set_permission((void*) BASE_VADDR,TOTAL_SIZE,
++                               WRITABLE | WRITE_TRACKED);
+ 
+         // start task to wait on the queue
+         task_create( wait_for_message, NULL );
+@@ -343,7 +319,7 @@ errlHndl_t PnorRP::getSectionInfo( PNOR::SectionId i_section,
+              * @userdata1    Requested Section
+              * @userdata2    Startup RC
+              * @devdesc      PnorRP::getSectionInfo> RP not properly initialized
+-             * @custdesc     A problem occurred while accessing the boot flash.
++             * @custdesc    A problem occurred while accessing the boot flash.
+              */
+             l_errhdl = new ERRORLOG::ErrlEntry(ERRORLOG::ERRL_SEV_UNRECOVERABLE,
+                                                PNOR::MOD_PNORRP_GETSECTIONINFO,
+@@ -370,7 +346,7 @@ errlHndl_t PnorRP::getSectionInfo( PNOR::SectionId i_section,
+              * @userdata1    Requested Section
+              * @userdata2    TOC used
+              * @devdesc      PnorRP::getSectionInfo> Invalid Address for read/write
+-             * @custdesc     A problem occurred while accessing the boot flash.
++             * @custdesc    A problem occurred while accessing the boot flash.
+             */
+             l_errhdl = new ERRORLOG::ErrlEntry(ERRORLOG::ERRL_SEV_UNRECOVERABLE,
+                                                PNOR::MOD_PNORRP_GETSECTIONINFO,
+@@ -402,13 +378,12 @@ errlHndl_t PnorRP::getSectionInfo( PNOR::SectionId i_section,
+                                  != 0) ? true : false;
+         o_info.sha512perEC = ((iv_TOC[id].version & FFS_VERS_SHA512_PER_EC)
+                                != 0) ? true : false;
+-        o_info.readOnly = ((iv_TOC[id].misc & FFS_MISC_READ_ONLY)
+-                               != 0) ? true : false;
+     }
+ 
+     return l_errhdl;
+ }
+ 
++
+ /**
+  * @brief Read the TOC and store section information
+  */
+@@ -420,7 +395,7 @@ errlHndl_t PnorRP::readTOC()
+     uint8_t* toc1Buffer = new uint8_t[PAGESIZE];
+     uint64_t fatal_error = 0;
+     do {
+-        l_errhdl = readFromDevice( iv_activeTocOffsets.first, 0, false,
++        l_errhdl = readFromDevice( TOC_0_OFFSET, 0, false,
+                                 toc0Buffer, fatal_error );
+         if (l_errhdl)
+         {
+@@ -428,7 +403,7 @@ errlHndl_t PnorRP::readTOC()
+             break;
+         }
+ 
+-        l_errhdl = readFromDevice( iv_activeTocOffsets.second, 0, false,
++        l_errhdl = readFromDevice( TOC_1_OFFSET, 0, false,
+                                    toc1Buffer, fatal_error );
+         if (l_errhdl)
+         {
+@@ -437,7 +412,7 @@ errlHndl_t PnorRP::readTOC()
+         }
+ 
+         l_errhdl = PNOR::parseTOC(toc0Buffer, toc1Buffer, iv_TOC_used, iv_TOC,
+-                                  BASE_VADDR);
++                   BASE_VADDR);
+         if (l_errhdl)
+         {
+             TRACFCOMP(g_trac_pnor, "readTOC: parseTOC failed");
+@@ -762,63 +737,59 @@ errlHndl_t PnorRP::computeDeviceAddr( void* i_vaddr,
+     o_chip = 99;
+     uint64_t l_vaddr = (uint64_t)i_vaddr;
+ 
+-    do
++    // make sure this is one of our addresses
++    if( !((l_vaddr >= BASE_VADDR)
++          && (l_vaddr < LAST_VADDR)) )
+     {
+-        // make sure this is one of our addresses
+-        if( !((l_vaddr >= BASE_VADDR)
+-              && (l_vaddr < LAST_VADDR)) )
+-        {
+-            TRACFCOMP( g_trac_pnor, "PnorRP::computeDeviceAddr> Virtual Address outside known PNOR range : i_vaddr=%p", i_vaddr );
+-            /*@
+-             * @errortype
+-             * @moduleid     PNOR::MOD_PNORRP_WAITFORMESSAGE
+-             * @reasoncode   PNOR::RC_INVALID_ADDRESS
+-             * @userdata1    Virtual Address
+-             * @userdata2    Base PNOR Address
+-             * @devdesc      PnorRP::computeDeviceAddr> Virtual Address outside
+-             *               known PNOR range
+-             * @custdesc    A problem occurred while accessing the boot flash.
+-             */
+-            l_errhdl = new ERRORLOG::ErrlEntry(ERRORLOG::ERRL_SEV_UNRECOVERABLE,
+-                                            PNOR::MOD_PNORRP_COMPUTEDEVICEADDR,
+-                                            PNOR::RC_INVALID_ADDRESS,
+-                                            l_vaddr,
+-                                            BASE_VADDR,
+-                                            true /*Add HB SW Callout*/);
+-            l_errhdl->collectTrace(PNOR_COMP_NAME);
+-            break;
+-        }
++        TRACFCOMP( g_trac_pnor, "PnorRP::computeDeviceAddr> Virtual Address outside known PNOR range : i_vaddr=%p", i_vaddr );
++        /*@
++         * @errortype
++         * @moduleid     PNOR::MOD_PNORRP_WAITFORMESSAGE
++         * @reasoncode   PNOR::RC_INVALID_ADDRESS
++         * @userdata1    Virtual Address
++         * @userdata2    Base PNOR Address
++         * @devdesc      PnorRP::computeDeviceAddr> Virtual Address outside
++         *               known PNOR range
++         * @custdesc    A problem occurred while accessing the boot flash.
++         */
++        l_errhdl = new ERRORLOG::ErrlEntry(ERRORLOG::ERRL_SEV_UNRECOVERABLE,
++                                        PNOR::MOD_PNORRP_COMPUTEDEVICEADDR,
++                                        PNOR::RC_INVALID_ADDRESS,
++                                        l_vaddr,
++                                        BASE_VADDR,
++                                        true /*Add HB SW Callout*/);
++        l_errhdl->collectTrace(PNOR_COMP_NAME);
++        return l_errhdl;
++    }
+ 
+-        // find the matching section
+-        PNOR::SectionId id = PNOR::INVALID_SECTION;
+-        l_errhdl = computeSection( l_vaddr, id );
+-        if( l_errhdl )
+-        {
+-            TRACFCOMP( g_trac_pnor, "PnorRP::computeDeviceAddr> Virtual address does not match any pnor sections : i_vaddr=%p", i_vaddr );
+-            break;
+-        }
++    // find the matching section
++    PNOR::SectionId id = PNOR::INVALID_SECTION;
++    l_errhdl = computeSection( l_vaddr, id );
++    if( l_errhdl )
++    {
++        return l_errhdl;
++    }
+ 
+-        // pull out the information we need to return from our global copy
+-        o_chip = iv_TOC[id].chip;
+-        o_ecc = (bool)(iv_TOC[id].integrity & FFS_INTEG_ECC_PROTECT);
+-        o_offset = l_vaddr - iv_TOC[id].virtAddr; //offset into section
++    // pull out the information we need to return from our global copy
++    o_chip = iv_TOC[id].chip;
++    o_ecc = (bool)(iv_TOC[id].integrity & FFS_INTEG_ECC_PROTECT);
++    o_offset = l_vaddr - iv_TOC[id].virtAddr; //offset into section
+ 
+-        // for ECC we need to figure out where the ECC-enhanced offset is
+-        //  before tacking on the offset to the section
+-        if( o_ecc )
+-        {
+-            o_offset = (o_offset * 9) / 8;
+-        }
+-        // add on the offset of the section itself
+-        o_offset += iv_TOC[id].flashAddr;
+-    } while(0);
++    // for ECC we need to figure out where the ECC-enhanced offset is
++    //  before tacking on the offset to the section
++    if( o_ecc )
++    {
++        o_offset = (o_offset * 9) / 8;
++    }
++    // add on the offset of the section itself
++    o_offset += iv_TOC[id].flashAddr;
+ 
+     TRACUCOMP( g_trac_pnor, "< PnorRP::computeDeviceAddr: i_vaddr=%X, o_offset=0x%X, o_chip=%d", l_vaddr, o_offset, o_chip );
+     return l_errhdl;
+ }
+ 
+ /**
+- * @brief Static instance function
++ * @brief Static instance function for testcase only
+  */
+ PnorRP& PnorRP::getInstance()
+ {
+@@ -1016,10 +987,3 @@ errlHndl_t PnorRP::fixECC (PNOR::SectionId i_section)
+     TRACFCOMP(g_trac_pnor, EXIT_MRK"PnorRP::fixECC");
+     return l_err;
+ }
+-
+-uint64_t PnorRP::getTocOffset(TOCS i_toc) const
+-{
+-    // Can use a ternary operator because there are only 2 TOCs per side
+-    return (i_toc == TOC_0) ? iv_activeTocOffsets.first :
+-                              iv_activeTocOffsets.second;
+-}
+diff --git a/src/usr/pnor/pnorrp.H b/src/usr/pnor/pnorrp.H
+index 509cf14..3703afe 100644
+--- a/src/usr/pnor/pnorrp.H
++++ b/src/usr/pnor/pnorrp.H
+@@ -76,18 +76,9 @@ class PnorRP
+      */
+     errlHndl_t fixECC(PNOR::SectionId i_section);
+ 
+-    /**
+-     * @brief  Get TOC offset of specified TOC on active side
+-     *
+-     * @param[in] i_toc     TOC offset desired on active side
+-     *
+-     * @return uint64_t     TOC offset
+-     */
+-    uint64_t getTocOffset(PNOR::TOCS i_toc) const;
+-
+   protected:
+     /**
+-     * @brief  Constructor, default TOC offsets to side A
++     * @brief  Constructor
+      */
+     PnorRP();
+ 
+@@ -98,23 +89,16 @@ class PnorRP
+ 
+ 
+   private:
+-
+-    // TOC 0 and 1 offsets of both PNOR sides. The active PNOR side determined
+-    // by the Seeprom the SBE booted from
+-    std::pair<uint64_t, uint64_t> iv_activeTocOffsets;
+-    std::pair<uint64_t, uint64_t> iv_altTocOffsets;
+-
+     enum
+     {
+         BASE_VADDR = VMM_VADDR_PNOR_RP, /**< 2GB = 0x80000000*/
+         TOTAL_SIZE = 64*MEGABYTE, /**< Allocate 64 MB (0x4000000)*/
+         LAST_VADDR = BASE_VADDR + TOTAL_SIZE,  /**< End of our VA range */
+     };
+-
+     /**
+      * Which TOC (0 or 1) is used after verifying both.
+      */
+-    PNOR::TOCS iv_TOC_used;
++    uint32_t iv_TOC_used;
+ 
+     /**
+      * Flash statistics
+@@ -154,8 +138,7 @@ class PnorRP
+ 
+     /**
+      * @brief Verify both TOC's and store section information from one of the
+-     *        verified TOC's. Additionally set each section permissions
+-     *        (e.g. readOnly)
++     *        verified TOC's
+      *
+      * @return Error from device
+      */
+@@ -241,6 +224,7 @@ class PnorRP
+         return false;
+     };
+ 
++
+     // allow local helper function to call private methods
+     friend void* wait_for_message( void* unused );
+ 
+@@ -253,7 +237,7 @@ class PnorRP
+     friend errlHndl_t PNOR::validateAltMaster( void );
+ 
+     /**
+-     * @brief Static instance function
++     * @brief Static instance function for testcase only
+      */
+     static PnorRP& getInstance();
+ };
+diff --git a/src/usr/pnor/pnorsbe.C b/src/usr/pnor/pnorsbe.C
+deleted file mode 100644
+index 0b61173..0000000
+--- a/src/usr/pnor/pnorsbe.C
++++ /dev/null
+@@ -1,87 +0,0 @@
+-/* IBM_PROLOG_BEGIN_TAG                                                   */
+-/* This is an automatically generated prolog.                             */
+-/*                                                                        */
+-/* $Source: src/usr/pnor/pnorsbe.C $                                      */
+-/*                                                                        */
+-/* OpenPOWER HostBoot Project                                             */
+-/*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2014,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
+-/*                                                                        */
+-/* Licensed under the Apache License, Version 2.0 (the "License");        */
+-/* you may not use this file except in compliance with the License.       */
+-/* You may obtain a copy of the License at                                */
+-/*                                                                        */
+-/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+-/*                                                                        */
+-/* Unless required by applicable law or agreed to in writing, software    */
+-/* distributed under the License is distributed on an "AS IS" BASIS,      */
+-/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+-/* implied. See the License for the specific language governing           */
+-/* permissions and limitations under the License.                         */
+-/*                                                                        */
+-/* IBM_PROLOG_END_TAG                                                     */
+-/**
+- *  @file pnorsbe.C
+- *
+- *  @brief Implements PNOR::getSbeBootSeeprom(), which Determines which
+- *         Seeprom was used to boot the SB
+- */
+-
+-#include <pnor/pnorif.H>
+-#include <trace/interface.H>
+-#include <errl/errlmanager.H>
+-#include <errl/errlentry.H>
+-#include <devicefw/userif.H>
+-
+-extern trace_desc_t* g_trac_pnor;
+-
+-namespace PNOR
+-{
+-
+-//Used to read SBE Boot Side from processor
+-const uint64_t SBE_VITAL_REG_0x0005001C = 0x005001C;
+-const uint64_t SBE_BOOT_SELECT_MASK = 0x0080000000000000;
+-
+-errlHndl_t getSbeBootSeeprom(TARGETING::Target* i_target,
+-                             sbeSeepromSide_t& o_bootSide)
+-{
+-    TRACFCOMP( g_trac_pnor, ENTER_MRK"PNOR::getSbeBootSeeprom()" );
+-
+-    errlHndl_t err = NULL;
+-    uint64_t scomData = 0x0;
+-
+-    o_bootSide = SBE_SEEPROM0;
+-
+-    do{
+-
+-        size_t op_size = sizeof(scomData);
+-        err = deviceRead( i_target,
+-                          &scomData,
+-                          op_size,
+-                          DEVICE_SCOM_ADDRESS(SBE_VITAL_REG_0x0005001C) );
+-        if( err )
+-        {
+-            TRACFCOMP( g_trac_pnor, ERR_MRK"PNOR::getSbeBootSeeprom() -Error "
+-                       "reading SBE VITAL REG (0x%.8X) from Target :"
+-                       "HUID=0x%.8X",
+-                       SBE_VITAL_REG_0x0005001C,
+-                       TARGETING::get_huid(i_target));
+-            break;
+-        }
+-        if(scomData & SBE_BOOT_SELECT_MASK)
+-        {
+-            o_bootSide = SBE_SEEPROM1;
+-        }
+-
+-    }while(0);
+-
+-    TRACFCOMP( g_trac_pnor,
+-               EXIT_MRK"PNOR::getSbeBootSeeprom(): o_bootSide=0x%X (reg=0x%X)",
+-               o_bootSide, scomData );
+-
+-    return err;
+-}
+-
+-} // end namespace
+\ No newline at end of file
+diff --git a/src/usr/pnor/pnorvalid.C b/src/usr/pnor/pnorvalid.C
+index 46204ca..1bc09a2 100644
+--- a/src/usr/pnor/pnorvalid.C
++++ b/src/usr/pnor/pnorvalid.C
+@@ -102,7 +102,7 @@ errlHndl_t validateAltMaster( void )
+     // When reading PNOR TOC assume a single page and no ECC
+     uint8_t* tocBuffer = new uint8_t[PAGESIZE];
+     size_t read_size = PAGESIZE;
+-    const uint64_t toc0_offset = PnorRP::getInstance().getTocOffset(TOC_0);
++    const uint64_t toc0_offset = PNOR::TOC_0_OFFSET;
+ 
+     do{
+ 
+@@ -176,7 +176,8 @@ errlHndl_t validateAltMaster( void )
+             pnordd = new PnorDD(procList[i]);
+ 
+             // Read Flash
+-            l_err = pnordd->readFlash(tocBuffer, read_size, toc0_offset);
++            l_err = pnordd->readFlash(tocBuffer, read_size,
++                                      PNOR::TOC_0_OFFSET);
+             if ( l_err )
+             {
+                 // Commit Error Log, but continue the test
+diff --git a/src/usr/pnor/runtime/rt_pnor.C b/src/usr/pnor/runtime/rt_pnor.C
+index c61aa1d..c43160f 100644
+--- a/src/usr/pnor/runtime/rt_pnor.C
++++ b/src/usr/pnor/runtime/rt_pnor.C
+@@ -297,7 +297,7 @@ errlHndl_t RtPnor::flush( PNOR::SectionId i_section)
+ }
+ /*******Protected Methods**************/
+ RtPnor::RtPnor()
+-:iv_TOC_used(PNOR::TOC_0)
++:iv_TOC_used(0)
+ {
+     errlHndl_t l_err = readTOC();
+     if (l_err)
+@@ -588,10 +588,7 @@ errlHndl_t RtPnor::readTOC ()
+             break;
+         }
+ 
+-        // @TODO RTC:120733
+-        // RT code needs a way to get the active side tocs vs just defaulting
+-        // to SIDE_A
+-        l_err = readFromDevice (l_procId, PNOR::TOC, PNOR::SIDE_A_TOC_0_OFFSET,
++        l_err = readFromDevice (l_procId, PNOR::TOC, PNOR::TOC_0_OFFSET,
+                 PAGESIZE,false,toc0Buffer);
+         if (l_err)
+         {
+@@ -599,7 +596,7 @@ errlHndl_t RtPnor::readTOC ()
+                       " for TOC0");
+             break;
+         }
+-        l_err = readFromDevice (l_procId, PNOR::TOC, PNOR::SIDE_A_TOC_1_OFFSET,
++        l_err = readFromDevice (l_procId, PNOR::TOC, PNOR::TOC_1_OFFSET,
+                 PAGESIZE, false,toc1Buffer);
+         if (l_err)
+         {
+@@ -608,7 +605,7 @@ errlHndl_t RtPnor::readTOC ()
+             break;
+         }
+ 
+-        l_err = PNOR::parseTOC(toc0Buffer, toc1Buffer, iv_TOC_used, iv_TOC, 0);
++        l_err = PNOR::parseTOC(toc0Buffer, toc1Buffer, iv_TOC_used, iv_TOC,0);
+         if (l_err)
+         {
+             TRACFCOMP(g_trac_pnor, "RtPnor::readTOC: parseTOC failed");
+diff --git a/src/usr/pnor/runtime/rt_pnor.H b/src/usr/pnor/runtime/rt_pnor.H
+index f3a03a5..43041fc 100644
+--- a/src/usr/pnor/runtime/rt_pnor.H
++++ b/src/usr/pnor/runtime/rt_pnor.H
+@@ -81,7 +81,7 @@ class RtPnor
+         /**
+         * Which TOC (0 or 1) is used after verifying both.
+         */
+-        PNOR::TOCS iv_TOC_used;
++        uint32_t iv_TOC_used;
+ 
+         /**
+          * Cached copy of section data
+diff --git a/src/usr/pnor/test/pnorrptest.H b/src/usr/pnor/test/pnorrptest.H
+index 427227b..04ca729 100644
+--- a/src/usr/pnor/test/pnorrptest.H
++++ b/src/usr/pnor/test/pnorrptest.H
+@@ -517,30 +517,22 @@ class PnorRpTest : public CxxTest::TestSuite
+         uint8_t* corruptBuffer = new uint8_t[PAGESIZE];
+ 
+         // Corrupt both ffs header and first entry for each TOC
+-        for (PNOR::TOCS cur_TOC = PNOR::TOC_0; cur_TOC < PNOR::NUM_TOCS;
+-             cur_TOC = (PNOR::TOCS)(cur_TOC+1))
++        for (uint32_t cur_TOC = 0; cur_TOC < PNOR::NUM_TOCS; ++cur_TOC)
+         {
+-            PNOR::TOCS TOC_used = cur_TOC;
++            uint32_t TOC_used = cur_TOC;
+ 
+             if (cur_TOC == 0)
+             {
+-              offset =  PnorRP::getInstance().getTocOffset(PNOR::TOC_0);
++              offset =  PNOR::TOC_0_OFFSET;
+             }
+             else
+             {
+-              offset =  PnorRP::getInstance().getTocOffset(PNOR::TOC_1);
++              offset =  PNOR::TOC_1_OFFSET;
+             }
+ 
+             // Read cur_TOC header data
+-            PnorRP::getInstance().readFromDevice( offset, 0, false,
+-                                                  tocHeader, fatal_error );
+-            if (fatal_error)
+-            {
+-                TRACFCOMP(g_trac_pnor, "PnorRpTest::test_TOC> ERROR : Could not read TOC header data at offset 0x%X RC=%X",
+-                          offset, fatal_error);
+-                TS_FAIL("PnorRpTest::test_TOC> ERROR : Could not read TOC header data at offset 0x%X RC=%X",
+-                          offset, fatal_error);
+-            }
++            PnorRP::getInstance().readFromDevice( offset, 0, false, tocHeader,
++                                                  fatal_error );
+ 
+             // Corrupt cur_TOC header data
+             memcpy(corruptBuffer, tocHeader, PAGESIZE);
+@@ -567,13 +559,6 @@ class PnorRpTest : public CxxTest::TestSuite
+             PnorRP::getInstance().readFromDevice( offset + FFS_HDR_SIZE, 0,
+                                                   false, tocEntry,
+                                                   fatal_error );
+-            if (fatal_error)
+-            {
+-                TRACFCOMP(g_trac_pnor, "PnorRpTest::test_TOC> ERROR : Could not read first TOC entry data at offset 0x%X RC=%X",
+-                          offset, fatal_error);
+-                TS_FAIL("PnorRpTest::test_TOC> ERROR : Could not read first TOC entry data at offset 0x%X RC=%X",
+-                          offset, fatal_error);
+-            }
+ 
+             // Corrupt cur_TOC header data
+             memcpy(corruptBuffer, tocEntry, PAGESIZE);
+@@ -606,83 +591,6 @@ class PnorRpTest : public CxxTest::TestSuite
+         TRACFCOMP(g_trac_pnor, "PnorRpTest::test_TOC End");
+     }
+ 
+-    /**
+-     * @brief PNOR RP test - ReadOnlyTag
+-     *        Tests if readOnly tag on a section is being processed correctly
+-     *
+-     */
+-    void test_ReadOnlyTag(void)
+-    {
+-        TRACFCOMP(g_trac_pnor, "PnorRpTest::test_ReadOnlyTag Start" );
+-        PNOR::SectionInfo_t l_info;
+-        errlHndl_t l_errhdl = NULL;
+-        uint64_t chip_select = 0xF;
+-        bool needs_ecc = false;
+-
+-        l_errhdl = PNOR::getSectionInfo(PNOR::TESTRO, l_info);
+-        if( l_errhdl )
+-        {
+-            TRACFCOMP(g_trac_pnor, "PnorRpTest::test_ReadOnlyTag> ERROR : getSectionInfo returned error for %d : RC=%X",
+-                      PNOR::TESTRO, l_errhdl->reasonCode());
+-            ERRORLOG::errlCommit(l_errhdl, PNOR_COMP_ID);
+-            TS_FAIL( "PnorRpTest::test_ReadOnlyTag> ERROR : could not read pnor section %d", PNOR::TESTRO);
+-        }
+-
+-        // Write some data
+-        const uint64_t l_writeData = 0x1122334455667788;
+-        uint64_t* l_dataptr = reinterpret_cast<uint64_t*> (l_info.vaddr);
+-        l_dataptr[0] = l_writeData;
+-
+-        // Flush the page to make sure it gets out to the device
+-        // Due to ReadOnly permissions set on TESTRO should be a no-op
+-        int rc = mm_remove_pages( RELEASE, l_dataptr, PAGESIZE );
+-        if( rc )
+-        {
+-            TRACFCOMP( g_trac_pnor, "PnorRpTest::test_ReadOnlyTag> ERROR : error on RELEASE : rc=%X", rc );
+-            TS_FAIL( "PnorRpTest::test_ReadOnlyTag> ERROR : error on RELEASE" );
+-        }
+-
+-        // Get physical address of pnor section
+-        uint64_t l_address = 0;
+-        l_errhdl = PnorRP::getInstance().computeDeviceAddr((void*)l_info.vaddr,
+-                                                        l_address,
+-                                                        chip_select,
+-                                                        needs_ecc);
+-        if(l_errhdl)
+-        {
+-            TRACFCOMP(g_trac_pnor, "PnorRpTest::test_ReadOnlyTag> ERROR : computeDeviceAddr vaddr = 0x%X",l_info.vaddr);
+-            errlCommit(l_errhdl,PNOR_COMP_ID);
+-            TS_FAIL( "PnorRpTest::test_ReadOnlyTag> ERROR : computeDeviceAddr vaddr = 0x%X",l_info.vaddr);
+-        }
+-
+-        // Read pnor section and check if write did not occur
+-        uint64_t l_readData = 0;
+-        size_t l_size = sizeof(uint64_t);
+-        l_errhdl = deviceRead(TARGETING::MASTER_PROCESSOR_CHIP_TARGET_SENTINEL,
+-                              &l_readData,
+-                              l_size,
+-                              DEVICE_PNOR_ADDRESS(0, l_address));
+-        TRACFCOMP(g_trac_pnor, "PnorRpTest::test_ReadOnlyTag> Read Data = 0x%X",l_readData);
+-        if(l_errhdl)
+-        {
+-            TS_FAIL("PnorRpTest::test_ReadOnlyTag: deviceRead() failed! Error committed.");
+-            ERRORLOG::errlCommit(l_errhdl, PNOR_COMP_ID);
+-        }
+-        if(l_readData == l_writeData)
+-        {
+-            TS_FAIL("PnorRpTest::test_ReadOnlyTag: Data was written to readOnly section = %s",
+-                     l_info.name);
+-        }
+-        if(l_size != sizeof(uint64_t))
+-        {
+-            TS_FAIL("PnorRpTest::test_ReadOnlyTag: deviceRead() Read length not expected value. Addr: 0x%llx, Exp: %d, Act: %d",
+-                    l_address, sizeof(uint64_t), l_size);
+-        }
+-
+-        TRACFCOMP(g_trac_pnor, "PnorRpTest::test_ReadOnlyTag End");
+-    }
+-
+-
+     //@todo - import config data from build and compare to section info
+ 
+     /**
+diff --git a/src/usr/sbe/sbe_update.C b/src/usr/sbe/sbe_update.C
+index 698d41a..9dd9e0a 100644
+--- a/src/usr/sbe/sbe_update.C
++++ b/src/usr/sbe/sbe_update.C
+@@ -1214,6 +1214,49 @@ namespace SBE
+     }
+ 
+ /////////////////////////////////////////////////////////////////////
++    errlHndl_t getSbeBootSeeprom(TARGETING::Target* i_target,
++                                 sbeSeepromSide_t& o_bootSide)
++    {
++        TRACUCOMP( g_trac_sbe,
++                   ENTER_MRK"getSbeBootSeeprom()" );
++
++        errlHndl_t err = NULL;
++        uint64_t scomData = 0x0;
++
++        o_bootSide = SBE_SEEPROM0;
++
++        do{
++
++            size_t op_size = sizeof(scomData);
++            err = deviceRead( i_target,
++                              &scomData,
++                              op_size,
++                              DEVICE_SCOM_ADDRESS(SBE_VITAL_REG_0x0005001C) );
++            if( err )
++            {
++                TRACFCOMP( g_trac_sbe, ERR_MRK"getSbeBootSeeprom() -Error "
++                           "reading SBE VITAL REG (0x%.8X) from Target :"
++                           "HUID=0x%.8X",
++                           SBE_VITAL_REG_0x0005001C,
++                           TARGETING::get_huid(i_target));
++                break;
++            }
++            if(scomData & SBE_BOOT_SELECT_MASK)
++            {
++                o_bootSide = SBE_SEEPROM1;
++            }
++
++        }while(0);
++
++        TRACUCOMP( g_trac_sbe,
++                   EXIT_MRK"getSbeBootSeeprom(): o_bootSide=0x%X (reg=0x%X)",
++                   o_bootSide, scomData );
++
++        return err;
++    }
++
++
++/////////////////////////////////////////////////////////////////////
+     errlHndl_t getSbeInfoState(sbeTargetState_t& io_sbeState)
+     {
+ 
+@@ -1308,11 +1351,11 @@ namespace SBE
+             if(SEEPROM_0_PERMANENT_VALUE ==
+                (io_sbeState.mvpdSbKeyword.flags & PERMANENT_FLAG_MASK))
+             {
+-                io_sbeState.permanent_seeprom_side = PNOR::SBE_SEEPROM0;
++                io_sbeState.permanent_seeprom_side = SBE_SEEPROM0;
+             }
+             else // Side 1 must be permanent
+             {
+-                io_sbeState.permanent_seeprom_side = PNOR::SBE_SEEPROM1;
++                io_sbeState.permanent_seeprom_side = SBE_SEEPROM1;
+             }
+ 
+ 
+@@ -1361,21 +1404,21 @@ namespace SBE
+             /*  Determine which SEEPROM System Booted On   */
+             /***********************************************/
+             //Get Current (boot) Side
+-            PNOR::sbeSeepromSide_t tmp_cur_side = PNOR::SBE_SEEPROM_INVALID;
+-            err = PNOR::getSbeBootSeeprom(io_sbeState.target, tmp_cur_side);
++            sbeSeepromSide_t tmp_cur_side = SBE_SEEPROM_INVALID;
++            err = getSbeBootSeeprom(io_sbeState.target, tmp_cur_side);
+             if(err)
+             {
+                 TRACFCOMP( g_trac_sbe, ERR_MRK"getSbeInfoState() - Error returned from getSbeBootSeeprom()");
+                 break;
+             }
+             io_sbeState.cur_seeprom_side = tmp_cur_side;
+-            if (io_sbeState.cur_seeprom_side == PNOR::SBE_SEEPROM0)
++            if (io_sbeState.cur_seeprom_side == SBE_SEEPROM0)
+             {
+-                io_sbeState.alt_seeprom_side = PNOR::SBE_SEEPROM1;
++                io_sbeState.alt_seeprom_side = SBE_SEEPROM1;
+             }
+-            else if ( io_sbeState.cur_seeprom_side == PNOR::SBE_SEEPROM1)
++            else if ( io_sbeState.cur_seeprom_side == SBE_SEEPROM1)
+             {
+-                io_sbeState.alt_seeprom_side = PNOR::SBE_SEEPROM0;
++                io_sbeState.alt_seeprom_side = SBE_SEEPROM0;
+             }
+             else
+             {
+@@ -2012,7 +2055,7 @@ namespace SBE
+             /*  Determine what side to update                             */
+             /**************************************************************/
+             // Set cur and alt isDirty values
+-            if( io_sbeState.cur_seeprom_side == PNOR::SBE_SEEPROM0 )
++            if( io_sbeState.cur_seeprom_side == SBE_SEEPROM0 )
+             {
+                 current_side_isDirty = seeprom_0_isDirty;
+                 alt_side_isDirty     = seeprom_1_isDirty;
+@@ -2179,14 +2222,14 @@ namespace SBE
+                     io_sbeState.seeprom_side_to_update = EEPROM::SBE_PRIMARY;
+ 
+                     // Update MVPD PERMANENT flag: make cur=perm
+-                    ( io_sbeState.cur_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                    ( io_sbeState.cur_seeprom_side == SBE_SEEPROM0 ) ?
+                          // clear bit 0
+                          io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
+                          : //set bit 0
+                          io_sbeState.mvpdSbKeyword.flags |= PERMANENT_FLAG_MASK;
+ 
+                     // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
+-                    ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                    ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 ) ?
+                          // clear bit 1
+                          io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
+                          : //set bit 1
+@@ -2252,18 +2295,18 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                     // Update MVPD PERMANENT flag: make cur=perm
+-                    ( io_sbeState.cur_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                    ( io_sbeState.cur_seeprom_side == SBE_SEEPROM0 ) ?
+                          // clear bit 0
+                          io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
+                          : //set bit 0
+                          io_sbeState.mvpdSbKeyword.flags |= PERMANENT_FLAG_MASK;
+ 
+                     // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
+-                    ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                    ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 ) ?
+                          // clear bit 1
+                          io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
+                          : //set bit 1
+@@ -2298,13 +2341,13 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+ 
+                     // MVPD flag Update
+                     // Update MVPD flag make cur=perm
+-                    ( io_sbeState.cur_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                    ( io_sbeState.cur_seeprom_side == SBE_SEEPROM0 ) ?
+                          // clear bit 0
+                          io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
+                          : // set bit 0
+@@ -2358,11 +2401,11 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                     // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
+-                    ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                    ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 ) ?
+                          // clear bit 1
+                          io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
+                          : // set bit 1
+@@ -2373,7 +2416,7 @@ namespace SBE
+                     if ( g_istep_mode )
+                     {
+                         // Update MVPD PERMANENT flag: make alt=perm
+-                        (io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                        (io_sbeState.alt_seeprom_side == SBE_SEEPROM0 ) ?
+                          // clear bit 0
+                          io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
+                          : //set bit 0
+@@ -2455,11 +2498,11 @@ namespace SBE
+ 
+                         // Set Update side to alt
+                         io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                         // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
+-                        ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 ) ?
++                        ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 ) ?
+                           // clear bit 1
+                           io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
+                           : // set bit 1
+@@ -2491,7 +2534,7 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                     TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+@@ -3201,12 +3244,12 @@ namespace SBE
+ 
+                     // Compare against 'current' Master side in case there is
+                     // an issue with the other side
+-                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
++                    if (io_sbeStates_v[i].cur_seeprom_side == SBE_SEEPROM0)
+                     {
+                         ver_ptr =
+                             &(io_sbeStates_v[i].seeprom_0_ver.image_version);
+                     }
+-                    else // PNOR::SBE_SEEPROM1
++                    else // SBE_SEEPROM1
+                     {
+                         ver_ptr =
+                             &(io_sbeStates_v[i].seeprom_1_ver.image_version);
+@@ -3346,12 +3389,12 @@ namespace SBE
+                 else
+                 {
+                     // Not Master, so get 'current' version
+-                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
++                    if (io_sbeStates_v[i].cur_seeprom_side == SBE_SEEPROM0)
+                     {
+                         ver_ptr =
+                             &(io_sbeStates_v[i].seeprom_0_ver.image_version);
+                     }
+-                    else // PNOR::SBE_SEEPROM1
++                    else // SBE_SEEPROM1
+                     {
+                         ver_ptr =
+                             &(io_sbeStates_v[i].seeprom_1_ver.image_version);
+diff --git a/src/usr/sbe/sbe_update.H b/src/usr/sbe/sbe_update.H
+index e49c582..aa880b2 100644
+--- a/src/usr/sbe/sbe_update.H
++++ b/src/usr/sbe/sbe_update.H
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2013,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -55,6 +53,10 @@ namespace SBE
+     const uint64_t SBE_IMAGE_SEEPROM_ADDRESS    = 0x400; // 1KB
+     const uint64_t SBE_VERSION_SEEPROM_ADDRESS  = 0x300; // 1KB - 256B
+ 
++    //Used to read SBE Boot Side from processor
++    const uint64_t SBE_VITAL_REG_0x0005001C = 0x005001C;
++    const uint64_t SBE_BOOT_SELECT_MASK = 0x0080000000000000;
++
+     // PNOR SBE and SBEC Partition constants
+     const uint32_t MAX_SBE_ENTRIES = 9;
+     const uint32_t SBETOC_EYECATCH = 0x53424500;  //'SBE\0'
+@@ -104,6 +106,14 @@ namespace SBE
+         MVPDOP_WRITE,     // Write version data to MVPD
+     };
+ 
++    // Used to keep track of perm/temp, and cur/alt
++    enum sbeSeepromSide_t
++    {
++        SBE_SEEPROM0         = 0x00,   // corresponds to EEPROM::SBE_PRIMARY
++        SBE_SEEPROM1         = 0x01,   // corresponts to EEPROM::SBE_BACKUP
++        SBE_SEEPROM_INVALID  = 0xFF,
++    };
++
+     // Actions can be combined
+     enum sbeUpdateActions_t
+     {
+@@ -117,6 +127,7 @@ namespace SBE
+         UNSUPPORTED_SITUATION  = 0x80000000,
+     };
+ 
++
+     /******************************************/
+     /*  Structs                               */
+     /******************************************/
+@@ -196,9 +207,9 @@ namespace SBE
+         bool                     seeprom_0_ver_ECC_fail;
+         bool                     seeprom_1_ver_ECC_fail;
+ 
+-        PNOR::sbeSeepromSide_t         cur_seeprom_side; // aka 'booted' side
+-        PNOR::sbeSeepromSide_t         alt_seeprom_side;
+-        PNOR::sbeSeepromSide_t         permanent_seeprom_side;
++        sbeSeepromSide_t         cur_seeprom_side; // aka 'booted' side
++        sbeSeepromSide_t         alt_seeprom_side;
++        sbeSeepromSide_t         permanent_seeprom_side;
+ 
+         // Customized Image Information for this Target
+         size_t                   customizedImage_size;
+@@ -318,6 +329,21 @@ namespace SBE
+                                    void* io_imgPtr,
+                                    size_t& o_actImgSize);
+ 
++
++    /**
++     * @brief Determines which Seeprom was used to boot the SBE
++     *
++     * @param[in] i_target      Target processor to customize
++     *
++     * @param[out] o_bootSide   The Seeprom the SBE booted from
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++
++    errlHndl_t getSbeBootSeeprom(TARGETING::Target* i_target,
++                                 sbeSeepromSide_t& o_bootSide);
++
++
+     /**
+      * @brief Collects Version information from a specific SEEPROM
+      *
+diff --git a/src/usr/sbe/test/sbeupdatetest.H b/src/usr/sbe/test/sbeupdatetest.H
+index 5e25706..d235141 100644
+--- a/src/usr/sbe/test/sbeupdatetest.H
++++ b/src/usr/sbe/test/sbeupdatetest.H
+@@ -580,7 +580,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+         {
+             // Inputs
+             uint8_t                      i_situation;
+-            PNOR::sbeSeepromSide_t       i_cur;     // current_seeprom_side
++            sbeSeepromSide_t             i_cur;     // current_seeprom_side
+             uint8_t                      i_flags;   // mvpdSbKeyword.flags
+ 
+             // Expected Output
+@@ -596,7 +596,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // - update alt=1
+             // - make cur=perm
+             // - re-IPL
+-            { 0xE0, PNOR::SBE_SEEPROM0, 0x80,
++            { 0xE0, SBE_SEEPROM0, 0x80,
+               static_cast<sbeUpdateActions_t>
+                      (DO_UPDATE|IPL_RESTART|UPDATE_MVPD|UPDATE_SBE),
+               EEPROM::SBE_BACKUP, 0x40 },
+@@ -606,7 +606,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // - update alt=0
+             // - make cur=perm
+             // - re-IPL
+-            { 0xC0, PNOR::SBE_SEEPROM1, 0x00,
++            { 0xC0, SBE_SEEPROM1, 0x00,
+               static_cast<sbeUpdateActions_t>
+                      (DO_UPDATE|IPL_RESTART|UPDATE_MVPD|UPDATE_SBE),
+               EEPROM::SBE_PRIMARY, 0x80 },
+@@ -616,7 +616,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // - update alt=0
+             // - make cur=perm
+             // - Continue IPL
+-            { 0xA0, PNOR::SBE_SEEPROM1, 0x00,
++            { 0xA0, SBE_SEEPROM1, 0x00,
+               static_cast<sbeUpdateActions_t>
+                      (DO_UPDATE|UPDATE_MVPD|UPDATE_SBE),
+               EEPROM::SBE_PRIMARY, 0x80 },
+@@ -625,7 +625,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // Arbitrarily set cur side to 1 (therefore perm set to 0)
+             // - No updates
+             // - Continue IPL
+-            { 0x80, PNOR::SBE_SEEPROM1, 0x00,
++            { 0x80, SBE_SEEPROM1, 0x00,
+               static_cast<sbeUpdateActions_t>(CLEAR_ACTIONS),
+               EEPROM::LAST_CHIP_TYPE, 0x00 },
+ 
+@@ -633,7 +633,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // Arbitrarily set cur side to 0 (therefore perm set to 0)
+             // - update alt=1
+             // - re-IPL
+-            { 0x60, PNOR::SBE_SEEPROM0, 0x00,
++            { 0x60, SBE_SEEPROM0, 0x00,
+               static_cast<sbeUpdateActions_t>
+                      (DO_UPDATE|IPL_RESTART|UPDATE_MVPD|UPDATE_SBE),
+               EEPROM::SBE_BACKUP, 0x40 },
+@@ -644,14 +644,14 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // Arbitrarily set cur side to 1 (therefore perm set to 1)
+             // - update alt=0
+             // - re-IPL
+-            { 0x40, PNOR::SBE_SEEPROM1, 0x80,
++            { 0x40, SBE_SEEPROM1, 0x80,
+               static_cast<sbeUpdateActions_t>
+                      (DO_UPDATE|IPL_RESTART|UPDATE_MVPD|UPDATE_SBE),
+               EEPROM::SBE_PRIMARY, 0x80 },
+ 
+             // Repeat previous case to make sure global variables are used
+             // correctly to save MBOX value
+-            { 0x40, PNOR::SBE_SEEPROM1, 0x80,
++            { 0x40, SBE_SEEPROM1, 0x80,
+               static_cast<sbeUpdateActions_t>
+                      (DO_UPDATE|IPL_RESTART|UPDATE_MVPD|UPDATE_SBE),
+               EEPROM::SBE_PRIMARY, 0x80 },
+@@ -660,7 +660,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // Arbitrarily set cur side to 0 (therefore perm set to 0)
+             // - update alt=1
+             // - Continue IPL
+-            { 0x20, PNOR::SBE_SEEPROM0, 0x00,
++            { 0x20, SBE_SEEPROM0, 0x00,
+               static_cast<sbeUpdateActions_t>(DO_UPDATE|UPDATE_SBE),
+               EEPROM::SBE_BACKUP, 0x00 },
+ 
+@@ -670,7 +670,7 @@ class SBEUpdateTest: public CxxTest::TestSuite
+             // - Continue IPL
+             // NOTE: this will test that right-most-bit is ignored:
+             //  so techincally case 0x01, which should be = case 0x00
+-            { 0x01, PNOR::SBE_SEEPROM0, 0x00,
++            { 0x01, SBE_SEEPROM0, 0x00,
+               static_cast<sbeUpdateActions_t>(CLEAR_ACTIONS),
+               EEPROM::LAST_CHIP_TYPE, 0x00 },
+ #endif // SBE_UPDATE_SEQUENTIAL
+@@ -708,8 +708,8 @@ class SBEUpdateTest: public CxxTest::TestSuite
+                 sbeState.cur_seeprom_side = testData[i].i_cur;
+ 
+                 sbeState.alt_seeprom_side =
+-                             ( ( testData[i].i_cur == PNOR::SBE_SEEPROM0 )
+-                               ? PNOR::SBE_SEEPROM1 : PNOR::SBE_SEEPROM0 );
++                             ( ( testData[i].i_cur == SBE_SEEPROM0 )
++                               ? SBE_SEEPROM1 : SBE_SEEPROM0 );
+ 
+                 sbeState.mvpdSbKeyword.flags = testData[i].i_flags;
+ 
+-- 
+1.8.2.2
+
