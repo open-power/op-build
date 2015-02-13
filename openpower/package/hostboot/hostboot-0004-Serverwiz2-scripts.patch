@@ -1,22 +1,23 @@
-From 621e841553767416f071e2e5c6a7b8c7e2c59b81 Mon Sep 17 00:00:00 2001
+From 065fd1bc3d9fcc8b06be7564f8df162580f8775e Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Tue, 10 Feb 2015 11:29:57 -0600
-Subject: [PATCH] Final patchset for serverwiz2 processing
+Date: Fri, 13 Feb 2015 10:41:12 -0600
+Subject: [PATCH] New severwiz2 scripts up to support up to commit
+ 44fde6512e834ea8f5071299ca99b35973c0f979
 
-Change-Id: Ic0a7d93a929dcbd6f40aa593833e5b90746bc16f
+Change-Id: I3df49506aad9490f5f6e1840fa5e6afe3150492d
 ---
  src/build/mkrules/dist.targets.mk      |    3 +-
  src/usr/targeting/common/Targets.pm    | 1446 ++++++++++++++++++++++++++++++++
- src/usr/targeting/common/processMrw.pl | 1167 ++++++++++++++++++++++++++
- 3 files changed, 2615 insertions(+), 1 deletion(-)
+ src/usr/targeting/common/processMrw.pl | 1144 +++++++++++++++++++++++++
+ 3 files changed, 2592 insertions(+), 1 deletion(-)
  create mode 100755 src/usr/targeting/common/Targets.pm
  create mode 100755 src/usr/targeting/common/processMrw.pl
 
 diff --git a/src/build/mkrules/dist.targets.mk b/src/build/mkrules/dist.targets.mk
-index a6fb236..b62e99d 100644
+index ca28150..4b541ce 100644
 --- a/src/build/mkrules/dist.targets.mk
 +++ b/src/build/mkrules/dist.targets.mk
-@@ -72,7 +72,8 @@ COPY_FILES = \
+@@ -74,7 +74,8 @@ COPY_FILES = \
      src/usr/hwpf/hwp/initfiles/sample.initfile:tools \
      src/build/buildpnor/buildSbePart.pl:openpower \
      src/build/buildpnor/buildpnor.pl:openpower \
@@ -28,7 +29,7 @@ index a6fb236..b62e99d 100644
      src/usr/targeting/common/xmltohb/attribute_types_hb.xml:openpower \
 diff --git a/src/usr/targeting/common/Targets.pm b/src/usr/targeting/common/Targets.pm
 new file mode 100755
-index 0000000..d4c2bfa
+index 0000000..53568cf
 --- /dev/null
 +++ b/src/usr/targeting/common/Targets.pm
 @@ -0,0 +1,1446 @@
@@ -228,6 +229,7 @@ index 0000000..d4c2bfa
 +    $filter{MBA_NUM}                        = 1;
 +    $filter{IPMI_INSTANCE}                  = 1;
 +    $filter{INSTANCE_ID}                    = 1;
++    $filter{ADC_CHANNEL_SENSOR_NUMBERS}     = 1;
 +
 +    if ($filter{$attribute} == 1)
 +    {
@@ -320,7 +322,7 @@ index 0000000..d4c2bfa
 +    $self->{data}->{INSTANCE_PATH} = $old_path . "/" . $target;
 +
 +    ## copy attributes
-+
++    
 +    foreach my $attribute (keys %{ $target_xml->{attribute} })
 +    {
 +        my $value = $target_xml->{attribute}->{$attribute}->{default};
@@ -351,7 +353,7 @@ index 0000000..d4c2bfa
 +            $self->setAttribute($key, $attribute, $value);
 +        }
 +    }
-+    ## global attributes overwrite local
++    ## global attributes overwrite local   
 +    foreach my $prop (keys %{$self->{xml}->{globalSetting}->{$key}->{property}})
 +    {
 +        my $val=$self->{xml}->{globalSetting}->{$key}->{property}->
@@ -434,7 +436,7 @@ index 0000000..d4c2bfa
 +        {
 +            $proc = -1;
 +            $node = -1;
-+
++            
 +            $self->{targeting}{SYS}[0]{KEY} = $target;
 +            $self->setAttribute($target, "AFFINITY_PATH", "affinity:sys-0");
 +            $self->setAttribute($target, "PHYS_PATH",     "physical:sys-0");
@@ -477,7 +479,7 @@ index 0000000..d4c2bfa
 +            $self->{NUM_PROCS_PER_NODE} = $proc + 1;
 +            $self->{targeting}->{SYS}[0]{NODES}[$node]{PROCS}[$proc]{KEY} =
 +              $target;
-+
++            
 +            $self->setHuid($target, 0, $node);
 +            my $socket = $self->getTargetParent(
 +                         $self->getTargetParent($target));
@@ -509,7 +511,7 @@ index 0000000..d4c2bfa
 +                ## don't want non-hostboot targets
 +                if ($unit_type_id > 0)
 +                {
-+
++                    
 +                    push(@{$self->{targeting}
 +                            ->{SYS}[0]{NODES}[$node]{PROCS}[$proc]{$unit_type}},
 +                            { 'KEY' => $unit });
@@ -524,7 +526,7 @@ index 0000000..d4c2bfa
 +                    $self->setHuid($unit, 0, $node);
 +                    if ($unit_type eq "OCC")
 +                    {
-+                        $self->setAttribute($unit, "ENTITY_INSTANCE",$proc);
++                        $self->setAttribute($unit, "ENTITY_INSTANCE",$proc);                        
 +                    }
 +                    ## export core
 +                    if ($unit_type eq "EX")
@@ -644,9 +646,9 @@ index 0000000..d4c2bfa
 +        $self->{targeting}
 +          ->{SYS}[0]{NODES}[$node]{PROCS}[$proc]{MCSS}[$mcs] {MEMBUFS}[0]{KEY} =
 +          $membuf;
-+
++          
 +        $self->setAttribute($membuf, "ENTITY_INSTANCE",
-+               $self->{membuf_inst_num});
++               $self->{membuf_inst_num});   
 +        $self->{membuf_inst_num}++;
 +        ## get the mbas
 +        foreach my $child (@{ $self->{data}->{TARGETS}{$membuf}{CHILDREN} })
@@ -663,7 +665,7 @@ index 0000000..d4c2bfa
 +                    $node_phys . "/membuf-$membufnum/l4-0");
 +                $self->setHuid($child, 0, $node);
 +            }
-+
++            
 +            if ($self->getType($child) eq "MBA")
 +            {
 +                my $mba = $self->getAttribute($child,"MBA_NUM");
@@ -705,10 +707,9 @@ index 0000000..d4c2bfa
 +                        $self->setHuid($dimm, 0, $node);
 +                        $self->{targeting}
 +                          ->{SYS}[0]{NODES}[$node]{PROCS}[$proc] {MCSS}[$mcs]
-+                          {MEMBUFS}[0]{MBAS}[$mba]{DIMMS}[$affinitypos]{KEY}
-+                                = $dimm;
++                          {MEMBUFS}[0]{MBAS}[$mba] {DIMMS}[$affinitypos]{KEY} = $dimm;
 +                        $self->setAttribute($dimm, "ENTITY_INSTANCE",
-+                             $self->{dimm_tpos});
++                             $self->{dimm_tpos});  
 +                        $self->{dimm_tpos}++;
 +                        $affinitypos++;
 +                    }
@@ -1480,10 +1481,10 @@ index 0000000..d4c2bfa
 +
 diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
 new file mode 100755
-index 0000000..18107df
+index 0000000..1fb292f
 --- /dev/null
 +++ b/src/usr/targeting/common/processMrw.pl
-@@ -0,0 +1,1167 @@
+@@ -0,0 +1,1144 @@
 +#! /usr/bin/perl
 +# IBM_PROLOG_BEGIN_TAG
 +# This is an automatically generated prolog.
@@ -1570,7 +1571,7 @@ index 0000000..18107df
 +    if ($type eq "SYS")
 +    {
 +        processSystem($targetObj, $target);
-+    }
++    } 
 +    elsif ($type eq "PROC")
 +    {
 +        processProcessor($targetObj, $target);
@@ -1627,7 +1628,7 @@ index 0000000..18107df
 +{
 +    my $report_file = $xmldir . "/" . $targetObj->getSystemName() . ".rpt";
 +    open(SUM,">$report_file") || die "Unable to create: $report_file\n";
-+    my $ref = $targetObj->{targeting}->{SYS}[0]{NODES}[0]{PROCS};
++    my $ref = $targetObj->{targeting}->{SYS}[0]{NODES}[0]{PROCS};       
 +    foreach my $proc (@{$ref})
 +    {
 +        foreach my $mcs (@{$proc->{MCSS}})
@@ -1635,7 +1636,7 @@ index 0000000..18107df
 +            my $mcs_target = $mcs->{KEY};
 +            my $membuf=$mcs->{MEMBUFS}[0];
 +            my $membuf_target = $membuf->{KEY};
-+
++          
 +            my $sch = $targetObj->getAttribute($mcs_target,
 +                      "SCHEMATIC_INTERFACE");
 +            my $aff = $targetObj->getAttribute($mcs_target,"AFFINITY_PATH");
@@ -1644,7 +1645,7 @@ index 0000000..18107df
 +            if ($membuf_target ne "") {
 +                foreach my $mba (@{$membuf->{MBAS}}) {
 +                    my $mba_target = $mba->{KEY};
-+
++               
 +                    $huid = $targetObj->getAttribute($mba_target,"HUID");
 +                    $aff = $targetObj->getAttribute($mcs_target,
 +                                   "AFFINITY_PATH");
@@ -1663,7 +1664,7 @@ index 0000000..18107df
 +                        my $sens = $targetObj->getAttribute($dimm_target,
 +                                  "IPMI_SENSORS");
 +                        my @s = split(/\,/,$sens);
-+
++                        
 +                        print SUM "\t\t$huid | $dimm_target".
 +                                  " | $aff | $p | $d | $i2c | ".
 +                                  "$s[0],$s[1] | $s[2],$s[3]\n";
@@ -1680,82 +1681,6 @@ index 0000000..18107df
 +## Processing subroutines
 +
 +#--------------------------------------------------
-+## SDRs
-+##
-+
-+sub processSdr
-+{
-+    my $targetObj = shift;
-+    my $target = shift;
-+    my $sdrObj = shift;
-+
-+    my @ipmi_sensors;
-+    my %id_lu;
-+
-+    if ($targetObj->isBadAttribute($target,"ENTITY_ID_LOOKUP")==1)
-+    {
-+        return;
-+    }
-+    my $entity_id_lookup = $targetObj->getAttribute($target,"ENTITY_ID_LOOKUP");
-+    if ($entity_id_lookup ne "") {
-+        my $pos=0;
-+        if ($targetObj->isBadAttribute($target,"IPMI_INSTANCE")==1)
-+        {
-+            $pos = $targetObj->getAttribute($target,"ENTITY_INSTANCE");
-+        }
-+        else
-+        {
-+            $pos = $targetObj->getAttribute($target,"IPMI_INSTANCE");
-+        }
-+        print  "$entity_id_lookup,$pos\n";
-+        my @ids = split(/,/,$entity_id_lookup);
-+        foreach my $i (@ids)
-+        {
-+            my $i_int = oct($i);
-+            if ($i_int>0)
-+            {
-+                $id_lu{$i_int}=1;
-+            }
-+        }
-+        foreach my $s (@{$sdrObj->{data}})
-+        {
-+            my $sdr_entity_id = oct($s->{entity_id});
-+            if ($s->{name}=~/Core/) {
-+                $sdr_entity_id=208;
-+            }
-+            if ($id_lu{$sdr_entity_id}>0)
-+            {
-+                my $sensor_id=$s->{sensor_id};
-+                my $instance_id=oct($s->{entity_instance});
-+                my $sensor_type=oct($s->{sensor_type});
-+                if ($instance_id==$pos)
-+                {
-+                    print "IMPORTING: $target; pos=$pos; entity_id=".
-+                           "$sdr_entity_id; ".
-+                           "sensor_id=$sensor_id; sensor_type=$sensor_type\n";
-+                    my $eid=sprintf("0x%02x%02x",$sensor_type,$sdr_entity_id);
-+                    my $sid=sprintf("0x%02x",$s->{sensor_id});
-+                    push(@ipmi_sensors,$eid.",".$sid);
-+                    $id_lu{$sdr_entity_id}++;
-+                }
-+            }
-+        }
-+        foreach my $k (keys(%id_lu)) {
-+            if ($id_lu{$k}==1)
-+            {
-+                print "WARNING: $target; pos=$pos; entity_id=$k; ".
-+                      "not imported\n";
-+                #$targetObj->myExit(3);
-+            }
-+        }
-+        for (my $i=@ipmi_sensors;$i<16;$i++)
-+        {
-+            push(@ipmi_sensors,"0xFFFF,0xFF");
-+        }
-+        my $ipmi = join(',',@ipmi_sensors);
-+        $targetObj->setAttribute($target,"IPMI_SENSORS",$ipmi);
-+    }
-+}
 +
 +#--------------------------------------------------
 +## System
@@ -1833,7 +1758,7 @@ index 0000000..18107df
 +       $targetObj->getTargetParent($targetObj->getTargetParent($target));
 +    $targetObj->copyAttribute($socket_target,$target,"LOCATION_CODE");
 +    $targetObj->copyAttribute($socket_target,$target,"FRU_ID");
-+
++    
 +
 +    foreach my $attr (sort (keys
 +           %{ $targetObj->getTarget($socket_target)->{TARGET}->{attribute} }))
@@ -2015,7 +1940,7 @@ index 0000000..18107df
 +                my $b=sprintf("0x%016X",
 +         $i_base+$i_node_offset*$node+$i_proc_offset*$proc+$i_offset*$i);
 +                my $sep=",";
-+                if ($i==$num-1)
++                if ($i==$num-1) 
 +                {
 +                    $sep="";
 +                }
@@ -2046,7 +1971,7 @@ index 0000000..18107df
 +    my $i_offset = Math::BigInt->new($offset);
 +
 +    my $mcs = $targetObj->getAttribute($target, "MCS_NUM");
-+    my $mcsStr=sprintf("0x%016X",
++    my $mcsStr=sprintf("0x%016X",   
 +         $i_base+$i_node_offset*$node+$i_proc_offset*$proc+$i_offset*$mcs);
 +    $targetObj->setAttribute($target, "IBSCOM_MCS_BASE_ADDR", $mcsStr);
 +}
@@ -2063,7 +1988,7 @@ index 0000000..18107df
 +    my $target    = shift;
 +
 +    # $targetObj->setAttribute($target, "PEER_TARGET","");
-+
++  
 +}
 +
 +#--------------------------------------------------
@@ -2081,7 +2006,7 @@ index 0000000..18107df
 +   $targetObj->setAttribute($target, "EI_BUS_TX_LANE_INVERT","0");
 +   $targetObj->setAttribute($target, "EI_BUS_TX_MSBSWAP","0");
 +   # $targetObj->setAttribute($target, "PEER_TARGET","");
-+
++            
 +    my $abus_child_conn = $targetObj->getFirstConnectionDestination($target);
 +    if ($abus_child_conn ne "")
 +    {
@@ -2271,14 +2196,12 @@ index 0000000..18107df
 +                {
 +                    for (my $lane=0;$lane<16;$lane++)
 +                    {
-+                        $equalization[$phb_num][$lane]=$eqs[$e+1].",".
-+                              $eqs[$e+2];
-+                    }
++                        $equalization[$phb_num][$lane]=$eqs[$e+1].",".$eqs[$e+2];
++                    }                    
 +                }
 +                else
 +                {
-+                    $equalization[$phb_num][$eqs[$e]] = $eqs[$e+1].",".
-+                              $eqs[$e+2];
++                    $equalization[$phb_num][$eqs[$e]] = $eqs[$e+1].",".$eqs[$e+2];
 +                }
 +            }
 +            substr($phb_config, $phb_num, 1, "1");
@@ -2372,7 +2295,7 @@ index 0000000..18107df
 +{
 +    my $targetObj = shift;
 +    my $target    = shift;
-+
++    
 +    my $vpds=$targetObj->findConnections($target,"I2C","VPD");
 +    if ($vpds ne "" ) {
 +        my $vpd = $vpds->{CONN}->[0];
@@ -2385,7 +2308,7 @@ index 0000000..18107df
 +                setEepromAttributes($targetObj,
 +                       "EEPROM_VPD_PRIMARY_INFO",$membuf_target,$vpd);
 +                setEepromAttributes($targetObj,
-+                       "EEPROM_VPD_FRU_INFO",$membuf_target,$vpd,"0++");
++                       "EEPROM_VPD_FRU_INFO",$membuf_target,$vpd,"0++");       
 +                my $index = $targetObj->getBusAttribute($membuf_assoc->{SOURCE},
 +                                $membuf_assoc->{BUS_NUM}, "ISDIMM_MBVPD_INDEX");
 +                $targetObj->setAttribute(
@@ -2406,8 +2329,8 @@ index 0000000..18107df
 +{
 +    my $targetObj = shift;
 +    my $target    = shift;
-+    if ($targetObj->isBadAttribute($target, "PHYS_PATH", ""))
-+    {
++    if ($targetObj->isBadAttribute($target, "PHYS_PATH", "")) 
++    { 
 +        ##dmi is probably not connected.  will get caught in error checking
 +        return;
 +    }
@@ -2435,7 +2358,33 @@ index 0000000..18107df
 +            }
 +        }
 +    }
++    ## find port mapping
++    my %dimm_portmap;
++    foreach my $child (@{$targetObj->getTargetChildren($target)})
++    {
++         if ($targetObj->getType($child) eq "MBA")
++         {
++             my $mba_num = $targetObj->getAttribute($child,"MBA_NUM");
++             my $dimms=$targetObj->findConnections($child,"DDR3","");
++             if ($dimms ne "")
++             {
++                 foreach my $dimm (@{$dimms->{CONN}})
++                 {
++                       my $port_num = $targetObj->getAttribute(
++                                     $dimm->{SOURCE},"MBA_PORT");
++                       my $dimm_num = $targetObj->getAttribute(
++                                     $dimm->{SOURCE},"MBA_DIMM");
++                       
++                       my $map = oct("0b".$mba_num.$port_num.$dimm_num);
++                       $dimm_portmap{$dimm->{DEST_PARENT}} = $map;
++                 }
++             }
++         }
++    }
++    
++    
 +    ## Process MEMBUF to DIMM I2C connections
++    my @addr_map=('0','0','0','0','0','0','0','0');
 +    my $dimms=$targetObj->findConnections($target,"I2C","SPD");
 +    if ($dimms ne "") {
 +        foreach my $dimm (@{$dimms->{CONN}}) {
@@ -2446,8 +2395,19 @@ index 0000000..18107df
 +            setEepromAttributes($targetObj,
 +                       "EEPROM_VPD_FRU_INFO",$dimm_target,
 +                       $dimm,"0++");
++
++            my $field=getI2cMapField($targetObj,$dimm_target,$dimm);
++            my $map = $dimm_portmap{$dimm_target};
++            if ($map eq "") { 
++                print "ERROR: $dimm_target doesn't map to a dimm/port\n";
++                $targetObj->myExit(3);
++            }
++            $addr_map[$map] = $field;
 +        }
 +    }
++    $targetObj->setAttribute($targetObj->{targeting}->{SYS}[0]->{KEY},
++            "MRW_MEM_SENSOR_CACHE_ADDR_MAP","0x".join("",@addr_map));
++
 +    ## Update bus speeds
 +    processI2cSpeeds($targetObj,$target);
 +
@@ -2459,7 +2419,7 @@ index 0000000..18107df
 +        foreach my $ddr (@{$ddrs->{CONN}}) {
 +            my $mba=$ddr->{SOURCE};
 +            my $dimm=$ddr->{DEST_PARENT};
-+            my ($dimmnum,$port)=split(//,sprintf("%02b\n",$portmap{$mba}));
++            my ($dimmnum,$port)=split(//,sprintf("%02b\n",$portmap{$mba}));        
 +            $targetObj->setAttribute($dimm, "MBA_DIMM",$dimmnum);
 +            $targetObj->setAttribute($dimm, "MBA_PORT",$port);
 +            $portmap{$mba}++;
@@ -2468,6 +2428,24 @@ index 0000000..18107df
 +            my $dimmconn=$targetObj->getTargetParent($dimm);
 +        }
 +    }
++}
++
++sub getI2cMapField
++{
++    my $targetObj = shift;
++    my $target = shift;
++    my $conn_target = shift;
++
++
++    my $port = $targetObj->getAttribute($conn_target->{SOURCE}, "I2C_PORT");
++    my $engine = $targetObj->getAttribute($conn_target->{SOURCE}, "I2C_ENGINE");
++    my $addr = $targetObj->getBusAttribute($conn_target->{SOURCE},
++            $conn_target->{BUS_NUM}, "I2C_ADDRESS");
++    
++    my $bits=sprintf("%08b",hex($addr));
++    my $field=sprintf("%d%3s",oct($port),substr($bits,4,3));
++    my $hexfield = sprintf("%X",oct("0b$field"));
++    return $hexfield;
 +}
 +
 +
@@ -2522,7 +2500,7 @@ index 0000000..18107df
 +    my $engine = $targetObj->getAttribute($conn_target->{SOURCE}, "I2C_ENGINE");
 +    my $addr = $targetObj->getBusAttribute($conn_target->{SOURCE},
 +            $conn_target->{BUS_NUM}, "I2C_ADDRESS");
-+    my $path = $targetObj->getAttribute($conn_target->{SOURCE_PARENT},
++    my $path = $targetObj->getAttribute($conn_target->{SOURCE_PARENT}, 
 +               "PHYS_PATH");
 +
 +
