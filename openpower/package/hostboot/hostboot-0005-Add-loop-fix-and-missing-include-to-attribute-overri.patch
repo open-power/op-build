@@ -1,0 +1,38 @@
+From 7a51e37d5d7672fbef3a8f3c4a11a652ded9241a Mon Sep 17 00:00:00 2001
+From: Andres Lugo-Reyes <aalugore@us.ibm.com>
+Date: Mon, 16 Feb 2015 10:16:48 -0600
+Subject: [PATCH] Add loop fix and missing include to attribute override tool.
+
+Change-Id: I451d905d96822a151aa7966d31d27353bebbe953
+Reviewed-on: http://gfw160.aus.stglabs.ibm.com:8080/gerrit/15757
+Tested-by: Jenkins Server
+Reviewed-by: Brian Silver <bsilver@us.ibm.com>
+Reviewed-by: A. Patrick Williams III <iawillia@us.ibm.com>
+---
+ src/usr/targeting/attroverride/attrTextToBinaryBlob.C | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/usr/targeting/attroverride/attrTextToBinaryBlob.C b/src/usr/targeting/attroverride/attrTextToBinaryBlob.C
+index 10ef7bb..e4b3330 100755
+--- a/src/usr/targeting/attroverride/attrTextToBinaryBlob.C
++++ b/src/usr/targeting/attroverride/attrTextToBinaryBlob.C
+@@ -48,6 +48,7 @@
+ #include <stdio.h>
+ #include <arpa/inet.h>
+ #include <endian.h>
++#include <unistd.h>
+ #include <hwpf/fapi/fapiTarget.H>
+ #include <attributeenums.H>
+ #include <pnor/ecc.H>
+@@ -1024,7 +1025,7 @@ bool AttrTextToBinaryBlob::getAttrDataFromMap(const char * i_attrString,
+ 
+         o_attrId = currentAttr->iv_attrId;
+         o_attrElemSizeBytes = currentAttr->iv_attrElemSizeBytes;
+-        for(size_t i = 0; i < sizeof(o_dims)/sizeof(uint32_t); ++i)
++        for(size_t i = 0; i < sizeof(o_dims)/sizeof(size_t); ++i)
+         {
+             o_dims[i] = currentAttr->iv_dims[i];
+         }
+-- 
+2.1.1
+
