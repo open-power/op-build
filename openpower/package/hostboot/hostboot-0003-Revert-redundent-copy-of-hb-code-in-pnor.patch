@@ -1,19 +1,696 @@
-From a05bf62e7eb14354ca2d6ca45b149aac6dbd193c Mon Sep 17 00:00:00 2001
+From 5adea56942b770c02118e322e417f015415421f9 Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Wed, 11 Feb 2015 11:41:48 -0600
-Subject: [PATCH] Revert "Support for Redundant Copy of HB code in PNOR"
+Date: Mon, 16 Feb 2015 14:50:05 -0600
+Subject: [PATCH 1/3] Revert "adding toc offsets to defaultPnorLayout for hwsv
+ team"
+
+This reverts commit 6990adda0f2996cc7baacba9f485c7b5a415904c.
+---
+ src/build/buildpnor/defaultPnorLayout.xml | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
+index d5d5d25..897d4db 100644
+--- a/src/build/buildpnor/defaultPnorLayout.xml
++++ b/src/build/buildpnor/defaultPnorLayout.xml
+@@ -28,9 +28,6 @@ Layout Description
+     <imageSize>    -> Size of PNOR image in bytes.
+     <blockSize>    -> size of erase blocks in bytes.
+     <tocSize>      -> size of each partition table
+-    <!- TODO:RTC:123734 - remove side offsets once hwsv implements new layout ->
+-    <sideAOffset>  -> Location of Side A Partition Table
+-    <sideBOffset>  -> Location of Side B Partition Table
+     <side>         -> Contains information about the side
+         <id>            -> Id of the side (A or B)
+         <arrangement>   -> Tag that specifies the arrangement of the side
+@@ -67,10 +64,6 @@ Layout Description
+         <imageSize>0x4000000</imageSize>
+         <blockSize>0x1000</blockSize>
+         <tocSize>0x8000</tocSize>
+-        <!--TODO: RTC 123734 - remove side offsets once hwsv implements new
+-        layout-->
+-        <sideAOffset>0x0</sideAOffset>
+-        <sideBOffset>0x8000</sideBOffset>
+         <arrangement>A-B-D</arrangement>
+         <side>
+             <id>B</id>
+-- 
+1.8.2.2
+
+
+From d277e6fce112af0088d2179a07482b71cc3f083e Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Mon, 16 Feb 2015 14:50:17 -0600
+Subject: [PATCH 2/3] Revert "Created 2-sided and golden-side pnor layouts"
+
+This reverts commit e83759d6aa90999933318155772b50a8af679ec6.
+---
+ src/build/buildpnor/buildpnor.pl          | 254 ++++++++----------------------
+ src/build/buildpnor/defaultPnorLayout.xml |  69 ++++----
+ src/usr/pnor/common/ffs_hb.H              |   3 +-
+ 3 files changed, 96 insertions(+), 230 deletions(-)
+
+diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
+index aad7c34..f6df6c8 100755
+--- a/src/build/buildpnor/buildpnor.pl
++++ b/src/build/buildpnor/buildpnor.pl
+@@ -61,7 +61,6 @@ my $g_trace = 1;
+ 
+ my $programName = File::Basename::basename $0;
+ my %pnorLayout;
+-my %PhysicalOffsets;
+ my %binFiles;
+ my $pnorLayoutFile;
+ my $pnorBinName = "";
+@@ -71,6 +70,7 @@ my $emitTestSections = 0;
+ my $g_fpartCmd = "";
+ my $g_fcpCmd = "";
+ my %sidelessSecFilled = ();
++
+ my %SideOptions = (
+         A => "A",
+         B => "B",
+@@ -132,7 +132,7 @@ if (-e $pnorBinName)
+ }
+ 
+ #Load PNOR Layout XML file
+-my $rc = loadPnorLayout($pnorLayoutFile, \%pnorLayout, \%PhysicalOffsets);
++my $rc = loadPnorLayout($pnorLayoutFile, \%pnorLayout);
+ if($rc != 0)
+ {
+     trace(0, "Error detected from call to loadPnorLayout().  Exiting");
+@@ -163,6 +163,8 @@ if($rc != 0)
+ }
+ trace(1, "Done checkSpaceConstraints");
+ 
++# @TODO RTC: 120062 - Determine which side is Golden, possibly handle a new
++#                    xml tag
+ # Create all Partition Tables at each TOC offset
+ # Each side has 2 TOC's created at different offsets for backup purposes.
+ # Loop all side sections
+@@ -172,6 +174,7 @@ foreach my $sideId ( keys %{$pnorLayout{metadata}{sides}} )
+     foreach my $toc ( keys %{$pnorLayout{metadata}{sides}{$sideId}{toc}})
+     {
+         my $tocOffset = $pnorLayout{metadata}{sides}{$sideId}{toc}{$toc};
++
+         $rc = createPnorPartition($tocVersion, $pnorBinName, \%pnorLayout,
+                                   $sideId, $tocOffset);
+         if($rc != 0)
+@@ -179,31 +182,9 @@ foreach my $sideId ( keys %{$pnorLayout{metadata}{sides}} )
+             trace(0, "Error detected from createPnorPartition() $tocOffset Exiting");
+             exit 1;
+         }
+-
+-        #Add the golden side tag to the "part" partition of PNOR`
+-        my $userflags1 = ($pnorLayout{metadata}{sides}{$sideId}{golden} eq "yes") ?
+-                            0x01 : 0x00;
+-
+-        #add a golden bit to the misc flags in userflag1
+-        $userflags1 = $userflags1 << 16;
+-        trace(2, "$g_fpartCmd --target $pnorBinName --partition-offset $tocOffset --user 1 --name part --value $userflags1 --force");
+-        $rc =    `$g_fpartCmd --target $pnorBinName --partition-offset $tocOffset --user 1 --name part --value $userflags1 --force`;
+-        if($rc != 0)
+-        {
+-            trace(0, "Call to add golden flag to PART failed.  rc=$rc.  Aborting!");
+-            exit;
+-        }
+     }
+ }
+ 
+-#add backup TOC and other side's toc information to each TOC
+-$rc = addTOCInfo(\%pnorLayout, $pnorBinName);
+-if($rc)
+-{
+-    trace(0, "Error detected from call to addTOCInfo().  Exiting");
+-    exit 1;
+-}
+-
+ # Fill all sides
+ foreach my $sideId ( keys %{$pnorLayout{metadata}{sides}} )
+ {
+@@ -227,7 +208,7 @@ exit 0;
+ ################################################################################
+ sub loadPnorLayout
+ {
+-    my ($i_pnorFile, $i_pnorLayoutRef, $i_physicalOffsets) = @_;
++    my ($i_pnorFile, $i_pnorLayoutRef) = @_;
+     my $this_func = (caller(0))[3];
+ 
+     unless(-e $i_pnorFile)
+@@ -240,6 +221,49 @@ sub loadPnorLayout
+     my $xs = new XML::Simple(keyattr=>[], forcearray => 1);
+     my $xml = $xs->XMLin($i_pnorFile);
+ 
++    #Save the meatadata - imageSize, blockSize, etc.
++    # @TODO RTC:120062 enhance metadata section, fix metadataE1 to match xml
++    # and change TOC names accordingly
++    foreach my $metadataEl (@{$xml->{metadata}})
++    {
++        # Get meta data
++        my $imageSize = $metadataEl->{imageSize}[0];
++        my $blockSize = $metadataEl->{blockSize}[0];
++        $imageSize = getNumber($imageSize);
++        $blockSize = getNumber($blockSize);
++        $$i_pnorLayoutRef{metadata}{imageSize} = $imageSize;
++        $$i_pnorLayoutRef{metadata}{blockSize} = $blockSize;
++
++        # Get Side A
++        my $sideATocOffset = $metadataEl->{sideATocOffset}[0];
++        my $sideATocBackupOffset = $metadataEl->{sideATocBackupOffset}[0];
++        $sideATocOffset = getNumber($sideATocOffset);
++        $sideATocBackupOffset = getNumber($sideATocBackupOffset);
++        # @TODO RTC: 120062 change pnorLayoutRef hash to match new xml
++        $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{A}}{toc}{primary} = $sideATocOffset;
++        $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{A}}{toc}{backup} = $sideATocBackupOffset;
++
++        # Get side B info (if it exists)
++        if (exists $metadataEl->{sideBTocOffset}[0])
++        {
++            trace(1, "Adding Side B information ....");
++            my $sideBTocOffset = $metadataEl->{sideBTocOffset}[0];
++            my $sideBTocBackupOffset = $metadataEl->{sideBTocBackupOffset}[0];
++            $sideBTocOffset = getNumber($sideBTocOffset);
++            $sideBTocBackupOffset = getNumber($sideBTocBackupOffset);
++            # @TODO RTC: 120062 change pnorLayoutRef hash to match new xml
++            $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{B}}{toc}{primary} = $sideBTocOffset;
++            $$i_pnorLayoutRef{metadata}{sides}{$SideOptions{B}}{toc}{backup} = $sideBTocBackupOffset;
++
++            trace(3, "$this_func: metadata: imageSize = $imageSize, blockSize=$blockSize, sideATocOffset=$sideATocOffset, sideATocBackupOffset=$sideATocBackupOffset, sideBTocOffset=$sideBTocOffset, sideBTocBackupOffset=$sideBTocBackupOffset");
++        }
++        else
++        {
++           trace(3, "$this_func: metadata: imageSize = $imageSize, blockSize=$blockSize, sideATocOffset=$sideATocOffset, sideATocBackupOffset=$sideATocBackupOffset");
++        }
++
++    }
++
+     #Iterate over the <section> elements.
+     foreach my $sectionEl (@{$xml->{section}})
+     {
+@@ -252,6 +276,7 @@ sub loadPnorLayout
+         my $ecc = (exists $sectionEl->{ecc} ? "yes" : "no");
+         my $sha512Version = (exists $sectionEl->{sha512Version} ? "yes" : "no");
+         my $sha512perEC = (exists $sectionEl->{sha512perEC} ? "yes" : "no");
++        my $sideless = (exists $sectionEl->{sideless} ? "yes" : "no");
+         my $preserved = (exists $sectionEl->{preserved} ? "yes" : "no");
+         my $readOnly = (exists $sectionEl->{readOnly} ? "yes" : "no");
+         if (($emitTestSections == 0) && ($sectionEl->{testonly}[0] eq "yes"))
+@@ -272,93 +297,12 @@ sub loadPnorLayout
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{ecc} = $ecc;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{sha512Version} = $sha512Version;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{sha512perEC} = $sha512perEC;
++        $$i_pnorLayoutRef{sections}{$physicalOffset}{sideless} = $sideless;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{preserved} = $preserved;
+         $$i_pnorLayoutRef{sections}{$physicalOffset}{readOnly} = $readOnly;
+ 
+-        #store the physical offsets of each section in a hash, so, it is easy
+-        #to search physicalOffsets based on the name of the section (eyecatch)
+-        if ($side eq "sideless")
+-        {
+-            foreach my $metadata (@{$xml->{metadata}})
+-            {
+-                foreach my $sides (@{$metadata->{side}})
+-                {
+-                    $$i_physicalOffsets{side}{$sides->{id}[0]}{eyecatch}{$eyeCatch} = $physicalOffset;
+-                }
+-            }
+-        }
+-        else
+-        {
+-            $$i_physicalOffsets{side}{$side}{eyecatch}{$eyeCatch} = $physicalOffset;
+-        }
+     }
+-    # Save the metadata - imageSize, blockSize, toc Information etc.
+-    foreach my $metadataEl (@{$xml->{metadata}})
+-    {
+-        # Get meta data
+-        my $imageSize   = $metadataEl->{imageSize}[0];
+-        my $blockSize   = $metadataEl->{blockSize}[0];
+-        my $tocSize     = $metadataEl->{tocSize}[0];
+-        my $arrangement = $metadataEl->{arrangement}[0];
+-        $imageSize      = getNumber($imageSize);
+-        $blockSize      = getNumber($blockSize);
+-        $tocSize        = getNumber($tocSize);
+-        $$i_pnorLayoutRef{metadata}{imageSize}   = $imageSize;
+-        $$i_pnorLayoutRef{metadata}{blockSize}   = $blockSize;
+-        $$i_pnorLayoutRef{metadata}{tocSize}     = $tocSize;
+-        $$i_pnorLayoutRef{metadata}{arrangement} = $arrangement;
+-
+-        my $numOfSides  = scalar (@{$metadataEl->{side}});
+-        my $sideSize = ($imageSize)/($numOfSides);
+-
+-        trace(1, " $this_func: metadata: imageSize = $imageSize, blockSize=$blockSize, arrangement = $arrangement, numOfSides: $numOfSides, sideSize: $sideSize, tocSize: $tocSize");
+-
+-        #determine the TOC offsets from the arrangement and side Information
+-        #stored in the layout xml
+-        #
+-        #Arrangement A-B-D means that the layout had Primary TOC (A), then backup TOC (B), then Data (pnor section information).
+-        #Similaryly, arrangement A-D-B means that primary toc is followed by the data (section information) and then
+-        #the backup TOC.
+-        if ($arrangement eq "A-B-D")
+-        {
+-            my $count = 0;
+-            foreach my $side (@{$metadataEl->{side}})
+-            {
+-                my $golden     = (exists $side->{golden} ? "yes" : "no");
+-                my $sideId     = $side->{id}[0];
+-                my $primaryTOC = ($sideSize)*($count);
+-                my $backupTOC  = ($primaryTOC)+($tocSize);
+ 
+-                $$i_pnorLayoutRef{metadata}{sides}{$sideId}{toc}{primary} = $primaryTOC;
+-                $$i_pnorLayoutRef{metadata}{sides}{$sideId}{toc}{backup}  = $backupTOC;
+-                $$i_pnorLayoutRef{metadata}{sides}{$sideId}{golden}       = $golden;
+-
+-                $count = $count + 1;
+-                trace(1, "A-B-D: side:$sideId primaryTOC:$primaryTOC, backupTOC:$backupTOC, golden: $golden");
+-            }
+-        }
+-        elsif ($arrangement eq "A-D-B")
+-        {
+-            foreach my $side (@{$metadataEl->{side}})
+-            {
+-                my $golden     = (exists $side->{golden} ? "yes" : "no");
+-                my $sideId     = $side->{id}[0];
+-                my $hbbAddr    = $$i_physicalOffsets{side}{$sideId}{eyecatch}{"HBB"};
+-                my $primaryTOC = align_down($hbbAddr, $sideSize);
+-                my $backupTOC  = align_up($hbbAddr, $sideSize) - $tocSize;
+-
+-                $$i_pnorLayoutRef{metadata}{sides}{$sideId}{toc}{primary} = $primaryTOC;
+-                $$i_pnorLayoutRef{metadata}{sides}{$sideId}{toc}{backup}  = $backupTOC;
+-                $$i_pnorLayoutRef{metadata}{sides}{$sideId}{golden}       = $golden;
+-                trace(1, "A-D-B: side:$sideId HBB:$hbbAddr, primaryTOC:$primaryTOC, backupTOC:$backupTOC, golden: $golden");
+-            }
+-        }
+-        else
+-        {
+-            trace(0, "Arrangement:$arrangement is not supported");
+-            exit(1);
+-        }
+-    }
+     return 0;
+ }
+ 
+@@ -387,6 +331,7 @@ sub createPnorImg
+             $rc = 1;
+             last;
+         }
++
+         #f{fs,part} --create tuleta.pnor --partition-offset 0 --size 8MiB --block 4KiB --force
+         trace(2, "$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --create --size $imageSize --block $blockSize --force");
+         $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $i_offset --create --size $imageSize --block $blockSize --force`;
+@@ -449,6 +394,7 @@ sub addUserData
+         $miscFlags |= 0x40;
+     }
+ 
++
+     #First User Data Word
+     #[1:chip][1:compressType][2:dataInteg]
+     my $userflags0 = ($chip << 24)
+@@ -503,6 +449,7 @@ sub createPnorPartition
+         {
+             last;
+         }
++
+         #get Block size
+         my $blockSize = $$i_pnorLayoutRef{metadata}{blockSize};
+ 
+@@ -551,7 +498,7 @@ sub createPnorPartition
+ 
+                 #Add Partition
+                 #f{fs,part} --add --target tuleta.pnor --partition-offset 0 --offset 0x1000   --size 0x280000 --name HBI --flags 0x0
+-                trace(2, "$this_func: $g_fpartCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0");
++                trace(2, "$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0");
+                 $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $offset --add --offset $physicalOffset --size $physicalRegionSize --name $eyeCatch --flags 0x0`;
+                 if($rc)
+                 {
+@@ -588,67 +535,6 @@ sub createPnorPartition
+ }
+ 
+ ################################################################################
+-# addTOCInfo -- adds BACKUP_PART and OTHER_SIDE information to all the TOCs
+-################################################################################
+-sub addTOCInfo
+-{
+-    my ($i_pnorLayout, $i_pnorBinName) = @_;
+-    my $rc        = 0;
+-    my $other_idx = 0;
+-    my $sideShift = 0;
+-    my @all_tocs;
+-    foreach my $sideId (keys %{$$i_pnorLayout{metadata}{sides}})
+-    {
+-        push @all_tocs, $$i_pnorLayout{metadata}{sides}{$sideId}{toc}{primary};
+-        push @all_tocs, $$i_pnorLayout{metadata}{sides}{$sideId}{toc}{backup};
+-    }
+-    foreach my $sideId ( keys %{$$i_pnorLayout{metadata}{sides}} )
+-    {
+-        my $physicalRegionSize = $$i_pnorLayout{metadata}{tocSize};
+-        my $backup_part = "BACKUP_PART";
+-        my $other_side  = "OTHER_SIDE";
+-        my $backup_idx  = 0;
+-        my $otherSide   = getOtherSide($sideId);
+-        my $numOfTOCs   =  scalar keys %{$$i_pnorLayout{metadata}{sides}{$sideId}{toc}};
+-
+-        #Adding an extra entry in the TOC that points to its backup TOC and other side's TOC (if other side exists).
+-        #This is used to search for all the TOCs in PnorRP code. The idea is to create a link between the tocs such that
+-        #if we can find one valid TOC, then we can look at its  BACKUP_PART entry or OTHER_SIDE entry in the TOC to
+-        #determine the location of backup TOC.Each TOC has only one BACKUP_PART entry and one OTHER_SIDE entry.
+-        foreach my $toc (keys %{$$i_pnorLayout{metadata}{sides}{$sideId}{toc}})
+-        {
+-            #adding backup_part
+-            my $toc_offset    = $$i_pnorLayout{metadata}{sides}{$sideId}{toc}{$toc};
+-            my $backup_offset = $all_tocs[(($backup_idx + 1)% $numOfTOCs) + $sideShift ];
+-            trace(1, "$g_fpartCmd --target $i_pnorBinName --partition-offset $toc_offset --add --offset $backup_offset --size $physicalRegionSize --name $backup_part --flags 0x0");
+-            $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $toc_offset --add --offset $backup_offset --size $physicalRegionSize --name $backup_part --flags 0x0`;
+-            if($rc)
+-            {
+-                trace(0, "Call to add partition $backup_part failed.  rc=$rc.  Aborting!");
+-                exit;
+-            }
+-
+-            #Don't add OTHER_SIDE section if there is only one side in PNOR
+-            if ((scalar keys % {$$i_pnorLayout{metadata}{sides}}) > 1)
+-            {
+-                #adding other_side
+-                my $otherSide_offset = $all_tocs[(($other_idx + 2)% scalar @all_tocs)];
+-                trace(1, "$g_fpartCmd --target $i_pnorBinName --partition-offset $toc_offset --add --offset $otherSide_offset --size $physicalRegionSize --name $other_side --flags 0x0");
+-                $rc = `$g_fpartCmd --target $i_pnorBinName --partition-offset $toc_offset --add --offset $otherSide_offset --size $physicalRegionSize --name $other_side --flags 0x0`;
+-                if($rc)
+-                {
+-                    trace(0, "Call to add partition $other_side failed.  rc=$rc.  Aborting!");
+-                    exit;
+-                }
+-            }
+-            $backup_idx++;
+-            $other_idx++;
+-        }
+-        $sideShift = $sideShift + $numOfTOCs;
+-    }
+-    return $rc;
+-}
+-################################################################################
+ # robustifyImgs - Perform any ECC or ShawHash manipulations
+ ################################################################################
+ sub robustifyImgs
+@@ -663,24 +549,6 @@ sub robustifyImgs
+ }
+ 
+ ################################################################################
+-# align_down: Align the input to the lower end of the PNOR side
+-################################################################################
+-sub align_down
+-{
+-    my ($addr,$n) = @_;
+-    return (($addr) - ($addr)%($n));
+-}
+-
+-################################################################################
+-# align_up: Align the input address to the higher end of the PNOR side
+-################################################################################
+-sub align_up
+-{
+-    my ($addr,$n) = @_;
+-    return ((($addr) + ($n-1)) & ~($n-1));
+-}
+-
+-################################################################################
+ # findLayoutKeyByEyeCatch - Figure out hash key based on eyeCatcher
+ ################################################################################
+ sub findLayoutKeyByEyeCatch
+@@ -828,7 +696,7 @@ sub fillPnorImage
+                 last;
+             }
+          }
+-     }
++    }
+ 
+     return $rc;
+ }
+@@ -924,7 +792,15 @@ sub getSideInfo
+     my $side = "";
+     my $eyeCatch = $i_sectionHash{$i_key}{eyeCatch};
+ 
+-    $side = $i_sectionHash{$i_key}{side};
++
++    if($i_sectionHash{$i_key}{sideless} eq "yes")
++    {
++        return $SideOptions{sideless};
++    }
++    else
++    {
++        $side = $i_sectionHash{$i_key}{side};
++    }
+ 
+     # Error paths
+     if ($side eq "")
+diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
+index 897d4db..249bdb4 100644
+--- a/src/build/buildpnor/defaultPnorLayout.xml
++++ b/src/build/buildpnor/defaultPnorLayout.xml
+@@ -25,16 +25,12 @@
+ <!--
+ Layout Description
+ <metadata> Element -> Contains high-level information about the PNOR layout.
+-    <imageSize>    -> Size of PNOR image in bytes.
+-    <blockSize>    -> size of erase blocks in bytes.
+-    <tocSize>      -> size of each partition table
+-    <side>         -> Contains information about the side
+-        <id>            -> Id of the side (A or B)
+-        <arrangement>   -> Tag that specifies the arrangement of the side
+-                           (A-B-D or A-D-B)
+-                           A-B-D: Primary TOC (A),Backup TOC (B), and Section Information (Data - D)
+-                           A-D-B: Primary TOC (A), Section Information (Data - D), Backup TOC (B)
+-        <golden/> -> Indicates that the side of the PNOR is golden
++    <imageSize>           -> Size of PNOR image in bytes.
++    <blockSize>           -> size of erase blocks in bytes.
++    <sideATocOffset>      -> Location of Side A Partition Table
++    <sideATocBackupOffset>-> Location of Side A Backup Partition Table
++    <sideBTocOffset>      -> Location of Side B Partition Table
++    <sideBTocBackupOffset>-> Location of Side B Backup Partition Table
+ </metadata>
+ <section> Element -> Contains information about a PNOR Partition
+     <description>   -> Text description of the partition.
+@@ -43,12 +39,11 @@ Layout Description
+     <physicalOffset>-> Offset of the Partition in PNOR
+                        in bytes.
+     <physicalSize>  -> Size of the Partition in bytes.
+-    <side>          -> Side that this section is associated with.
+-                       could be (A, B, or sideless)
+-                       A - Section is associated with side A
+-                       B - Section is associated with side B
+-                       sideless - Indicates partition will be in both TOCs but
+-                                  only one copy of the partition should be created
++    <side>          -> Side the Partition should be associated with. This
++                       determines if the partition should be added to the
++                       partition table at <sideATocOffset> or <sideBTocOffset>
++    <sideless/>     -> Indicates partition will be in both TOCs but only one
++                       copy of the partition should be created
+     <testonly/>     -> Indicates partition is used for internal testing only.
+                        Partition should be skipped in production environments.
+     <ecc/>          -> Indicates Partition should be ECC protected
+@@ -63,18 +58,16 @@ Layout Description
+     <metadata>
+         <imageSize>0x4000000</imageSize>
+         <blockSize>0x1000</blockSize>
+-        <tocSize>0x8000</tocSize>
+-        <arrangement>A-B-D</arrangement>
+-        <side>
+-            <id>B</id>
+-        </side>
++        <!-- @TODO RTC: 120062 - Enhance meta info -->
++        <sideATocOffset>0x0</sideATocOffset>
++        <sideATocBackupOffset>0x8000</sideATocBackupOffset>
+     </metadata>
+     <section>
+         <description>Hostboot Error Logs (144K)</description>
+         <eyeCatch>HBEL</eyeCatch>
+         <physicalOffset>0x10000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -82,7 +75,7 @@ Layout Description
+         <eyeCatch>GUARD</eyeCatch>
+         <physicalOffset>0x58000</physicalOffset>
+         <physicalRegionSize>0x5000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -90,7 +83,7 @@ Layout Description
+         <eyeCatch>HBD</eyeCatch>
+         <physicalOffset>0x5D000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -99,7 +92,7 @@ Layout Description
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+          <physicalOffset>0x17D000</physicalOffset>
+         <physicalRegionSize>0x48000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -108,7 +101,7 @@ Layout Description
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+         <physicalOffset>0x1C5000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -117,7 +110,7 @@ Layout Description
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+         <physicalOffset>0x255000</physicalOffset>
+         <physicalRegionSize>0x48000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -126,7 +119,7 @@ Layout Description
+         <physicalOffset>0x29D000</physicalOffset>
+         <physicalRegionSize>0x5A0000</physicalRegionSize>
+         <sha512Version/>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -135,7 +128,7 @@ Layout Description
+         <physicalOffset>0x83D000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+         <sha512perEC/>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -144,7 +137,7 @@ Layout Description
+         <physicalOffset>0x8CD000</physicalOffset>
+         <physicalRegionSize>0x48000</physicalRegionSize>
+         <sha512perEC/>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -153,7 +146,7 @@ Layout Description
+         <physicalOffset>0x915000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+         <sha512Version/>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -162,7 +155,7 @@ Layout Description
+         <physicalOffset>0xA35000</physicalOffset>
+         <physicalRegionSize>0x240000</physicalRegionSize>
+         <sha512Version/>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -170,7 +163,7 @@ Layout Description
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0xC75000</physicalOffset>
+         <physicalRegionSize>0x1680000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -179,7 +172,7 @@ Layout Description
+         <physicalOffset>0x3590000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+         <testonly/>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -187,8 +180,8 @@ Layout Description
+         <eyeCatch>TESTRO</eyeCatch>
+         <physicalOffset>0x3599000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+-        <side>sideless</side>
+         <testonly/>
++        <sideless/>
+         <preserved/>
+         <readOnly/>
+         <ecc/>
+@@ -196,13 +189,11 @@ Layout Description
+     <section>
+         <description>Hostboot Base (576K)</description>
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+-        <!--NOTE: HBB must be at pnorSize-0x99000 for a new proc
+-                  part to be bootable -->
+         <eyeCatch>HBB</eyeCatch>
+         <physicalOffset>0x3F67000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+         <sha512Version/>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+     <section>
+@@ -210,7 +201,7 @@ Layout Description
+         <eyeCatch>GLOBAL</eyeCatch>
+         <physicalOffset>0x3FF7000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+-        <side>sideless</side>
++        <sideless/>
+         <ecc/>
+     </section>
+ </pnor>
+diff --git a/src/usr/pnor/common/ffs_hb.H b/src/usr/pnor/common/ffs_hb.H
+index 30a6173..c96911b 100644
+--- a/src/usr/pnor/common/ffs_hb.H
++++ b/src/usr/pnor/common/ffs_hb.H
+@@ -66,8 +66,7 @@ enum
+     /* Miscellaneous Bits : 1 byte */
+     FFS_MISC_PRESERVED     = 0x80,    /**< Preserved across code updates */
+     FFS_MISC_READ_ONLY     = 0x40,    /**< Read only section */
+-    FFS_MISC_GOLDEN        = 0x01,    /**< Golden side of PNOR */
+-    FFS_MISC_UNUSED        = 0x1E,    /**< Unused MISC Flags */
++    FFS_MISC_UNUSED        = 0x1F,    /**< Unused MISC Flags */
+ };
+ 
+ /**
+-- 
+1.8.2.2
+
+
+From fc5492346de6fdc8e2f58e8ec58881de6aae5510 Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Mon, 16 Feb 2015 14:58:48 -0600
+Subject: [PATCH 3/3] Revert "Support for Redundant Copy of HB code in PNOR"
 
 This reverts commit 67c5a1ebe73f81bca1bb6608bbb8f204f0f37fa8.
+
+Conflicts:
+	src/usr/sbe/sbe_update.C
+
+Change-Id: I84530811fb6204a29e879bce8065a17964df1a72
 ---
- src/build/buildpnor/buildpnor.pl            | 590 +++++++++++-----------------
- src/build/buildpnor/defaultPnorLayout.xml   |  91 ++---
- src/build/mkrules/hbfw/img/makefile         |   4 +-
- src/include/usr/hwas/hwasPlatDeconfigGard.H |  19 +-
+ src/build/buildpnor/buildpnor.pl            | 588 +++++++++++-----------------
+ src/build/buildpnor/defaultPnorLayout.xml   |  87 ++--
+ src/build/mkrules/hbfw/img/makefile         |   2 +-
+ src/include/usr/hwas/hwasPlatDeconfigGard.H |  15 -
  src/include/usr/pnor/pnor_reasoncodes.H     |   2 -
  src/include/usr/pnor/pnorif.H               |  39 +-
- src/usr/hwas/hwasPlatDeconfigGard.C         |  89 +----
+ src/usr/hwas/hwasPlatDeconfigGard.C         |  87 +---
  src/usr/pnor/HBconfig                       |   5 -
- src/usr/pnor/common/ffs_hb.H                |   7 +-
+ src/usr/pnor/common/ffs_hb.H                |   3 +-
  src/usr/pnor/makefile                       |   1 -
  src/usr/pnor/pnor_common.C                  | 182 ++-------
  src/usr/pnor/pnor_common.H                  |  19 +-
@@ -24,25 +701,16 @@ This reverts commit 67c5a1ebe73f81bca1bb6608bbb8f204f0f37fa8.
  src/usr/pnor/runtime/rt_pnor.C              |  11 +-
  src/usr/pnor/runtime/rt_pnor.H              |   2 +-
  src/usr/pnor/test/pnorrptest.H              | 104 +----
- src/usr/sbe/sbe_update.C                    |  95 +++--
- src/usr/sbe/sbe_update.H                    |  38 +-
+ src/usr/sbe/sbe_update.C                    |  97 +++--
+ src/usr/sbe/sbe_update.H                    |  34 +-
  src/usr/sbe/test/sbeupdatetest.H            |  24 +-
- 22 files changed, 535 insertions(+), 1057 deletions(-)
+ 22 files changed, 529 insertions(+), 1043 deletions(-)
  delete mode 100644 src/usr/pnor/pnorsbe.C
 
 diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
-index f6df6c8..51b6922 100755
+index f6df6c8..7c5bd92 100755
 --- a/src/build/buildpnor/buildpnor.pl
 +++ b/src/build/buildpnor/buildpnor.pl
-@@ -6,7 +6,7 @@
- #
- # OpenPOWER HostBoot Project
- #
--# Contributors Listed Below - COPYRIGHT 2012,2015
-+# Contributors Listed Below - COPYRIGHT 2012,2014
- # [+] International Business Machines Corp.
- #
- #
 @@ -62,20 +62,16 @@ my $g_trace = 1;
  my $programName = File::Basename::basename $0;
  my %pnorLayout;
@@ -810,21 +1478,10 @@ index f6df6c8..51b6922 100755
  
  ################################################################################
 diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
-index 249bdb4..e34f0fe 100644
+index 249bdb4..e20439e 100644
 --- a/src/build/buildpnor/defaultPnorLayout.xml
 +++ b/src/build/buildpnor/defaultPnorLayout.xml
-@@ -5,9 +5,7 @@
- <!--                                                                        -->
- <!-- OpenPOWER HostBoot Project                                             -->
- <!--                                                                        -->
--<!-- Contributors Listed Below - COPYRIGHT 2012,2015                        -->
--<!-- [+] International Business Machines Corp.                              -->
--<!--                                                                        -->
-+<!-- COPYRIGHT International Business Machines Corp. 2012,2014              -->
- <!--                                                                        -->
- <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
- <!-- you may not use this file except in compliance with the License.       -->
-@@ -24,50 +22,48 @@
+@@ -24,50 +24,48 @@
  <!-- IBM_PROLOG_END_TAG                                                     -->
  <!--
  Layout Description
@@ -905,7 +1562,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -75,7 +71,6 @@ Layout Description
+@@ -75,7 +73,6 @@ Layout Description
          <eyeCatch>GUARD</eyeCatch>
          <physicalOffset>0x58000</physicalOffset>
          <physicalRegionSize>0x5000</physicalRegionSize>
@@ -913,7 +1570,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -83,7 +78,6 @@ Layout Description
+@@ -83,7 +80,6 @@ Layout Description
          <eyeCatch>HBD</eyeCatch>
          <physicalOffset>0x5D000</physicalOffset>
          <physicalRegionSize>0x120000</physicalRegionSize>
@@ -921,7 +1578,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -92,7 +86,6 @@ Layout Description
+@@ -92,7 +88,6 @@ Layout Description
          <!--NOTE: MUST update standalone.simics if offset changes -->
           <physicalOffset>0x17D000</physicalOffset>
          <physicalRegionSize>0x48000</physicalRegionSize>
@@ -929,7 +1586,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -101,7 +94,6 @@ Layout Description
+@@ -101,7 +96,6 @@ Layout Description
          <!--NOTE: MUST update standalone.simics if offset changes -->
          <physicalOffset>0x1C5000</physicalOffset>
          <physicalRegionSize>0x90000</physicalRegionSize>
@@ -937,7 +1594,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -110,7 +102,6 @@ Layout Description
+@@ -110,7 +104,6 @@ Layout Description
          <!--NOTE: MUST update standalone.simics if offset changes -->
          <physicalOffset>0x255000</physicalOffset>
          <physicalRegionSize>0x48000</physicalRegionSize>
@@ -945,7 +1602,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -119,7 +110,6 @@ Layout Description
+@@ -119,7 +112,6 @@ Layout Description
          <physicalOffset>0x29D000</physicalOffset>
          <physicalRegionSize>0x5A0000</physicalRegionSize>
          <sha512Version/>
@@ -953,7 +1610,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -128,7 +118,6 @@ Layout Description
+@@ -128,7 +120,6 @@ Layout Description
          <physicalOffset>0x83D000</physicalOffset>
          <physicalRegionSize>0x90000</physicalRegionSize>
          <sha512perEC/>
@@ -961,7 +1618,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -137,7 +126,6 @@ Layout Description
+@@ -137,7 +128,6 @@ Layout Description
          <physicalOffset>0x8CD000</physicalOffset>
          <physicalRegionSize>0x48000</physicalRegionSize>
          <sha512perEC/>
@@ -969,7 +1626,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -146,7 +134,6 @@ Layout Description
+@@ -146,7 +136,6 @@ Layout Description
          <physicalOffset>0x915000</physicalOffset>
          <physicalRegionSize>0x120000</physicalRegionSize>
          <sha512Version/>
@@ -977,7 +1634,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -155,7 +142,6 @@ Layout Description
+@@ -155,7 +144,6 @@ Layout Description
          <physicalOffset>0xA35000</physicalOffset>
          <physicalRegionSize>0x240000</physicalRegionSize>
          <sha512Version/>
@@ -985,7 +1642,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -163,7 +149,6 @@ Layout Description
+@@ -163,7 +151,6 @@ Layout Description
          <eyeCatch>PAYLOAD</eyeCatch>
          <physicalOffset>0xC75000</physicalOffset>
          <physicalRegionSize>0x1680000</physicalRegionSize>
@@ -993,7 +1650,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -172,18 +157,6 @@ Layout Description
+@@ -172,18 +159,6 @@ Layout Description
          <physicalOffset>0x3590000</physicalOffset>
          <physicalRegionSize>0x9000</physicalRegionSize>
          <testonly/>
@@ -1012,7 +1669,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -193,7 +166,6 @@ Layout Description
+@@ -193,7 +168,6 @@ Layout Description
          <physicalOffset>0x3F67000</physicalOffset>
          <physicalRegionSize>0x90000</physicalRegionSize>
          <sha512Version/>
@@ -1020,7 +1677,7 @@ index 249bdb4..e34f0fe 100644
          <ecc/>
      </section>
      <section>
-@@ -201,7 +173,6 @@ Layout Description
+@@ -201,7 +175,6 @@ Layout Description
          <eyeCatch>GLOBAL</eyeCatch>
          <physicalOffset>0x3FF7000</physicalOffset>
          <physicalRegionSize>0x9000</physicalRegionSize>
@@ -1029,18 +1686,9 @@ index 249bdb4..e34f0fe 100644
      </section>
  </pnor>
 diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
-index 925061e..c0b0900 100755
+index 925061e..8b229ad 100755
 --- a/src/build/mkrules/hbfw/img/makefile
 +++ b/src/build/mkrules/hbfw/img/makefile
-@@ -5,7 +5,7 @@
- #
- # OpenPOWER HostBoot Project
- #
--# Contributors Listed Below - COPYRIGHT 2012,2015
-+# Contributors Listed Below - COPYRIGHT 2012,2014
- # [+] International Business Machines Corp.
- #
- #
 @@ -226,7 +226,7 @@ PNOR_BUILD_SCRIPT = ${buildpnor.pl:P}
  #so need to use tryinclude for now.
  .tryinclude <${.PATH:Ffips_pnor.mk}>
@@ -1051,21 +1699,10 @@ index 925061e..c0b0900 100755
  
  HBFW_OBJPATH = ${.PATH:M*obj*}
 diff --git a/src/include/usr/hwas/hwasPlatDeconfigGard.H b/src/include/usr/hwas/hwasPlatDeconfigGard.H
-index c439a42..4b89353 100644
+index c439a42..985d261 100644
 --- a/src/include/usr/hwas/hwasPlatDeconfigGard.H
 +++ b/src/include/usr/hwas/hwasPlatDeconfigGard.H
-@@ -5,9 +5,7 @@
- /*                                                                        */
- /* OpenPOWER HostBoot Project                                             */
- /*                                                                        */
--/* Contributors Listed Below - COPYRIGHT 2012,2015                        */
--/* [+] International Business Machines Corp.                              */
--/*                                                                        */
-+/* COPYRIGHT International Business Machines Corp. 2012,2014              */
- /*                                                                        */
- /* Licensed under the Apache License, Version 2.0 (the "License");        */
- /* you may not use this file except in compliance with the License.       */
-@@ -32,8 +30,6 @@
+@@ -32,8 +32,6 @@
  #ifndef HWASPLATDECONFIGGARD_H_
  #define HWASPLATDECONFIGGARD_H_
  
@@ -1074,7 +1711,7 @@ index c439a42..4b89353 100644
  /**
   *  @brief Adapt common singleton declaration to specific platform
   *
-@@ -68,19 +64,6 @@ struct HBDeconfigGard
+@@ -68,19 +66,6 @@ struct HBDeconfigGard
      void *iv_pGardRecords;          // Pointer to the GARD Records in PNOR
  };
  
@@ -1200,18 +1837,9 @@ index 2689077..a9856f8 100644
  
  #endif
 diff --git a/src/usr/hwas/hwasPlatDeconfigGard.C b/src/usr/hwas/hwasPlatDeconfigGard.C
-index 2911cf3..912f7d4 100644
+index 2911cf3..f163c0c 100644
 --- a/src/usr/hwas/hwasPlatDeconfigGard.C
 +++ b/src/usr/hwas/hwasPlatDeconfigGard.C
-@@ -5,7 +5,7 @@
- /*                                                                        */
- /* OpenPOWER HostBoot Project                                             */
- /*                                                                        */
--/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
-+/* Contributors Listed Below - COPYRIGHT 2013,2014                        */
- /* [+] Google Inc.                                                        */
- /* [+] International Business Machines Corp.                              */
- /*                                                                        */
 @@ -52,15 +52,6 @@ using namespace HWAS::COMMON;
  using namespace TARGETING;
  
@@ -1374,21 +2002,10 @@ index 21082f4..298144c 100644
 -    help
 -        This is used to turn on/off two sided pnor support
 diff --git a/src/usr/pnor/common/ffs_hb.H b/src/usr/pnor/common/ffs_hb.H
-index c96911b..b638021 100644
+index c96911b..3defcd4 100644
 --- a/src/usr/pnor/common/ffs_hb.H
 +++ b/src/usr/pnor/common/ffs_hb.H
-@@ -5,9 +5,7 @@
- /*                                                                        */
- /* OpenPOWER HostBoot Project                                             */
- /*                                                                        */
--/* Contributors Listed Below - COPYRIGHT 2012,2015                        */
--/* [+] International Business Machines Corp.                              */
--/*                                                                        */
-+/* COPYRIGHT International Business Machines Corp. 2012,2014              */
- /*                                                                        */
- /* Licensed under the Apache License, Version 2.0 (the "License");        */
- /* you may not use this file except in compliance with the License.       */
-@@ -27,7 +25,7 @@
+@@ -27,7 +27,7 @@
  
  /*
   * FSP Destination: src/hbfw/fsp/pnor/common/ffs_hb.H
@@ -1397,7 +2014,7 @@ index c96911b..b638021 100644
   * NOTE: Do NOT modify this file in CMVC directly!  It comes from the Hostboot
   *      repository and will be overwritten.
  */
-@@ -65,7 +63,6 @@ enum
+@@ -65,7 +65,6 @@ enum
  
      /* Miscellaneous Bits : 1 byte */
      FFS_MISC_PRESERVED     = 0x80,    /**< Preserved across code updates */
@@ -2381,10 +2998,10 @@ index 427227b..04ca729 100644
  
      /**
 diff --git a/src/usr/sbe/sbe_update.C b/src/usr/sbe/sbe_update.C
-index 698d41a..9dd9e0a 100644
+index a2fad1e..f9865ca 100644
 --- a/src/usr/sbe/sbe_update.C
 +++ b/src/usr/sbe/sbe_update.C
-@@ -1214,6 +1214,49 @@ namespace SBE
+@@ -1221,6 +1221,49 @@ namespace SBE
      }
  
  /////////////////////////////////////////////////////////////////////
@@ -2434,7 +3051,7 @@ index 698d41a..9dd9e0a 100644
      errlHndl_t getSbeInfoState(sbeTargetState_t& io_sbeState)
      {
  
-@@ -1308,11 +1351,11 @@ namespace SBE
+@@ -1315,11 +1358,11 @@ namespace SBE
              if(SEEPROM_0_PERMANENT_VALUE ==
                 (io_sbeState.mvpdSbKeyword.flags & PERMANENT_FLAG_MASK))
              {
@@ -2448,7 +3065,7 @@ index 698d41a..9dd9e0a 100644
              }
  
  
-@@ -1361,21 +1404,21 @@ namespace SBE
+@@ -1368,21 +1411,21 @@ namespace SBE
              /*  Determine which SEEPROM System Booted On   */
              /***********************************************/
              //Get Current (boot) Side
@@ -2476,7 +3093,7 @@ index 698d41a..9dd9e0a 100644
              }
              else
              {
-@@ -2012,7 +2055,7 @@ namespace SBE
+@@ -2018,7 +2061,7 @@ namespace SBE
              /*  Determine what side to update                             */
              /**************************************************************/
              // Set cur and alt isDirty values
@@ -2485,7 +3102,16 @@ index 698d41a..9dd9e0a 100644
              {
                  current_side_isDirty = seeprom_0_isDirty;
                  alt_side_isDirty     = seeprom_1_isDirty;
-@@ -2179,14 +2222,14 @@ namespace SBE
+@@ -2207,7 +2250,7 @@ namespace SBE
+                 // Set Update side to cur
+                 io_sbeState.seeprom_side_to_update =
+                                 ( io_sbeState.cur_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                              SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP;
+ 
+                 TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+@@ -2251,14 +2294,14 @@ namespace SBE
                      io_sbeState.seeprom_side_to_update = EEPROM::SBE_PRIMARY;
  
                      // Update MVPD PERMANENT flag: make cur=perm
@@ -2502,12 +3128,12 @@ index 698d41a..9dd9e0a 100644
                           // clear bit 1
                           io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                           : //set bit 1
-@@ -2252,18 +2295,18 @@ namespace SBE
- 
+@@ -2325,18 +2368,18 @@ namespace SBE
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
--                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
-+                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                 ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                              SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                      // Update MVPD PERMANENT flag: make cur=perm
@@ -2524,12 +3150,12 @@ index 698d41a..9dd9e0a 100644
                           // clear bit 1
                           io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                           : //set bit 1
-@@ -2298,13 +2341,13 @@ namespace SBE
- 
+@@ -2372,13 +2415,13 @@ namespace SBE
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
--                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
-+                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                 ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                              SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
  
@@ -2540,12 +3166,12 @@ index 698d41a..9dd9e0a 100644
                           // clear bit 0
                           io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
                           : // set bit 0
-@@ -2358,11 +2401,11 @@ namespace SBE
- 
+@@ -2433,11 +2476,11 @@ namespace SBE
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
--                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
-+                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                 ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                              SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                      // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
@@ -2554,7 +3180,7 @@ index 698d41a..9dd9e0a 100644
                           // clear bit 1
                           io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                           : // set bit 1
-@@ -2373,7 +2416,7 @@ namespace SBE
+@@ -2448,7 +2491,7 @@ namespace SBE
                      if ( g_istep_mode )
                      {
                          // Update MVPD PERMANENT flag: make alt=perm
@@ -2563,12 +3189,12 @@ index 698d41a..9dd9e0a 100644
                           // clear bit 0
                           io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
                           : //set bit 0
-@@ -2455,11 +2498,11 @@ namespace SBE
- 
+@@ -2531,11 +2574,11 @@ namespace SBE
                          // Set Update side to alt
                          io_sbeState.seeprom_side_to_update =
--                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
-+                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                 ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                              SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                          // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
@@ -2577,21 +3203,21 @@ index 698d41a..9dd9e0a 100644
                            // clear bit 1
                            io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                            : // set bit 1
-@@ -2491,7 +2534,7 @@ namespace SBE
- 
+@@ -2568,7 +2611,7 @@ namespace SBE
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
--                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
-+                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
+                                 ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                              SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                      TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
-@@ -3201,12 +3244,12 @@ namespace SBE
- 
+@@ -3279,12 +3322,12 @@ namespace SBE
                      // Compare against 'current' Master side in case there is
                      // an issue with the other side
--                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
-+                    if (io_sbeStates_v[i].cur_seeprom_side == SBE_SEEPROM0)
+                     if (io_sbeStates_v[i].cur_seeprom_side ==
+-                                          PNOR::SBE_SEEPROM0)
++                                          SBE_SEEPROM0)
                      {
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_0_ver.image_version);
@@ -2601,12 +3227,12 @@ index 698d41a..9dd9e0a 100644
                      {
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_1_ver.image_version);
-@@ -3346,12 +3389,12 @@ namespace SBE
-                 else
+@@ -3428,12 +3471,12 @@ namespace SBE
                  {
                      // Not Master, so get 'current' version
--                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
-+                    if (io_sbeStates_v[i].cur_seeprom_side == SBE_SEEPROM0)
+                     if (io_sbeStates_v[i].cur_seeprom_side ==
+-                                          PNOR::SBE_SEEPROM0)
++                                          SBE_SEEPROM0)
                      {
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_0_ver.image_version);
@@ -2617,21 +3243,10 @@ index 698d41a..9dd9e0a 100644
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_1_ver.image_version);
 diff --git a/src/usr/sbe/sbe_update.H b/src/usr/sbe/sbe_update.H
-index e49c582..aa880b2 100644
+index e49c582..09aa476 100644
 --- a/src/usr/sbe/sbe_update.H
 +++ b/src/usr/sbe/sbe_update.H
-@@ -5,9 +5,7 @@
- /*                                                                        */
- /* OpenPOWER HostBoot Project                                             */
- /*                                                                        */
--/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
--/* [+] International Business Machines Corp.                              */
--/*                                                                        */
-+/* COPYRIGHT International Business Machines Corp. 2013,2014              */
- /*                                                                        */
- /* Licensed under the Apache License, Version 2.0 (the "License");        */
- /* you may not use this file except in compliance with the License.       */
-@@ -55,6 +53,10 @@ namespace SBE
+@@ -55,6 +55,10 @@ namespace SBE
      const uint64_t SBE_IMAGE_SEEPROM_ADDRESS    = 0x400; // 1KB
      const uint64_t SBE_VERSION_SEEPROM_ADDRESS  = 0x300; // 1KB - 256B
  
@@ -2642,7 +3257,7 @@ index e49c582..aa880b2 100644
      // PNOR SBE and SBEC Partition constants
      const uint32_t MAX_SBE_ENTRIES = 9;
      const uint32_t SBETOC_EYECATCH = 0x53424500;  //'SBE\0'
-@@ -104,6 +106,14 @@ namespace SBE
+@@ -104,6 +108,14 @@ namespace SBE
          MVPDOP_WRITE,     // Write version data to MVPD
      };
  
@@ -2657,7 +3272,7 @@ index e49c582..aa880b2 100644
      // Actions can be combined
      enum sbeUpdateActions_t
      {
-@@ -117,6 +127,7 @@ namespace SBE
+@@ -117,6 +129,7 @@ namespace SBE
          UNSUPPORTED_SITUATION  = 0x80000000,
      };
  
@@ -2665,7 +3280,7 @@ index e49c582..aa880b2 100644
      /******************************************/
      /*  Structs                               */
      /******************************************/
-@@ -196,9 +207,9 @@ namespace SBE
+@@ -196,9 +209,9 @@ namespace SBE
          bool                     seeprom_0_ver_ECC_fail;
          bool                     seeprom_1_ver_ECC_fail;
  
@@ -2678,7 +3293,7 @@ index e49c582..aa880b2 100644
  
          // Customized Image Information for this Target
          size_t                   customizedImage_size;
-@@ -318,6 +329,21 @@ namespace SBE
+@@ -318,6 +331,21 @@ namespace SBE
                                     void* io_imgPtr,
                                     size_t& o_actImgSize);
  
