@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-HOSTBOOT_VERSION ?= 44fde6512e834ea8f5071299ca99b35973c0f979
+HOSTBOOT_VERSION ?= 7a51e37d5d7672fbef3a8f3c4a11a652ded9241a
 HOSTBOOT_SITE ?= $(call github,open-power,hostboot,$(HOSTBOOT_VERSION))
 
 HOSTBOOT_LICENSE = Apache-2.0
