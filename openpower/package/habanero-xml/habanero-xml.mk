@@ -11,7 +11,7 @@ HABANERO_XML_LICENSE = Apache-2.0
 HABANERO_XML_DEPENDENCIES = hostboot-install-images openpower-mrw-install-images common-p8-xml-install-images
 
 HABANERO_XML_INSTALL_IMAGES = YES
-HABANERO_XML_INSTALL_TARGET = NO
+HABANERO_XML_INSTALL_TARGET = YES
 
 MRW_SCRATCH=$(STAGING_DIR)/openpower_mrw_scratch
 MRW_HB_TOOLS=$(STAGING_DIR)/hostboot_build_images
@@ -34,10 +34,7 @@ define HABANERO_XML_BUILD_CMDS
         # generate the system mrw xml
         perl -I $(MRW_HB_TOOLS) \
         $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/habanero.xml
-endef
-
-define HABANERO_XML_INSTALL_IMAGES_CMDS
-
+        
         # merge in any system specific attributes, hostboot attributes
         $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_HABANERO_SYSTEM_XML_FILENAME) \
             $(MRW_HB_TOOLS)/attribute_types.xml \
@@ -62,13 +59,17 @@ define HABANERO_XML_INSTALL_IMAGES_CMDS
             $(PETITBOOT_BIOS_XML_METADATA_FILE) \
             $(PETITBOOT_XSLT_FILE) \
             $(BIOS_XML_METADATA_FILE)
+endef
 
+define HABANERO_XML_INSTALL_IMAGES_CMDS
+        mv $(MRW_HB_TOOLS)/targeting.bin $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME)
+endef
+
+define HABANERO_XML_INSTALL_IMAGES_CMDS
         # Install Petitboot specific BIOS XML into initramfs's usr/share/ dir
         $(INSTALL) -D -m 0644 \
             $(PETITBOOT_BIOS_XML_METADATA_FILE) \
             $(PETITBOOT_BIOS_XML_METADATA_INITRAMFS_FILE)
-
-        mv $(MRW_HB_TOOLS)/targeting.bin $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME)
 endef
 
 $(eval $(generic-package))
