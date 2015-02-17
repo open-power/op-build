@@ -18,7 +18,7 @@ MRW_HB_TOOLS=$(STAGING_DIR)/hostboot_build_images
 
 # Defines for BIOS metadata creation
 BIOS_SCHEMA_FILE = $(MRW_HB_TOOLS)/bios.xsd
-BIOS_XML_CONFIG_FILE = $(MRW_SCRATCH)/$(BR2_PALMETTO_BIOS_XML_FILENAME)
+PALMETTO_BIOS_XML_CONFIG_FILE = $(MRW_SCRATCH)/$(BR2_PALMETTO_BIOS_XML_FILENAME)
 BIOS_XML_METADATA_FILE = \
     $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_CONFIG_NAME)_bios_metadata.xml
 PETITBOOT_XSLT_FILE = $(MRW_HB_TOOLS)/bios_metadata_petitboot.xslt
@@ -50,7 +50,7 @@ define PALMETTO_XML_BUILD_CMDS
             --src-output-dir=none \
             --img-output-dir=$(MRW_HB_TOOLS)/ \
             --vmm-consts-file=$(MRW_HB_TOOLS)/vmmconst.h --noshort-enums \
-            --bios-xml-file=$(BIOS_XML_CONFIG_FILE) \
+            --bios-xml-file=$(PALMETTO_BIOS_XML_CONFIG_FILE) \
             --bios-schema-file=$(BIOS_SCHEMA_FILE) \
             --bios-output-file=$(BIOS_XML_METADATA_FILE)
 
