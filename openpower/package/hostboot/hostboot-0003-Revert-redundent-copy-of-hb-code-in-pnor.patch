@@ -1,7 +1,290 @@
-From 5adea56942b770c02118e322e417f015415421f9 Mon Sep 17 00:00:00 2001
+From 1e017616432b8eb72f9b48080aab0b88d7f2241e Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Mon, 16 Feb 2015 14:50:05 -0600
-Subject: [PATCH 1/3] Revert "adding toc offsets to defaultPnorLayout for hwsv
+Date: Tue, 17 Feb 2015 14:02:13 -0600
+Subject: [PATCH 1/6] Revert "Skipping over readTOC if hostInterface for
+ pnor_read/write doesn't exist"
+
+This reverts commit 7c5d303237f2bec25b7072ec3119d6d4fef875fc.
+---
+ src/usr/pnor/runtime/rt_pnor.C            | 50 ++++++++++++++-----------------
+ src/usr/util/runtime/test/testlidmgr_rt.H |  7 ++---
+ 2 files changed, 26 insertions(+), 31 deletions(-)
+
+diff --git a/src/usr/pnor/runtime/rt_pnor.C b/src/usr/pnor/runtime/rt_pnor.C
+index f616e98..c61aa1d 100644
+--- a/src/usr/pnor/runtime/rt_pnor.C
++++ b/src/usr/pnor/runtime/rt_pnor.C
+@@ -588,35 +588,31 @@ errlHndl_t RtPnor::readTOC ()
+             break;
+         }
+ 
+-        if (g_hostInterfaces && g_hostInterfaces->pnor_read)
++        // @TODO RTC:120733
++        // RT code needs a way to get the active side tocs vs just defaulting
++        // to SIDE_A
++        l_err = readFromDevice (l_procId, PNOR::TOC, PNOR::SIDE_A_TOC_0_OFFSET,
++                PAGESIZE,false,toc0Buffer);
++        if (l_err)
+         {
+-            //@TODO RTC:120733
+-            //RT code needs a way to get the active side tocs vs just defaulting
+-            //to SIDE_A
+-            l_err = readFromDevice(l_procId,PNOR::TOC,PNOR::SIDE_A_TOC_0_OFFSET,
+-                    PAGESIZE,false,toc0Buffer);
+-            if (l_err)
+-            {
+-                TRACFCOMP(g_trac_pnor,"RtPnor::readTOC:readFromDevice failed"
+-                          " for TOC0");
+-                break;
+-            }
+-
+-            l_err = readFromDevice(l_procId,PNOR::TOC,PNOR::SIDE_A_TOC_1_OFFSET,
+-                    PAGESIZE, false,toc1Buffer);
+-            if (l_err)
+-            {
+-                TRACFCOMP(g_trac_pnor, "RtPnor::readTOC:readFromDevice failed"
+-                          " for TOC1");
+-                break;
+-            }
++            TRACFCOMP(g_trac_pnor,"RtPnor::readTOC:readFromDevice failed"
++                      " for TOC0");
++            break;
++        }
++        l_err = readFromDevice (l_procId, PNOR::TOC, PNOR::SIDE_A_TOC_1_OFFSET,
++                PAGESIZE, false,toc1Buffer);
++        if (l_err)
++        {
++            TRACFCOMP(g_trac_pnor, "RtPnor::readTOC:readFromDevice failed"
++                      " for TOC1");
++            break;
++        }
+ 
+-            l_err = PNOR::parseTOC(toc0Buffer,toc1Buffer,iv_TOC_used,iv_TOC,0);
+-            if (l_err)
+-            {
+-                TRACFCOMP(g_trac_pnor, "RtPnor::readTOC: parseTOC failed");
+-                break;
+-            }
++        l_err = PNOR::parseTOC(toc0Buffer, toc1Buffer, iv_TOC_used, iv_TOC, 0);
++        if (l_err)
++        {
++            TRACFCOMP(g_trac_pnor, "RtPnor::readTOC: parseTOC failed");
++            break;
+         }
+     } while (0);
+ 
+diff --git a/src/usr/util/runtime/test/testlidmgr_rt.H b/src/usr/util/runtime/test/testlidmgr_rt.H
+index d869e3c..4514684 100644
+--- a/src/usr/util/runtime/test/testlidmgr_rt.H
++++ b/src/usr/util/runtime/test/testlidmgr_rt.H
+@@ -26,7 +26,6 @@
+ #include <cxxtest/TestSuite.H>
+ #include <errl/errlmanager.H>
+ #include <utilbase.H>
+-#include <config.h>
+ 
+ class LidMgrRtTest : public CxxTest::TestSuite
+ {
+@@ -65,11 +64,11 @@ class LidMgrRtTest : public CxxTest::TestSuite
+ 
+                 PNOR::SectionInfo_t l_lidPnorInfo;
+                 l_errl = PNOR::getSectionInfo(PNOR::TEST, l_lidPnorInfo);
++                // Section only present in openPOWER systems
+                 if (l_errl)
+                 {
+-                    errlCommit(l_errl,UTIL_COMP_ID);
+-                    TS_FAIL("testLidInPnor: Error getting lidId=0x%.8x",
+-                            Util::TEST_LIDID);
++                    delete l_errl;
++                    l_errl = NULL;
+                     break;
+                 }
+ 
+-- 
+1.8.2.2
+
+
+From 2eaec22c342cf6dc93c6ae4e90bf4c0dfb5607c8 Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Tue, 17 Feb 2015 14:02:24 -0600
+Subject: [PATCH 2/6] Revert "Targeting: Generate VERSION page for binaries."
+
+This reverts commit 34c58e19162834ff5bb8d4ffb9975b50d5a0770a.
+---
+ src/build/buildpnor/defaultPnorLayout.xml   |  1 -
+ src/usr/targeting/common/xmltohb/xmltohb.pl | 59 +----------------------------
+ src/usr/targeting/xmltohb/makefile          |  5 +--
+ 3 files changed, 4 insertions(+), 61 deletions(-)
+
+diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
+index 18c309d..d5d5d25 100644
+--- a/src/build/buildpnor/defaultPnorLayout.xml
++++ b/src/build/buildpnor/defaultPnorLayout.xml
+@@ -97,7 +97,6 @@ Layout Description
+         <eyeCatch>HBD</eyeCatch>
+         <physicalOffset>0x5D000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+-        <sha512Version/>
+         <side>sideless</side>
+         <ecc/>
+     </section>
+diff --git a/src/usr/targeting/common/xmltohb/xmltohb.pl b/src/usr/targeting/common/xmltohb/xmltohb.pl
+index d02c1a7..a658c74 100755
+--- a/src/usr/targeting/common/xmltohb/xmltohb.pl
++++ b/src/usr/targeting/common/xmltohb/xmltohb.pl
+@@ -74,7 +74,6 @@ my $cfgShortEnums = 0;
+ my $cfgBigEndian = 1;
+ my $cfgIncludeFspAttributes = 0;
+ my $CfgSMAttrFile = "";
+-my $cfgAddVersionPage = 0;
+ 
+ GetOptions("hb-xml-file:s" => \$cfgHbXmlFile,
+            "src-output-dir:s" =>  \$cfgSrcOutputDir,
+@@ -86,7 +85,6 @@ GetOptions("hb-xml-file:s" => \$cfgHbXmlFile,
+            "big-endian!" =>  \$cfgBigEndian,
+            "smattr-output-file:s" => \$CfgSMAttrFile,
+            "include-fsp-attributes!" =>  \$cfgIncludeFspAttributes,
+-           "version-page!" => \$cfgAddVersionPage,
+            "help" => \$cfgHelp,
+            "man" => \$cfgMan,
+            "verbose" => \$cfgVerbose ) || pod2usage(-verbose => 0);
+@@ -115,7 +113,6 @@ if($cfgVerbose)
+     print STDOUT "Short enums = $cfgShortEnums\n";
+     print STDOUT "Big endian = $cfgBigEndian\n";
+     print STDOUT "include-fsp-attributes = $cfgIncludeFspAttributes\n",
+-    print STDOUT "version-page = $cfgAddVersionPage\n",
+ }
+ 
+ ################################################################################
+@@ -337,21 +334,9 @@ use constant SECTION => 3;
+ use constant TARGET => 4;
+ use constant ATTRNAME => 5;
+ my @attrDataforSM = ();
+-
+-#Flag which indicates if the script needs to add the 4096 bytes of version
+-#checksum as first page in the binary file generated.
+-my $addRO_Section_VerPage = 0;
+ if( !($cfgImgOutputDir =~ "none") )
+ {
+-    #Version page will be added only if the script is called in with the flag
+-    #--version-flag
+-    if ($cfgAddVersionPage)
+-    {
+-        $addRO_Section_VerPage = 1;
+-    }
+-    #Pass the $addRO_Section_VerPage into the sub rotuine
+-    my $Data = generateTargetingImage($cfgVmmConstsFile,$attributes,\%Target_t,
+-                                      $addRO_Section_VerPage);
++    my $Data = generateTargetingImage($cfgVmmConstsFile,$attributes,\%Target_t);
+ 
+     open(PNOR_TARGETING_FILE,">$cfgImgOutputDir".$cfgImgOutputFile)
+       or fatal ("Targeting image file: \"$cfgImgOutputDir"
+@@ -4973,7 +4958,7 @@ sub serializeAssociations
+ ################################################################################
+ 
+ sub generateTargetingImage {
+-    my($vmmConstsFile, $attributes, $Target_t,$addRO_Section_VerPage) = @_;
++    my($vmmConstsFile, $attributes, $Target_t) = @_;
+ 
+     # 128 MB virtual memory offset between sections
+     my $vmmSectionOffset = 128 * 1024 * 1024; # 128MB
+@@ -4998,12 +4983,6 @@ sub generateTargetingImage {
+     my $headerSize = 256;
+     my $offset = $headerSize;
+ 
+-
+-    #If the file to be created is the HB targeting binary , then it will contain
+-    #first page (4096 bytes) as the read-only data checksum. Need to adjust the
+-    #read-only section offset.
+-    my $versionSectionSize = 4096;
+-
+     # Reserve space for the pointer to the # of targets, update later;
+     my $numTargetsPointer = 0;
+     my $numTargetsPointerBinData = pack8byte($numTargetsPointer);
+@@ -5768,15 +5747,6 @@ sub generateTargetingImage {
+     my $blockSize = 4*1024;
+ 
+     my %sectionHoH = ();
+-
+-    my $roOffset = 0;
+-    if ($addRO_Section_VerPage == 1)
+-    {
+-        #First section to start after 4096 bytes
+-        #as RO version data occupies first page in the binary file
+-        $roOffset = $versionSectionSize;
+-    }
+-
+     $sectionHoH{ pnorRo }{ offset } = 0;
+     $sectionHoH{ pnorRo }{ type   } = 0;
+     $sectionHoH{ pnorRo }{ size   } = sizeBlockAligned($offset,$blockSize,1);
+@@ -5897,24 +5867,6 @@ sub generateTargetingImage {
+     }
+ 
+     my $outFile;
+-
+-    #HB Targeting binary file will contain <Version Page>+<Targeting Header>+
+-    #<Section  data>...
+-    if ($addRO_Section_VerPage == 1)
+-    {
+-        #Generate the MD5 checksum value for the read-only data and update the
+-        #content of the version section
+-        my $versionHeader = "VERSION";
+-        $versionHeader .= md5_hex($roAttrBinData);
+-
+-        $outFile .= $versionHeader;
+-        my $versionHeaderPadSize =
+-            (sizeBlockAligned ((length $versionHeader),$versionSectionSize,1)
+-             - (length $versionHeader));
+-        $outFile .= pack ("@".$versionHeaderPadSize);
+-    }
+-
+-    #Append the 256 bytes header data
+     $outFile .= $headerBinData;
+     my $padSize = sizeBlockAligned((length $headerBinData),$headerSize,1)
+         - (length $headerBinData);
+@@ -6103,13 +6055,6 @@ generated code.
+ Omits FSP specific attributes and targets from the generated binaries and
+ generated code.  This is the default behavior.
+ 
+-=item B<--version-page>
+-Adds 4096 bytes of version page as first page in the generated binaries.
+-
+-=item B<--no-version-page>
+-Does not add 4096 bytes of version page as first page in the generated
+-binaries . This is the default behavior.
+-
+ =item B<--verbose>
+ 
+ Prints out some internal workings
+diff --git a/src/usr/targeting/xmltohb/makefile b/src/usr/targeting/xmltohb/makefile
+index eb0b05a..6d1fff3 100644
+--- a/src/usr/targeting/xmltohb/makefile
++++ b/src/usr/targeting/xmltohb/makefile
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2011,2015
++# Contributors Listed Below - COPYRIGHT 2011,2014
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -154,6 +154,5 @@ ${GENDIR}/%_targeting.bin: ${XMLTOHB_COMPILER_SCRIPT} ${GENDIR}/%.hb.xml \
+         $(addprefix --fapi-attributes-xml-file=,${GENDIR}/${XMLTOHB_FAPI_XML}) \
+          --src-output-dir=none --img-output-dir=$(dir $@) \
+          --img-output-file=$(notdir $@) \
+-         --vmm-consts-file=$(VMM_CONSTS_FILE) --noshort-enums \
+-         --version-page
++         --vmm-consts-file=$(VMM_CONSTS_FILE) --noshort-enums
+ 
+-- 
+1.8.2.2
+
+
+From 01728c387eebddd30e1ddd1b28c31c159cd5039e Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Tue, 17 Feb 2015 14:02:36 -0600
+Subject: [PATCH 3/6] Revert "adding toc offsets to defaultPnorLayout for hwsv
  team"
 
 This reverts commit 6990adda0f2996cc7baacba9f485c7b5a415904c.
@@ -38,10 +321,10 @@ index d5d5d25..897d4db 100644
 1.8.2.2
 
 
-From d277e6fce112af0088d2179a07482b71cc3f083e Mon Sep 17 00:00:00 2001
+From db81af80e8d4efccfe9de9fe9e01972ff4689ef5 Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Mon, 16 Feb 2015 14:50:17 -0600
-Subject: [PATCH 2/3] Revert "Created 2-sided and golden-side pnor layouts"
+Date: Tue, 17 Feb 2015 14:03:03 -0600
+Subject: [PATCH 4/6] Revert "Created 2-sided and golden-side pnor layouts"
 
 This reverts commit e83759d6aa90999933318155772b50a8af679ec6.
 ---
@@ -670,27 +953,312 @@ index 30a6173..c96911b 100644
 1.8.2.2
 
 
-From fc5492346de6fdc8e2f58e8ec58881de6aae5510 Mon Sep 17 00:00:00 2001
+From 65fbfe1c2b67b9e8519220823b82a0ff244ba123 Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Mon, 16 Feb 2015 14:58:48 -0600
-Subject: [PATCH 3/3] Revert "Support for Redundant Copy of HB code in PNOR"
+Date: Tue, 17 Feb 2015 14:10:03 -0600
+Subject: [PATCH 5/6] Revert "Initial Support of SBE_UPDATE_INDEPENDENT Mode"
+
+This reverts commit 002c4beefb54d288eee8faf4d9aa2b08b137aed3.
+---
+ src/usr/sbe/HBconfig     |  31 ++++++------
+ src/usr/sbe/sbe_update.C | 126 +++++++++--------------------------------------
+ 2 files changed, 36 insertions(+), 121 deletions(-)
+
+diff --git a/src/usr/sbe/HBconfig b/src/usr/sbe/HBconfig
+index 952baf8..7244b31 100644
+--- a/src/usr/sbe/HBconfig
++++ b/src/usr/sbe/HBconfig
+@@ -1,30 +1,27 @@
+ config SBE_UPDATE_SEQUENTIAL
+-    default y if !SBE_UPDATE_SIMULTANEOUS && !SBE_UPDATE_INDEPENDENT
+-    depends on !SBE_UPDATE_SIMULTANEOUS && !SBE_UPDATE_INDEPENDENT
++    default y if !SBE_UPDATE_SIMULTANEOUS && !SBE_UPDATE_GOLDEN
++    depends on !SBE_UPDATE_SIMULTANEOUS && !SBE_UPDATE_GOLDEN
+     help
+-        If an update is necessary, only 1 SBE SEEPROM per processor will be
+-        updated on each IPL.  If a 2nd SBE SEEPROM needs to be updated, a re-IPL
+-        will be requested.  The end result is that both SBE SEEPROMs will
+-        contain the same code.
++        If an update is necessary, only 1 SBE SEEPROM will be updated on each
++        IPL per processor.  If a 2nd SBE SEEPROM needs to be updated, a re-IPL
++        will be requested.
+ 
+ config SBE_UPDATE_SIMULTANEOUS
+     default n
+-    depends on !SBE_UPDATE_SEQUENTIAL && !SBE_UPDATE_INDEPENDENT
++    depends on !SBE_UPDATE_SEQUENTIAL && !SBE_UPDATE_GOLDEN
+     help
+-        If an update is necessary, both SBE SEEPROMs on a processor will be
+-        updated at the same time before a re-IPL request is issued.  The end
+-        result is that both SBE SEEPROMs will contain the same code.
++        If an update is necessary, both SBE SEEPROMs on a target will be updated
++        at the same time before a re-IPL request is issued.
+ 
+-config SBE_UPDATE_INDEPENDENT
+-    default y if TWO_SIDE_SUPPORT
++config SBE_UPDATE_GOLDEN
++    default n
+     depends on !SBE_UPDATE_SEQUENTIAL && !SBE_UPDATE_SIMULTANEOUS
+     help
+-        If an update is necessary, and if the "current" SBE SEEPROM of this
+-        IPL is not the 'GOLDEN' SBE SEEPROM, then only the current SBE SEEPROM
+-        will be updated.  After the update a re-IPL request will be issued.
+-        The other SBE SEEPROM, whether 'GOLDEN' or not, will not be updated.
++        If an update is necessary, only 1 SBE SEEPROM will be updated and
++        then a re-IPL request will be issued.  The other SBE SEEPROM will not
++        be touched and treated as the 'Golden' SEEPROM.
+ 
+ config NO_SBE_UPDATES
+     default n
+     help
+-        Don't update the SBE SEEPROMs at all.
++        Don't update the SBE SEEPROMs at all
+diff --git a/src/usr/sbe/sbe_update.C b/src/usr/sbe/sbe_update.C
+index a2fad1e..698d41a 100644
+--- a/src/usr/sbe/sbe_update.C
++++ b/src/usr/sbe/sbe_update.C
+@@ -354,10 +354,6 @@ namespace SBE
+                     errlCommit( err, SBE_COMP_ID );
+                 }
+ 
+-#ifdef CONFIG_BMC_IPMI
+-                // @todo RTC 120734 reset system's reboot count via IPMI sensor
+-#endif
+-
+                 TRACFCOMP( g_trac_sbe,
+                            INFO_MRK"updateProcessorSbeSeeproms(): Calling "
+                            "INITSERVICE::doShutdown() with "
+@@ -685,9 +681,6 @@ namespace SBE
+ 
+         do{
+ 
+-            // @todo RTC 120734 - before customizing, ensure correct HBB address
+-            // is set in the necessary attribute
+-
+             // cast OUR type of target to a FAPI type of target.
+             const fapi::Target
+               l_fapiTarg(fapi::TARGET_TYPE_PROC_CHIP,
+@@ -1942,6 +1935,7 @@ namespace SBE
+             }
+ 
+ 
++
+             /**************************************************************/
+             /*  Compare SEEPROM 1 with PNOR and Customized Image CRC --   */
+             /*  -- dirty or clean?                                        */
+@@ -2145,91 +2139,25 @@ namespace SBE
+         io_sbeState.update_actions   = CLEAR_ACTIONS;
+         io_sbeState.seeprom_side_to_update = EEPROM::LAST_CHIP_TYPE;
+ 
++        // @todo RTC 107721 - Need to handle Habanero 'golden' SEEPROM side
++
+         do{
+ 
+             // To be safe, we're only look at the bits defined in sbe_update.H
+             i_system_situation &= SITUATION_ALL_BITS_MASK;
+ 
+-#ifdef CONFIG_SBE_UPDATE_INDEPENDENT
+-
+-            // The 2 SBE SEEPROMs are independent of each other
+-            // Determine if PNOR is 1- or 2-sided and if there is a
+-            // GOLDEN boot involved
+-
+-#ifdef CONFIG_TWO_SIDE_SUPPORT
+-
+-            // @todo RTC 120734 - ask PNOR if we are in "GOLDEN" mode,
+-            // which would mean that we are booting off the the GOLDEN
+-            // SBE SEEPROM which corresponds to the GOLDEN side of PNOR
+-/*
+-            if (true)
+-            {
+-                // If true, nothing to do (covered in istep 6 function)
+-                l_actions = CLEAR_ACTIONS;
+-
+-                TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                           "Booting GOLDEN SBE SEEPROM in PNOR 2-sided Mode. "
+-                           "No updates for cur side=%d. Continue IPL. "
+-                           "(sit=0x%.2X, act=0x%.8X flags=0x%.2X)",
+-                           TARGETING::get_huid(io_sbeState.target),
+-                           io_sbeState.cur_seeprom_side,
+-                           i_system_situation, l_actions,
+-                           io_sbeState.mvpdSbKeyword.flags);
+-                break;
+-            }
+-            else // proceed to update this side
+-            {
+-                TRACUCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                           "NOT Booting GOLDEN SBE SEEPROM in PNOR 2-sided "
+-                           "mode. Checking for update on cur side=%d ",
+-                           TARGETING::get_huid(io_sbeState.target),
+-                           io_sbeState.cur_seeprom_side)
+-            }
+-*/
+-#else
+-
+-            // @todo RTC 120734 - check this assumption
+-            // Assume that we're only checking/updating the current side
+-            TRACUCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                       "PNOR 1-sided so only check for update on cur side=%d",
+-                       TARGETING::get_huid(io_sbeState.target),
+-                       io_sbeState.cur_seeprom_side);
+-#endif
+-
+-            // Check for clean vs. dirty only on cur side
+-            if ( i_system_situation & SITUATION_CUR_IS_DIRTY )
+-            {
+-                //  Update cur side and re-ipl
+-                l_actions |= IPL_RESTART;
+-                l_actions |= DO_UPDATE;
+-                l_actions |= UPDATE_SBE;
+-
+-                // Set Update side to cur
+-                io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.cur_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
+-                                  ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP;
+-
+-                TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                           "cur side (%d) dirty. Update cur. Re-IPL. "
+-                           "(sit=0x%.2X, act=0x%.8X flags=0x%.2X)",
+-                           TARGETING::get_huid(io_sbeState.target),
+-                           io_sbeState.cur_seeprom_side,
+-                           i_system_situation, l_actions,
+-                           io_sbeState.mvpdSbKeyword.flags);
+-            }
+-            else
+-            {
+-                // Cur side clean - No Updates - Continue IPL
+-                l_actions = CLEAR_ACTIONS;
++#ifdef CONFIG_SBE_UPDATE_GOLDEN
++            // @todo RTC 107721 - Need to handle Habanero 'golden' SEEPROM side
++            // For now default to no update and continue IPL
++                    l_actions = CLEAR_ACTIONS;
+ 
+-                TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                           "cur side (%d) clean-no updates. "
+-                           "Continue IPL. (sit=0x%.2X, act=0x%.8X)",
+-                           TARGETING::get_huid(io_sbeState.target),
+-                           io_sbeState.cur_seeprom_side,
+-                           i_system_situation, l_actions);
+-            }
++                    TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
++                               "Habanero 'GOLDEN' Seeprom Support to come. "
++                               "For now no updates. cur side=%d. "
++                               "Continue IPL. (sit=0x%.2X, act=0x%.8X)",
++                               TARGETING::get_huid(io_sbeState.target),
++                               io_sbeState.cur_seeprom_side,
++                               i_system_situation, l_actions);
+ 
+ #elif CONFIG_SBE_UPDATE_SIMULTANEOUS
+             // Updates both SEEPROMs if either side is dirty
+@@ -2324,8 +2252,7 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                     // Update MVPD PERMANENT flag: make cur=perm
+@@ -2371,8 +2298,7 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+ 
+@@ -2432,8 +2358,7 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                     // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
+@@ -2530,8 +2455,7 @@ namespace SBE
+ 
+                         // Set Update side to alt
+                         io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                         // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
+@@ -2567,8 +2491,7 @@ namespace SBE
+ 
+                     // Set Update side to alt
+                     io_sbeState.seeprom_side_to_update =
+-                                ( io_sbeState.alt_seeprom_side ==
+-                                              PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
+                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
+ 
+                     TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+@@ -3278,8 +3201,7 @@ namespace SBE
+ 
+                     // Compare against 'current' Master side in case there is
+                     // an issue with the other side
+-                    if (io_sbeStates_v[i].cur_seeprom_side ==
+-                                          PNOR::SBE_SEEPROM0)
++                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
+                     {
+                         ver_ptr =
+                             &(io_sbeStates_v[i].seeprom_0_ver.image_version);
+@@ -3323,9 +3245,6 @@ namespace SBE
+                 // Special Master Processor checks
+                 if ( i == mP )
+                 {
+-// Skip Master Processor check of Both SEEPROMs being identical
+-#ifndef CONFIG_SBE_UPDATE_INDEPENDENT
+-
+                     // Compare Versions of Both SEEPROMs to PNOR Version
+                     // Create a Predictive Error if there's an issue
+                     if ((0 != memcmp(
+@@ -3420,15 +3339,14 @@ namespace SBE
+                         errlCommit( err, SBE_COMP_ID );
+ 
+                     } // end of check
+-#endif
++
+                     // Continue to avoid remaining non-Master Processor checks
+                     continue;
+                 }
+                 else
+                 {
+                     // Not Master, so get 'current' version
+-                    if (io_sbeStates_v[i].cur_seeprom_side ==
+-                                          PNOR::SBE_SEEPROM0)
++                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
+                     {
+                         ver_ptr =
+                             &(io_sbeStates_v[i].seeprom_0_ver.image_version);
+-- 
+1.8.2.2
+
+
+From c7c2a249b32d8b3776febb6fd81b5fa6874717df Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Tue, 17 Feb 2015 14:10:12 -0600
+Subject: [PATCH 6/6] Revert "Support for Redundant Copy of HB code in PNOR"
 
 This reverts commit 67c5a1ebe73f81bca1bb6608bbb8f204f0f37fa8.
-
-Conflicts:
-	src/usr/sbe/sbe_update.C
-
-Change-Id: I84530811fb6204a29e879bce8065a17964df1a72
 ---
- src/build/buildpnor/buildpnor.pl            | 588 +++++++++++-----------------
- src/build/buildpnor/defaultPnorLayout.xml   |  87 ++--
- src/build/mkrules/hbfw/img/makefile         |   2 +-
- src/include/usr/hwas/hwasPlatDeconfigGard.H |  15 -
+ src/build/buildpnor/buildpnor.pl            | 590 +++++++++++-----------------
+ src/build/buildpnor/defaultPnorLayout.xml   |  91 ++---
+ src/build/mkrules/hbfw/img/makefile         |   4 +-
+ src/include/usr/hwas/hwasPlatDeconfigGard.H |  19 +-
  src/include/usr/pnor/pnor_reasoncodes.H     |   2 -
  src/include/usr/pnor/pnorif.H               |  39 +-
- src/usr/hwas/hwasPlatDeconfigGard.C         |  87 +---
+ src/usr/hwas/hwasPlatDeconfigGard.C         |  89 +----
  src/usr/pnor/HBconfig                       |   5 -
- src/usr/pnor/common/ffs_hb.H                |   3 +-
+ src/usr/pnor/common/ffs_hb.H                |   7 +-
  src/usr/pnor/makefile                       |   1 -
  src/usr/pnor/pnor_common.C                  | 182 ++-------
  src/usr/pnor/pnor_common.H                  |  19 +-
@@ -701,16 +1269,25 @@ Change-Id: I84530811fb6204a29e879bce8065a17964df1a72
  src/usr/pnor/runtime/rt_pnor.C              |  11 +-
  src/usr/pnor/runtime/rt_pnor.H              |   2 +-
  src/usr/pnor/test/pnorrptest.H              | 104 +----
- src/usr/sbe/sbe_update.C                    |  97 +++--
- src/usr/sbe/sbe_update.H                    |  34 +-
+ src/usr/sbe/sbe_update.C                    |  95 +++--
+ src/usr/sbe/sbe_update.H                    |  38 +-
  src/usr/sbe/test/sbeupdatetest.H            |  24 +-
- 22 files changed, 529 insertions(+), 1043 deletions(-)
+ 22 files changed, 535 insertions(+), 1057 deletions(-)
  delete mode 100644 src/usr/pnor/pnorsbe.C
 
 diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
-index f6df6c8..7c5bd92 100755
+index f6df6c8..51b6922 100755
 --- a/src/build/buildpnor/buildpnor.pl
 +++ b/src/build/buildpnor/buildpnor.pl
+@@ -6,7 +6,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2012,2015
++# Contributors Listed Below - COPYRIGHT 2012,2014
+ # [+] International Business Machines Corp.
+ #
+ #
 @@ -62,20 +62,16 @@ my $g_trace = 1;
  my $programName = File::Basename::basename $0;
  my %pnorLayout;
@@ -1478,10 +2055,21 @@ index f6df6c8..7c5bd92 100755
  
  ################################################################################
 diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
-index 249bdb4..e20439e 100644
+index 249bdb4..e34f0fe 100644
 --- a/src/build/buildpnor/defaultPnorLayout.xml
 +++ b/src/build/buildpnor/defaultPnorLayout.xml
-@@ -24,50 +24,48 @@
+@@ -5,9 +5,7 @@
+ <!--                                                                        -->
+ <!-- OpenPOWER HostBoot Project                                             -->
+ <!--                                                                        -->
+-<!-- Contributors Listed Below - COPYRIGHT 2012,2015                        -->
+-<!-- [+] International Business Machines Corp.                              -->
+-<!--                                                                        -->
++<!-- COPYRIGHT International Business Machines Corp. 2012,2014              -->
+ <!--                                                                        -->
+ <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
+ <!-- you may not use this file except in compliance with the License.       -->
+@@ -24,50 +22,48 @@
  <!-- IBM_PROLOG_END_TAG                                                     -->
  <!--
  Layout Description
@@ -1562,7 +2150,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -75,7 +73,6 @@ Layout Description
+@@ -75,7 +71,6 @@ Layout Description
          <eyeCatch>GUARD</eyeCatch>
          <physicalOffset>0x58000</physicalOffset>
          <physicalRegionSize>0x5000</physicalRegionSize>
@@ -1570,7 +2158,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -83,7 +80,6 @@ Layout Description
+@@ -83,7 +78,6 @@ Layout Description
          <eyeCatch>HBD</eyeCatch>
          <physicalOffset>0x5D000</physicalOffset>
          <physicalRegionSize>0x120000</physicalRegionSize>
@@ -1578,7 +2166,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -92,7 +88,6 @@ Layout Description
+@@ -92,7 +86,6 @@ Layout Description
          <!--NOTE: MUST update standalone.simics if offset changes -->
           <physicalOffset>0x17D000</physicalOffset>
          <physicalRegionSize>0x48000</physicalRegionSize>
@@ -1586,7 +2174,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -101,7 +96,6 @@ Layout Description
+@@ -101,7 +94,6 @@ Layout Description
          <!--NOTE: MUST update standalone.simics if offset changes -->
          <physicalOffset>0x1C5000</physicalOffset>
          <physicalRegionSize>0x90000</physicalRegionSize>
@@ -1594,7 +2182,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -110,7 +104,6 @@ Layout Description
+@@ -110,7 +102,6 @@ Layout Description
          <!--NOTE: MUST update standalone.simics if offset changes -->
          <physicalOffset>0x255000</physicalOffset>
          <physicalRegionSize>0x48000</physicalRegionSize>
@@ -1602,7 +2190,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -119,7 +112,6 @@ Layout Description
+@@ -119,7 +110,6 @@ Layout Description
          <physicalOffset>0x29D000</physicalOffset>
          <physicalRegionSize>0x5A0000</physicalRegionSize>
          <sha512Version/>
@@ -1610,7 +2198,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -128,7 +120,6 @@ Layout Description
+@@ -128,7 +118,6 @@ Layout Description
          <physicalOffset>0x83D000</physicalOffset>
          <physicalRegionSize>0x90000</physicalRegionSize>
          <sha512perEC/>
@@ -1618,7 +2206,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -137,7 +128,6 @@ Layout Description
+@@ -137,7 +126,6 @@ Layout Description
          <physicalOffset>0x8CD000</physicalOffset>
          <physicalRegionSize>0x48000</physicalRegionSize>
          <sha512perEC/>
@@ -1626,7 +2214,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -146,7 +136,6 @@ Layout Description
+@@ -146,7 +134,6 @@ Layout Description
          <physicalOffset>0x915000</physicalOffset>
          <physicalRegionSize>0x120000</physicalRegionSize>
          <sha512Version/>
@@ -1634,7 +2222,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -155,7 +144,6 @@ Layout Description
+@@ -155,7 +142,6 @@ Layout Description
          <physicalOffset>0xA35000</physicalOffset>
          <physicalRegionSize>0x240000</physicalRegionSize>
          <sha512Version/>
@@ -1642,7 +2230,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -163,7 +151,6 @@ Layout Description
+@@ -163,7 +149,6 @@ Layout Description
          <eyeCatch>PAYLOAD</eyeCatch>
          <physicalOffset>0xC75000</physicalOffset>
          <physicalRegionSize>0x1680000</physicalRegionSize>
@@ -1650,7 +2238,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -172,18 +159,6 @@ Layout Description
+@@ -172,18 +157,6 @@ Layout Description
          <physicalOffset>0x3590000</physicalOffset>
          <physicalRegionSize>0x9000</physicalRegionSize>
          <testonly/>
@@ -1669,7 +2257,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -193,7 +168,6 @@ Layout Description
+@@ -193,7 +166,6 @@ Layout Description
          <physicalOffset>0x3F67000</physicalOffset>
          <physicalRegionSize>0x90000</physicalRegionSize>
          <sha512Version/>
@@ -1677,7 +2265,7 @@ index 249bdb4..e20439e 100644
          <ecc/>
      </section>
      <section>
-@@ -201,7 +175,6 @@ Layout Description
+@@ -201,7 +173,6 @@ Layout Description
          <eyeCatch>GLOBAL</eyeCatch>
          <physicalOffset>0x3FF7000</physicalOffset>
          <physicalRegionSize>0x9000</physicalRegionSize>
@@ -1686,9 +2274,18 @@ index 249bdb4..e20439e 100644
      </section>
  </pnor>
 diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
-index 925061e..8b229ad 100755
+index 925061e..c0b0900 100755
 --- a/src/build/mkrules/hbfw/img/makefile
 +++ b/src/build/mkrules/hbfw/img/makefile
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2012,2015
++# Contributors Listed Below - COPYRIGHT 2012,2014
+ # [+] International Business Machines Corp.
+ #
+ #
 @@ -226,7 +226,7 @@ PNOR_BUILD_SCRIPT = ${buildpnor.pl:P}
  #so need to use tryinclude for now.
  .tryinclude <${.PATH:Ffips_pnor.mk}>
@@ -1699,10 +2296,21 @@ index 925061e..8b229ad 100755
  
  HBFW_OBJPATH = ${.PATH:M*obj*}
 diff --git a/src/include/usr/hwas/hwasPlatDeconfigGard.H b/src/include/usr/hwas/hwasPlatDeconfigGard.H
-index c439a42..985d261 100644
+index c439a42..4b89353 100644
 --- a/src/include/usr/hwas/hwasPlatDeconfigGard.H
 +++ b/src/include/usr/hwas/hwasPlatDeconfigGard.H
-@@ -32,8 +32,6 @@
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2012,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2012,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -32,8 +30,6 @@
  #ifndef HWASPLATDECONFIGGARD_H_
  #define HWASPLATDECONFIGGARD_H_
  
@@ -1711,7 +2319,7 @@ index c439a42..985d261 100644
  /**
   *  @brief Adapt common singleton declaration to specific platform
   *
-@@ -68,19 +66,6 @@ struct HBDeconfigGard
+@@ -68,19 +64,6 @@ struct HBDeconfigGard
      void *iv_pGardRecords;          // Pointer to the GARD Records in PNOR
  };
  
@@ -1837,9 +2445,18 @@ index 2689077..a9856f8 100644
  
  #endif
 diff --git a/src/usr/hwas/hwasPlatDeconfigGard.C b/src/usr/hwas/hwasPlatDeconfigGard.C
-index 2911cf3..f163c0c 100644
+index 2911cf3..912f7d4 100644
 --- a/src/usr/hwas/hwasPlatDeconfigGard.C
 +++ b/src/usr/hwas/hwasPlatDeconfigGard.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2014                        */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
 @@ -52,15 +52,6 @@ using namespace HWAS::COMMON;
  using namespace TARGETING;
  
@@ -2002,10 +2619,21 @@ index 21082f4..298144c 100644
 -    help
 -        This is used to turn on/off two sided pnor support
 diff --git a/src/usr/pnor/common/ffs_hb.H b/src/usr/pnor/common/ffs_hb.H
-index c96911b..3defcd4 100644
+index c96911b..b638021 100644
 --- a/src/usr/pnor/common/ffs_hb.H
 +++ b/src/usr/pnor/common/ffs_hb.H
-@@ -27,7 +27,7 @@
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2012,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2012,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -27,7 +25,7 @@
  
  /*
   * FSP Destination: src/hbfw/fsp/pnor/common/ffs_hb.H
@@ -2014,7 +2642,7 @@ index c96911b..3defcd4 100644
   * NOTE: Do NOT modify this file in CMVC directly!  It comes from the Hostboot
   *      repository and will be overwritten.
  */
-@@ -65,7 +65,6 @@ enum
+@@ -65,7 +63,6 @@ enum
  
      /* Miscellaneous Bits : 1 byte */
      FFS_MISC_PRESERVED     = 0x80,    /**< Preserved across code updates */
@@ -2998,10 +3626,10 @@ index 427227b..04ca729 100644
  
      /**
 diff --git a/src/usr/sbe/sbe_update.C b/src/usr/sbe/sbe_update.C
-index a2fad1e..f9865ca 100644
+index 698d41a..9dd9e0a 100644
 --- a/src/usr/sbe/sbe_update.C
 +++ b/src/usr/sbe/sbe_update.C
-@@ -1221,6 +1221,49 @@ namespace SBE
+@@ -1214,6 +1214,49 @@ namespace SBE
      }
  
  /////////////////////////////////////////////////////////////////////
@@ -3051,7 +3679,7 @@ index a2fad1e..f9865ca 100644
      errlHndl_t getSbeInfoState(sbeTargetState_t& io_sbeState)
      {
  
-@@ -1315,11 +1358,11 @@ namespace SBE
+@@ -1308,11 +1351,11 @@ namespace SBE
              if(SEEPROM_0_PERMANENT_VALUE ==
                 (io_sbeState.mvpdSbKeyword.flags & PERMANENT_FLAG_MASK))
              {
@@ -3065,7 +3693,7 @@ index a2fad1e..f9865ca 100644
              }
  
  
-@@ -1368,21 +1411,21 @@ namespace SBE
+@@ -1361,21 +1404,21 @@ namespace SBE
              /*  Determine which SEEPROM System Booted On   */
              /***********************************************/
              //Get Current (boot) Side
@@ -3093,7 +3721,7 @@ index a2fad1e..f9865ca 100644
              }
              else
              {
-@@ -2018,7 +2061,7 @@ namespace SBE
+@@ -2012,7 +2055,7 @@ namespace SBE
              /*  Determine what side to update                             */
              /**************************************************************/
              // Set cur and alt isDirty values
@@ -3102,16 +3730,7 @@ index a2fad1e..f9865ca 100644
              {
                  current_side_isDirty = seeprom_0_isDirty;
                  alt_side_isDirty     = seeprom_1_isDirty;
-@@ -2207,7 +2250,7 @@ namespace SBE
-                 // Set Update side to cur
-                 io_sbeState.seeprom_side_to_update =
-                                 ( io_sbeState.cur_seeprom_side ==
--                                              PNOR::SBE_SEEPROM0 )
-+                                              SBE_SEEPROM0 )
-                                   ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP;
- 
-                 TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
-@@ -2251,14 +2294,14 @@ namespace SBE
+@@ -2179,14 +2222,14 @@ namespace SBE
                      io_sbeState.seeprom_side_to_update = EEPROM::SBE_PRIMARY;
  
                      // Update MVPD PERMANENT flag: make cur=perm
@@ -3128,12 +3747,12 @@ index a2fad1e..f9865ca 100644
                           // clear bit 1
                           io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                           : //set bit 1
-@@ -2325,18 +2368,18 @@ namespace SBE
+@@ -2252,18 +2295,18 @@ namespace SBE
+ 
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
-                                 ( io_sbeState.alt_seeprom_side ==
--                                              PNOR::SBE_SEEPROM0 )
-+                                              SBE_SEEPROM0 )
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                      // Update MVPD PERMANENT flag: make cur=perm
@@ -3150,12 +3769,12 @@ index a2fad1e..f9865ca 100644
                           // clear bit 1
                           io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                           : //set bit 1
-@@ -2372,13 +2415,13 @@ namespace SBE
+@@ -2298,13 +2341,13 @@ namespace SBE
+ 
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
-                                 ( io_sbeState.alt_seeprom_side ==
--                                              PNOR::SBE_SEEPROM0 )
-+                                              SBE_SEEPROM0 )
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
  
@@ -3166,12 +3785,12 @@ index a2fad1e..f9865ca 100644
                           // clear bit 0
                           io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
                           : // set bit 0
-@@ -2433,11 +2476,11 @@ namespace SBE
+@@ -2358,11 +2401,11 @@ namespace SBE
+ 
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
-                                 ( io_sbeState.alt_seeprom_side ==
--                                              PNOR::SBE_SEEPROM0 )
-+                                              SBE_SEEPROM0 )
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                      // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
@@ -3180,7 +3799,7 @@ index a2fad1e..f9865ca 100644
                           // clear bit 1
                           io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                           : // set bit 1
-@@ -2448,7 +2491,7 @@ namespace SBE
+@@ -2373,7 +2416,7 @@ namespace SBE
                      if ( g_istep_mode )
                      {
                          // Update MVPD PERMANENT flag: make alt=perm
@@ -3189,12 +3808,12 @@ index a2fad1e..f9865ca 100644
                           // clear bit 0
                           io_sbeState.mvpdSbKeyword.flags &= ~PERMANENT_FLAG_MASK
                           : //set bit 0
-@@ -2531,11 +2574,11 @@ namespace SBE
+@@ -2455,11 +2498,11 @@ namespace SBE
+ 
                          // Set Update side to alt
                          io_sbeState.seeprom_side_to_update =
-                                 ( io_sbeState.alt_seeprom_side ==
--                                              PNOR::SBE_SEEPROM0 )
-+                                              SBE_SEEPROM0 )
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                          // Update MVPD RE-IPL SEEPROM flag: re-IPL on ALT:
@@ -3203,21 +3822,21 @@ index a2fad1e..f9865ca 100644
                            // clear bit 1
                            io_sbeState.mvpdSbKeyword.flags &= ~REIPL_SEEPROM_MASK
                            : // set bit 1
-@@ -2568,7 +2611,7 @@ namespace SBE
+@@ -2491,7 +2534,7 @@ namespace SBE
+ 
                      // Set Update side to alt
                      io_sbeState.seeprom_side_to_update =
-                                 ( io_sbeState.alt_seeprom_side ==
--                                              PNOR::SBE_SEEPROM0 )
-+                                              SBE_SEEPROM0 )
+-                                ( io_sbeState.alt_seeprom_side == PNOR::SBE_SEEPROM0 )
++                                ( io_sbeState.alt_seeprom_side == SBE_SEEPROM0 )
                                    ? EEPROM::SBE_PRIMARY : EEPROM::SBE_BACKUP ;
  
                      TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
-@@ -3279,12 +3322,12 @@ namespace SBE
+@@ -3201,12 +3244,12 @@ namespace SBE
+ 
                      // Compare against 'current' Master side in case there is
                      // an issue with the other side
-                     if (io_sbeStates_v[i].cur_seeprom_side ==
--                                          PNOR::SBE_SEEPROM0)
-+                                          SBE_SEEPROM0)
+-                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
++                    if (io_sbeStates_v[i].cur_seeprom_side == SBE_SEEPROM0)
                      {
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_0_ver.image_version);
@@ -3227,12 +3846,12 @@ index a2fad1e..f9865ca 100644
                      {
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_1_ver.image_version);
-@@ -3428,12 +3471,12 @@ namespace SBE
+@@ -3346,12 +3389,12 @@ namespace SBE
+                 else
                  {
                      // Not Master, so get 'current' version
-                     if (io_sbeStates_v[i].cur_seeprom_side ==
--                                          PNOR::SBE_SEEPROM0)
-+                                          SBE_SEEPROM0)
+-                    if (io_sbeStates_v[i].cur_seeprom_side == PNOR::SBE_SEEPROM0)
++                    if (io_sbeStates_v[i].cur_seeprom_side == SBE_SEEPROM0)
                      {
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_0_ver.image_version);
@@ -3243,10 +3862,21 @@ index a2fad1e..f9865ca 100644
                          ver_ptr =
                              &(io_sbeStates_v[i].seeprom_1_ver.image_version);
 diff --git a/src/usr/sbe/sbe_update.H b/src/usr/sbe/sbe_update.H
-index e49c582..09aa476 100644
+index e49c582..aa880b2 100644
 --- a/src/usr/sbe/sbe_update.H
 +++ b/src/usr/sbe/sbe_update.H
-@@ -55,6 +55,10 @@ namespace SBE
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2013,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -55,6 +53,10 @@ namespace SBE
      const uint64_t SBE_IMAGE_SEEPROM_ADDRESS    = 0x400; // 1KB
      const uint64_t SBE_VERSION_SEEPROM_ADDRESS  = 0x300; // 1KB - 256B
  
@@ -3257,7 +3887,7 @@ index e49c582..09aa476 100644
      // PNOR SBE and SBEC Partition constants
      const uint32_t MAX_SBE_ENTRIES = 9;
      const uint32_t SBETOC_EYECATCH = 0x53424500;  //'SBE\0'
-@@ -104,6 +108,14 @@ namespace SBE
+@@ -104,6 +106,14 @@ namespace SBE
          MVPDOP_WRITE,     // Write version data to MVPD
      };
  
@@ -3272,7 +3902,7 @@ index e49c582..09aa476 100644
      // Actions can be combined
      enum sbeUpdateActions_t
      {
-@@ -117,6 +129,7 @@ namespace SBE
+@@ -117,6 +127,7 @@ namespace SBE
          UNSUPPORTED_SITUATION  = 0x80000000,
      };
  
@@ -3280,7 +3910,7 @@ index e49c582..09aa476 100644
      /******************************************/
      /*  Structs                               */
      /******************************************/
-@@ -196,9 +209,9 @@ namespace SBE
+@@ -196,9 +207,9 @@ namespace SBE
          bool                     seeprom_0_ver_ECC_fail;
          bool                     seeprom_1_ver_ECC_fail;
  
@@ -3293,7 +3923,7 @@ index e49c582..09aa476 100644
  
          // Customized Image Information for this Target
          size_t                   customizedImage_size;
-@@ -318,6 +331,21 @@ namespace SBE
+@@ -318,6 +329,21 @@ namespace SBE
                                     void* io_imgPtr,
                                     size_t& o_actImgSize);
  
