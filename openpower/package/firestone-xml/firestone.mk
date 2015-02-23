@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FIRESTONE_XML_VERSION ?= deb3693d8708cc13f369ed6f9a66dc4bf9df4ae8
+FIRESTONE_XML_VERSION ?= e5c92dd1d8b338b4bd72639fc5cccc7b56004b35
 FIRESTONE_XML_SITE ?= $(call github,open-power,firestone-xml,$(FIRESTONE_XML_VERSION))
 
 FIRESTONE_XML_LICENSE = Apache-2.0
@@ -22,14 +22,14 @@ define FIRESTONE_XML_BUILD_CMDS
 
         # generate the system mrw xml
         # Not processing until actaul xml is here
-        # perl -I $(MRW_HB_TOOLS) \
-        # $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/palmetto.xml
+        perl -I $(MRW_HB_TOOLS) \
+        $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/firestone.xml
 endef
 
 define FIRESTONE_XML_INSTALL_IMAGES_CMDS
 
         # merge in any system specific attributes, hostboot attributes
-        $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_PALMETTO_SYSTEM_XML_FILENAME) \
+        $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_FIRESTONE_SYSTEM_XML_FILENAME) \
             $(MRW_HB_TOOLS)/attribute_types.xml \
             $(MRW_HB_TOOLS)/attribute_types_hb.xml \
             $(MRW_HB_TOOLS)/target_types_merged.xml \
