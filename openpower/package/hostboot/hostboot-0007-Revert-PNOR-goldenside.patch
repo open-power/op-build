@@ -1,7 +1,470 @@
-From 1e017616432b8eb72f9b48080aab0b88d7f2241e Mon Sep 17 00:00:00 2001
+From f4ca5fb46a11c947cc1a334a6e846a9f8a8852cd Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Tue, 17 Feb 2015 14:02:13 -0600
-Subject: [PATCH 1/6] Revert "Skipping over readTOC if hostInterface for
+Date: Fri, 20 Feb 2015 10:59:29 -0600
+Subject: [PATCH 01/10] Revert "Support for PNOR version string sections in
+ openPOWER"
+
+This reverts commit 3a15c8bd258a5cb61821b9325f214a47b8faffbf.
+---
+ src/include/usr/pnor/pnorif.H | 1 -
+ src/usr/pnor/pnor_common.C    | 3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/include/usr/pnor/pnorif.H b/src/include/usr/pnor/pnorif.H
+index 7229466..00f80f4 100644
+--- a/src/include/usr/pnor/pnorif.H
++++ b/src/include/usr/pnor/pnorif.H
+@@ -61,7 +61,6 @@ enum SectionId
+     ATTR_TMP,       /**< Temporary Attribute Override */
+     ATTR_PERM,      /**< Permanent Attribute Override */
+     CAPP,           /**< CAPP lid */
+-    VERSION,        /**< PNOR version string section */
+     TEST,           /**< Scratch space for PNOR test cases */
+     TESTRO,         /**< Scratch space for PNOR ReadOnly test cases */
+ 
+diff --git a/src/usr/pnor/pnor_common.C b/src/usr/pnor/pnor_common.C
+index c8c1e14..00931ec 100644
+--- a/src/usr/pnor/pnor_common.C
++++ b/src/usr/pnor/pnor_common.C
+@@ -66,8 +66,7 @@ const char* cv_EYECATCHER[] = {
+     "FIRDATA",   /**< PNOR::FIRDATA        : FIRDATA */
+     "ATTR_TMP",  /**< PNOR::ATTR_TMP       : Temporary Attribute Overrides */
+     "ATTR_PERM", /**< PNOR::ATTR_PERM      : Permanent Attribute Overrides */
+-    "CAPP",      /**< PNOR::CAPP           : CAPP LID */
+-    "VERSION",   /**< PNOR::VERSION        : PNOR Version string */
++    "CAPP",      /**< PNOR::CAPP            : CAPP LID */
+     "TEST",      /**< PNOR::TEST           : Test space for PNOR*/
+     "TESTRO",    /**< PNOR::TESTRO         : ReadOnly Test space for PNOR */
+     //Not currently used
+-- 
+1.8.2.2
+
+
+From a67aea13a1a3227e47a782bb7a5b965f22c9524b Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Fri, 20 Feb 2015 10:59:41 -0600
+Subject: [PATCH 02/10] Revert "Increasing size of HBRT to 3MB+ECC in
+ defaultPnorLayout"
+
+This reverts commit 110da83dad46fd3ac100bf60375ff1b7716114c9.
+---
+ src/build/buildpnor/defaultPnorLayout.xml | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
+index adb04fd..18c309d 100644
+--- a/src/build/buildpnor/defaultPnorLayout.xml
++++ b/src/build/buildpnor/defaultPnorLayout.xml
+@@ -165,10 +165,10 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Runtime Services for Sapphire (3.375MB)</description>
++        <description>Hostboot Runtime Services for Sapphire (2.25MB)</description>
+         <eyeCatch>HBRT</eyeCatch>
+         <physicalOffset>0xA35000</physicalOffset>
+-        <physicalRegionSize>0x360000</physicalRegionSize>
++        <physicalRegionSize>0x240000</physicalRegionSize>
+         <sha512Version/>
+         <side>sideless</side>
+         <ecc/>
+@@ -176,7 +176,7 @@ Layout Description
+     <section>
+         <description>Payload (22.5MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+-        <physicalOffset>0xD95000</physicalOffset>
++        <physicalOffset>0xC75000</physicalOffset>
+         <physicalRegionSize>0x1680000</physicalRegionSize>
+         <side>sideless</side>
+         <ecc/>
+@@ -184,7 +184,7 @@ Layout Description
+     <section>
+         <description>Special PNOR Test Space (36K)</description>
+         <eyeCatch>TEST</eyeCatch>
+-        <physicalOffset>0x2415000</physicalOffset>
++        <physicalOffset>0x3590000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+         <testonly/>
+         <side>sideless</side>
+@@ -193,7 +193,7 @@ Layout Description
+     <section>
+         <description>Special PNOR Test Space (36K)</description>
+         <eyeCatch>TESTRO</eyeCatch>
+-        <physicalOffset>0x241E000</physicalOffset>
++        <physicalOffset>0x3599000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+         <side>sideless</side>
+         <testonly/>
+-- 
+1.8.2.2
+
+
+From 2a5e7bdd359976c1c87096fd78b21fa235a067f1 Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Fri, 20 Feb 2015 10:59:51 -0600
+Subject: [PATCH 03/10] Revert "New interfaces to get FSI and PNOR info for
+ Xstop code"
+
+This reverts commit 79ea7abf6d31c146c680d39b9f3ae007e434a573.
+---
+ src/include/usr/fsi/fsiif.H   |  7 +---
+ src/include/usr/pnor/pnorif.H | 16 --------
+ src/usr/fsi/fsidd.C           | 31 ++++++---------
+ src/usr/fsi/test/fsiddtest.H  | 92 +------------------------------------------
+ src/usr/pnor/pnordd.C         | 33 ----------------
+ src/usr/pnor/pnordd.H         | 16 +-------
+ src/usr/pnor/sfcdd.H          | 11 +-----
+ 7 files changed, 16 insertions(+), 190 deletions(-)
+
+diff --git a/src/include/usr/fsi/fsiif.H b/src/include/usr/fsi/fsiif.H
+index 5ab2e44..756dbb7 100644
+--- a/src/include/usr/fsi/fsiif.H
++++ b/src/include/usr/fsi/fsiif.H
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2011,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2011,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -111,11 +109,10 @@ struct FsiLinkInfo_t
+     uint8_t link; ///< Which link is this chip hanging off of
+     uint8_t cascade; ///< Slave cascade position
+     uint8_t mPort; ///< FSI Master port (0=A,1=B)
+-    uint32_t baseAddr; ///< Base FSI Address for this chip
+ 
+     FsiLinkInfo_t() :
+       master(NULL), type(TARGETING::FSI_MASTER_TYPE_NO_MASTER),
+-    link(0xFF), cascade(0), mPort(0), baseAddr(UINT32_MAX)
++    link(0xFF), cascade(0), mPort(0)
+     {};
+ };
+ 
+diff --git a/src/include/usr/pnor/pnorif.H b/src/include/usr/pnor/pnorif.H
+index 00f80f4..2689077 100644
+--- a/src/include/usr/pnor/pnorif.H
++++ b/src/include/usr/pnor/pnorif.H
+@@ -183,22 +183,6 @@ enum sbeSeepromSide_t
+ errlHndl_t getSbeBootSeeprom(TARGETING::Target* i_target,
+                              sbeSeepromSide_t& o_bootSide);
+ 
+-
+-/** Information about PNOR Layout */
+-struct PnorInfo_t
+-{
+-    uint32_t mmioOffset; //< Address of MMIO access
+-    uint32_t norWorkarounds; //< NOR flash workarounds
+-    uint32_t flashSize; //< Size of PNOR in bytes
+-};
+-
+-/**
+- * @brief Retrieve some information about the PNOR/SFC hardware
+- *
+- * @param[out] o_pnorInfo Information about PNOR
+- */
+-void getPnorInfo( PnorInfo_t& o_pnorInfo );
+-
+ }
+ 
+ #endif
+diff --git a/src/usr/fsi/fsidd.C b/src/usr/fsi/fsidd.C
+index 6e7ae8a..7f313aa 100644
+--- a/src/usr/fsi/fsidd.C
++++ b/src/usr/fsi/fsidd.C
+@@ -1806,15 +1806,15 @@ errlHndl_t FsiDD::genFullFsiAddr(FsiAddrInfo_t& io_addrInfo)
+     //start off with the addresses being the same
+     io_addrInfo.absAddr = io_addrInfo.relAddr;
+ 
+-    //pull the FSI info out for this target
+-    io_addrInfo.accessInfo = getFsiInfo( io_addrInfo.fsiTarg );
+-
+     //target matches master so the address is correct as-is
+     if( io_addrInfo.fsiTarg == iv_master )
+     {
+         return NULL;
+     }
+ 
++    //pull the FSI info out for this target
++    io_addrInfo.accessInfo = getFsiInfo( io_addrInfo.fsiTarg );
++
+     TRACU1COMP( g_trac_fsi, "target=%.8X : Link Id=%.8X", TARGETING::get_huid(io_addrInfo.fsiTarg), io_addrInfo.accessInfo.linkid.id );
+ 
+     //FSI master is the master proc, find the port
+@@ -3011,26 +3011,17 @@ FsiDD::FsiChipInfo_t FsiDD::getFsiInfo( TARGETING::Target* i_target )
+ void FsiDD::getFsiLinkInfo( TARGETING::Target* i_slave,
+                             FSI::FsiLinkInfo_t& o_info )
+ {
+-    FsiAddrInfo_t addr_info( i_slave, 0x0 );
+-    errlHndl_t tmp_err = genFullFsiAddr( addr_info );
+-    if( tmp_err )
+-    {
+-        TRACFCOMP( g_trac_fsi, "Error getting FsiLinkInfo for %.8X", TARGETING::get_huid(i_slave) );
+-        delete tmp_err;
+-        return;
+-    }
+-
+-    o_info.master = addr_info.accessInfo.master;
+-    o_info.type = addr_info.accessInfo.type;
+-    o_info.link = addr_info.accessInfo.port;
+-    o_info.cascade = addr_info.accessInfo.cascade;
++    FsiChipInfo_t info = getFsiInfo( i_slave );
++    o_info.master = info.master;
++    o_info.type = info.type;
++    o_info.link = info.port;
++    o_info.cascade = info.cascade;
+     o_info.mPort = 0;
+-    if( addr_info.accessInfo.master
+-        && (addr_info.accessInfo.master != iv_master )
+-        && (getFsiInfo(addr_info.accessInfo.master).flagbits.flipPort) )
++    if( info.master
++        && (info.master != iv_master )
++        && (getFsiInfo(info.master).flagbits.flipPort) )
+     {
+         o_info.mPort = 1;
+     }
+-    o_info.baseAddr = addr_info.absAddr;
+ }
+ 
+diff --git a/src/usr/fsi/test/fsiddtest.H b/src/usr/fsi/test/fsiddtest.H
+index ab409bc..5d6eaaa 100644
+--- a/src/usr/fsi/test/fsiddtest.H
++++ b/src/usr/fsi/test/fsiddtest.H
+@@ -5,9 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2011,2015                        */
+-/* [+] International Business Machines Corp.                              */
+-/*                                                                        */
++/* COPYRIGHT International Business Machines Corp. 2011,2014              */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -447,94 +445,6 @@ class FsiDDTest : public CxxTest::TestSuite
+ 
+         TRACFCOMP( g_trac_fsi, "FsiDDTest::test_FFDC> Finish" );
+     };
+-
+-    /**
+-     * @brief FSI DD test - FSI Link Info
+-     *        Spot check getFsiLinkInfo results
+-     */
+-    void test_getFsiLinkInfo(void)
+-    {
+-        TRACFCOMP( g_trac_fsi, "FsiDDTest::test_getFsiLinkInfo> Start" );
+-
+-        enum {
+-            PROC0,
+-            CENTAUR4,
+-            NUM_TARGETS
+-        };
+-        TARGETING::Target* fsi_targets[NUM_TARGETS];
+-        for( size_t x = 0; x < NUM_TARGETS; x++ )
+-        {
+-            fsi_targets[x] = NULL;
+-        }
+-
+-        TARGETING::Target* fsi_target = NULL;
+-
+-        // master processor target
+-        TARGETING::EntityPath epath(TARGETING::EntityPath::PATH_PHYSICAL);
+-        epath.addLast(TARGETING::TYPE_SYS,0);
+-        epath.addLast(TARGETING::TYPE_NODE,0);
+-        epath.addLast(TARGETING::TYPE_PROC,0);
+-        fsi_target = TARGETING::targetService().toTarget(epath);
+-        fsi_targets[PROC0] = fsi_target;
+-
+-        // local centaur target (physical:sys-0/node-0/membuf-4)
+-        epath.removeLast();
+-        epath.addLast(TARGETING::TYPE_MEMBUF,4);
+-        fsi_target = TARGETING::targetService().toTarget(epath);
+-        fsi_targets[CENTAUR4] = fsi_target;
+-
+-
+-
+-        // loop through all of the targets we defined to
+-        //  check the data
+-        for( size_t x = 0; x < NUM_TARGETS; x++ )
+-        {
+-            if( fsi_targets[x] == NULL )
+-            {
+-                continue;
+-            }
+-
+-            // Get the FSI port info for this target
+-            TARGETING::FSI_MASTER_TYPE type =
+-              fsi_targets[x]->getAttr<TARGETING::ATTR_FSI_MASTER_TYPE>();
+-            uint8_t slave_port =
+-              fsi_targets[x]->getAttr<TARGETING::ATTR_FSI_MASTER_PORT>();
+-            TARGETING::EntityPath masterpath =
+-              fsi_targets[x]->getAttr<TARGETING::ATTR_FSI_MASTER_CHIP>();
+-            TARGETING::Target* master =
+-              TARGETING::targetService().toTarget(masterpath);
+-            uint8_t master_port = 0;
+-            if( type != TARGETING::FSI_MASTER_TYPE_NO_MASTER )
+-            {
+-                master_port =
+-                  master->getAttr<TARGETING::ATTR_FSI_MASTER_PORT>()+1;
+-            }
+-
+-            TRACFCOMP( g_trac_fsi, "sport=%d, mport=%d, master=%.8X, type=%d",slave_port,master_port, TARGETING::get_huid(master), master_port);
+-            // Compute the offset
+-            //   CMFSI ports start at 0x040000 and increment by 0x008000
+-            //   MFSI ports start at 0x080000 and increment by 0x080000
+-            //    (local CMFSI ports have no MFSI offset)
+-            uint32_t offset = (master_port * 0x080000);
+-            if( type == TARGETING::FSI_MASTER_TYPE_CMFSI )
+-            {
+-                offset += ((slave_port * 0x008000) + 0x040000);
+-            }
+-
+-            // Now call the interface we want to test
+-            FSI::FsiLinkInfo_t linkinfo;
+-            FSI::getFsiLinkInfo( fsi_targets[x], linkinfo );
+-
+-            // Compare the results
+-            TRACFCOMP( g_trac_fsi, "FsiDDTest::test_getFsiLinkInfo> Data for %.8X: exp=%.6X, act=%.6X", TARGETING::get_huid(fsi_targets[x]), offset, linkinfo.baseAddr );
+-            if( linkinfo.baseAddr != offset )
+-            {
+-                TS_FAIL( "FsiDDTest::test_getFsiLinkInfo> Mismatch for %.8X: exp=%.6X, act=%.6X", TARGETING::get_huid(fsi_targets[x]), offset, linkinfo.baseAddr );
+-            }
+-        }
+-
+-        TRACFCOMP( g_trac_fsi, "FsiDDTest::test_getFsiLinkInfo> End" );
+-    }
+ };     
+ 
+ 
+diff --git a/src/usr/pnor/pnordd.C b/src/usr/pnor/pnordd.C
+index 13667ce..0d47898 100644
+--- a/src/usr/pnor/pnordd.C
++++ b/src/usr/pnor/pnordd.C
+@@ -191,19 +191,6 @@ bool usingL3Cache()
+     return Singleton<PnorDD>::instance().usingL3Cache();
+ }
+ 
+-/**
+- * @brief Retrieve some information about the PNOR/SFC hardware
+- */
+-void getPnorInfo( PnorInfo_t& o_pnorInfo )
+-{
+-    o_pnorInfo.mmioOffset = 0; //LPC_SFC_MMIO_OFFSET;//@fixme-need Prachi's code for this
+-    o_pnorInfo.norWorkarounds =
+-      Singleton<PnorDD>::instance().getNorWorkarounds();
+-    o_pnorInfo.flashSize =
+-      Singleton<PnorDD>::instance().getNorSize();
+-}
+-
+-
+ 
+ // Register PNORDD access functions to DD framework
+ DEVICE_REGISTER_ROUTE(DeviceFW::READ,
+@@ -878,23 +865,3 @@ errlHndl_t PnorDD::_eraseFlash( uint32_t i_addr )
+ 
+     return l_err;
+ }
+-
+-/**
+- * @brief Retrieve bitstring of NOR workarounds
+- */
+-uint32_t PnorDD::getNorWorkarounds( void )
+-{
+-    return iv_sfc->getNorWorkarounds();
+-}
+-
+-/**
+- * @brief Retrieve size of NOR flash
+- */
+-uint32_t PnorDD::getNorSize( void )
+-{
+-#ifdef CONFIG_PNOR_IS_32MB
+-    return (32*MEGABYTE);
+-#else //default to 64MB
+-    return (64*MEGABYTE);
+-#endif
+-}
+diff --git a/src/usr/pnor/pnordd.H b/src/usr/pnor/pnordd.H
+index 94c393b..589f60e 100644
+--- a/src/usr/pnor/pnordd.H
++++ b/src/usr/pnor/pnordd.H
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2011,2015                        */
++/* Contributors Listed Below - COPYRIGHT 2011,2014                        */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+@@ -82,19 +82,6 @@ class PnorDD
+     bool usingL3Cache( );
+ 
+ 
+-    /**
+-     * @brief Retrieve bitstring of NOR workarounds
+-     * @return NOR workarounds (see VendorWorkarounds in norflash.H)
+-     */
+-    uint32_t getNorWorkarounds( void );
+-
+-    /**
+-     * @brief Retrieve size of NOR flash
+-     * @return Size of PNOR in bytes
+-     */
+-    uint32_t getNorSize( void );
+-
+-
+     // Enumeration values must match those in debug framework.
+     enum PnorMode_t {
+         MODEL_UNKNOWN,   /**< Invalid */
+@@ -353,7 +340,6 @@ class PnorDD
+      */
+     errlHndl_t _eraseFlash( uint32_t i_address );
+ 
+-
+   private: // Variables
+ 
+    /**
+diff --git a/src/usr/pnor/sfcdd.H b/src/usr/pnor/sfcdd.H
+index 72285f5..7c27a1e 100644
+--- a/src/usr/pnor/sfcdd.H
++++ b/src/usr/pnor/sfcdd.H
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2014,2015                        */
++/* Contributors Listed Below - COPYRIGHT 2014                             */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+@@ -149,15 +149,6 @@ class SfcDD
+     };
+ 
+     /**
+-     * @brief Retrieve bitstring of NOR workarounds
+-     * @return NOR workarounds (see VendorWorkarounds in norflash.H)
+-     */
+-    uint32_t getNorWorkarounds( void )
+-    {
+-        return iv_flashWorkarounds;
+-    };
+-
+-    /**
+      * @brief Destructor
+      */
+     virtual ~SfcDD();
+-- 
+1.8.2.2
+
+
+From d54db81391beca781b7a5e4f233dea8971ced5c7 Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Fri, 20 Feb 2015 11:00:00 -0600
+Subject: [PATCH 04/10] Revert "Skipping over readTOC if hostInterface for
  pnor_read/write doesn't exist"
 
 This reverts commit 7c5d303237f2bec25b7072ec3119d6d4fef875fc.
@@ -104,10 +567,1588 @@ index d869e3c..4514684 100644
 1.8.2.2
 
 
-From 2eaec22c342cf6dc93c6ae4e90bf4c0dfb5607c8 Mon Sep 17 00:00:00 2001
+From 6ee93d64558e1d536cc10cd47fef5ce33416a288 Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Tue, 17 Feb 2015 14:02:24 -0600
-Subject: [PATCH 2/6] Revert "Targeting: Generate VERSION page for binaries."
+Date: Fri, 20 Feb 2015 11:04:00 -0600
+Subject: [PATCH 05/10] Revert "Support BIOS framework"
+
+This reverts commit b24f1ca24db62f833c7f46e4244dbe8f00ee8a4c.
+---
+ src/build/mkrules/dist.targets.mk                  |    2 -
+ src/usr/targeting/common/xmltohb/bios.xsd          |  302 ------
+ .../common/xmltohb/bios_metadata_petitboot.xslt    |   93 --
+ src/usr/targeting/common/xmltohb/xmltohb.pl        | 1030 +-------------------
+ 4 files changed, 3 insertions(+), 1424 deletions(-)
+ delete mode 100644 src/usr/targeting/common/xmltohb/bios.xsd
+ delete mode 100644 src/usr/targeting/common/xmltohb/bios_metadata_petitboot.xslt
+
+diff --git a/src/build/mkrules/dist.targets.mk b/src/build/mkrules/dist.targets.mk
+index 42a1525..ca28150 100644
+--- a/src/build/mkrules/dist.targets.mk
++++ b/src/build/mkrules/dist.targets.mk
+@@ -81,8 +81,6 @@ COPY_FILES = \
+     src/usr/targeting/common/xmltohb/target_types_hb.xml:openpower \
+     src/usr/targeting/common/xmltohb/xmltohb.pl:openpower \
+     src/include/usr/vmmconst.h:openpower \
+-    src/usr/targeting/common/xmltohb/bios.xsd:openpower \
+-    src/usr/targeting/common/xmltohb/bios_metadata_petitboot.xslt:openpower \
+     $(foreach file, $(call ROOTPATH_WILDCARD,releaseNotes.html), $(file):fsp)\
+ 
+ #
+diff --git a/src/usr/targeting/common/xmltohb/bios.xsd b/src/usr/targeting/common/xmltohb/bios.xsd
+deleted file mode 100644
+index 6cd7ff4..0000000
+--- a/src/usr/targeting/common/xmltohb/bios.xsd
++++ /dev/null
+@@ -1,302 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+-<!-- This is an automatically generated prolog.                             -->
+-<!--                                                                        -->
+-<!-- $Source: src/usr/targeting/common/xmltohb/bios.xsd $                   -->
+-<!--                                                                        -->
+-<!-- OpenPOWER HostBoot Project                                             -->
+-<!--                                                                        -->
+-<!-- Contributors Listed Below - COPYRIGHT 2015                             -->
+-<!-- [+] International Business Machines Corp.                              -->
+-<!--                                                                        -->
+-<!--                                                                        -->
+-<!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
+-<!-- you may not use this file except in compliance with the License.       -->
+-<!-- You may obtain a copy of the License at                                -->
+-<!--                                                                        -->
+-<!--     http://www.apache.org/licenses/LICENSE-2.0                         -->
+-<!--                                                                        -->
+-<!-- Unless required by applicable law or agreed to in writing, software    -->
+-<!-- distributed under the License is distributed on an "AS IS" BASIS,      -->
+-<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        -->
+-<!-- implied. See the License for the specific language governing           -->
+-<!-- permissions and limitations under the License.                         -->
+-<!--                                                                        -->
+-<!-- IBM_PROLOG_END_TAG                                                     -->
+-
+-<xs:schema
+-    xmlns:xs="http://www.w3.org/2001/XMLSchema" >
+-
+-  <xs:element name="firmware-overrides">
+-    <xs:annotation>
+-      <xs:documentation>The firmware-overrides element is the root element.  An
+-        empty firmware-overrides element implies there are no firmware overrides
+-        for a given platform.  The firmware-overrides element can have any
+-        number of attribute or group elements.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-      <xs:sequence>
+-        <xs:choice minOccurs="0" maxOccurs="unbounded">
+-          <xs:element ref="group"/>
+-          <xs:element ref="attribute"/>
+-        </xs:choice>
+-      </xs:sequence>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="group">
+-    <xs:annotation>
+-      <xs:documentation>A group element defines a logical collection of
+-        firmware-overrides, and sub-groups of the same.  A group element
+-        contains a name element and any number of attribute + group elements,
+-        but it must have at least one element other than the name element.
+-  </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-      <xs:sequence>
+-        <xs:element ref="name"/>
+-        <xs:sequence>
+-          <xs:choice maxOccurs="unbounded">
+-            <xs:element ref="group"/>
+-            <xs:element ref="attribute"/>
+-          </xs:choice>
+-        </xs:sequence>
+-      </xs:sequence>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="attribute">
+-    <xs:annotation>
+-      <xs:documentation>An attribute element must have an id element, and up to
+-        one each of a description element, display-name element,
+-        targetRestriction element.  It may also have either a numericOverride
+-        element (if signed/unsigned number) or enumerationOverride element (if
+-        enumeration), in that order.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-      <xs:sequence>
+-        <xs:element ref="id"/>
+-        <xs:element ref="description" minOccurs="0"/>
+-        <xs:element ref="display-name" minOccurs="0"/>
+-        <xs:element ref="targetRestriction" minOccurs="0"/>
+-        <xs:choice minOccurs="0">
+-          <xs:element ref="enumerationOverride" minOccurs="0"/>
+-          <xs:element ref="numericOverride" minOccurs="0"/>
+-        </xs:choice>
+-      </xs:sequence>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="numericOverride">
+-    <xs:annotation>
+-      <xs:documentation>A numeric override limits the set of values an
+-        attribute can be set to.  A numericOverride element must have a start
+-        and end element in any order.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-      <xs:choice>
+-        <xs:sequence>
+-          <xs:element ref="start" minOccurs="1" maxOccurs="1"/>
+-          <xs:element ref="end" minOccurs="0" maxOccurs="1"/>
+-        </xs:sequence>
+-        <xs:sequence>
+-          <xs:element ref="end" minOccurs="1" maxOccurs="1"/>
+-          <xs:element ref="start" minOccurs="0" maxOccurs="1"/>
+-        </xs:sequence>
+-      </xs:choice>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="targetRestriction">
+-    <xs:annotation>
+-      <xs:documentation>A target restriction restricts the attribute to apply
+-         only to the target indicated by the sub-restrictions.  A
+-         targetRestriction element may have up to one each of
+-         a type, node, position, and unit element, in any order, provided at
+-         least one of those appears.  This schema cannot easily restrict the
+-         latter condition, so the code must ensure at least one child element is
+-         present.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-       <xs:all minOccurs="0" maxOccurs="1">
+-         <xs:element ref="type"     minOccurs="0"/>
+-         <xs:element ref="node"     minOccurs="0"/>
+-         <xs:element ref="position" minOccurs="0"/>
+-         <xs:element ref="unit"     minOccurs="0"/>
+-       </xs:all>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="enumerationOverride">
+-    <xs:annotation>
+-      <xs:documentation>An enumerationOverride allows an attribute to change
+-        the behavior of the underlying enumeration.  An enumerationOverride
+-        element can have one allowedEnumerator element, any number of
+-        enumeratorOverride elements, or a union of those.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-      <xs:choice>
+-        <xs:sequence>
+-          <xs:element ref="allowedEnumerators"/>
+-          <xs:element ref="enumeratorOverride"
+-            minOccurs="0" maxOccurs="unbounded"/>
+-        </xs:sequence>
+-        <xs:sequence>
+-          <xs:element ref="enumeratorOverride" maxOccurs="unbounded"/>
+-          <xs:element ref="allowedEnumerators" minOccurs="0"/>
+-        </xs:sequence>
+-      </xs:choice>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="allowedEnumerators">
+-    <xs:annotation>
+-      <xs:documentation>An allowedEnumerator restricts which enumerators can be
+-        used by the attribute.An allowedEnumerators element requires one or more
+-        name elements.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-      <xs:sequence>
+-        <xs:element ref="name" maxOccurs="unbounded"/>
+-      </xs:sequence>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="enumeratorOverride">
+-    <xs:annotation>
+-      <xs:documentation>An enumeratorOverride allows an attribute to change the
+-        default text associated with an enumerator.  An enumeratorOverride
+-        requires a name element and a display-name element, descriptionElement,
+-        or union of both.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:complexType>
+-      <xs:sequence>
+-        <xs:element ref="name"/>
+-        <xs:choice>
+-          <xs:sequence>
+-            <xs:element ref="display-name"/>
+-            <xs:element ref="description" minOccurs="0"/>
+-          </xs:sequence>
+-          <xs:sequence>
+-            <xs:element ref="description"/>
+-            <xs:element ref="display-name" minOccurs="0"/>
+-          </xs:sequence>
+-        </xs:choice>
+-      </xs:sequence>
+-    </xs:complexType>
+-  </xs:element>
+-
+-  <xs:element name="id" type="xs:string">
+-    <xs:annotation>
+-      <xs:documentation>An id element provides a symbolic attribute ID that maps
+-        to a valid attribute in targeting
+-      </xs:documentation>
+-    </xs:annotation>
+-  </xs:element>
+-
+-  <xs:element name="description" type="xs:string">
+-    <xs:annotation>
+-      <xs:documentation>A description element provides a longer help text for an
+-        attribute, enumeration, etc.
+-      </xs:documentation>
+-    </xs:annotation>
+-  </xs:element>
+-
+-  <xs:element name="display-name" type="xs:string">
+-    <xs:annotation>
+-      <xs:documentation>A display-name element provides a short name for an
+-        enumeration, attribute, etc.
+-      </xs:documentation>
+-    </xs:annotation>
+-  </xs:element>
+-
+-  <xs:element name="type" type="xs:string">
+-    <xs:annotation>
+-      <xs:documentation>A type element restricts the attribute to a specific
+-        named attribute type.
+-      </xs:documentation>
+-    </xs:annotation>
+-  </xs:element>
+-
+-  <xs:element name="start" type="xs:decimal">
+-    <xs:annotation>
+-      <xs:documentation>A start element gives the first value, inclusive, of one
+-        of the valid ranges for a numerical attribute. It cannot fall outside
+-        of the base range allowed for the given attribute type, and must be at
+-        least one less than the max of the base range.
+-      </xs:documentation>
+-    </xs:annotation>
+-  </xs:element>
+-
+-  <xs:element name="end" type="xs:decimal">
+-    <xs:annotation>
+-      <xs:documentation>An end element gives the last value, inclusive, of one
+-        of the valid ranges for a numerical attribute. It cannot fall outside
+-        of the base range allowed for the given attribute type, and must be at
+-        least one less than the max of the base range.
+-      </xs:documentation>
+-    </xs:annotation>
+-  </xs:element>
+-
+-  <xs:element name="name" type="xs:string">
+-    <xs:annotation>
+-      <xs:documentation>A name element gives the name of the attribute group,
+-        etc.
+-      </xs:documentation>
+-    </xs:annotation>
+-  </xs:element>
+-
+-  <xs:element name="unit">
+-    <xs:annotation>
+-      <xs:documentation>A unit element allows an attribute to restrict its
+-        scope to a specific target unit.  If a position element is specified in
+-        a targetRestriction along with a unit, then the unit's chip's position
+-        must match that as well.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:simpleType>
+-      <xs:restriction base="xs:unsignedByte">
+-        <xs:minInclusive value="0"/>
+-        <xs:maxInclusive value="254"/>
+-      </xs:restriction>
+-    </xs:simpleType>
+-  </xs:element>
+-
+-  <xs:element name="position">
+-    <xs:annotation>
+-      <xs:documentation>A position element allows an attribute to restrict
+-        its scope to a specific position.  Only applicable for targets with
+-        positions, unless used in conjuction with the unit element.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:simpleType>
+-      <xs:restriction base="xs:unsignedShort">
+-        <xs:minInclusive value="0"/>
+-        <xs:maxInclusive value="65534"/>
+-      </xs:restriction>
+-    </xs:simpleType>
+-  </xs:element>
+-
+-  <xs:element name="node">
+-    <xs:annotation>
+-      <xs:documentation>A node element allows an attribute to restrict
+-        its scope to a specific node.
+-      </xs:documentation>
+-    </xs:annotation>
+-    <xs:simpleType>
+-      <xs:restriction base="xs:unsignedByte">
+-        <xs:minInclusive value="0"/>
+-        <xs:maxInclusive value="14"/>
+-      </xs:restriction>
+-    </xs:simpleType>
+-  </xs:element>
+-
+-</xs:schema>
+-
+diff --git a/src/usr/targeting/common/xmltohb/bios_metadata_petitboot.xslt b/src/usr/targeting/common/xmltohb/bios_metadata_petitboot.xslt
+deleted file mode 100644
+index ee2a2bc..0000000
+--- a/src/usr/targeting/common/xmltohb/bios_metadata_petitboot.xslt
++++ /dev/null
+@@ -1,93 +0,0 @@
+-<?xml version="1.0"?>
+-<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+-<!-- This is an automatically generated prolog.                             -->
+-<!--                                                                        -->
+-<!-- $Source: src/usr/targeting/common/xmltohb/bios_metadata_petitboot.xslt $ -->
+-<!--                                                                        -->
+-<!-- OpenPOWER HostBoot Project                                             -->
+-<!--                                                                        -->
+-<!-- Contributors Listed Below - COPYRIGHT 2015                             -->
+-<!-- [+] International Business Machines Corp.                              -->
+-<!--                                                                        -->
+-<!--                                                                        -->
+-<!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
+-<!-- you may not use this file except in compliance with the License.       -->
+-<!-- You may obtain a copy of the License at                                -->
+-<!--                                                                        -->
+-<!--     http://www.apache.org/licenses/LICENSE-2.0                         -->
+-<!--                                                                        -->
+-<!-- Unless required by applicable law or agreed to in writing, software    -->
+-<!-- distributed under the License is distributed on an "AS IS" BASIS,      -->
+-<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        -->
+-<!-- implied. See the License for the specific language governing           -->
+-<!-- permissions and limitations under the License.                         -->
+-<!--                                                                        -->
+-<!-- IBM_PROLOG_END_TAG                                                     -->
+-
+-<xsl:stylesheet version="1.0"
+-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+-
+-<xsl:output method="xml" version="1.0"
+-  encoding="UTF-8" indent="yes"/>
+-
+-<xsl:template match="/">
+-  <firmware-overrides>
+-    <xsl:apply-templates select="firmware-overrides/attribute"/>
+-    <xsl:apply-templates select="firmware-overrides/group"/>
+-  </firmware-overrides>
+-</xsl:template>
+-
+-<xsl:template match="attribute">
+-  <attribute>
+-    <xsl:attribute name="id">
+-      <xsl:value-of select="id"/>
+-    </xsl:attribute>
+-    <numeric-id><xsl:value-of select="numeric-id"/></numeric-id>
+-    <type>
+-        <size><xsl:value-of select="size"/></size>
+-        <encoding><xsl:value-of select="encoding"/></encoding>
+-    </type>
+-    <default><xsl:value-of select="default"/></default>
+-    <display-name><xsl:value-of select="display-name"/></display-name>
+-    <description><xsl:value-of select="description"/></description>
+-    <target>
+-      <type><xsl:value-of select="target/type"/></type>
+-      <node><xsl:value-of select="target/node"/></node>
+-      <position><xsl:value-of select="target/position"/></position>
+-      <unit><xsl:value-of select="target/unit"/></unit>
+-    </target>
+-    <xsl:apply-templates select="numericOverride"/>
+-    <xsl:apply-templates select="enumeration"/>
+-  </attribute>
+-</xsl:template>
+-
+-<xsl:template match="numericOverride">
+-  <range>
+-    <start><xsl:value-of select="start"/></start>
+-    <end><xsl:value-of select="end"/></end>
+-  </range>
+-</xsl:template>
+-
+-<xsl:template match="enumeration">
+-  <enumeration>
+-    <xsl:apply-templates select="./enumerator"/>
+-  </enumeration>
+-</xsl:template>
+-
+-<xsl:template match="enumerator">
+-  <enumerator>
+-    <display-name><xsl:value-of select="display-name"/></display-name>
+-    <description><xsl:value-of select="description"/></description>
+-    <value><xsl:value-of select="value"/></value>
+-  </enumerator>
+-</xsl:template>
+-
+-<xsl:template match="group">
+-  <group>
+-    <name><xsl:value-of select="name"/></name>
+-    <xsl:apply-templates select="./attribute"/>
+-    <xsl:apply-templates select="./group"/>
+-  </group>
+-</xsl:template>
+-
+-</xsl:stylesheet>
+diff --git a/src/usr/targeting/common/xmltohb/xmltohb.pl b/src/usr/targeting/common/xmltohb/xmltohb.pl
+index 6e8db84..d02c1a7 100755
+--- a/src/usr/targeting/common/xmltohb/xmltohb.pl
++++ b/src/usr/targeting/common/xmltohb/xmltohb.pl
+@@ -48,7 +48,6 @@ use Text::Wrap;
+ use Data::Dumper;
+ use POSIX;
+ use Env;
+-use XML::LibXML;
+ 
+ ################################################################################
+ # Set PREFERRED_PARSER to XML::Parser. Otherwise it uses XML::SAX which contains
+@@ -77,10 +76,6 @@ my $cfgIncludeFspAttributes = 0;
+ my $CfgSMAttrFile = "";
+ my $cfgAddVersionPage = 0;
+ 
+-my $cfgBiosXmlFile = undef;
+-my $cfgBiosSchemaFile = undef;
+-my $cfgBiosOutputFile = undef;
+-
+ GetOptions("hb-xml-file:s" => \$cfgHbXmlFile,
+            "src-output-dir:s" =>  \$cfgSrcOutputDir,
+            "img-output-dir:s" =>  \$cfgImgOutputDir,
+@@ -92,9 +87,6 @@ GetOptions("hb-xml-file:s" => \$cfgHbXmlFile,
+            "smattr-output-file:s" => \$CfgSMAttrFile,
+            "include-fsp-attributes!" =>  \$cfgIncludeFspAttributes,
+            "version-page!" => \$cfgAddVersionPage,
+-           "bios-xml-file:s" => \$cfgBiosXmlFile,
+-           "bios-schema-file:s" => \$cfgBiosSchemaFile,
+-           "bios-output-file:s" => \$cfgBiosOutputFile,
+            "help" => \$cfgHelp,
+            "man" => \$cfgMan,
+            "verbose" => \$cfgVerbose ) || pod2usage(-verbose => 0);
+@@ -124,9 +116,6 @@ if($cfgVerbose)
+     print STDOUT "Big endian = $cfgBigEndian\n";
+     print STDOUT "include-fsp-attributes = $cfgIncludeFspAttributes\n",
+     print STDOUT "version-page = $cfgAddVersionPage\n",
+-    print STDOUT "bios-schema-file = $cfgBiosSchemaFile\n";
+-    print STDOUT "bios-xml-file = $cfgBiosXmlFile\n";
+-    print STDOUT "bios-output-file = $cfgBiosOutputFile\n";
+ }
+ 
+ ################################################################################
+@@ -151,11 +140,6 @@ my @associationTypes = ( PARENT_BY_CONTAINMENT,
+ use constant ATTR_PHYS_PATH => "PHYS_PATH";
+ use constant ATTR_AFFINITY_PATH => "AFFINITY_PATH";
+ use constant ATTR_UNKNOWN => "UnknownAttributeName";
+-use constant ATTR_POSITION => "POSITION";
+-use constant ATTR_CHIP_UNIT => "CHIP_UNIT";
+-use constant ATTR_CLASS => "CLASS";
+-use constant ATTR_TYPE => "TYPE";
+-use constant ATTR_MODEL => "MODEL";
+ 
+ # Data manipulation constants
+ use constant BITS_PER_BYTE => 8;
+@@ -475,7 +459,6 @@ sub validateAttributes {
+                              = { required => 0, isscalar => 0};
+     $elements{"hwpfToHbAttrMap"}
+                              = { required => 0, isscalar => 0};
+-    $elements{"display-name"} = { required => 0, isscalar => 1};
+ 
+     foreach my $attribute (@{$attributes->{attribute}})
+     {
+@@ -5267,10 +5250,6 @@ sub generateTargetingImage {
+     my $pnorRoOffset = $offset;
+     my $attributesWritten = 0;
+ 
+-    my %biosData = ();
+-    my %attributeDefCache =
+-        map { $_->{id} => $_} @{$attributes->{attribute}};
+-
+     foreach my $targetInstance (@targetsAoH)
+     {
+         my $data;
+@@ -5306,6 +5285,9 @@ sub generateTargetingImage {
+         # themselves FSP specific.  Only need to do this 1x per target instance
+         my $fspTarget = isFspTargetInstance($attributes,$targetInstance);
+ 
++        my %attributeDefCache =
++            map { $_->{id} => $_} @{$attributes->{attribute}};
++
+         # Must have the same order as the attribute list from above.
+         for my $attributeId
+             (sort
+@@ -5322,20 +5304,6 @@ sub generateTargetingImage {
+                     $attrhash{$attributeId}->{default};
+             }
+ 
+-            # Cache these attributes away in the BIOS data structure as
+-            # identifying information that will be used to enforce the target
+-            # restrictions
+-            if(    ($attributeId eq ATTR_PHYS_PATH)
+-                || ($attributeId eq ATTR_POSITION )
+-                || ($attributeId eq ATTR_CHIP_UNIT)
+-                || ($attributeId eq ATTR_CLASS    )
+-                || ($attributeId eq ATTR_TYPE     )
+-                || ($attributeId eq ATTR_MODEL    ) )
+-            {
+-                $biosData{$targetInstance->{id}}{_identity_}{$attributeId} =
+-                     $attrhash{$attributeId}->{default};
+-            }
+-
+             my $attrValue =
+             enumNameToValue($attributeIdEnumeration,$attributeId);
+             $attrValue = sprintf ("%0x", $attrValue);
+@@ -5498,11 +5466,6 @@ sub generateTargetingImage {
+                         $attributes,
+                         $attributeDef,$attrhash{$attributeId}->{default});
+ 
+-                $biosData{$targetInstance->{id}}{$attributeId}{size} =
+-                    (length $heapZeroInitData);
+-                $biosData{$targetInstance->{id}}{$attributeId}{default} =
+-                    $attrhash{$attributeId}->{default};
+-
+                 my $hex = unpack ("H*",$heapZeroInitData);
+                 push @attrDataforSM, [$attrValue, $huidValue,
+                     $hex, $section, $targetInstance->{id}, $attributeId];
+@@ -5527,11 +5490,6 @@ sub generateTargetingImage {
+                         $attributes,
+                         $attributeDef,$attrhash{$attributeId}->{default});
+ 
+-                $biosData{$targetInstance->{id}}{$attributeId}{size} =
+-                    (length $heapPnorInitData);
+-                $biosData{$targetInstance->{id}}{$attributeId}{default} =
+-                    $attrhash{$attributeId}->{default};
+-
+                 my $hex = unpack ("H*",$heapPnorInitData);
+                 push @attrDataforSM, [$attrValue, $huidValue,
+                     $hex, $section, $targetInstance->{id}, $attributeId];
+@@ -5701,11 +5659,6 @@ sub generateTargetingImage {
+                         $attributes,
+                         $attributeDef,$attrhash{$attributeId}->{default});
+ 
+-                $biosData{$targetInstance->{id}}{$attributeId}{size} =
+-                    (length $hbHeapZeroInitData);
+-                $biosData{$targetInstance->{id}}{$attributeId}{default} =
+-                    $attrhash{$attributeId}->{default};
+-
+                 # Align the data as necessary
+                 my $pads = ($alignment - ($hbHeapZeroInitOffset
+                             % $alignment)) % $alignment;
+@@ -6028,37 +5981,6 @@ sub generateTargetingImage {
+             - $fspP1DefaultedFromP3Offset));
+     }
+ 
+-    if(defined $cfgBiosXmlFile)
+-    {
+-        unless (-e $cfgBiosXmlFile)
+-        {
+-            fatal("BIOS XML file $cfgBiosXmlFile does not exist.\n");
+-        }
+-
+-        unless (defined $cfgBiosSchemaFile)
+-        {
+-            fatal("BIOS XML file $cfgBiosXmlFile specified, but a BIOS schema "
+-                . "file was not.\n");
+-        }
+-
+-        unless (-e $cfgBiosSchemaFile)
+-        {
+-            fatal("BIOS schema file $cfgBiosSchemaFile does not exist.\n");
+-        }
+-
+-        unless (defined $cfgBiosOutputFile)
+-        {
+-            fatal("BIOS output file not specified.\n");
+-        }
+-
+-        my $bios = new
+-            Bios($cfgBiosXmlFile,$cfgBiosSchemaFile,$cfgBiosOutputFile);
+-        $bios->load();
+-        $bios->processBios(
+-            \%attributeDefCache,\$attributes,\%biosData,%targetPhysicalPath);
+-        $bios->export();
+-    }
+-
+     return $outFile;
+ }
+ 
+@@ -6090,935 +6012,6 @@ print SM_TARGET_FILE"
+     close(SM_TARGET_FILE);
+ }
+ 
+-################################################################################
+-# BIOS Package
+-#    Consumes platform-specific BIOS XML file, validates it, and outputs
+-#    extended data on the attributes, which will be transformed (via xslt
+-#    stylesheets) and used by 3rd parties (like Petitboot).  The BIOS
+-#    package validates the input file against a stylesheet to ensure
+-#    proper formatting.
+-################################################################################
+-
+-{
+-
+-package Bios;
+-
+-################################################################################
+-# Constructor; create a new Bios object
+-################################################################################
+-
+-sub new
+-{
+-    my ($class,$biosInputXmlFile,$biosSchemaXsdFile,$biosOutputXmlFile) = @_;
+-    my $self = {
+-        _biosInputXmlFile => $biosInputXmlFile,
+-        _libXmlParser => XML::LibXML->new(),
+-        _biosXmlDoc => undef,
+-        _biosSchemaXsdFile => $biosSchemaXsdFile,
+-        _biosOutputXmlFile => $biosOutputXmlFile,
+-    };
+-
+-    bless $self, $class;
+-
+-    return $self;
+-}
+-
+-################################################################################
+-# Load and parse the BIOS XML data, then validate it
+-################################################################################
+-
+-sub load
+-{
+-    my ($self) = @_;
+-    my $biosSchemaXsd = undef;
+-
+-    eval
+-    {
+-        $self->{_biosXmlDoc} =
+-            $self->{_libXmlParser}->parse_file($self->{_biosInputXmlFile});
+-    };
+-
+-    main::fatal ("Failed to parse BIOS file [$self->{_biosInputXmlFile}].\n"
+-        . " Reason: $@") if $@;
+-
+-    eval
+-    {
+-        $biosSchemaXsd =
+-            XML::LibXML::Schema->new(location => $self->{_biosSchemaXsdFile} );
+-    };
+-
+-    main::fatal ("Failed to load valid schema [$self->{_biosSchemaXsdFile}].\n"
+-        . "Reason: $@") if $@;
+-
+-    eval
+-    {
+-        $biosSchemaXsd->validate($self->{_biosXmlDoc})
+-    };
+-
+-    main::fatal ("Failed to validate [$self->{_biosInputXmlFile}] "
+-        . "using schema [$self->{_biosSchemaXsdFile}].\n"
+-        . "Reason: $@") if $@;
+-}
+-
+-################################################################################
+-# Export the working version of the BIOS document to a file our STDOUT
+-################################################################################
+-
+-sub export
+-{
+-    my ($self,$forceStdout) = @_;
+-
+-    if(defined $forceStdout
+-        && ($forceStdout == 1))
+-    {
+-        print STDOUT "In-memory BIOS XML dump:\n";
+-        print STDOUT $self->{_biosXmlDoc}->toString();
+-    }
+-    else
+-    {
+-        open(OUTPUT_XML,">$self->{_biosOutputXmlFile}") or
+-            main::fatal("Could not open output BIOS XML file "
+-                . "[$self->{_biosOutputXmlFile}] for writing.\n"
+-                . "Reason: $!");
+-
+-        print OUTPUT_XML $self->{_biosXmlDoc}->toString() or
+-            main::fatal ("Failed write output BIOS XML file "
+-                . "[$self->{_biosOutputXmlFile}].\n"
+-                . "Reason: $!");
+-
+-        close OUTPUT_XML or
+-            main::fatal ("Failed to close output BIOS XML file "
+-                . "[$self->{_biosOutputXmlFile}].\n"
+-                . "Reason: $!");
+-    }
+-}
+-
+-################################################################################
+-# Create child element in BIOS XML tree and return it
+-################################################################################
+-
+-sub createChildElement()
+-{
+-    my ($self,$parent,$name,$value) = @_;
+-
+-    my $child = XML::LibXML::Element->new($name);
+-
+-    # Value is optional parameter; if not specified, only the child container
+-    # element is created
+-    if(defined $value)
+-    {
+-        $child->appendTextNode($value);
+-    }
+-    $parent->addChild($child);
+-
+-    return $child;
+-}
+-
+-################################################################################
+-# Validate any constraint not enforced by the schema and amend the XML tree
+-################################################################################
+-
+-sub processBios
+-{
+-    my($self,$attrMapRef,$attributesRef,$instanceRef,%targetPhysicalPath) = @_;
+-
+-    use bigint;
+-
+-    my %attrTargAttrSetByBios = ();
+-
+-    # Process all attribute elements regardless of tree location
+-    foreach my $attribute ($self->{_biosXmlDoc}->findnodes('//attribute'))
+-    {
+-        my($id) = $attribute->findnodes('./id');
+-        my $attributeId =  $id->to_literal;
+-
+-        # Attribute must be defined in targeting
+-        if(!exists $attrMapRef->{$attributeId})
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "that attribute is not defined in targeting.\n");
+-        }
+-
+-        # Attribute must have volatile persistency
+-        if($attrMapRef->{$attributeId}{persistency} ne "volatile"
+-             && $attrMapRef->{$attributeId}{persistency} ne "volatile-zeroed")
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "that attribute is neither volatile nor volatile-zeroed "
+-                . "in targeting.  Actual persistency is "
+-                . "$attrMapRef->{$attributeId}{persistency}.\n");
+-        }
+-
+-        # Attribute must be read only
+-        my $readable = exists $attrMapRef->{$attributeId}{readable} ? 1 : 0;
+-        my $writeable = exists $attrMapRef->{$attributeId}{writeable} ? 1 : 0;
+-        if(!$readable || $writeable)
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "that attribute is not read-only in targeting.  "
+-                . "Readable? " . $readable
+-                . " writeable? " . $writeable . "\n");
+-        }
+-
+-        # Attribute must not be an FSP-only attribute
+-        my $fspOnly = exists $attrMapRef->{$attributeId}{fspOnly} ? 1 : 0;
+-        if($fspOnly)
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "that attribute is FSP only in targeting.\n");
+-        }
+-
+-        # Attribute must be an allowed type -and- supported by the BIOS code
+-        # Current support is for signed/unsigned ints (1,2,4,8 bytes in size)
+-        # and enumerations
+-        my $simpleType = exists $attrMapRef->{$attributeId}{simpleType} ? 1 : 0;
+-        my $complexType =
+-            exists $attrMapRef->{$attributeId}{complexType} ? 1 : 0;
+-        my $nativeType = exists $attrMapRef->{$attributeId}{nativeType} ? 1 : 0;
+-        if(!$simpleType)
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "that attribute is not a simple type in targeting.  "
+-                . "Complex type? $complexType, native type? $nativeType.\n");
+-        }
+-
+-        # Defines which attributes can be put in the BIOS and provides
+-        # associated BIOS type hint for 3rd party consumer
+-        my %typeHash = ();
+-
+-        $typeHash{"int8_t"} =
+-             { generalType => 'signed',
+-               min         => -128,
+-               max         => 127,
+-               ror         => 1,
+-             };
+-        $typeHash{"int16_t"} =
+-             { generalType => 'signed',
+-               min         => -32768,
+-               max         => 32767,
+-               ror         => 1,
+-             };
+-        $typeHash{"int32_t"} =
+-             { generalType => 'signed',
+-               min         => -2147483648,
+-               max         => 2147483647,
+-               ror         => 1,
+-             };
+-        $typeHash{"int64_t"} =
+-             { generalType => 'signed',
+-               min         => -9223372036854775808,
+-               max         => 9223372036854775807,
+-               ror         => 1,
+-             };
+-        $typeHash{"uint8_t"} =
+-             { generalType => 'unsigned',
+-               min         => 0,
+-               max         => 255,
+-               ror         => 1,
+-              };
+-        $typeHash{"uint16_t"} =
+-             { generalType => 'unsigned',
+-               min         => 0,
+-               max         => 65535,
+-               ror         => 1,
+-             };
+-        $typeHash{"uint32_t"} =
+-             { generalType => 'unsigned',
+-               min         => 0,
+-               max         => 4294967295,
+-               ror         => 1,
+-             };
+-        $typeHash{"uint64_t"} =
+-             { generalType => 'unsigned',
+-               min         => 0,
+-               max         => 18446744073709551615,
+-               ror         => 1,
+-             };
+-        $typeHash{"enumeration"} =
+-             { generalType => 'unsigned',
+-               min         => 'na',
+-               max         => 'na',
+-               ror         => 1,
+-             };
+-
+-        my $validType = 0;
+-        my $attrType = "unknown";
+-        # Convert actual type into a generalized type hint for the BIOS consumer
+-        # and append to the XML tree
+-        foreach my $type (keys %typeHash)
+-        {
+-            if(exists $attrMapRef->{$attributeId}{simpleType}{$type})
+-            {
+-                $self->createChildElement($attribute,"encoding",
+-                    $typeHash{$type}{generalType});
+-                $attrType = $type;
+-                $validType = 1;
+-                last;
+-            }
+-        }
+-        if(!$validType)
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "that attribute's type is not supported in BIOS context. "
+-                . "Dump of type:\n"
+-                . ::Dumper($attrMapRef->{$attributeId}{simpleType}) . "\n");
+-        }
+-
+-        # Simple type must not be array
+-        if(exists $attrMapRef->{$attributeId}{simpleType}{array})
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "that attribute is an array which is not supported in "
+-                . "BIOS context.\n");
+-        }
+-
+-        # If attribute definition doesn't have a short name, it must be
+-        # overridden by the BIOS config.  Add final value to the XML tree
+-        my($displayNameNodes) = $attribute->findnodes('./display-name');
+-        if(!$displayNameNodes)
+-        {
+-            if(exists $attrMapRef->{$attributeId}{'display-name'})
+-            {
+-                $self->createChildElement(
+-                    $attribute,"display-name",
+-                    $attrMapRef->{$attributeId}{'display-name'});
+-            }
+-            else
+-            {
+-                main::fatal("BIOS definition specified attribute $attributeId, "
+-                    . "but attribute definition does not give a display name, "
+-                    . "so BIOS config must (but failed to do so).\n");
+-            }
+-        }
+-
+-        # If attribute definition doesn't have a description, it must be
+-        # overridden by the BIOS config.  Add final value to the XML tree
+-        my($descriptionNodes) = $attribute->findnodes('./description');
+-        if(!$descriptionNodes)
+-        {
+-            if(exists $attrMapRef->{$attributeId}{description})
+-            {
+-               $self->createChildElement(
+-                    $attribute,"description",
+-                    $attrMapRef->{$attributeId}{description});
+-            }
+-            else
+-            {
+-                main::fatal("BIOS definition specified attribute $attributeId, "
+-                    . "but attribute definition does not give a description, "
+-                    . "so BIOS config must (but failed to do so).\n");
+-            }
+-        }
+-
+-        my $default = undef;
+-        my $size = undef;
+-        my @targetRestrictions = $attribute->findnodes('./targetRestriction');
+-
+-        # Assume all targets have this BIOS attribute to begin with, then prove
+-        # otherwise during processing
+-        my %filteredTargets = %$instanceRef;
+-        foreach my $target (keys %filteredTargets)
+-        {
+-            $filteredTargets{$target}{_allowed_} = 1;
+-        }
+-
+-        # Hold the target override data
+-        my %restriction = ();
+-        $restriction{node} = 0x0F; # FAPI override value = any position
+-        $restriction{position} = 0xFFFF; # FAPI override value = any position
+-        $restriction{unit} = 0xFF; # FAPI override value = any unit
+-        $restriction{symbolicType} = "*"; # Easy to understand target type
+-        $restriction{numericType} = 0x0; # FAPI type indicator; 0 = any
+-
+-        # Scan target restriction(s).  If no restriction, the BIOS attribute
+-        # must have same default for all instances.  If target restriction, all
+-        # attributes that are grouped by the restriction must have the same
+-        # default value.
+-        if(scalar @targetRestrictions > 0)
+-        {
+-            my $restrictNode = "*";
+-            my $restrictPos  = "*"; # NA except for things with positions
+-                                    # including units
+-            my $restrictUnit = "*"; # NA except for units
+-            my $restrictType = "*";
+-
+-            # By default, a BIOS setting applies to every target the attribute
+-            # is assigned to in targeting.  However, a target restriction can
+-            # restrict an attribute to one or more subsets of those.  The set of
+-            # targets tied to same BIOS attribute+restriction cannot intersect
+-            # with any other similar grouping.  Further, all attributes of
+-            # same type tied to same BIOS attribute via the restriction must
+-            # have same default value.  Only one target restriction allowed by
+-            # the schema
+-            foreach my $targetRestriction (@targetRestrictions)
+-            {
+-                # Schema validation doesn't easily force targetRestrictions to
+-                # have at least one child, so bail if that's the case
+-                my @childElements = $targetRestriction->findnodes('./*');
+-                if(scalar @childElements == 0)
+-                {
+-                    main::fatal("BIOS definition specified attribute "
+-                        . "$attributeId, but requested targetRestriction with "
+-                        . "no parameters.\n");
+-                }
+-
+-                my @nodeElements = $targetRestriction->findnodes('./node');
+-                my @positionElements
+-                    = $targetRestriction->findnodes('./position');
+-                my @unitElements = $targetRestriction->findnodes('./unit');
+-                my @typeElements = $targetRestriction->findnodes('./type');
+-
+-                if(scalar @nodeElements)
+-                {
+-                    $restriction{node} = $nodeElements[0]->to_literal;
+-                }
+-
+-                if(scalar @positionElements)
+-                {
+-                    $restriction{position} = $positionElements[0]->to_literal;
+-                }
+-
+-                if(scalar @unitElements)
+-                {
+-                    $restriction{unit} = $unitElements[0]->to_literal;
+-                }
+-
+-                # If any type restriction, verify it is a valid type designator
+-                # any hold onto the numeric ID which will end up in the XML tree
+-                if(scalar @typeElements)
+-                {
+-                    my $symbolicType = $typeElements[0]->to_literal;
+-                    my $typeEnumDef =
+-                        ::getEnumerationType($$attributesRef,"TYPE");
+-                    my $numericType =
+-                        ::enumNameToValue($typeEnumDef,$symbolicType);
+-
+-                    $restriction{numericType} = $numericType;
+-                    $restriction{symbolicType} = $symbolicType;
+-                }
+-
+-                # Compute the affected targets
+-                foreach my $target (keys %filteredTargets)
+-                {
+-                    if(scalar @typeElements > 0)
+-                    {
+-                        $restrictType = $typeElements[0]->to_literal;
+-
+-                        # Screen out targets that don't match the given type
+-                        if($filteredTargets{$target}{_allowed_} == 1)
+-                        {
+-                            my $type =
+-                                $filteredTargets{$target}{_identity_}{TYPE};
+-                            if($restrictType ne $type
+-                                && $filteredTargets{$target}{_allowed_} == 1)
+-                            {
+-                                $filteredTargets{$target}{_allowed_} = 0;
+-                                next;
+-                            }
+-                        }
+-                    }
+-
+-                    if(scalar @nodeElements > 0)
+-                    {
+-                        $restrictNode = $nodeElements[0]->to_literal;
+-
+-                        # Screen out targets that don't match the given node.
+-                        # A target matches the node restriction if its physical
+-                        # path contains the same node ID.
+-                        my $isInSameNodeExpr =
+-                            quotemeta "physical:sys-0/node-$restrictNode" ;
+-                        my $path =
+-                            $filteredTargets{$target}{_identity_}{PHYS_PATH};
+-
+-                        if($path !~ m/^$isInSameNodeExpr/)
+-                        {
+-                            $filteredTargets{$target}{_allowed_} = 0;
+-                            next;
+-                        }
+-                    }
+-
+-                    if(scalar @unitElements > 0)
+-                    {
+-                        $restrictUnit = $unitElements[0]->to_literal;
+-
+-                        my $checkPosition = 0;
+-
+-                        # Screen out targets that do not have unit attributes,
+-                        # or which have non-matching unit attributes
+-                        if(   (!exists
+-                               $filteredTargets{$target}{_identity_}{CHIP_UNIT})
+-                           || ($filteredTargets{$target}{_identity_}{CHIP_UNIT}
+-                               != $restrictUnit)   )
+-                        {
+-                            $filteredTargets{$target}{_allowed_} = 0;
+-                            next;
+-                        }
+-                        else
+-                        {
+-                            $checkPosition = 1;
+-                        }
+-
+-                        # If unit matches, need to make sure it also sits on
+-                        # chip at requested position, if specified
+-                        if($checkPosition && ((scalar @positionElements) > 0))
+-                        {
+-                            my $candidatePath =
+-                               $filteredTargets{$target}{_identity_}{PHYS_PATH};
+-
+-                            my $parent_phys_path = substr(
+-                                $candidatePath, 0,(rindex $candidatePath, "/"));
+-                            my $foundPosition = 0;
+-
+-                            # Walk from unit to whatever parent has the position
+-                            # attribute; Remove this target from consideration
+-                            # if the position does not match the restriction
+-                            while(
+-                                defined $targetPhysicalPath{$parent_phys_path})
+-                            {
+-                                if(defined $filteredTargets{
+-                                       $targetPhysicalPath{$parent_phys_path}
+-                                   }{_identity_}{POSITION})
+-                                {
+-                                    if ($filteredTargets{
+-                                          $targetPhysicalPath{$parent_phys_path}
+-                                        }{_identity_}{POSITION}
+-                                        == $positionElements[0]->to_literal)
+-                                    {
+-                                        $foundPosition = 1;
+-                                    }
+-
+-                                    last;
+-                                }
+-
+-                                $candidatePath = $parent_phys_path;
+-                                $parent_phys_path = substr(
+-                                    $candidatePath, 0,
+-                                    (rindex $candidatePath, "/"));
+-                            }
+-
+-                            if(!$foundPosition)
+-                            {
+-                                $filteredTargets{$target}{_allowed_} = 0;
+-                                next;
+-                            }
+-                        }
+-                    }
+-
+-                    # If no unit restriction but position restriction, screen
+-                    # out targets that don't have position attribute or whose
+-                    # position attribute does not match the restriction
+-                    if(   (scalar @positionElements > 0)
+-                       && (scalar @unitElements == 0)   )
+-                    {
+-                        $restrictPos = $positionElements[0]->to_literal;
+-
+-                        if(   (!exists
+-                                $filteredTargets{$target}{_identity_}{POSITION})
+-                           || (  $filteredTargets{$target}{_identity_}{POSITION}
+-                               != $restrictPos))
+-                        {
+-                            $filteredTargets{$target}{_allowed_} = 0;
+-                        }
+-                    }
+-                 }
+-            }
+-        }
+-
+-        foreach my $target (keys %filteredTargets)
+-        {
+-            # Don't bother with any target that is not in play
+-            if($filteredTargets{$target}{_allowed_} != 1)
+-            {
+-                next;
+-            }
+-
+-            # Candidate is any target having the attribute and a default
+-            # value determined
+-            if(   exists $instanceRef->{$target}{$attributeId}
+-               && exists $instanceRef->{$target}{$attributeId}{default}
+-               && exists $instanceRef->{$target}{$attributeId}{size})
+-            {
+-                # Multiple BIOS directives cannot touch same
+-                # target/attribute
+-                if(defined $attrTargAttrSetByBios{$target}{$attributeId})
+-                {
+-                    main::fatal("$target, $attributeId set by multiple BIOS "
+-                        . "definitions.\n");
+-                }
+-                else
+-                {
+-                    $attrTargAttrSetByBios{$target}{$attributeId} = 1;
+-                }
+-
+-                # If no default set yet
+-                if(! (defined $default) )
+-                {
+-                    $default = $instanceRef->{$target}{$attributeId}{default};
+-                    $size = $instanceRef->{$target}{$attributeId}{size};
+-                }
+-                # Cannot have different defaults in same group
+-                elsif(   $instanceRef->{$target}{$attributeId}{default}
+-                      != $default )
+-                {
+-                    main::fatal("BIOS definition specified attribute "
+-                        . "$attributeId, but default values are not same "
+-                        . "across all qualifying targets.  "
+-                        . "$target/ $attributeId = "
+-                        . "$instanceRef->{$target}{$attributeId}{default}.\n");
+-                }
+-            }
+-        }
+-
+-        # If no targets had the attribute
+-        if(!defined $default || !defined $size)
+-        {
+-            main::fatal("BIOS definition specified attribute $attributeId, but "
+-                . "after considering target restrictions/etc., no "
+-                . "valid targets were found.\n");
+-        }
+-
+-        # Add the restriction info to the XML tree.  This info is useful for 3rd
+-        # parties to create Hostboot attribute overrides.
+-        my $targetElement = $self->createChildElement($attribute,"target");
+-        $self->createChildElement(
+-            $targetElement,"type",sprintf("0x%08X",$restriction{numericType}));
+-        $self->createChildElement(
+-            $targetElement,"node",sprintf("0x%02X",$restriction{node}));
+-        $self->createChildElement(
+-            $targetElement,"position",sprintf("0x%04X",$restriction{position}));
+-        $self->createChildElement(
+-            $targetElement,"unit",sprintf("0x%02X",$restriction{unit}));
+-
+-        my @enumerationOverrideElement
+-            = $attribute->findnodes('./enumerationOverride');
+-        if($attrType eq "enumeration")
+-        {
+-            # Get a copy of the enumeration description.  Schema requires
+-            # enumerator to have only a name (symbolic handle) + value.
+-            # Customization allows overriding description + short name
+-            # Customization allows specifying subset of values to actually use
+-            # Output includes short name, long name, value
+-            my $enumType =
+-                $attrMapRef->{$attributeId}{simpleType}{enumeration}{id};
+-            my $enumerationType =
+-                ::getEnumerationType($$attributesRef,$enumType);
+-
+-            my %foundAllowed = ();
+-            my $enableRestrictions = 0;
+-            if(scalar @enumerationOverrideElement)
+-            {
+-                # Each enumerator name must tie back to a valid enumeration
+-                foreach my $overrideNameElement (
+-                    $attribute->findnodes(
+-                        './enumerationOverride/allowedEnumerators/name'))
+-                {
+-                    my $overrideName = $overrideNameElement->to_literal;
+-                    my $nameFound = 0;
+-                    foreach my $enumerator (@{$enumerationType->{enumerator}})
+-                    {
+-                        if($enumerator->{name} eq $overrideName)
+-                        {
+-                            # Each allowed value must be different from all the
+-                            # rest previously found for this attribute
+-                            if(exists $foundAllowed{$overrideName})
+-                            {
+-                                main::fatal("BIOS definition specified "
+-                                    . "attribute $attributeId, and supplied "
+-                                    . "override to allowed enumeration values, "
+-                                    . "but duplicated a value of "
+-                                    . "$overrideName.\n");
+-                            }
+-                            else
+-                            {
+-                                $foundAllowed{$overrideName} = 1;
+-                                $enumerator->{allowed} = 1;
+-                            }
+-
+-                            $enableRestrictions = 1;
+-                            $nameFound = 1;
+-
+-                            last;
+-                        }
+-                    }
+-
+-                    if(!$nameFound)
+-                    {
+-                        main::fatal("BIOS definition specified attribute "
+-                            . "$attributeId, and supplied override to allowed "
+-                            . "enumeration values, but requested enumerator "
+-                            . "$overrideName is not valid.\n");
+-                    }
+-                }
+-
+-                # Apply any overrides to the enumerator text
+-                my %textOverrideAllowed = ();
+-                foreach my $enumeratorOverrideElement (
+-                    $attribute->findnodes(
+-                        './enumerationOverride/enumeratorOverride'))
+-                {
+-                    # Each override must have exactly one name element
+-                    my @name = $enumeratorOverrideElement->findnodes('./name');
+-
+-                    # Each override must have 0 or 1 display-name and
+-                    # descriptions elements
+-                    my @displayName =
+-                        $enumeratorOverrideElement->findnodes('./display-name');
+-                    my @description =
+-                        $enumeratorOverrideElement->findnodes('./description');
+-
+-                    # Make sure enumerator name is valid
+-                    my $overrideName = $name[0]->to_literal;
+-                    my $nameFound = 0;
+-                    foreach my $enumerator (@{$enumerationType->{enumerator}})
+-                    {
+-                        if($enumerator->{name} eq $overrideName)
+-                        {
+-                            # Must not duplicate already overridden enumerator
+-                            if(exists $textOverrideAllowed{$overrideName})
+-                            {
+-                                main::fatal("BIOS definition specified "
+-                                     . "attribute $attributeId, and supplied "
+-                                     . "override to allowed enumerator, "
+-                                     . "but already overrode this "
+-                                     . "enuemrator.\n");
+-                            }
+-                            # Can only override things that are not restricted
+-                            elsif(   !exists $foundAllowed{$overrideName}
+-                                  && $enableRestrictions)
+-                            {
+-                                main::fatal("BIOS definition specified "
+-                                     . "attribute $attributeId, and supplied "
+-                                     . "override to allowed enumerator, but "
+-                                     . "this enumerator $overrideName is "
+-                                     . "restricted.\n");
+-                            }
+-                            else
+-                            {
+-                                $textOverrideAllowed{$overrideName} = 1;
+-                            }
+-
+-                            if(scalar @displayName)
+-                            {
+-                                $enumerator->{'display-name'} =
+-                                    $displayName[0]->to_literal;
+-                            }
+-
+-                            if(scalar @description)
+-                            {
+-                                $enumerator->{description} =
+-                                    $description[0]->to_literal;
+-                            }
+-
+-                            $nameFound = 1;
+-                            last;
+-                        }
+-                    }
+-
+-                    if(!$nameFound)
+-                    {
+-                        main::fatal("BIOS definition specified attribute "
+-                            . "$attributeId, and supplied override to allowed "
+-                            . "enumeration, but requested invalid enumerator "
+-                            . "name to override of $overrideName.\n");
+-                    }
+-                }
+-            }
+-
+-            my $enumerationElement =
+-                $self->createChildElement($attribute,"enumeration");
+-
+-            foreach my $enumerator (@{$enumerationType->{enumerator}})
+-            {
+-                if($enableRestrictions && !exists $enumerator->{allowed})
+-                {
+-                    # If enumerator is not allowed and is same as attribute
+-                    # default then can't continue
+-                    if($default eq  $enumerator->{name})
+-                    {
+-                        main::fatal("BIOS definition specified attribute "
+-                            . "$attributeId as not allowing "
+-                            . "$enumerator->{name}, but that is the attribute "
+-                            . "default.\n");
+-                    }
+-
+-                    next;
+-                }
+-
+-                my $enumeratorElement =
+-                    $self->createChildElement($enumerationElement,"enumerator");
+-
+-                if(!exists $enumerator->{'display-name'})
+-                {
+-                    main::fatal("BIOS definition specified attribute "
+-                        . "$attributeId, and supplied override to enumerator "
+-                        . "$enumerator->{name}, but there is no "
+-                        . "display-name.\n");
+-                }
+-
+-                $self->createChildElement(
+-                   $enumeratorElement,"display-name",
+-                   $enumerator->{'display-name'});
+-
+-                if(!exists $enumerator->{description})
+-                {
+-                    main::fatal("BIOS definition specified attribute "
+-                        . "$attributeId, and supplied override to enumerator "
+-                        . "$enumerator->{name}, but there is no "
+-                        . "description.\n");
+-                }
+-
+-                $self->createChildElement(
+-                   $enumeratorElement,"description",$enumerator->{description});
+-                $self->createChildElement(
+-                   $enumeratorElement,"value",
+-                   sprintf("0x%08X",$enumerator->{value}));
+-            }
+-
+-            # Translate attribute default to actual value
+-            $default = ::enumNameToValue($enumerationType,$default);
+-        }
+-        # No enums allowed to be specified
+-        elsif(scalar @enumerationOverrideElement)
+-        {
+-                main::fatal("BIOS definition specified attribute $attributeId, "
+-                    . "and supplied enumerated values, but this is not an "
+-                    . "enumeration attribute, it is of type $attrType.\n");
+-        }
+-
+-        # Can only specify numeric override for signed/unsigned values of
+-        # 1,2,4,8 byte values
+-        my @numericOverrideElements= $attribute->findnodes('./numericOverride');
+-
+-        # Hash of min(key), max(value) pairs
+-        my %allowedRange = ();
+-        if(scalar @numericOverrideElements)
+-        {
+-            # If range override not allowed for this attribute, bail
+-            if($typeHash{$attrType}{ror} != 1)
+-            {
+-                main::fatal("BIOS definition specified attribute $attributeId, "
+-                    . "and supplied numeric override, but this attribute "
+-                    . "type does not support such override.  Type is "
+-                    . "$attrType.\n");
+-            }
+-
+-            # A numericOverride has exactly one start + end element
+-            my @startElements =
+-                @numericOverrideElements[0]->findnodes('./start');
+-            my @endElements = @numericOverrideElements[0]->findnodes('./end');
+-            my $min = $typeHash{$attrType}{min};
+-            my $max = $typeHash{$attrType}{max};
+-
+-            # Validate range min
+-            if(scalar @startElements)
+-            {
+-                my $rawMin = @startElements[0]->to_literal;
+-
+-                if($rawMin < $min || $rawMin > $max)
+-                {
+-                    main::fatal("BIOS definition specified attribute "
+-                        . "$attributeId, and supplied valid start or end "
+-                        . "range, but min out of range. requested "
+-                        . "min = $rawMin, allowed min = "
+-                        . "$typeHash{$attrType}{min}, allowed max = "
+-                        . "$typeHash{$attrType}{max}.\n");
+-                }
+-                $min = $rawMin;
+-            }
+-
+-            # Validate range max
+-            if(scalar @endElements)
+-            {
+-                my $rawMax = @endElements[0]->to_literal;
+-
+-                if($rawMax > $max || $rawMax < $min)
+-                {
+-                    main::fatal("BIOS definition specified attribute "
+-                        . "$attributeId, and supplied valid start or end "
+-                        . "range, but max out of range. requested "
+-                        . "max = $rawMax, current min = $min, "
+-                        . "allowed min = "
+-                        . "$typeHash{$attrType}{min}, allowed max = "
+-                        . "$typeHash{$attrType}{max}.\n");
+-                }
+-                $max = $rawMax;
+-            }
+-
+-            # Min must be <= Max
+-            if($min > $max)
+-            {
+-                main::fatal("BIOS definition specified attribute "
+-                    . "$attributeId, and supplied valid start or end "
+-                    . "range, but min > max. min = $min, "
+-                    . "max = $max.\n");
+-            }
+-
+-            # To prevent range overlaps, cannot duplicate the same start of
+-            # a range
+-            if(defined $allowedRange{$min})
+-            {
+-                main::fatal("Already range starting at $min.\n");
+-            }
+-
+-            $allowedRange{$min} = $max;
+-            my $defaultInRange = 0;
+-
+-            my $min = undef;
+-            my $max = undef;
+-
+-            # Ensure default value falls within a defined range.  The ranges are
+-            # sorted in numerically ascending order according to the start of
+-            # each range, so if the start of
+-            # range N falls within range N-1, we know there is an illegal range
+-            # overlap and fail.
+-            foreach my $rangeKey (sort {$a <=> $b} keys %allowedRange)
+-            {
+-                if(   ($default >= $rangeKey)
+-                   && ($default <= $allowedRange{$rangeKey}) )
+-                {
+-                    $defaultInRange = 1;
+-                }
+-
+-                if(!defined $min)
+-                {
+-                    $min = $rangeKey;
+-                    $max = $allowedRange{$rangeKey};
+-                    next;
+-                }
+-
+-                if($rangeKey <= $max)
+-                {
+-                    main::fatal("Range starting with $rangeKey overlaps "
+-                        . "range ending at $max.\n");
+-                }
+-
+-                $min = $rangeKey;
+-                $max = $allowedRange{$rangeKey};
+-            }
+-
+-            if(!$defaultInRange)
+-            {
+-                main::fatal("Default value $default not in any valid range.\n");
+-            }
+-        }
+-
+-        # Convert attribute ID to numerical value and append to XML tree
+-        my $attributeIdEnumeration
+-            = ::getAttributeIdEnumeration($$attributesRef);
+-        my $attrValue = ::enumNameToValue($attributeIdEnumeration,$attributeId);
+-        $attrValue = sprintf ("0x%0X", $attrValue);
+-
+-        # Add the remaining metadata to the XML tree
+-        $self->createChildElement($attribute,"default",$default);
+-        $self->createChildElement($attribute,"numeric-id",$attrValue);
+-        $self->createChildElement($attribute,"size",$size);
+-    }
+-}
+-
+-1;
+-
+-}
+-
+ __END__
+ 
+ =head1 NAME
+@@ -7117,23 +6110,6 @@ Adds 4096 bytes of version page as first page in the generated binaries.
+ Does not add 4096 bytes of version page as first page in the generated
+ binaries . This is the default behavior.
+ 
+-=item B<--bios-xml-file>
+-
+-Path + file name of XML file describing the platform's BIOS configuration.
+-Optional.
+-
+-=item B<--bios-schema-file>
+-
+-Path + file name of XSD schema file used to validate the BIOS XML file. Required
+-if a BIOS XML file is given.
+-
+-=item B<--bios-output-file>
+-
+-Path + filename of output XML file describing the amended BIOS configuration.
+-This output is commonly later modified by 3rd parties via xslt transformation to
+-tailor the output for a given application.  Required if a BIOS XML file is
+-given.
+-
+ =item B<--verbose>
+ 
+ Prints out some internal workings
+-- 
+1.8.2.2
+
+
+From 2a45170e801056f7f2952610ccd9079ad5324c98 Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Fri, 20 Feb 2015 11:04:36 -0600
+Subject: [PATCH 06/10] Revert "Targeting: Generate VERSION page for binaries."
 
 This reverts commit 34c58e19162834ff5bb8d4ffb9975b50d5a0770a.
 ---
@@ -281,11 +2322,11 @@ index eb0b05a..6d1fff3 100644
 1.8.2.2
 
 
-From 01728c387eebddd30e1ddd1b28c31c159cd5039e Mon Sep 17 00:00:00 2001
+From 0a4989176f0ef4f1374f88ae5dd4157cd63d45ce Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Tue, 17 Feb 2015 14:02:36 -0600
-Subject: [PATCH 3/6] Revert "adding toc offsets to defaultPnorLayout for hwsv
- team"
+Date: Fri, 20 Feb 2015 11:04:47 -0600
+Subject: [PATCH 07/10] Revert "adding toc offsets to defaultPnorLayout for
+ hwsv team"
 
 This reverts commit 6990adda0f2996cc7baacba9f485c7b5a415904c.
 ---
@@ -321,10 +2362,10 @@ index d5d5d25..897d4db 100644
 1.8.2.2
 
 
-From db81af80e8d4efccfe9de9fe9e01972ff4689ef5 Mon Sep 17 00:00:00 2001
+From 2f98670c4b42a64f481a336e4d8d34a9a5ad93a8 Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Tue, 17 Feb 2015 14:03:03 -0600
-Subject: [PATCH 4/6] Revert "Created 2-sided and golden-side pnor layouts"
+Date: Fri, 20 Feb 2015 11:04:55 -0600
+Subject: [PATCH 08/10] Revert "Created 2-sided and golden-side pnor layouts"
 
 This reverts commit e83759d6aa90999933318155772b50a8af679ec6.
 ---
@@ -953,10 +2994,10 @@ index 30a6173..c96911b 100644
 1.8.2.2
 
 
-From 65fbfe1c2b67b9e8519220823b82a0ff244ba123 Mon Sep 17 00:00:00 2001
+From eea17a14de872f99c3d01a022f392b5f846fd746 Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Tue, 17 Feb 2015 14:10:03 -0600
-Subject: [PATCH 5/6] Revert "Initial Support of SBE_UPDATE_INDEPENDENT Mode"
+Date: Fri, 20 Feb 2015 11:05:03 -0600
+Subject: [PATCH 09/10] Revert "Initial Support of SBE_UPDATE_INDEPENDENT Mode"
 
 This reverts commit 002c4beefb54d288eee8faf4d9aa2b08b137aed3.
 ---
@@ -1243,10 +3284,10 @@ index a2fad1e..698d41a 100644
 1.8.2.2
 
 
-From c7c2a249b32d8b3776febb6fd81b5fa6874717df Mon Sep 17 00:00:00 2001
+From 7820949b6720adb1b92f87175d373d1b01eea83a Mon Sep 17 00:00:00 2001
 From: Matt Ploetz <maploetz@us.ibm.com>
-Date: Tue, 17 Feb 2015 14:10:12 -0600
-Subject: [PATCH 6/6] Revert "Support for Redundant Copy of HB code in PNOR"
+Date: Fri, 20 Feb 2015 11:05:11 -0600
+Subject: [PATCH 10/10] Revert "Support for Redundant Copy of HB code in PNOR"
 
 This reverts commit 67c5a1ebe73f81bca1bb6608bbb8f204f0f37fa8.
 ---
