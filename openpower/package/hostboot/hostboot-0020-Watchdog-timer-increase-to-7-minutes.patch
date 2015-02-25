@@ -1,0 +1,27 @@
+From 55b61605f1a58885e77d6737bfe36f957417a991 Mon Sep 17 00:00:00 2001
+From: Andrew Geissler <andrewg@us.ibm.com>
+Date: Wed, 25 Feb 2015 13:09:48 -0600
+Subject: [PATCH 1/2] Increase watchdog timout to 7.5 minutes
+
+Change-Id: I46070784c303e8135075bc5d36e17a2593ee494c
+RTC: 124676
+---
+ src/include/usr/ipmi/ipmiwatchdog.H |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/include/usr/ipmi/ipmiwatchdog.H b/src/include/usr/ipmi/ipmiwatchdog.H
+index f23b771..aad5ee4 100644
+--- a/src/include/usr/ipmi/ipmiwatchdog.H
++++ b/src/include/usr/ipmi/ipmiwatchdog.H
+@@ -48,7 +48,7 @@ namespace IPMIWATCHDOG
+  * @TODO RTC:124499 revisit after performace improvments
+  *
+  */
+-const uint16_t  DEFAULT_WATCHDOG_COUNTDOWN = 120;
++const uint16_t  DEFAULT_WATCHDOG_COUNTDOWN = 450;
+ 
+ /**
+  * @brief the default watchdog countdown for transition between hostboot
+-- 
+1.7.4.1
+
