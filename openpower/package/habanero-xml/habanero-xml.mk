@@ -65,7 +65,7 @@ define HABANERO_XML_INSTALL_IMAGES_CMDS
         mv $(MRW_HB_TOOLS)/targeting.bin $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME)
 endef
 
-define HABANERO_XML_INSTALL_IMAGES_CMDS
+define HABANERO_XML_INSTALL_TARGET_CMDS
         # Install Petitboot specific BIOS XML into initramfs's usr/share/ dir
         $(INSTALL) -D -m 0644 \
             $(PETITBOOT_BIOS_XML_METADATA_FILE) \
