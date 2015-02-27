@@ -15,3 +15,9 @@ config BR2_FIRESTONE_MRW_XML_FILENAME
         default ""
         help
             Defines the name of the mrw XML filename to be used when creating targeting binary image
+
+config BR2_FIRESTONE_BIOS_XML_FILENAME
+        string "Firestone BIOS metadata XML filename"
+        default ""
+        help
+            Defines the name of the BIOS XML filename to parse when generating BIOS metadata
