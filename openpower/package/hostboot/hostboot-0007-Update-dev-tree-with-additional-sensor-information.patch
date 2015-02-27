@@ -1,0 +1,510 @@
+From d8c341b72aad30bff1417f1a2cec82af9cc14786 Mon Sep 17 00:00:00 2001
+From: Richard J. Knight <rjknight@us.ibm.com>
+Date: Thu, 19 Feb 2015 23:47:03 -0600
+Subject: [PATCH 2/5] Update dev tree with additional sensor information
+
+    -Add sensor type, reading type and specific offsets.
+    -Add IPMI entity ID and instance information for sensors
+    -Include IPMI Enity instance in targets which have ipmi sensors
+     attribute
+
+Change-Id: I02b0a5046c67e2e00af30a0c78cbcc182ae4c0cd
+RTC:123186
+(cherry picked from commit ff8c81ac1ab76d9835165a8dae4a0e3b1e5a0055)
+---
+ src/include/usr/ipmi/ipmisensor.H                  |   96 ++++++++++++++++++++
+ src/usr/devtree/bld_devtree.C                      |   89 ++++++++++++++-----
+ src/usr/ipmi/ipmisensor.C                          |   76 ++++++++++++++++
+ src/usr/targeting/common/Targets.pm                |    2 +-
+ .../common/xmltohb/attribute_types_hb.xml          |   73 +++++++++++++++
+ .../targeting/common/xmltohb/target_types_hb.xml   |   12 ++-
+ 6 files changed, 322 insertions(+), 26 deletions(-)
+
+diff --git a/src/include/usr/ipmi/ipmisensor.H b/src/include/usr/ipmi/ipmisensor.H
+index 7b4e3fa..ef00bfa 100644
+--- a/src/include/usr/ipmi/ipmisensor.H
++++ b/src/include/usr/ipmi/ipmisensor.H
+@@ -48,6 +48,20 @@ namespace SENSOR
+     const uint8_t INVALID_TYPE = 0xFF;
+ 
+     /**
++     *  @enum sensorReadingTypes
++     *  Sensor specific completion codes, defined in IPMI Spec.
++     *
++     */
++    enum sensorReadingType
++    {
++        THRESHOLD                   = 0x01,
++        DIGITAL_ASSERT_DEASSERT     = 0x03,
++        DIGITAL_ENABLE_DISABLE      = 0x09,
++        SENSOR_SPECIFIC             = 0x6f,
++    };
++
++
++    /**
+      *  @enum procStatusSensorOffsets
+      *  Sensor specific completion codes, defined in IPMI Spec.
+      *
+@@ -90,6 +104,74 @@ namespace SENSOR
+         CRITICAL_OVER_TEMP              = 0x0A,
+     };
+ 
++    /**
++     *  @enum firmwareBootProgressSensorOffsets
++     *  Boot progress specific offsets defined in IPMI Spec.
++     *
++     */
++    enum firmwareProgressSensorOffsets
++    {
++        // offset 02h
++        SYSTEM_FIRMWARE_PROGRESS = 0x02,
++    };
++
++    /**
++     *  @enum discrete09_Offsets
++     *
++     *      Offsets specific to IPMI sensor reading type 09
++     *      digital discrete senosrs. These offsets result in
++     *      Device Enabled or Device Disabled events in the
++     *      BMC event log.
++     *
++     */
++    enum discrete09_Offsets
++    {
++        // offset 00h
++        DEVICE_DISABLED = 0x0,
++
++        //offset 01h
++        DEVICE_ENABLED  = 0x1,
++    };
++
++     /**
++     *  @enum discrete03_Offsets
++     *
++     *      Offsets specific to IPMI sensor reading type 03
++     *      digital discrete senosrs. These offsets result in generic
++     *      State Asserted or State Deasserted events in the
++     *      BMC event log.
++     *
++     */
++    enum discrete03_Offsets
++    {
++        // offset 00h
++        DEASSERTED = 0x00,
++
++        //offset 01h
++        ASSERTED   = 0x01,
++    };
++
++     /**
++     *  @enum acpiPowerState_Offsets
++     *
++     *      Offsets specific to IPMI ACPI Power state
++     *      senosrs. These offsets result in power
++     *      state messages in the BMC event log.
++     *
++     */
++    enum acpiPowerState_Offsets
++    {
++        // offset 0h
++        S0_G0_WORKING   = 0x00,
++
++        // offset 05h
++        G5_SOFT_OFF     = 0x05,
++
++        //offset 0Bh
++        LEGACY_ON       = 0x0B,
++
++    };
++
+     //**  Bit definition for set sensor reading cmd operation field
+     //      [7:6] 10b - write given values to event data bytes let BMC handle
+     //                  offset in event data 1 when an external event is
+@@ -827,6 +909,20 @@ namespace SENSOR
+     errlHndl_t getAPSSChannelSensorNumbers(
+                                      const uint16_t (* &o_sensor_numbers)[16]);
+ 
++    /**
++     *   Helper function to return a mask of the supported masks for the
++     *   sensor passed in.
++     *
++     *  @param[i] - sensor name to determine the offset for.
++     *  @param[o] - sensor reading type, defined in IPMI spec for the
++     *              passed in sensor number.
++     *
++     *
++     *  @return sensor offsets
++     */
++    uint16_t getSensorOffsets(TARGETING::SENSOR_NAME i_name,
++                              sensorReadingType &o_readType );
++
+ 
+ 
+ }; // end namespace
+diff --git a/src/usr/devtree/bld_devtree.C b/src/usr/devtree/bld_devtree.C
+index dd81392..f4647a3 100644
+--- a/src/usr/devtree/bld_devtree.C
++++ b/src/usr/devtree/bld_devtree.C
+@@ -1299,17 +1299,40 @@ errlHndl_t bld_fdt_mem(devTree * i_dt, bool i_smallTree)
+     return errhdl;
+ }
+ 
++
++#ifdef CONFIG_BMC_IPMI
++enum
++{
++    ENTITY_ID_MASK      = 0x00FF,
++    SENSOR_TYPE_MASK    = 0xFF00,
++};
++
+ /* create a node for each IPMI sensor in the system, the sensor unit number
+    corresponds to the BMC assigned sensor number */
+ uint32_t bld_sensor_node(devTree * i_dt, const dtOffset_t & i_parentNode,
+-                         const uint16_t sensorData[] )
++                         const uint16_t sensorData[],
++                         uint32_t instance, uint32_t chipId )
+ {
+ 
+-    const uint32_t sensorNumber = sensorData[
++    SENSOR::sensorReadingType readType;
++
++    // pass in the sensor name to get back the supported offsets and the event
++    // reading type for this sensor.
++    uint32_t offsets = SENSOR::getSensorOffsets(
++             static_cast<TARGETING::SENSOR_NAME>(
++                 sensorData[TARGETING::IPMI_SENSOR_ARRAY_NAME_OFFSET]),
++             readType);
++
++    const uint16_t sensorNumber = sensorData[
+                         TARGETING::IPMI_SENSOR_ARRAY_NUMBER_OFFSET];
+ 
+-    const uint32_t sensorName =
+-                        sensorData[TARGETING::IPMI_SENSOR_ARRAY_NAME_OFFSET];
++    // the sensor name is a combination of the sensor type + entity ID
++    const uint16_t sensorType = (
++        sensorData[TARGETING::IPMI_SENSOR_ARRAY_NAME_OFFSET]
++                    & SENSOR_TYPE_MASK) >> 8;
++
++    const uint16_t entityId =
++        sensorData[TARGETING::IPMI_SENSOR_ARRAY_NAME_OFFSET] & ENTITY_ID_MASK;
+ 
+     /* Build sensor node based on sensor number */
+     dtOffset_t sensorNode = i_dt->addNode(i_parentNode, "sensor", sensorNumber);
+@@ -1317,22 +1340,35 @@ uint32_t bld_sensor_node(devTree * i_dt, const dtOffset_t & i_parentNode,
+     i_dt->addPropertyCell32(sensorNode, "reg", sensorNumber);
+ 
+     // add sensor type
+-    i_dt->addPropertyCell32(sensorNode, "ipmi-sensor-type", sensorName);
+-
+-   // @TODO RTC:113902
+-    // get more info from Ben H. regarding what info he needs
+-    // add the name of the sensor
+-    //i_dt->addPropertyString(sensorNode, "name", sensorToString( sensorName ));
+-    //   i_dt->addPropertyCell32(sensorNode, "ipmi-entity-type",
+-    //                                          sensorData[ENTITY_TYPE_OFFSET]);
+-    //   i_dt->addPropertyCell32(sensorNode, "ipmi-reading-type",
+-    //                                         sensorData[READING_TYPE_OFFSET]);
+-
+-    /* return the phandle for this sensor, might need to add it to the
+-    cpus node per Ben H. proposal */
++    i_dt->addPropertyCell32(sensorNode, "ipmi-sensor-type", sensorType);
++    i_dt->addPropertyCell32(sensorNode, "ipmi-entity-id", entityId);
++    i_dt->addPropertyCell32(sensorNode, "ipmi-entity-instance", instance);
++    i_dt->addPropertyCell32(sensorNode, "ipmi-sensor-offsets", offsets);
++    i_dt->addPropertyCell32(sensorNode, "ipmi-sensor-reading-type", readType);
++
++    // currently we only add the chip ID to the OCC sensor
++    if(chipId != 0xFF )
++    {
++        i_dt->addPropertyCell32(sensorNode, "ibm,chip-id", chipId);
++    }
++
++    /* return the phandle for this sensor */
+     return i_dt->getPhandle(sensorNode);
+ }
+ 
++// return the IPMI entity instance from the SDR for this
++// target.
++uint32_t getInstanceNumber( TARGETING::Target * i_pTarget )
++{
++    AttributeTraits<ATTR_IPMI_INSTANCE>::Type l_instance;
++
++   l_instance = i_pTarget->getAttr<TARGETING::ATTR_IPMI_INSTANCE>();
++
++   return l_instance;
++
++}
++
++// build the sensor node for a given target
+ uint32_t bld_sensor_node(devTree * i_dt, const dtOffset_t & i_sensorNode,
+         TARGETING::Target * i_pTarget )
+ {
+@@ -1344,6 +1380,17 @@ uint32_t bld_sensor_node(devTree * i_dt, const dtOffset_t & i_sensorNode,
+      * for each sensor */
+     if ( i_pTarget->tryGetAttr<ATTR_IPMI_SENSORS>(l_sensors) )
+     {
++        uint32_t chipId = 0xFF;
++
++        // add the chip id to the OCC sensor since OPAL needs it to figure out
++        // which OCC it is.
++        if( TARGETING::TYPE_OCC == i_pTarget->getAttr<TARGETING::ATTR_TYPE>())
++        {
++            ConstTargetHandle_t proc = getParentChip(i_pTarget);
++
++            chipId = getProcChipId( proc );
++        }
++
+         for(uint16_t i=0; i< array_rows; i++)
+         {
+             /*  if the sensor number is 0xFF move on */
+@@ -1351,7 +1398,8 @@ uint32_t bld_sensor_node(devTree * i_dt, const dtOffset_t & i_sensorNode,
+             {
+                 /* use this row to create the next sensor node - ignoring
+                  * return value for now */
+-                bld_sensor_node(i_dt, i_sensorNode, l_sensors[i] );
++                bld_sensor_node(i_dt, i_sensorNode, l_sensors[i],
++                        getInstanceNumber(i_pTarget) , chipId );
+             }
+             else
+             {
+@@ -1394,10 +1442,6 @@ errlHndl_t bld_fdt_sensors(devTree * i_dt, const dtOffset_t & i_parentNode,
+     i_dt->addPropertyCell32(sensorNode, "#address-cells", 1);
+     i_dt->addPropertyCell32(sensorNode, "#size-cells", 0);
+ 
+-    // pass ALL IPMI_SENSORS to opal
+-    // @TODO RTC:113902 - add remaining sensor info and limit sensors
+-    // and adjust the sensors passed to opal to match their requirements
+-
+     /*  loop through all the targets and get the IPMI sensor data if it
+         exists */
+     for (TargetIterator itr = TARGETING::targetService().begin();
+@@ -1454,6 +1498,7 @@ errlHndl_t bld_fdt_bmc(devTree * i_dt, bool i_smallTree)
+ 
+     return errhdl;
+ }
++#endif
+ 
+ errlHndl_t bld_fdt_vpd(devTree * i_dt, bool i_smallTree)
+ {
+diff --git a/src/usr/ipmi/ipmisensor.C b/src/usr/ipmi/ipmisensor.C
+index 3e15e91..fc7284b 100644
+--- a/src/usr/ipmi/ipmisensor.C
++++ b/src/usr/ipmi/ipmisensor.C
+@@ -1121,4 +1121,80 @@ namespace SENSOR
+         return NULL;
+     }
+ 
++    uint16_t getSensorOffsets( TARGETING::SENSOR_NAME i_name,
++                             sensorReadingType &o_readType )
++    {
++
++        uint16_t offsets = 0;
++
++        // most of our sensors use generic sensor specific reading types
++        // so use that as the default value
++        o_readType = SENSOR_SPECIFIC;
++
++        // sensor type is lower byte of sensor name, if we dont match
++        // based on name, then try the sensor type
++        uint16_t t = ( i_name >> 8 ) & 0x00FF;
++
++        switch( i_name )
++        {
++            case TARGETING::SENSOR_NAME_FW_BOOT_PROGRESS:
++                {
++                    offsets = ( 1 << SYSTEM_FIRMWARE_PROGRESS );
++                    break;
++                }
++            case TARGETING::SENSOR_NAME_OCC_ACTIVE:
++                {
++                    offsets = ( 1 << DEVICE_DISABLED ) |
++                              ( 1 << DEVICE_ENABLED );
++                    o_readType = DIGITAL_ENABLE_DISABLE;
++                    break;
++                }
++            case TARGETING::SENSOR_NAME_HOST_STATUS:
++                {
++                    offsets = ( 1 << S0_G0_WORKING ) |
++                              ( 1 << G5_SOFT_OFF )   |
++                              ( 1 << LEGACY_ON );
++                    break;
++                }
++            case TARGETING::SENSOR_NAME_PCI_ACTIVE:
++            case TARGETING::SENSOR_NAME_OS_BOOT:
++                {
++                    // default all offsets enabled
++                    offsets = 0x7FFF;
++                    break;
++                }
++
++                default:
++                {
++                    // try sensor type
++                    switch (t)
++                    {
++                        case TARGETING::SENSOR_TYPE_FAULT:
++                            offsets = ( 1 << ASSERTED );
++                            o_readType = DIGITAL_ASSERT_DEASSERT;
++                            break;
++
++                        case TARGETING::SENSOR_TYPE_PROCESSOR:
++                            offsets = ( 1 << PROC_PRESENCE_DETECTED ) |
++                                      ( 1 << PROC_DISABLED )         |
++                                      ( 1 << IERR );
++                            break;
++
++                        case TARGETING::SENSOR_TYPE_MEMORY:
++                            offsets = ( 1 << MEMORY_DEVICE_DISABLED ) |
++                                      ( 1 << MEM_DEVICE_PRESENCE_DETECTED );
++                            break;
++                        default:
++                            offsets = 0;
++                            o_readType = THRESHOLD;
++                            break;
++                    }
++
++                }
++        }
++
++        return offsets;
++    }
++
++
+ }; // end name space
+diff --git a/src/usr/targeting/common/Targets.pm b/src/usr/targeting/common/Targets.pm
+index eb1ea1f..29f6bcb 100644
+--- a/src/usr/targeting/common/Targets.pm
++++ b/src/usr/targeting/common/Targets.pm
+@@ -195,7 +195,7 @@ sub printAttribute
+     $filter{ENTITY_ID_LOOKUP}               = 1;
+     $filter{ENTITY_INSTANCE}                = 1;
+     $filter{MBA_NUM}                        = 1;
+-    $filter{IPMI_INSTANCE}                  = 1;
++    $filter{IPMI_INSTANCE}                  = 0;
+     $filter{IPMI_NAME}                      = 1;
+     $filter{INSTANCE_ID}                    = 1;
+     #$filter{ADC_CHANNEL_SENSOR_NUMBERS}     = 1;
+diff --git a/src/usr/targeting/common/xmltohb/attribute_types_hb.xml b/src/usr/targeting/common/xmltohb/attribute_types_hb.xml
+index 3bb57e6..74fb492 100644
+--- a/src/usr/targeting/common/xmltohb/attribute_types_hb.xml
++++ b/src/usr/targeting/common/xmltohb/attribute_types_hb.xml
+@@ -822,6 +822,16 @@
+     <writeable/>
+     <hbOnly/>
+ </attribute>
++<attribute>
++    <id>IPMI_INSTANCE</id>
++    <description>Holds the IPMI instance number for this entity.</description>
++    <simpleType>
++        <uint32_t>
++        </uint32_t>
++    </simpleType>
++    <persistency>non-volatile</persistency>
++    <readable/>
++</attribute>
+ <enumerationType>
+     <id>ENTITY_ID</id>
+     <description>Enumeration indicating the IPMI entity ID, these values are
+@@ -1003,6 +1013,69 @@
+     </enumerator>
+ </enumerationType>
+ 
++<enumerationType>
++    <id>SENSOR_TYPE</id>
++    <description>Enumeration indicating the IPMI sensor type, these values
++        are defined in the IPMI specification. These values will be used when
++    sending sensor reading events to the BMC.</description>
++    <enumerator>
++        <name>NA</name>
++        <value>0</value>
++    </enumerator>
++    <enumerator>
++        <name>TEMPERATURE</name>
++        <value>0x01</value>
++    </enumerator>
++    <enumerator>
++        <name>PROCESSOR</name>
++        <value>0x07</value>
++    </enumerator>
++    <enumerator>
++        <name>MEMORY</name>
++        <value>0x0c</value>
++    </enumerator>
++    <enumerator>
++        <name>SYS_FW_PROGRESS</name>
++        <value>0x0F</value>
++    </enumerator>
++    <enumerator>
++        <name>SYS_EVENT</name>
++        <value>0x12</value>
++    </enumerator>
++    <enumerator>
++        <name>OS_BOOT</name>
++       <value>0x1F</value>
++    </enumerator>
++    <enumerator>
++        <name>APCI_POWER_STATE</name>
++        <value>0x22</value>
++    </enumerator>
++    <enumerator>
++        <name>FREQ</name>
++        <value>0xC1</value>
++    </enumerator>
++    <enumerator>
++        <name>POWER</name>
++        <value>0xC2</value>
++    </enumerator>
++    <enumerator>
++        <name>BOOT_COUNT</name>
++        <value>0xC3</value>
++    </enumerator>
++    <enumerator>
++        <name>PCI_LINK_PRES</name>
++        <value>0xC4</value>
++    </enumerator>
++    <enumerator>
++        <name>PWR_LIMIT_ACTIVE</name>
++        <value>0xC4</value>
++    </enumerator>
++    <enumerator>
++        <name>FAULT</name>
++        <value>0xC7</value>
++    </enumerator>
++</enumerationType>
++
+ <!-- IPMI Sensor numbers are defined in the IPMI spec as 8 bit values. However
+ in the hostboot code they will be defined as a uint16_t to allow us to add
+ additonal information. An example relates to error logs returned by the OCC,
+diff --git a/src/usr/targeting/common/xmltohb/target_types_hb.xml b/src/usr/targeting/common/xmltohb/target_types_hb.xml
+index 8255b70..bd00b87 100644
+--- a/src/usr/targeting/common/xmltohb/target_types_hb.xml
++++ b/src/usr/targeting/common/xmltohb/target_types_hb.xml
+@@ -33,6 +33,14 @@
+      ================================================================= -->
+ 
+ <targetTypeExtension>
++    <id>base</id>
++    <attribute>
++        <id>IPMI_INSTANCE</id>
++        <default>0</default>
++    </attribute>
++</targetTypeExtension>
++
++<targetTypeExtension>
+     <id>sys-sys-power8</id>
+     <attribute><id>IS_MPIPL_HB</id></attribute>
+     <attribute><id>IBSCOM_ENABLE_OVERRIDE</id></attribute>
+@@ -182,9 +190,7 @@
+     <attribute>
+         <id>PSTATE_TABLE</id>
+     </attribute>
+-    <attribute>
+-        <id>IPMI_SENSORS</id>
+-    </attribute>
++    <attribute><id>IPMI_SENSORS</id></attribute>
+ </targetTypeExtension>
+ 
+ <targetTypeExtension>
+-- 
+1.7.4.1
+
