@@ -1,0 +1,42 @@
+From 93266f96f39f038fc8ad396a5df316c07980f4bf Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Sat, 28 Feb 2015 11:54:47 -0600
+Subject: [PATCH 3/4] Downgrade OCC Config Data Version if no FIR Master
+
+Change-Id: Idc48298a9c3068da2216172da474ebff93eb3839
+(cherry picked from commit f84f34cc5628d9e7d7d55d0e95462b3fe22d80d5)
+---
+ src/include/usr/hwpf/hwp/occ/occ_common.H |    2 ++
+ src/usr/hwpf/hwp/occ/occ_common.C         |    3 +++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/src/include/usr/hwpf/hwp/occ/occ_common.H b/src/include/usr/hwpf/hwp/occ/occ_common.H
+index ca7ab39..7ddb302 100644
+--- a/src/include/usr/hwpf/hwp/occ/occ_common.H
++++ b/src/include/usr/hwpf/hwp/occ/occ_common.H
+@@ -58,6 +58,8 @@ namespace HBOCC
+     enum
+     {
+         OccHostDataVersion = 3,
++        PRE_FIR_MASTER_VERSION = 2,
++
+         OCC_LIDID = 0x81e00430,
+         OCC_IBSCOM_RANGE_IN_MB = MEGABYTE,
+ 
+diff --git a/src/usr/hwpf/hwp/occ/occ_common.C b/src/usr/hwpf/hwp/occ/occ_common.C
+index 98e6382..0373727 100644
+--- a/src/usr/hwpf/hwp/occ/occ_common.C
++++ b/src/usr/hwpf/hwp/occ/occ_common.C
+@@ -170,6 +170,9 @@ namespace HBOCC
+         }
+ #else
+         config_data->firMaster = 0;
++        //force to an older version so we can support
++        // older levels of OCC
++        config_data->version = PRE_FIR_MASTER_VERSION;
+ #endif
+ 
+         TRACUCOMP( g_fapiTd,
+-- 
+1.7.4.1
+
