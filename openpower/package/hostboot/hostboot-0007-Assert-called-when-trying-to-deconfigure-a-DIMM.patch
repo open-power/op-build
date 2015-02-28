@@ -1,0 +1,32 @@
+From 5a3e8e0e91dfee9f7f6b1e31f07789e2c2788e21 Mon Sep 17 00:00:00 2001
+From: Richard J. Knight <rjknight@us.ibm.com>
+Date: Fri, 27 Feb 2015 19:45:56 -0600
+Subject: [PATCH 2/3] Assert called when trying to deconfigure a DIMM
+
+    -Remove assert call from default path. Assert
+     should not be called for targets without status
+     sensors. Path should be a no-op.
+
+Change-Id: Id1aa002ea3d79cf24b5c123cbd92647257d12093
+RTC:124846
+(cherry picked from commit eadb8a16b0f04ce10169091263297f3dc4372c9c)
+---
+ src/usr/ipmi/ipmisensor.C |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/usr/ipmi/ipmisensor.C b/src/usr/ipmi/ipmisensor.C
+index e5b4e64..a62e084 100644
+--- a/src/usr/ipmi/ipmisensor.C
++++ b/src/usr/ipmi/ipmisensor.C
+@@ -640,7 +640,7 @@ namespace SENSOR
+                 break;
+ 
+             default:
+-                assert(0, "No status sensor associated with target type 0x%x",
++                TRACFCOMP(g_trac_ipmi,"INF>>No status sensor associated with target type 0x%x",
+                          i_target->getAttr<TARGETING::ATTR_TYPE>());
+                 break;
+         }
+-- 
+1.7.4.1
+
