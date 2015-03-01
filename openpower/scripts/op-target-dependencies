@@ -1,0 +1,87 @@
+#!/usr/bin/env perl
+
+use strict;
+my %seen = ();
+
+# Generate dependency list for all 'priority' targets.  These are targets a
+# user is likely to build.
+my @priority_targets = ( "openpower-pnor" );
+foreach my $target (@priority_targets)
+{
+    next if $seen{$target};
+
+    print "$target\n";
+    $seen{$target} = 1;
+    package_deps($target, 0);
+}
+
+# Generate dependency list for all other targets.
+packages();
+
+# @sub packages
+# @brief Determine all the packages that can be built.
+#
+# Skip host-* (uninteresting) and target-* (buildroot special) packages.
+sub packages
+{
+    open TARGETS, "make --directory=`pwd`/buildroot O=`pwd`/output ".
+                  "show-targets | sed 's/^make:.*//' |";
+
+    while (my $line = <TARGETS>)
+    {
+        chomp $line;
+        next if ($line eq "");
+
+        my @targets = split / /,$line;
+        foreach (@targets)
+        {
+            next if ($seen{$_});
+            next if ($_ =~ m/^host-/);
+            next if ($_ =~ m/^target-/);
+
+            print $_."\n";
+            $seen{$_} = 1;
+            package_deps($_, 0);
+        }
+    }
+
+    close TARGETS
+
+}
+
+# @sub package_deps
+# @brief Collect children dependencies for a package.
+sub package_deps
+{
+    my $package = shift;
+    my $level = shift;
+
+    $package =~ s/-install-images//;    # Strip off -install-images subpass.
+    $package =~ s/-rebuild.*//;         # Strip off -rebuild* subpass.
+    $package =~ s/linux[0-9]*/linux/;   # Strip off linux version.
+
+    open DEPENDS, "make --directory=`pwd`/buildroot O=`pwd`/output ".
+                  "$package-show-depends | sed 's/^make:.*//' |";
+
+    while (my $line = <DEPENDS>)
+    {
+        chomp $line;
+        next if ($line eq "");
+
+        my @depends = split / /,$line;
+        foreach my $depend (@depends)
+        {
+            foreach (0..$level)
+            {
+                print "  ";
+            }
+            print $depend."\n";
+
+            next if ($seen{$depend});
+            $seen{$depend} = 1;
+            package_deps($depend, $level+1);
+        }
+    }
+
+    close DEPENDS;
+}
