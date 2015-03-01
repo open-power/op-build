@@ -1,0 +1,56 @@
+From d569d04ce1b7451af590465e1befab0ae3634ccf Mon Sep 17 00:00:00 2001
+From: Richard J. Knight <rjknight@us.ibm.com>
+Date: Fri, 27 Feb 2015 22:13:21 -0600
+Subject: [PATCH 5/7] Mark Centaurs as present/functionl on IPL
+
+    -Update Centaur status sensor after discove targets is called
+     to initialize the Centaur Func sensors on the BMC
+
+Change-Id: I28b1047b50b690b97a20093721467f45455c5217
+RTC:124846
+(cherry picked from commit dd9502f744de8c09425d677570825699a979128f)
+---
+ src/usr/ipmi/ipmisensor.C |   15 ++++++++++++---
+ 1 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/src/usr/ipmi/ipmisensor.C b/src/usr/ipmi/ipmisensor.C
+index fba66a6..4b5b478 100644
+--- a/src/usr/ipmi/ipmisensor.C
++++ b/src/usr/ipmi/ipmisensor.C
+@@ -894,14 +894,19 @@ namespace SENSOR
+         // get all targets of the passed in type, functional or not
+         switch( i_type )
+         {
+-            case TARGETING::TYPE_PROC:
+-                getAllChips( l_tList, TARGETING::TYPE_PROC, false );
+-                break;
+ 
+             case TARGETING::TYPE_DIMM:
+                 getAllLogicalCards( l_tList, TARGETING::TYPE_DIMM, false );
+                 break;
+ 
++            case TARGETING::TYPE_MEMBUF:
++                getAllChips( l_tList, TARGETING::TYPE_MEMBUF, false );
++                break;
++
++            case TARGETING::TYPE_PROC:
++                getAllChips( l_tList, TARGETING::TYPE_PROC, false );
++                break;
++
+             case TARGETING::TYPE_CORE:
+                 getAllChiplets( l_tList, TARGETING::TYPE_CORE, false);
+                 break;
+@@ -1024,6 +1029,10 @@ namespace SENSOR
+ 
+     void updateBMCSensorStatus()
+     {
++
++        // send status of all MEMBUF targets
++        updateBMCSensorStatus(TARGETING::TYPE_MEMBUF);
++
+         // send status of all DIMM targets
+         updateBMCSensorStatus(TARGETING::TYPE_DIMM);
+ 
+-- 
+1.7.4.1
+

@@ -1,0 +1,2028 @@
+From 842770c162544b35609528b205d7c015454593fa Mon Sep 17 00:00:00 2001
+From: Mike Baiocchi <baiocchi@us.ibm.com>
+Date: Tue, 17 Feb 2015 13:07:13 -0600
+Subject: [PATCH 4/7] GOLDEN SBE Update Support - Reconcile SBE images and PNOR sides
+
+This code adds a new function at istep 6 to reconcile the two
+SBE Seeproms with the PNOR side and mode (ie, 2-sided, golden, etc).
+It also updates what happens in istep 9 in SBE_UPDATE_INDEPENDENT
+mode.
+
+Change-Id: If71ca52338a179b8cf38cfa336d9790737844715
+RTC: 120734
+(cherry picked from commit fe9afa4e7a3b0eb0e9ae16abb943039aacf34e09)
+---
+ src/include/usr/sbe/sbeif.H            |   13 +-
+ src/include/usr/sbe/sbereasoncodes.H   |   10 +-
+ src/usr/hwpf/hwp/slave_sbe/slave_sbe.C |   12 +
+ src/usr/sbe/HBconfig                   |    6 +-
+ src/usr/sbe/makefile                   |    5 +-
+ src/usr/sbe/sbe_resolve_sides.C        | 1363 ++++++++++++++++++++++++++++++++
+ src/usr/sbe/sbe_resolve_sides.H        |  259 ++++++
+ src/usr/sbe/sbe_update.C               |  124 +++-
+ 8 files changed, 1753 insertions(+), 39 deletions(-)
+ create mode 100644 src/usr/sbe/sbe_resolve_sides.C
+ create mode 100644 src/usr/sbe/sbe_resolve_sides.H
+
+diff --git a/src/include/usr/sbe/sbeif.H b/src/include/usr/sbe/sbeif.H
+index 8706e91..9cf20c6 100644
+--- a/src/include/usr/sbe/sbeif.H
++++ b/src/include/usr/sbe/sbeif.H
+@@ -5,7 +5,9 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* COPYRIGHT International Business Machines Corp. 2013,2014              */
++/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
++/* [+] International Business Machines Corp.                              */
++/*                                                                        */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -66,6 +68,15 @@ namespace SBE
+      */
+     errlHndl_t updateProcessorSbeSeeproms();
+ 
++    /**
++     * @brief Iterates through all the functional processors and resolves
++     *        the Hostboot Base Addresses (HBB) in each SBE Image and performs
++     *        any necessary operations related to GOLDEN side support.
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t resolveProcessorSbeSeeproms();
++
+ 
+ } //end namespace SBE
+ 
+diff --git a/src/include/usr/sbe/sbereasoncodes.H b/src/include/usr/sbe/sbereasoncodes.H
+index a09bb68..effb69e 100644
+--- a/src/include/usr/sbe/sbereasoncodes.H
++++ b/src/include/usr/sbe/sbereasoncodes.H
+@@ -5,7 +5,9 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* COPYRIGHT International Business Machines Corp. 2013,2014              */
++/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
++/* [+] International Business Machines Corp.                              */
++/*                                                                        */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+ /* you may not use this file except in compliance with the License.       */
+@@ -54,6 +56,10 @@ enum sbeModuleId
+     SBE_CUSTOMIZE_IMG                   = 0x0B,
+     SBE_PERFORM_UPDATE_ACTIONS          = 0x0C,
+     SBE_MASTER_VERSION_COMPARE          = 0x0D,
++    SBE_RESOLVE_HBB_ADDR                = 0x0E,
++    SBE_READ_SBE_IMAGE                  = 0x0F,
++    SBE_WRITE_SBE_IMAGE                 = 0x10,
++    SBE_GET_SBE_IMAGE_SIZE              = 0x11,
+ };
+ 
+ /**
+@@ -91,6 +97,8 @@ enum sbeReasonCode
+     SBE_MISCOMPARE_WITH_MASTER_VERSION  = SBE_COMP_ID | 0x13,
+     SBE_ERROR_ON_UPDATE                 = SBE_COMP_ID | 0x14,
+     SBE_MASTER_VERSION_DOWNLEVEL        = SBE_COMP_ID | 0x15,
++    SBE_IMAGE_GET_SET_SCALAR_FAIL       = SBE_COMP_ID | 0x16,
++
+ };
+ 
+ };  // end SBE
+diff --git a/src/usr/hwpf/hwp/slave_sbe/slave_sbe.C b/src/usr/hwpf/hwp/slave_sbe/slave_sbe.C
+index 49225a4..fe568e2 100644
+--- a/src/usr/hwpf/hwp/slave_sbe/slave_sbe.C
++++ b/src/usr/hwpf/hwp/slave_sbe/slave_sbe.C
+@@ -175,6 +175,18 @@ void* call_host_slave_sbe_config(void *io_pArgs)
+ 
+         }
+     }
++
++    // Resolve the side characteristics of the Processor SBE Seeproms
++    errlHndl_t err = SBE::resolveProcessorSbeSeeproms();
++    if ( err )
++    {
++        // Create IStep error log and cross reference error that occurred
++        l_stepError.addErrorDetails( err );
++
++        // Commit Error
++        errlCommit( err, HWPF_COMP_ID );
++    }
++
+     TRACDCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
+                "call_host_slave_sbe_config exit" );
+ 
+diff --git a/src/usr/sbe/HBconfig b/src/usr/sbe/HBconfig
+index 0fa2441..fd2a8d0 100644
+--- a/src/usr/sbe/HBconfig
++++ b/src/usr/sbe/HBconfig
+@@ -20,9 +20,9 @@ config SBE_UPDATE_INDEPENDENT
+     depends on !SBE_UPDATE_SEQUENTIAL && !SBE_UPDATE_SIMULTANEOUS
+     help
+         If an update is necessary, and if the "current" SBE SEEPROM of this
+-        IPL is not the 'GOLDEN' SBE SEEPROM, then only the current SBE SEEPROM
+-        will be updated.  After the update a re-IPL request will be issued.
+-        The other SBE SEEPROM, whether 'GOLDEN' or not, will not be updated.
++        IPL is not pointing at PNOR's 'GOLDEN' side, then only the current SBE
++        SEEPROM will be updated.  After the update a re-IPL request will be
++        issued. The other SBE SEEPROM will not be updated.
+ 
+ config NO_SBE_UPDATES
+     default n
+diff --git a/src/usr/sbe/makefile b/src/usr/sbe/makefile
+index 06159ff..c45206e 100644
+--- a/src/usr/sbe/makefile
++++ b/src/usr/sbe/makefile
+@@ -5,7 +5,9 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# COPYRIGHT International Business Machines Corp. 2013,2014
++# Contributors Listed Below - COPYRIGHT 2013,2015
++# [+] International Business Machines Corp.
++#
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+ # you may not use this file except in compliance with the License.
+@@ -36,6 +38,7 @@ EXTRAINCDIR += ${ROOTPATH}/src/usr/hwpf/hwp/include
+ EXTRAINCDIR += ${ROOTPATH}/src/usr/hwpf/hwp/build_winkle_images/p8_slw_build
+ 
+ OBJS += sbe_update.o
++OBJS += sbe_resolve_sides.o
+ 
+ SUBDIRS += test.d
+ 
+diff --git a/src/usr/sbe/sbe_resolve_sides.C b/src/usr/sbe/sbe_resolve_sides.C
+new file mode 100644
+index 0000000..df9958d
+--- /dev/null
++++ b/src/usr/sbe/sbe_resolve_sides.C
+@@ -0,0 +1,1363 @@
++/* IBM_PROLOG_BEGIN_TAG                                                   */
++/* This is an automatically generated prolog.                             */
++/*                                                                        */
++/* $Source: src/usr/sbe/sbe_resolve_sides.C $                             */
++/*                                                                        */
++/* OpenPOWER HostBoot Project                                             */
++/*                                                                        */
++/* Contributors Listed Below - COPYRIGHT 2015                             */
++/* [+] International Business Machines Corp.                              */
++/*                                                                        */
++/*                                                                        */
++/* Licensed under the Apache License, Version 2.0 (the "License");        */
++/* you may not use this file except in compliance with the License.       */
++/* You may obtain a copy of the License at                                */
++/*                                                                        */
++/*     http://www.apache.org/licenses/LICENSE-2.0                         */
++/*                                                                        */
++/* Unless required by applicable law or agreed to in writing, software    */
++/* distributed under the License is distributed on an "AS IS" BASIS,      */
++/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
++/* implied. See the License for the specific language governing           */
++/* permissions and limitations under the License.                         */
++/*                                                                        */
++/* IBM_PROLOG_END_TAG                                                     */
++
++#include <trace/interface.H>
++#include <errl/errlentry.H>
++#include <errl/errlmanager.H>
++#include <errl/errludtarget.H>
++#include <errl/errlreasoncodes.H>
++#include <errl/hberrltypes.H>
++#include <targeting/common/predicates/predicatectm.H>
++#include <targeting/common/utilFilter.H>
++#include <targeting/common/targetservice.H>
++#include <util/misc.H>
++#include <pnor/pnorif.H>
++#include <pnor/ecc.H>
++#include <devicefw/driverif.H>
++#include <sys/mm.h>
++#include <sys/misc.h>
++#include <hwas/common/deconfigGard.H>
++#include <initservice/initserviceif.H>
++#include <config.h>
++#include <ipmi/ipmiwatchdog.H>
++#include <ipmi/ipmisensor.H>
++#include <sbe/sbeif.H>
++#include <sbe/sbereasoncodes.H>
++#include "sbe_resolve_sides.H"
++#include "sbe_update.H"
++
++//  fapi support
++#include    <fapi.H>
++#include    <fapiHwpExecutor.H>
++#include    <hwpf/plat/fapiPlatHwpInvoker.H>
++#include    <hwpf/plat/fapiPlatTrace.H>
++
++//Procedures
++#include <p8_xip_customize.H>
++#include <sbe_xip_image.h>
++#include <p8_image_help_base.H>
++
++// ----------------------------------------------
++// Trace definitions
++// ----------------------------------------------
++extern trace_desc_t* g_trac_sbe;
++
++// ------------------------
++// Macros for unit testing
++//#define TRACUCOMP(args...)  TRACFCOMP(args)
++#define TRACUCOMP(args...)
++
++
++using namespace ERRORLOG;
++using namespace TARGETING;
++
++namespace SBE
++{
++    enum {
++        SBE_IMG_VADDR = VMM_VADDR_SBE_UPDATE,
++        RING_BUF1_VADDR = FIXED_SEEPROM_WORK_SPACE + SBE_IMG_VADDR,
++        RING_BUF2_VADDR = RING_BUF1_VADDR + FIXED_RING_BUF_SIZE,
++        //NOTE: recycling the same memory space for different
++        //steps in the process.
++        SBE_ECC_IMG_VADDR = RING_BUF1_VADDR,
++        SBE_ECC_IMG_MAX_SIZE = VMM_VADDR_SBE_UPDATE_END - SBE_ECC_IMG_VADDR,
++    };
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t resolveProcessorSbeSeeproms()
++{
++    errlHndl_t err = NULL;
++    errlHndl_t err_cleanup = NULL;
++    sbeResolveState_t sideState;
++    bool l_cleanupVmmSpace = false;
++    bool l_restartNeeded   = false;
++
++    TRACUCOMP( g_trac_sbe,
++               ENTER_MRK"resolveProcessorSbeSeeproms()" );
++
++    do{
++
++#ifdef CONFIG_NO_SBE_UPDATES
++        TRACFCOMP( g_trac_sbe, INFO_MRK"resolveProcessorSbeSeeproms() -  "
++                   "SBE updates not configured");
++        break;
++#endif
++
++#ifdef CONFIG_SBE_UPDATE_SIMULTANEOUS
++        TRACFCOMP( g_trac_sbe, INFO_MRK"resolveProcessorSbeSeeproms() - "
++                   "Do Nothing in SBE_UPDATE_SIMULTANEOUS mode");
++        break;
++#endif
++
++#ifdef CONFIG_SBE_UPDATE_SEQUENTIAL
++        // Check if FSP-services are enabled and if we're running in simics
++        if ( !INITSERVICE::spBaseServicesEnabled() &&
++             !Util::isSimicsRunning() )
++        {
++            assert (false, "resolveProcessorSbeSeeproms() - "
++                    "SBE_UPDATE_SEQUENTIAL mode, but FSP-services are not "
++                    "enabled - Invalid Configuration");
++        }
++        else
++        {
++            TRACUCOMP( g_trac_sbe, INFO_MRK"resolveProcessorSbeSeeproms() - "
++                       "Do Nothing in SBE_UPDATE_INDEPENDENT mode with FSP-"
++                       "services enabled or running in simics");
++             break;
++        }
++#endif
++
++        // Get Target Service, and the system target.
++        TargetService& tS = targetService();
++        TARGETING::Target* sys = NULL;
++        (void) tS.getTopLevelTarget( sys );
++        assert(sys, "resolveProcessorSbeSeeproms() system target is NULL");
++
++
++        //Make sure procedure constants keep within expected range.
++        assert((FIXED_SEEPROM_WORK_SPACE <= VMM_SBE_UPDATE_SIZE/2),
++               "resolveProcessorSbeSeeproms() FIXED_SEEPROM_WORK_SPACE "
++               "too large");
++        assert((FIXED_RING_BUF_SIZE <= VMM_SBE_UPDATE_SIZE/4),
++               "resolveProcessorSbeSeeproms() FIXED_RING_BUF_SIZE too "
++               "large");
++
++        // Create VMM space for p8_xip_customize() procedure
++        err = createSbeImageVmmSpace();
++        if (err)
++        {
++            TRACFCOMP( g_trac_sbe,
++                       INFO_MRK"resolveProcessorSbeSeeproms: "
++                       "createSbeImageVmmSpace() Failed. ",
++                       "rc=0x%.4X", err->reasonCode() );
++
++            break;
++        }
++        else
++        {
++            // Make sure cleanup gets called
++            l_cleanupVmmSpace = true;
++        }
++
++        /*****************************************************************/
++        /*  Iterate over all the functional processors and do for each:  */
++        /*****************************************************************/
++        TARGETING::TargetHandleList procList;
++        TARGETING::getAllChips(procList,
++                               TARGETING::TYPE_PROC,
++                               true); // true: return functional targets
++
++        if( ( 0 == procList.size() ) ||
++            ( NULL == procList[0] ) )
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"resolveProcessorSbeSeeproms() - "
++                       "No functional processors Found!" );
++            break;
++        }
++
++        for(uint32_t i=0; i<procList.size(); i++)
++        {
++            /***********************************************/
++            /*  Get Side This Processor did/will boot from */
++            /***********************************************/
++            memset(&sideState, 0, sizeof(sideState));
++            sideState.tgt = procList[i];
++
++            err = getSideState(sideState);
++            if ( err )
++            {
++                TRACFCOMP( g_trac_sbe, ERR_MRK
++                           "resolveProcessorSbeSeeproms: Error returned "
++                           "from getSideState() "
++                           "rc=0x%.4X, Target UID=0x%X",
++                           err->reasonCode(),
++                           TARGETING::get_huid(sideState.tgt));
++                // Don't break - handle error at the end of the loop
++            }
++
++
++            /**********************************************/
++            /*  Determine the necessary actions           */
++            /**********************************************/
++            // Skip if we got an error previously
++            if ( err == NULL )
++            {
++                err = getSideActions(sideState);
++                if (err)
++                {
++                    TRACFCOMP( g_trac_sbe,
++                               INFO_MRK"resolveProcessorSbeSeeproms: "
++                               "getSideActions() Failed "
++                               "rc=0x%.4X, Target UID=0x%X",
++                               err->reasonCode(),
++                               TARGETING::get_huid(sideState.tgt));
++
++                    // Don't break - handle error at the end of the loop,
++                }
++            }
++
++            /**********************************************/
++            /*  Perform the necessary actions             */
++            /**********************************************/
++            // Skip if we got an error previously
++            if ( err == NULL )
++            {
++                err = performSideActions(sideState);
++                if (err)
++                {
++                    TRACFCOMP( g_trac_sbe,
++                               INFO_MRK"resolveProcessorSbeSeeproms: "
++                               "performSideActions() Failed "
++                               "rc=0x%.4X, Target UID=0x%X",
++                               err->reasonCode(),
++                               TARGETING::get_huid(sideState.tgt));
++
++                    // Don't break - handle error at the end of the loop,
++                }
++                else
++                {
++                    // Target updated without failure, so set IPL_RESTART
++                    // flag, if necessary
++                    if (sideState.actions & REIPL)
++                    {
++                       l_restartNeeded   = true;
++                    }
++                }
++            }
++
++            /**********************************************/
++            /*  Handle Errors                             */
++            /**********************************************/
++
++            if ( err )
++            {
++                // Something failed for this target.
++
++                // Commit the error here and move on to the next target,
++                // or if no targets left, will just continue the IPL
++                TRACFCOMP( g_trac_sbe,
++                           INFO_MRK"resolveProcessorSbeSeeproms: "
++                           "Committing Error Log rc=0x%.4X eid=0x%.8X "
++                           "plid=0x%.8X for Target UID=0x%X, but "
++                           "continuing procedure",
++                           err->reasonCode(),
++                           err->eid(),
++                           err->plid(),
++                           TARGETING::get_huid(sideState.tgt));
++                errlCommit( err, SBE_COMP_ID );
++            }
++
++
++        } //end of Target for loop collecting each target's SBE State
++
++
++        /**************************************************************/
++        /*  Perform System Operation                                  */
++        /**************************************************************/
++        // Restart IPL if SBE Update requires it
++        if ( l_restartNeeded == true )
++        {
++            TRACFCOMP( g_trac_sbe,
++                       INFO_MRK"resolveProcessorSbeSeeprom: Restart "
++                       "Needed (%d).",
++                       l_restartNeeded);
++
++#ifdef CONFIG_BMC_IPMI
++                sbePreShutdownIpmiCalls();
++#endif
++
++            TRACFCOMP( g_trac_sbe,
++                       INFO_MRK"resolveProcessorSbeSeeproms: Calling "
++                       "INITSERVICE::doShutdown() with "
++                       "SBE_UPDATE_REQUEST_REIPL = 0x%X",
++                       SBE_UPDATE_REQUEST_REIPL );
++            INITSERVICE::doShutdown(SBE_UPDATE_REQUEST_REIPL);
++        }
++
++    }while(0);
++
++
++    // Cleanup VMM Workspace
++    if ( l_cleanupVmmSpace == true )
++    {
++        err_cleanup = cleanupSbeImageVmmSpace();
++        if ( err_cleanup != NULL )
++        {
++
++            if ( err != NULL )
++            {
++                // 2 error logs, so commit the cleanup log here
++                TRACFCOMP( g_trac_sbe,
++                           ERR_MRK"resolveProcessorSbeSeeproms: Previous "
++                           "error (rc=0x%X) before cleanupSbeImageVmmSpace"
++                           "() failed.  Committing cleanup error (rc=0x%X) "
++                           "and returning original error",
++                           err->reasonCode(), err_cleanup->reasonCode()  );
++
++                 errlCommit( err_cleanup, SBE_COMP_ID );
++            }
++            else
++            {
++                // no previous error, so returning cleanup error
++                TRACFCOMP( g_trac_sbe,
++                           ERR_MRK"resolveProcessorSbeSeeproms: "
++                           "cleanupSbeImageVmmSpace() failed.",
++                           "rc=0x%.4X", err_cleanup->reasonCode() );
++                err = err_cleanup;
++            }
++        }
++    }
++
++
++    TRACUCOMP( g_trac_sbe,
++               EXIT_MRK"resolveProcessorSbeSeeproms()" );
++
++    return err;
++}
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t getSideState(sbeResolveState_t& io_sideState)
++{
++    errlHndl_t err = NULL;
++    TRACUCOMP( g_trac_sbe,
++               ENTER_MRK"getSideState()" );
++
++    do{
++
++        /***********************************************/
++        /*  Get Side This Processor did/will boot from */
++        /***********************************************/
++        PNOR::sbeSeepromSide_t tmp_cur_side = PNOR::SBE_SEEPROM_INVALID;
++        err = PNOR::getSbeBootSeeprom(io_sideState.tgt, tmp_cur_side);
++        if ( err )
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK
++                       "resolveProcessorSbeSeeproms() - Error returned "
++                       "from PNOR::getSbeBootSeeprom() "
++                       "rc=0x%.4X, Target UID=0x%X",
++                       err->reasonCode(),
++                       TARGETING::get_huid(io_sideState.tgt));
++            break;
++        }
++
++        io_sideState.cur_side = tmp_cur_side;
++
++        io_sideState.alt_side = (tmp_cur_side == PNOR::SBE_SEEPROM0)
++                                 ? PNOR::SBE_SEEPROM1 : PNOR::SBE_SEEPROM0;
++
++        /**********************************************/
++        /*  Get PNOR Side Information                 */
++        /**********************************************/
++        PNOR::SideId tmp_side = PNOR::WORKING;
++        PNOR::SideInfo_t tmp_side_info;
++        err = PNOR::getSideInfo (tmp_side, tmp_side_info);
++        if ( err )
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK
++                       "resolveProcessorSbeSeeproms() - Error returned "
++                       "from PNOR::getSideInfo() "
++                       "rc=0x%.4X, Target UID=0x%X",
++                       err->reasonCode(),
++                       TARGETING::get_huid(io_sideState.tgt));
++            break;
++        }
++
++        io_sideState.pnor_sideId       = tmp_side_info.id;
++        io_sideState.pnor_side         = tmp_side_info.side;
++        io_sideState.pnor_isGolden     = tmp_side_info.isGolden;
++        io_sideState.pnor_hasOtherSide = tmp_side_info.hasOtherSide;
++
++    }while(0);
++
++
++    TRACUCOMP( g_trac_sbe,
++               EXIT_MRK"getSideState(): cur/alt=%d/%d. Side-%c(%d): "
++               "isGolden=%d, hasOtherSide=%d",
++               io_sideState.cur_side, io_sideState.alt_side,
++               io_sideState.pnor_side, io_sideState.pnor_sideId,
++               io_sideState.pnor_isGolden, io_sideState.pnor_hasOtherSide );
++
++    return err;
++}
++
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t getSideActions(sbeResolveState_t& io_sideState)
++{
++    errlHndl_t err = NULL;
++    uint32_t l_actions = NO_ACTIONS;
++    TRACUCOMP( g_trac_sbe,
++               ENTER_MRK"getSideActions()" );
++
++    do{
++
++        // Check if PNOR is running from its GOLDEN side
++        if ( io_sideState.pnor_isGolden == true )
++        {
++
++            // If Booting From Seeprom that is pointing to PNOR's GOLDEN Side
++            // and is possibly the READ_ONLY_SEEPROM - No Re-IPL
++            if ( io_sideState.cur_side == READ_ONLY_SEEPROM )
++            {
++                l_actions |= COPY_READ_ONLY_TO_WORKING;
++                io_sideState.update_side = io_sideState.alt_side;
++#ifdef CONFIG_PNOR_TWO_SIDE_SUPPORT
++                // Need info from PNOR's non-working side for update side
++                l_actions |= USE_PNOR_ALT_SIDE;
++                TRACUCOMP( g_trac_sbe, "getSideActions(): Asking for "
++                           "USE_PNOR_ALT_SIDE: actions=0x%X", l_actions);
++#endif
++            }
++            else
++            {
++                // non-READ_ONLY_SEEPROM is pointing to PNOR's GOLDEN side
++                // This requires an update and re-IPL (Possibly Genesis Mode)
++                l_actions |= COPY_READ_ONLY_TO_WORKING;
++                l_actions |= REIPL;
++                io_sideState.update_side = io_sideState.cur_side;
++
++#ifdef CONFIG_PNOR_TWO_SIDE_SUPPORT
++                // Need info from PNOR's non-working side for update side
++                l_actions |= USE_PNOR_ALT_SIDE;
++                TRACUCOMP( g_trac_sbe, "getSideActions(): Asking for "
++                           "USE_PNOR_ALT_SIDE: actions=0x%X", l_actions);
++#endif
++
++            }
++        }
++
++        // Even though READ_ONLY_SEEPROM is not pointing to PNOR's GOLDEN side,
++        // treat like it is if there is only 1 side (ie, Palmetto configuration)
++        else if (  ( io_sideState.pnor_hasOtherSide == false ) &&
++                   ( io_sideState.cur_side == READ_ONLY_SEEPROM ) )
++        {
++            l_actions |= COPY_READ_ONLY_TO_WORKING;
++            io_sideState.update_side = io_sideState.alt_side;
++        }
++
++        else // current Seeprom not pointing to PNOR's GOLDEN side
++        {
++            l_actions |= CHECK_WORKING_HBB;
++            io_sideState.update_side = io_sideState.cur_side;
++            // REIPL action will be determined later
++        }
++
++        io_sideState.actions = l_actions;
++
++        TRACUCOMP( g_trac_sbe, "getSideActions() Tgt=0x%X: "
++                   "pnor_isGolden/hasOtherSide=%d/%d, actions=0x%.8X, "
++                   "Update Side=0x%X, cur=%d",
++                   TARGETING::get_huid(io_sideState.tgt),
++                   io_sideState.pnor_isGolden, io_sideState.pnor_hasOtherSide,
++                   io_sideState.actions,
++                   io_sideState.update_side,
++                   io_sideState.cur_side);
++
++    }while(0);
++
++    TRACUCOMP( g_trac_sbe,
++               EXIT_MRK"getSideActions()" );
++
++    return err;
++}
++
++
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t performSideActions(sbeResolveState_t& io_sideState)
++{
++    errlHndl_t err = NULL;
++    TRACUCOMP( g_trac_sbe,
++               ENTER_MRK"performSideActions()" );
++
++    bool updateForHBB = false;
++    size_t image_size = 0;
++    sbeSeepromVersionInfo_t image_version;
++
++    do{
++        if ( io_sideState.actions & COPY_READ_ONLY_TO_WORKING )
++        {
++            // Copy READ_ONLY SBE Seeprom Image to Memory
++            err = readSbeImage(io_sideState.tgt,
++                               reinterpret_cast<void*>(SBE_IMG_VADDR),
++                               READ_ONLY_SEEPROM,
++                               image_size,
++                               image_version);
++            if ( err )
++            {
++                TRACFCOMP( g_trac_sbe, ERR_MRK
++                           "performSideActions: Error returned from "
++                           "getSetSbeImage() rc=0x%.4X, Target UID=0x%X, "
++                           "actions = 0x%X, image_size=0x%X",
++                           err->reasonCode(),
++                           TARGETING::get_huid(io_sideState.tgt),
++                           io_sideState.actions, image_size);
++                break;
++            }
++        }
++
++        if ( io_sideState.actions & CHECK_WORKING_HBB )
++        {
++
++            // Copy current SBE Seeprom Image to Memory
++            // NOTE: Seprate section from above because of possible future
++            // improvement to use MBPD SB Keyword bit to keep track of HBB
++
++            err = readSbeImage(io_sideState.tgt,
++                                 reinterpret_cast<void*>(SBE_IMG_VADDR),
++                                 io_sideState.update_side,
++                                 image_size,
++                                 image_version);
++            if ( err )
++            {
++                TRACFCOMP( g_trac_sbe, ERR_MRK
++                           "performSideActions: Error returned from "
++                           "getSetSbeImage() rc=0x%.4X, Target UID=0x%X, "
++                           "actions = 0x%X, image_size=0x%X",
++                           err->reasonCode(),
++                           TARGETING::get_huid(io_sideState.tgt),
++                           io_sideState.actions, image_size);
++                break;
++            }
++
++        }
++
++
++        if ( ( io_sideState.actions & COPY_READ_ONLY_TO_WORKING ) ||
++             ( io_sideState.actions & CHECK_WORKING_HBB ) )
++        {
++            // verify HBB
++            PNOR::SideId pnor_side = PNOR::WORKING;
++
++#ifdef CONFIG_PNOR_TWO_SIDE_SUPPORT
++            // In certain situations need info from Alternate PNOR
++            if ( io_sideState.actions & USE_PNOR_ALT_SIDE)
++            {
++                pnor_side = PNOR::ALTERNATE;
++            }
++#endif
++
++
++
++            err = resolveImageHBBaddr(io_sideState.tgt,
++                                      reinterpret_cast<void*>(SBE_IMG_VADDR),
++                                      io_sideState.update_side,
++                                      pnor_side,
++                                      updateForHBB);
++            if ( err )
++            {
++                TRACFCOMP( g_trac_sbe, ERR_MRK
++                           "performSideActions: Error returned from "
++                           "resolveImageHBBaddr() rc=0x%.4X, Target UID=0x%X, "
++                           "actions = 0x%X",
++                           err->reasonCode(),
++                           TARGETING::get_huid(io_sideState.tgt),
++                           io_sideState.actions);
++                break;
++            }
++
++            // Since HBB was updated, we need to re-IPL if not booting on
++            // READ_ONLY seeprom
++            if ( ( updateForHBB == true ) &&
++                 ( io_sideState.cur_side != READ_ONLY_SEEPROM ) )
++            {
++                io_sideState.actions |= REIPL;
++                TRACUCOMP( g_trac_sbe, ERR_MRK
++                           "performSideActions: resolveImageHBBaddr returned "
++                           "updateForHBB=%d, and not on READ_ONLY_SEEPROM so "
++                           "REIPL (actions=0x%X)",
++                           updateForHBB, io_sideState.actions);
++            }
++        }
++
++        if ( ( io_sideState.actions & COPY_READ_ONLY_TO_WORKING ) ||
++             ( updateForHBB == true ) )
++        {
++            //  Write Seeprom Image from memory to Seeprom
++            err = writeSbeImage(io_sideState.tgt,
++                                reinterpret_cast<void*>(SBE_IMG_VADDR),
++                                io_sideState.update_side,
++                                image_size,
++                                image_version);
++            if ( err )
++            {
++                TRACFCOMP( g_trac_sbe, ERR_MRK
++                           "performSideActions: Error returned from "
++                           "getSetSbeImage() rc=0x%.4X, Target UID=0x%X, "
++                           "actions = 0x%X",
++                           err->reasonCode(),
++                           TARGETING::get_huid(io_sideState.tgt),
++                           io_sideState.actions);
++                break;
++            }
++        }
++
++    }while(0);
++
++    TRACUCOMP( g_trac_sbe,
++               EXIT_MRK"performSideActions()" );
++
++    return err;
++}
++
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t readSbeImage(TARGETING::Target* i_target,
++                        void* o_imgPtr,
++                        PNOR::sbeSeepromSide_t i_side,
++                        size_t& o_image_size,
++                        sbeSeepromVersionInfo_t& o_image_version)
++{
++    TRACUCOMP( g_trac_sbe,
++               ENTER_MRK"readSbeImage(): tgt=0x%X, i_side=%d "
++               "o_imgPtr=%p, o_image_size=0x%X",
++               TARGETING::get_huid(i_target), i_side, o_imgPtr, o_image_size);
++
++    errlHndl_t err = NULL;
++    int64_t rc = 0;
++    PNOR::ECC::eccStatus eccStatus = PNOR::ECC::CLEAN;
++    EEPROM::eeprom_chip_types_t l_seeprom = sbe_side_sync[i_side];
++    size_t image_size_ECC = 0;
++
++    // Need to ensure that io_imgPtr is at SBE_IMG_VADDR = VMM_VADDR_SBE_UPDATE
++    // since we need to use the VMM_VADDR_SBE_UPDATE space
++    assert ( o_imgPtr == reinterpret_cast<void*>(SBE_IMG_VADDR),
++             "getSetSbeImage() - o_imgPtr is not at SBE_IMG_VADDR");
++
++    do{
++
++        // Clear out back half of page block to use as temp space
++        // for ECC injected SBE Image.
++        rc = mm_remove_pages(RELEASE,
++                             reinterpret_cast<void*>
++                             (SBE_ECC_IMG_VADDR),
++                             SBE_ECC_IMG_MAX_SIZE);
++        if( rc )
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"getSetSbeImage() - Error "
++                           "from mm_remove_pages : rc=%d,  HUID=0x%.8X.",
++                           rc, TARGETING::get_huid(i_target) );
++            /*@
++             * @errortype
++             * @moduleid     SBE_READ_SBE_IMAGE
++             * @reasoncode   SBE_REMOVE_PAGES_FOR_EC
++             * @userdata1    Requested Address
++             * @userdata2    rc from mm_remove_pages
++             * @devdesc      updateProcessorSbeSeeproms> mm_remove_pages
++             *               RELEASE failed
++             * @custdesc     A problem occurred while updating processor
++             *               boot code.
++             */
++            err = new ErrlEntry(ERRL_SEV_UNRECOVERABLE,
++                                SBE_READ_SBE_IMAGE,
++                                SBE_REMOVE_PAGES_FOR_EC,
++                                TO_UINT64(SBE_ECC_IMG_VADDR),
++                                TO_UINT64(rc),
++                                true /*Add HB SW Callout*/ );
++
++            //Target isn't directly related to fail, but could be useful
++            // to see how far we got before failing.
++            ErrlUserDetailsTarget(i_target).addToLog(err);
++            err->collectTrace(SBE_COMP_NAME);
++            break;
++        }
++
++        /*****************************************/
++        /*  Get Image Size                       */
++        /*****************************************/
++        err = getSbeImageSize(i_target,
++                              o_imgPtr,
++                              i_side,
++                              o_image_size);
++        if(err)
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"readSbeImage: - Error from "
++                       "getSbeImageSize(): rc=0x%.4X, side=%d, HUID=0x%.8X.",
++                       err->reasonCode(),
++                       i_side, TARGETING::get_huid(i_target));
++            break;
++        }
++
++
++        /*****************************************/
++        /*  Do Actual Read                       */
++        /*****************************************/
++        image_size_ECC = ALIGN_8((o_image_size*9)/8);
++
++        assert(image_size_ECC <= SBE_ECC_IMG_MAX_SIZE,
++               "getSetSbeImage() SBE Image with ECC too large");
++
++        // Read image to memory space
++        err = DeviceFW::deviceOp(
++                          DeviceFW::READ,
++                          i_target,
++                          reinterpret_cast<void*>
++                            (SBE_ECC_IMG_VADDR),
++                          image_size_ECC,
++                          DEVICE_EEPROM_ADDRESS(
++                                        l_seeprom,
++                                        SBE_IMAGE_SEEPROM_ADDRESS));
++
++        if(err)
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"readSbeImage: - Error "
++                       "from EEPROM op: rc=0x%.4X, seeprom=%d (side=%d). "
++                       "HUID=0x%.8X. SBE_VADDR=0x%.16X, ECC_VADDR=0x%.16X, "
++                       "size=0x%.8X, eccSize=0x%.8X, EEPROM offset=0x%X",
++                       err->reasonCode(), l_seeprom, i_side,
++                       TARGETING::get_huid(i_target),
++                       SBE_IMG_VADDR, SBE_ECC_IMG_VADDR, o_image_size,
++                       image_size_ECC, SBE_IMAGE_SEEPROM_ADDRESS);
++            break;
++        }
++
++        /*****************************************/
++        /*  Remove ECC From Image                */
++        /*****************************************/
++
++        // Clear destination
++        memset( o_imgPtr, 0, MAX_SEEPROM_IMAGE_SIZE );
++
++        // Remove ECC
++        eccStatus = PNOR::ECC::removeECC(reinterpret_cast<uint8_t*>
++                                             (SBE_ECC_IMG_VADDR),
++                                         reinterpret_cast<uint8_t*>
++                                             (o_imgPtr),
++                                         image_size_ECC);
++
++        // Fail if uncorrectable ECC
++        if ( eccStatus == PNOR::ECC::UNCORRECTABLE )
++        {
++            // There is an ECC issue with this SEEPROM
++
++            TRACFCOMP( g_trac_sbe,ERR_MRK"readSbeImage: ECC Error "
++                       "On SBE Image Read eccStatus=%d sI=%d, sI_ECC="
++                       "%d, HUID=0x%.8X, Seeprom %d (side=%d)",
++                       eccStatus, o_image_size, image_size_ECC,
++                       TARGETING::get_huid(i_target),
++                       l_seeprom, i_side );
++
++            /*@
++             * @errortype
++             * @moduleid     SBE_READ_SBE_IMAGE
++             * @reasoncode   SBE_ECC_FAIL
++             * @userdata1[0:15]     ECC Status
++             * @userdata1[16:31]    SEEPROM Side
++             * @userdata1[32:63]    Target HUID
++             * @userdata2[0:31]     Size - No Ecc
++             * @userdata2[32:63]    Size - ECC
++             * @devdesc      ECC Fail Reading SBE Image
++             */
++            err = new ErrlEntry(ERRL_SEV_PREDICTIVE,
++                                SBE_READ_SBE_IMAGE,
++                                SBE_ECC_FAIL,
++                                TWO_UINT32_TO_UINT64(
++                                     ( (eccStatus << 16 ) |
++                                       l_seeprom ),
++                                     TARGETING::get_huid(i_target)),
++                                TWO_UINT32_TO_UINT64(o_image_size,
++                                                     image_size_ECC));
++
++            err->collectTrace(SBE_COMP_NAME);
++
++            err->addPartCallout(
++                                 i_target,
++                                 HWAS::SBE_SEEPROM_PART_TYPE,
++                                 HWAS::SRCI_PRIORITY_HIGH,
++                                 HWAS::NO_DECONFIG,
++                                 HWAS::GARD_NULL );
++
++            ErrlUserDetailsTarget(i_target).addToLog(err);
++
++            break;
++
++        } // ECC check
++
++
++        // Read out SBE Version Info
++        bool seeprom_ver_ECC_fail = false;
++        err = getSeepromSideVersion(i_target,
++                                    l_seeprom,
++                                    o_image_version,
++                                    seeprom_ver_ECC_fail);
++
++
++        if(err)
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"readSbeImage: - Error "
++                       "from getSeepromSideVersion: rc=0x%.4X, seeprom=%d "
++                       "(side=%d). HUID=0x%.8X",
++                       err->reasonCode(), l_seeprom, i_side,
++                       TARGETING::get_huid(i_target));
++            break;
++        }
++
++        else if (seeprom_ver_ECC_fail == true)
++        {
++            // For now, any issues will be addressed in SBE Update
++            // later in the IPL
++            TRACFCOMP( g_trac_sbe, ERR_MRK"readSbeImage: ECC fail=%d "
++                       "Reading Seeprom Version seeprom=%d "
++                       "(side=%d). HUID=0x%.8X",
++                       seeprom_ver_ECC_fail, l_seeprom, i_side,
++                       TARGETING::get_huid(i_target));
++        }
++
++        TRACDBIN(g_trac_sbe, "readSbeImage: SBE Info Version",
++                 reinterpret_cast<uint8_t*>(&o_image_version),
++                 sizeof(o_image_version));
++
++    }while(0);
++
++
++    TRACUCOMP( g_trac_sbe,
++               EXIT_MRK"readSbeImage() - eccStatus=%d, "
++               "size=0x%X, size_ECC=0x%X",
++               eccStatus, o_image_size, image_size_ECC);
++
++
++    return err;
++}
++
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t writeSbeImage(TARGETING::Target* i_target,
++                          void* i_imgPtr,
++                          PNOR::sbeSeepromSide_t i_side,
++                          size_t i_image_size,
++                          sbeSeepromVersionInfo_t& io_version)
++
++{
++    TRACFCOMP( g_trac_sbe,
++               ENTER_MRK"writeSbeImage(): tgt=0x%X, i_side=%d "
++               "i_imgPtr=%p, i_image_size=0x%X",
++               TARGETING::get_huid(i_target), i_side, i_imgPtr, i_image_size);
++
++    errlHndl_t err = NULL;
++    int64_t rc = 0;
++    EEPROM::eeprom_chip_types_t l_seeprom = sbe_side_sync[i_side];
++    size_t image_size_ECC = 0;
++
++    // For Version Information
++    size_t sbeInfoSize = sizeof(sbeSeepromVersionInfo_t);
++    size_t sbeInfoSize_ECC = (sbeInfoSize*9)/8;
++
++    uint8_t * sbeInfo_data_ECC = static_cast<uint8_t*>
++                                            (malloc(sbeInfoSize_ECC));
++
++
++    // Need to ensure that io_imgPtr is at SBE_IMG_VADDR = VMM_VADDR_SBE_UPDATE
++    // since we need to use the VMM_VADDR_SBE_UPDATE space
++    assert ( i_imgPtr == reinterpret_cast<void*>(SBE_IMG_VADDR),
++             "writeSbeImage() - io_imgPtr is not at SBE_IMG_VADDR");
++
++    do{
++
++        // Clear out back half of page block to use as temp space
++        // for ECC injected SBE Image.
++        rc = mm_remove_pages(RELEASE,
++                             reinterpret_cast<void*>
++                             (SBE_ECC_IMG_VADDR),
++                             SBE_ECC_IMG_MAX_SIZE);
++        if( rc )
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"writeSbeImage() - Error "
++                       "from mm_remove_pages : rc=%d,  HUID=0x%.8X.",
++                       rc, TARGETING::get_huid(i_target) );
++            /*@
++             * @errortype
++             * @moduleid     SBE_WRITE_SBE_IMAGE
++             * @reasoncode   SBE_REMOVE_PAGES_FOR_EC
++             * @userdata1    Requested Address
++             * @userdata2    rc from mm_remove_pages
++             * @devdesc      updateProcessorSbeSeeproms> mm_remove_pages
++             *               RELEASE failed
++             * @custdesc     A problem occurred while updating processor
++             *               boot code.
++             */
++
++            err = new ErrlEntry(ERRL_SEV_UNRECOVERABLE,
++                                SBE_WRITE_SBE_IMAGE,
++                                SBE_REMOVE_PAGES_FOR_EC,
++                                TO_UINT64(SBE_ECC_IMG_VADDR),
++                                TO_UINT64(rc),
++                                true /*Add HB SW Callout*/ );
++
++            //Target isn't directly related to fail, but could be useful
++            //to see how far we got before failing.
++            ErrlUserDetailsTarget(i_target).addToLog(err);
++            err->collectTrace(SBE_COMP_NAME);
++            break;
++        }
++
++        // Inject ECC
++        PNOR::ECC::injectECC(reinterpret_cast<uint8_t*>(i_imgPtr),
++                             ALIGN_8(i_image_size),
++                             reinterpret_cast<uint8_t*>
++                                 (SBE_ECC_IMG_VADDR));
++
++        /*****************************************/
++        /*  Do Actual Write of Image             */
++        /*****************************************/
++        image_size_ECC = ALIGN_8((i_image_size*9)/8);
++
++        assert(image_size_ECC <= SBE_ECC_IMG_MAX_SIZE,
++               "writeSbeImage() SBE Image with ECC too large");
++
++        err = deviceWrite(i_target,
++                          reinterpret_cast<void*>
++                            (SBE_ECC_IMG_VADDR),
++                          image_size_ECC,
++                          DEVICE_EEPROM_ADDRESS(
++                                        l_seeprom,
++                                        SBE_IMAGE_SEEPROM_ADDRESS));
++
++        if(err)
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"writeSbeImage: - Error "
++                       "from EEPROM op: rc=0x%.4X, seeprom=%d (side=%d). "
++                       "HUID=0x%.8X. SBE_VADDR=0x%.16X, ECC_VADDR=0x%.16X, "
++                       "size=0x%.8X, eccSize=0x%.8X, EEPROM offset=0x%X",
++                       err->reasonCode(), l_seeprom, i_side,
++                       TARGETING::get_huid(i_target),
++                       SBE_IMG_VADDR, SBE_ECC_IMG_VADDR, i_image_size,
++                       image_size_ECC, SBE_IMAGE_SEEPROM_ADDRESS);
++            break;
++        }
++
++        /********************************************/
++        /*  Do Actual Write of Version Information  */
++        /********************************************/
++
++        // Update the image crc in the version information
++        uint32_t image_crc = Util::crc32_calc(i_imgPtr, i_image_size);
++
++        memcpy( &(io_version.data_crc),
++                &image_crc,
++                sizeof(image_crc));
++
++       TRACDBIN( g_trac_sbe, "writeSbeImage: Version no ECC",
++                 reinterpret_cast<uint8_t*>(&io_version), sizeof(io_version));
++
++        // Inject ECC
++        memset( sbeInfo_data_ECC, 0, sbeInfoSize_ECC);
++        PNOR::ECC::injectECC(reinterpret_cast<uint8_t*>(&io_version),
++                             sbeInfoSize, sbeInfo_data_ECC);
++
++        TRACDBIN( g_trac_sbe, "writeSbeImage: Version with ECC",
++                  sbeInfo_data_ECC, sbeInfoSize_ECC);
++
++        err = deviceWrite( i_target,
++                           sbeInfo_data_ECC,
++                           sbeInfoSize_ECC,
++                           DEVICE_EEPROM_ADDRESS(
++                                             l_seeprom,
++                                             SBE_VERSION_SEEPROM_ADDRESS));
++
++        if(err)
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"writeSbeImage: - Error "
++                       "Writing SBE Version Info: rc=0x%.4X, "
++                       "HUID=0x%.8X, seeprom=%d, side=%d",
++                       err->reasonCode(),
++                       TARGETING::get_huid(i_target), l_seeprom, i_side);
++            break;
++        }
++
++    }while(0);
++
++    // Free allocated memory
++    free(sbeInfo_data_ECC);
++
++    TRACUCOMP( g_trac_sbe,
++               EXIT_MRK"writeSetSbeImage()" );
++
++    return err;
++}
++
++
++
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t getSbeImageSize(TARGETING::Target* i_target,
++                               void* i_imgPtr,
++                               PNOR::sbeSeepromSide_t i_side,
++                               size_t& o_image_size)
++{
++    TRACUCOMP( g_trac_sbe,
++               ENTER_MRK"geSbeImageSize(): tgt=0x%X, i_side=%d "
++               "i_imgPtr=%p, o_image_size=0x%X",
++               TARGETING::get_huid(i_target), i_side, i_imgPtr, o_image_size);
++
++    errlHndl_t err = NULL;
++    PNOR::ECC::eccStatus eccStatus = PNOR::ECC::CLEAN;
++    EEPROM::eeprom_chip_types_t l_seeprom = sbe_side_sync[i_side];
++    size_t image_size_ECC = 0;
++
++    // Need to ensure that i_imgPtr is at SBE_IMG_VADDR = VMM_VADDR_SBE_UPDATE
++    // since we need to use the VMM_VADDR_SBE_UPDATE space
++
++    assert ( i_imgPtr == reinterpret_cast<void*>(SBE_IMG_VADDR),
++             "getSbeImageSize() - i_imgPtr is not at SBE_IMG_VADDR");
++
++    do{
++        // Need to read the SbeXipHeader of the image to determine size
++        // of the image to read out.
++        // Using io_imgPtr space. First read our header+ECC from SBE
++        // Seeprom and then use space after that to put header without ECC
++
++
++        size_t hdr_size = ALIGN_8(sizeof(SbeXipHeader));
++        size_t hdr_size_ECC = (hdr_size * 9)/8;
++
++        uint8_t* hdr_ptr = reinterpret_cast<uint8_t*>(i_imgPtr) + hdr_size_ECC;
++
++        memset( i_imgPtr, 0, hdr_size_ECC + hdr_size );
++
++        TRACUCOMP( g_trac_sbe, INFO_MRK"getSetSbeImage() Reading "
++                   "SbeXipHeader for Target 0x%X, Seeprom %d "
++                   "(side=%d), size_ECC=0x%X (size=0x%X)",
++                   TARGETING::get_huid(i_target),
++                   l_seeprom, i_side, hdr_size_ECC, hdr_size );
++
++        err = DeviceFW::deviceOp( DeviceFW::READ,
++                                  i_target,
++                                  i_imgPtr,
++                                  hdr_size_ECC,
++                                  DEVICE_EEPROM_ADDRESS(
++                                                l_seeprom,
++                                                SBE_IMAGE_SEEPROM_ADDRESS));
++
++        if(err)
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK"getSbeImageSize: - Error "
++                       "Reading SbeXipHeader: rc=0x%.4X, seeprom=%d (side=%d). "
++                       "HUID=0x%.8X. size=0x%.8X, EEPROM offset=0x%X",
++                       err->reasonCode(), l_seeprom, i_side,
++                       TARGETING::get_huid(i_target), sizeof(SbeXipHeader),
++                       SBE_IMAGE_SEEPROM_ADDRESS);
++            break;
++        }
++
++
++        TRACDBIN( g_trac_sbe,
++                 "Data with ECC read from Seeprom",
++                 i_imgPtr,
++                 hdr_size_ECC );
++
++        // Remove ECC
++        eccStatus = PNOR::ECC::removeECC(
++                                     reinterpret_cast<uint8_t*>(i_imgPtr),
++                                     hdr_ptr,
++                                     hdr_size);
++
++        // Fail if uncorrectable ECC
++        if ( eccStatus == PNOR::ECC::UNCORRECTABLE )
++        {
++            TRACFCOMP( g_trac_sbe,ERR_MRK"getSbeImageSize: ECC Error "
++                       "On SBE Image Read eccStatus=%d sI=%d, sI_ECC="
++                       "%d, HUID=0x%.8X, Seeprom %d (side=%d)",
++                       eccStatus, o_image_size, image_size_ECC,
++                       TARGETING::get_huid(i_target),
++                       l_seeprom, i_side );
++            /*@
++             * @errortype
++             * @moduleid     SBE_GET_SBE_IMAGE_SIZE
++             * @reasoncode   SBE_ECC_FAIL
++             * @userdata1[0:15]     ECC Status
++             * @userdata1[16:31]    SEEPROM Side
++             * @userdata1[32:63]    Target HUID
++             * @userdata2[0:31]     Size - No Ecc
++             * @userdata2[32:63]    Size - ECC
++             * @devdesc      ECC Fail Reading SBE Image
++             */
++            err = new ErrlEntry(ERRL_SEV_PREDICTIVE,
++                                SBE_GET_SBE_IMAGE_SIZE,
++                                SBE_ECC_FAIL,
++                                TWO_UINT32_TO_UINT64(
++                                              ( (eccStatus << 16 ) |
++                                                 l_seeprom ),
++                                              TARGETING::get_huid(i_target)),
++                                TWO_UINT32_TO_UINT64(o_image_size,
++                                                     image_size_ECC));
++            err->collectTrace(SBE_COMP_NAME);
++            err->addPartCallout(
++                                i_target,
++                                HWAS::SBE_SEEPROM_PART_TYPE,
++                                HWAS::SRCI_PRIORITY_HIGH,
++                                HWAS::NO_DECONFIG,
++                                HWAS::GARD_NULL );
++
++            ErrlUserDetailsTarget(i_target).addToLog(err);
++
++            break;
++        }
++
++        TRACDBIN( g_trac_sbe,
++                  "Data without ECC read from Seeprom",
++                  hdr_ptr,
++                  hdr_size );
++
++        o_image_size = (((SbeXipHeader*)hdr_ptr)->iv_imageSize);
++
++    }while(0);
++
++    TRACFCOMP( g_trac_sbe,
++               EXIT_MRK"getSbeImageSize(): o_image_size=0x%X", o_image_size );
++
++    return err;
++}
++
++
++
++/////////////////////////////////////////////////////////////////////
++errlHndl_t resolveImageHBBaddr(TARGETING::Target* i_target,
++                               void* io_imgPtr,
++                               PNOR::sbeSeepromSide_t i_side,
++                               PNOR::SideId  i_pnorSideId,
++                               bool& o_imageWasUpdated )
++{
++    errlHndl_t err = NULL;
++    uint64_t data = 0;
++    int rc = 0;
++    bool rc_fail_on_get = false; // 1=get failed, 0=set failed
++
++    o_imageWasUpdated = false;
++
++    TRACUCOMP( g_trac_sbe,
++               ENTER_MRK"resolveImageHBBaddr() - tgt=0x%X, i_side=%d, "
++               "i_pnorSideId=%d",
++               TARGETING::get_huid(i_target), i_side, i_pnorSideId);
++
++    do{
++
++        // Get info from PNOR
++        PNOR::SideInfo_t pnor_side_info;
++        err = PNOR::getSideInfo (i_pnorSideId, pnor_side_info);
++        if ( err )
++        {
++            TRACFCOMP( g_trac_sbe, ERR_MRK
++                       "resolveImageHBBaddr() - Error returned "
++                       "from PNOR::getSideInfo() rc=0x%.4X, Target UID=0x%X "
++                       "i_pnorSideId",
++                       err->reasonCode(),
++                       TARGETING::get_huid(i_target), i_pnorSideId);
++            break;
++        }
++
++
++        // Only Need to Check/Update if PNOR has Other Side
++        // and Seeprom isn't pointing at PNOR's GOLDEN side
++        if ( (  pnor_side_info.hasOtherSide == true ) &&
++             (  pnor_side_info.isGolden == false ) )
++        {
++
++            // Read the MMIO offset associated with the HBB address
++            // from the image
++            rc = sbe_xip_get_scalar( io_imgPtr,
++                                     "standalone_mbox2_value",
++                                     &data);
++            if ( rc != 0 )
++            {
++                rc_fail_on_get = true; // get failed
++
++                TRACFCOMP( g_trac_sbe, ERR_MRK"resolveImageHBBaddr() - "
++                           "sbe_xip_get_scalar() failed rc = 0x%X (%d)",
++                           rc, rc_fail_on_get);
++                break;
++            }
++
++            if ( pnor_side_info.hbbMmioOffset == data )
++            {
++                TRACUCOMP( g_trac_sbe, "resolveImageHBBaddr: Image has MMIO "
++                           "offset = 0x%X that matches PNOR MMIO="
++                           "0x%X for HBB Address=0x%X",
++                           data, pnor_side_info.hbbMmioOffset,
++                           pnor_side_info.hbbAddress);
++            }
++            else
++            {
++                TRACFCOMP( g_trac_sbe, "resolveImageHBBaddr: Image has MMIO "
++                           "offset = 0x%X does NOT match PNOR MMIO="
++                           "0x%X for HBB Address=0x%X. Updating Image",
++                           data, pnor_side_info.hbbMmioOffset,
++                           pnor_side_info.hbbAddress);
++
++                TRACDBIN (g_trac_sbe, "resolveImageHBBaddr: data", &data, 8 );
++
++                TRACDBIN (g_trac_sbe, "resolveImageHBBaddr: hbbMmioOffset",
++                          &pnor_side_info.hbbMmioOffset, 8 );
++                TRACDBIN (g_trac_sbe, "resolveImageHBBaddr: hbbAddress",
++                          &pnor_side_info.hbbAddress, 8);
++
++                rc = sbe_xip_set_scalar( io_imgPtr, "standalone_mbox2_value",
++                                         pnor_side_info.hbbMmioOffset);
++
++                if ( rc != 0 )
++                {
++                    rc_fail_on_get = false; // set failed
++
++                    TRACFCOMP( g_trac_sbe, ERR_MRK"resolveImageHBBaddr() - "
++                               "sbe_xip_set_scalar() failed rc = 0x%X (%d)",
++                               rc, rc_fail_on_get);
++                    break;
++                }
++                o_imageWasUpdated = true;
++            }
++
++        }
++        else
++        {
++              // pnor_side_info.hasOtherSide is false
++              TRACUCOMP( g_trac_sbe, "resolveImageHBBaddr: PNOR only has "
++                         "1 side - No Update Required");
++        }
++
++    }while(0);
++
++
++    if ( ( err == NULL ) && ( rc != 0) )
++    {
++        // We failed on get/set cmd above (already traced)
++
++        /*@
++         * @errortype
++         * @moduleid     SBE_RESOLVE_HBB_ADDR
++         * @reasoncode   SBE_IMAGE_GET_SET_SCALAR_FAIL
++         * @userdata1    Return Code of failed operation
++         * @userdata2    True/False if Get (true) or Set (false) Op failed
++         * @devdesc      sbe_xip_get/set_scalar() failed when accessing the
++                         HBB Address MMIO offset in 'standalone_mbox2_value'
++         * @custdesc     A problem occurred while updating processor
++         *               boot code.
++         */
++        err = new ErrlEntry(ERRL_SEV_UNRECOVERABLE,
++                            SBE_RESOLVE_HBB_ADDR,
++                            SBE_IMAGE_GET_SET_SCALAR_FAIL,
++                            TO_UINT64(rc),
++                            TO_UINT64(rc_fail_on_get),
++                            true /*Add HB SW Callout*/ );
++
++        err->collectTrace(SBE_COMP_NAME);
++    }
++
++
++    TRACUCOMP( g_trac_sbe,
++               EXIT_MRK"resolveImageHBBaddr() - o_imageWasUpdated = %d",
++               o_imageWasUpdated);
++
++    return err;
++}
++
++#ifdef CONFIG_BMC_IPMI
++/////////////////////////////////////////////////////////////////////
++void sbePreShutdownIpmiCalls( void )
++{
++    errlHndl_t err = NULL;
++
++    TRACFCOMP( g_trac_sbe, ENTER_MRK"sbePreShutdownIpmiCalls");
++
++    do{
++        uint16_t count = 0;
++        SENSOR::RebootCountSensor l_sensor;
++
++        // Read reboot count sensor
++        err = l_sensor.getRebootCount(count);
++        if ( err )
++        {
++            TRACFCOMP( g_trac_sbe,
++                       ERR_MRK"sbePreShutdownIpmiCalls: "
++                       "FAIL Reading Reboot Sensor Count. "
++                       "Committing Error Log rc=0x%.4X eid=0x%.8X "
++                       "plid=0x%.8X, but continuing shutdown",
++                       err->reasonCode(),
++                       err->eid(),
++                       err->plid());
++            err->collectTrace(SBE_COMP_NAME);
++            errlCommit( err, SBE_COMP_ID );
++
++            // No Break - Still Do Watchdog Timer Call
++        }
++        else
++        {
++            // Increment Reboot Count Sensor
++            count++;
++            TRACFCOMP( g_trac_sbe,
++                       INFO_MRK"sbePreShutdownIpmiCalls: "
++                       "Writing Reboot Sensor Count=%d", count);
++
++            err = l_sensor.setRebootCount( count );
++            if ( err )
++            {
++                TRACFCOMP( g_trac_sbe,
++                           ERR_MRK"sbePreShutdownIpmiCalls: "
++                           "FAIL Writing Reboot Sensor Count to %d. "
++                           "Committing Error Log rc=0x%.4X eid=0x%.8X "
++                           "plid=0x%.8X, but continuing shutdown",
++                           count,
++                           err->reasonCode(),
++                           err->eid(),
++                           err->plid());
++                err->collectTrace(SBE_COMP_NAME);
++                errlCommit( err, SBE_COMP_ID );
++
++                // No Break - Still Do Watchdog Timer Call
++            }
++        }
++
++        // @todo RTC 124679 - Remove Once BMC Monitors Shutdown Attention
++        // Set Watchdog Timer To 10 seconds
++        const uint16_t SET_WD_TIMER_10_SECS = 10;
++        TRACFCOMP( g_trac_sbe,"sbePreShutdownIpmiCalls: "
++                   "Set Watch Dog Timer To %d Seconds",
++                   SET_WD_TIMER_10_SECS);
++
++        err = IPMIWATCHDOG::setWatchDogTimer(SET_WD_TIMER_10_SECS);
++        if(err)
++        {
++               TRACFCOMP( g_trac_sbe,
++                          ERR_MRK"sbePreShutdownIpmiCalls: "
++                          "FAIL Setting Watch Dog Timer to %d seconds. "
++                          "Committing Error Log rc=0x%.4X eid=0x%.8X "
++                          "plid=0x%.8X, but continuing shutdown",
++                          SET_WD_TIMER_10_SECS,
++                          err->reasonCode(),
++                          err->eid(),
++                          err->plid());
++
++                err->collectTrace(SBE_COMP_NAME);
++                errlCommit(err, SBE_COMP_ID );
++         }
++
++    }while(0);
++
++    TRACFCOMP( g_trac_sbe, EXIT_MRK"sbePreShutdownIpmiCalls");
++
++    return;
++}
++#endif // CONFIG_BMC_IPMI
++
++
++} //end SBE Namespace
+diff --git a/src/usr/sbe/sbe_resolve_sides.H b/src/usr/sbe/sbe_resolve_sides.H
+new file mode 100644
+index 0000000..42f727a
+--- /dev/null
++++ b/src/usr/sbe/sbe_resolve_sides.H
+@@ -0,0 +1,259 @@
++/* IBM_PROLOG_BEGIN_TAG                                                   */
++/* This is an automatically generated prolog.                             */
++/*                                                                        */
++/* $Source: src/usr/sbe/sbe_resolve_sides.H $                             */
++/*                                                                        */
++/* OpenPOWER HostBoot Project                                             */
++/*                                                                        */
++/* Contributors Listed Below - COPYRIGHT 2015                             */
++/* [+] International Business Machines Corp.                              */
++/*                                                                        */
++/*                                                                        */
++/* Licensed under the Apache License, Version 2.0 (the "License");        */
++/* you may not use this file except in compliance with the License.       */
++/* You may obtain a copy of the License at                                */
++/*                                                                        */
++/*     http://www.apache.org/licenses/LICENSE-2.0                         */
++/*                                                                        */
++/* Unless required by applicable law or agreed to in writing, software    */
++/* distributed under the License is distributed on an "AS IS" BASIS,      */
++/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
++/* implied. See the License for the specific language governing           */
++/* permissions and limitations under the License.                         */
++/*                                                                        */
++/* IBM_PROLOG_END_TAG                                                     */
++#ifndef __SBE_SBE_RESOLVE_SIDES_H
++#define __SBE_SBE_RESOLVE_SIDES_H
++
++
++#include <stdint.h>
++#include <builtins.h>
++#include <errl/errlentry.H>
++#include <pnor/pnorif.H>
++#include <util/align.H>
++#include <vmmconst.h>
++#include <targeting/common/targetservice.H>
++#include <i2c/eepromif.H>
++#include "sbe_update.H"
++
++namespace SBE
++{
++    /******************************************/
++    /*  Constants                             */
++    /******************************************/
++
++    // This seeprom is a candidate to be READ_ONLY (ie, not updated)
++    const PNOR::sbeSeepromSide_t READ_ONLY_SEEPROM = PNOR::SBE_SEEPROM1;
++
++    // Used to keep SBE Seeproms in sync with EEPROM::eeprom_chip_types_t
++    const EEPROM::eeprom_chip_types_t sbe_side_sync[2] =
++                                      { EEPROM::SBE_PRIMARY,
++                                        EEPROM::SBE_BACKUP };
++
++    /******************************************/
++    /*  Enums                                 */
++    /******************************************/
++
++    // Actions can be combined
++    enum
++    {
++        NO_ACTIONS             = 0x00000000,
++        REIPL                  = 0x00000001,
++
++        // Use PNOR::ALTERNATE SideId for HBB Address info
++        USE_PNOR_ALT_SIDE      = 0x00000002,
++
++        // NOTE: These next 2 values are mutually exclusive
++        CHECK_WORKING_HBB         = 0x00000010,
++        COPY_READ_ONLY_TO_WORKING = 0x00000020,
++    };
++
++    /******************************************/
++    /*  Structs                               */
++    /******************************************/
++    struct sbeResolveState_t
++    {
++
++        // Target Information
++        TARGETING::Target*       tgt;
++
++        PNOR::sbeSeepromSide_t   cur_side;    // aka 'booted' side
++        PNOR::sbeSeepromSide_t   alt_side;    // non-booted/non-cur side
++        PNOR::sbeSeepromSide_t   update_side; // side to be updated
++
++        // Info from PNOR
++        PNOR::SideId pnor_sideId;
++        char pnor_side;          /**< name of the side either A or B */
++        bool pnor_isGolden;      /**< True if side is golden */
++        bool pnor_hasOtherSide;  /**< True if a valid alternate side exists*/
++
++        uint32_t actions;
++
++        // Constructor to default certain values
++        sbeResolveState_t() :
++          tgt(NULL), cur_side(PNOR::SBE_SEEPROM_INVALID),
++          alt_side(PNOR::SBE_SEEPROM_INVALID),
++          update_side(PNOR::SBE_SEEPROM_INVALID),
++          pnor_sideId(PNOR::WORKING),
++          pnor_side(NULL),
++          pnor_isGolden(false), pnor_hasOtherSide(false),
++          actions(NO_ACTIONS)
++        {}
++
++    };
++
++
++    /******************************************/
++    /*  Functions -- High Level Functions     */
++    /******************************************/
++
++    /**
++     * @brief Collects SBE Side Information for a specifc target
++     *
++     * @param[io/out] io_sideState   Struct containing SBE State of the target
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t getSideState(sbeResolveState_t& io_sideState);
++
++    /**
++     * @brief Analyze and Determine Update Actions for a specific target
++     *
++     * @param[io/out] io_sideState   Struct containing SBE State of the target
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t getSideActions(sbeResolveState_t& io_sideState);
++
++    /**
++     * @brief Performs the Update Actions for a specific target
++     *
++     * @param[io/out] io_sideState   Struct containing SBE State of the target
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t performSideActions(sbeResolveState_t& io_sideState);
++
++
++
++    /******************************************/
++    /*  Functions -- System Access            */
++    /******************************************/
++
++
++    /**
++     * @brief Read SBE Image from SBE Seeprom
++     *
++     * @param[in] i_target   Target processor
++     *
++     * @param[out] o_imgPtr    Pointer to SBE image in memory
++     *                         Memory for this pointer is expected to be
++     *                         pre-alloacted
++     *                         NOTE:  ECC is handled internally in this
++     *                         function. io_imgPtr points to non-ECC image
++     *
++     * @param[in] i_side          Seeprom Side to access
++     *
++     * @param[in] o_image_size    The size of the image (non-ECC)
++     *
++     * @param[in] o_version       SBE Version struct from seeprom (non-ECC)
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t readSbeImage(TARGETING::Target* i_target,
++                              void* o_imgPtr,
++                              PNOR::sbeSeepromSide_t i_side,
++                              size_t& o_image_size,
++                              sbeSeepromVersionInfo_t& o_version);
++
++    /**
++     * @brief Write SBE Image from SBE Seeprom
++     *
++     * @param[in] i_target   Target processor
++     *
++     * @param[in] i_imgPtr    Pointer to SBE image in memory
++     *                        Memory for this pointer is expected to be
++     *                        pre-alloacted
++     *                        NOTE:  ECC is handled internally in this function
++     *                        i_imgPtr points to non-ECC image
++     *
++     * @param[in] i_side        Seeprom Side to access
++     *
++     * @param[in] i_image_size  Size of image to write (non-ECC)
++     *
++     * @param[in] io_version    SBE Version struct to write (non-ECC)
++     *                          NOTE: data_crc updated in this function
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t writeSbeImage(TARGETING::Target* i_target,
++                             void* i_imgPtr,
++                             PNOR::sbeSeepromSide_t i_side,
++                             size_t i_image_size,
++                             sbeSeepromVersionInfo_t& io_version);
++
++
++    /**
++     * @brief Read SBE Image Header from SBE Seeprom and gets the
++     *        Image size from the heaser
++     *
++     * @param[in] i_target   Target processor
++     *
++     * @param[out] i_imgPtr    Pointer to pre-allocated memory to be used
++     *                         for different operations
++     *
++     * @param[in] i_side          Seeprom Side to access
++     *
++     * @param[in] o_image_size    The size of the image (non-ECC)
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t getSbeImageSize(TARGETING::Target* i_target,
++                               void* i_imgPtr,
++                               PNOR::sbeSeepromSide_t i_side,
++                               size_t& o_image_size);
++
++
++
++
++    /******************************************/
++    /*  Functions -- Helper Functions         */
++    /******************************************/
++
++    /**
++     * @brief Check and Update (if necessary) the HBB Address MMIO offset
++     *        in a customized SBE Image for the current Processor
++     *
++     * @param[in] i_target      Target processor to customize
++     *
++     * @param[in/out] io_imgPtr    Pointer to SBE image in memory
++     *                          Memory for this pointer is expected to be
++     *                          pre-alloacted
++     *
++     * @param[in] i_side          Seeprom Side to access
++     *
++     * @param[in] i_pnorSideId    PNOR side to get information for
++     *
++     * @param[out] o_imageWasUpdated  Set to true if Image was updated;
++     *                                otherwise false
++     *
++     * @return errlHndl_t    Error log handle on failure.
++     */
++    errlHndl_t resolveImageHBBaddr(TARGETING::Target* i_target,
++                                   void* io_imgPtr,
++                                   PNOR::sbeSeepromSide_t i_side,
++                                   PNOR::SideId i_pnorSideId,
++                                   bool& o_imageWasUpdated);
++
++#ifdef CONFIG_BMC_IPMI
++    /**
++     * @brief Performs any necessary IPMI calls before shutting down the system
++     *
++     * @return void       Any generated Error Logs will be commited before the
++     *                    function returns
++     */
++    void sbePreShutdownIpmiCalls( void );
++#endif
++
++} //end namespace SBE
++#endif
+diff --git a/src/usr/sbe/sbe_update.C b/src/usr/sbe/sbe_update.C
+index 97a0484..562798b 100644
+--- a/src/usr/sbe/sbe_update.C
++++ b/src/usr/sbe/sbe_update.C
+@@ -50,6 +50,7 @@
+ #include <sbe/sbeif.H>
+ #include <sbe/sbereasoncodes.H>
+ #include "sbe_update.H"
++#include "sbe_resolve_sides.H"
+ 
+ //  fapi support
+ #include    <fapi.H>
+@@ -112,6 +113,25 @@ namespace SBE
+ 
+         do{
+ 
++#ifdef CONFIG_NO_SBE_UPDATES
++            TRACFCOMP( g_trac_sbe, INFO_MRK"updateProcessorSbeSeeproms() - "
++                       "SBE updates not configured");
++            break;
++#endif
++
++#ifdef CONFIG_SBE_UPDATE_SEQUENTIAL
++            // Check if FSP-services are enabled and if we're running in simics
++            if ( !INITSERVICE::spBaseServicesEnabled() &&
++                 !Util::isSimicsRunning() )
++            {
++                assert (false, "resolveProcessorSbeSeeproms() - "
++                        "SBE_UPDATE_SEQUENTIAL mode, but FSP-services are not "
++                        "enabled - Invalid Configuration");
++            }
++            // else - continue on
++#endif
++
++
+             // Get Target Service, and the system target.
+             TargetService& tS = targetService();
+             TARGETING::Target* sys = NULL;
+@@ -204,11 +224,6 @@ namespace SBE
+                  err = NULL;
+             }
+ 
+-#ifdef CONFIG_NO_SBE_UPDATES
+-            TRACFCOMP( g_trac_sbe, INFO_MRK"updateProcessorSbeSeeproms() - "
+-                       "SBE updates not configured");
+-            break;
+-#endif
+ 
+             for(uint32_t i=0; i<procList.size(); i++)
+             {
+@@ -277,7 +292,6 @@ namespace SBE
+                 /**********************************************/
+                 if ((err == NULL) && (sbeState.update_actions & DO_UPDATE))
+                 {
+-
+                     err = performUpdateActions(sbeState);
+                     if (err)
+                     {
+@@ -328,7 +342,6 @@ namespace SBE
+ 
+             } //end of Target for loop collecting each target's SBE State
+ 
+-
+             /**************************************************************/
+             /*  Perform System Operation                                  */
+             /**************************************************************/
+@@ -355,7 +368,7 @@ namespace SBE
+                 }
+ 
+ #ifdef CONFIG_BMC_IPMI
+-                // @todo RTC 120734 reset system's reboot count via IPMI sensor
++                sbePreShutdownIpmiCalls();
+ #endif
+ 
+                 TRACFCOMP( g_trac_sbe,
+@@ -685,14 +698,15 @@ namespace SBE
+ 
+         do{
+ 
+-            // @todo RTC 120734 - before customizing, ensure correct HBB address
+-            // is set in the necessary attribute
+-
+             // cast OUR type of target to a FAPI type of target.
+             const fapi::Target
+               l_fapiTarg(fapi::TARGET_TYPE_PROC_CHIP,
+                          (const_cast<TARGETING::Target*>(i_target)));
+ 
++            // NOTE: The p8_xip_customize_procedure uses SBE_IMAGE_OFFSET
++            // attribute for HBB address value.  Purpsely leaving this
++            // attribute as-is for now and will do the check for HBB address
++            // later.
+ 
+             // The p8_xip_customize() procedure tries to include as much core
+             // information as possible, but is limited by SBE Image size
+@@ -871,7 +885,6 @@ namespace SBE
+                                           HWAS::SRCI_PRIORITY_HIGH );
+             }
+ 
+-
+         }while(0);
+ 
+         TRACUCOMP( g_trac_sbe,
+@@ -1715,6 +1728,26 @@ namespace SBE
+             // The Customized Image For This Target Still Resides In
+             // The SBE Update VMM Space: SBE_IMG_VADDR = VMM_VADDR_SBE_UPDATE
+ 
++#ifdef CONFIG_SBE_UPDATE_INDEPENDENT
++            // Ensure HBB address value in the customized image is correct
++            // for this side
++            bool imageWasUpdated=false;
++            err = resolveImageHBBaddr ( io_sbeState.target,
++                                        reinterpret_cast<void*>(SBE_IMG_VADDR),
++                                        ((io_sbeState.seeprom_side_to_update ==
++                                         EEPROM::SBE_PRIMARY ) ?
++                                            PNOR::SBE_SEEPROM0 :
++                                            PNOR::SBE_SEEPROM1  ),
++                                        PNOR::WORKING,
++                                        imageWasUpdated );
++
++            if (imageWasUpdated == true )
++            {
++                TRACUCOMP( g_trac_sbe, ERR_MRK"updateSeepromSide() - "
++                           "HBB Address's MMIO Offset Updated in Image");
++            }
++
++#endif
+ 
+             // Inject ECC
+             // clear out back half of page block to use as temp space
+@@ -1941,7 +1974,6 @@ namespace SBE
+                            io_sbeState.seeprom_0_ver.data_crc, isSimics_check);
+             }
+ 
+-
+             /**************************************************************/
+             /*  Compare SEEPROM 1 with PNOR and Customized Image CRC --   */
+             /*  -- dirty or clean?                                        */
+@@ -2153,22 +2185,55 @@ namespace SBE
+ #ifdef CONFIG_SBE_UPDATE_INDEPENDENT
+ 
+             // The 2 SBE SEEPROMs are independent of each other
+-            // Determine if PNOR is 1- or 2-sided and if there is a
+-            // GOLDEN boot involved
++            // Determine if PNOR is 1- or 2-sided and if the current
++            // Seeprom is pointing at PNOR's GOLDEN side
++
++            PNOR::SideId tmp_side = PNOR::WORKING;
++            PNOR::SideInfo_t pnor_side_info;
++            err = PNOR::getSideInfo (tmp_side, pnor_side_info);
++            if ( err )
++            {
++                TRACFCOMP( g_trac_sbe, ERR_MRK
++                           "SBE Update() - Error returned from "
++                           "PNOR::getSideInfo() rc=0x%.4X, Target UID=0x%X",
++                           err->reasonCode(),
++                           TARGETING::get_huid(io_sbeState.target));
++                break;
++            }
+ 
+-#ifdef CONFIG_PNOR_TWO_SIDE_SUPPORT
++            TRACUCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: PNOR Info: "
++                       "side-%c, sideId=0x%X, isGolden=%d, hasOtherSide=%d",
++                       TARGETING::get_huid(io_sbeState.target),
++                       pnor_side_info.side, pnor_side_info.id,
++                       pnor_side_info.isGolden, pnor_side_info.hasOtherSide);
+ 
+-            // @todo RTC 120734 - ask PNOR if we are in "GOLDEN" mode,
+-            // which would mean that we are booting off the the GOLDEN
+-            // SBE SEEPROM which corresponds to the GOLDEN side of PNOR
+-/*
+-            if (true)
++            if ( pnor_side_info.isGolden == true )
+             {
+                 // If true, nothing to do (covered in istep 6 function)
+                 l_actions = CLEAR_ACTIONS;
+ 
+                 TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                           "Booting GOLDEN SBE SEEPROM in PNOR 2-sided Mode. "
++                           "Booting READ_ONLY SEEPROM pointing at PNOR's "
++                           "GOLDEN side. No updates for cur side=%d. Continue "
++                            "IPL. (sit=0x%.2X, act=0x%.8X flags=0x%.2X)",
++                           TARGETING::get_huid(io_sbeState.target),
++                           io_sbeState.cur_seeprom_side,
++                           i_system_situation, l_actions,
++                           io_sbeState.mvpdSbKeyword.flags);
++                break;
++            }
++
++            else if (  ( pnor_side_info.hasOtherSide == false ) &&
++                       ( io_sbeState.cur_seeprom_side == READ_ONLY_SEEPROM ) )
++            {
++                // Even though current seeprom is not pointing at PNOR's
++                // GOLDEN side, treat like READ_ONLY if booting from READ_ONLY
++                // seeprom and and PNOR does not have another side - No Update
++                // (ie, Palmetto configuration)
++                l_actions = CLEAR_ACTIONS;
++
++                TRACFCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
++                           "Treating cur like READ_ONLY SBE SEEPROM. "
+                            "No updates for cur side=%d. Continue IPL. "
+                            "(sit=0x%.2X, act=0x%.8X flags=0x%.2X)",
+                            TARGETING::get_huid(io_sbeState.target),
+@@ -2179,22 +2244,14 @@ namespace SBE
+             }
+             else // proceed to update this side
+             {
++                // proceed to update this side
+                 TRACUCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                           "NOT Booting GOLDEN SBE SEEPROM in PNOR 2-sided "
+-                           "mode. Checking for update on cur side=%d ",
++                           "NOT Booting READ_ONLY SEEPROM. Check for update "
++                           "on cur side=%d ",
+                            TARGETING::get_huid(io_sbeState.target),
+                            io_sbeState.cur_seeprom_side)
+             }
+-*/
+-#else
+ 
+-            // @todo RTC 120734 - check this assumption
+-            // Assume that we're only checking/updating the current side
+-            TRACUCOMP( g_trac_sbe, INFO_MRK"SBE Update tgt=0x%X: "
+-                       "PNOR 1-sided so only check for update on cur side=%d",
+-                       TARGETING::get_huid(io_sbeState.target),
+-                       io_sbeState.cur_seeprom_side);
+-#endif
+ 
+             // Check for clean vs. dirty only on cur side
+             if ( i_system_situation & SITUATION_CUR_IS_DIRTY )
+@@ -2203,6 +2260,7 @@ namespace SBE
+                 l_actions |= IPL_RESTART;
+                 l_actions |= DO_UPDATE;
+                 l_actions |= UPDATE_SBE;
++                l_actions |= UPDATE_MVPD; // even though flags byte not updated
+ 
+                 // Set Update side to cur
+                 io_sbeState.seeprom_side_to_update =
+-- 
+1.7.4.1
+
