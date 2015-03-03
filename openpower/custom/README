@@ -1,0 +1,16 @@
+This directory is for placing custom packages that can be kept separate from
+an upstream op-build.  The purpose of this is to make pulling in upstream
+op-build updates much easier, since your customizations will not touch any 
+files also modified by op-build changes.
+
+openpower/custom/configs        # For machine configs (*_defconfig files)
+                /package        # For additional packages.
+                /patches        # For patching existing packages.
+
+It is recommended that the layout of the custom/configs and custom/package
+directories follow the layout of the openpower/ peers.
+
+The openpower/custom/patches directory should have subdirectories for each
+package desired to be patched and patch files contained inside.  For example
+to add a patch to skiboot you would create:
+    openpower/custom/patches/skiboot/skiboot-0001-example.patch
