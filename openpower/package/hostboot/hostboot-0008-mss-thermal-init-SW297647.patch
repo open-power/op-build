@@ -1,0 +1,83 @@
+From 1b7b2c8af560b71aa1dcddb4e8075047a1321d1e Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Wed, 4 Mar 2015 13:25:30 -0600
+Subject: [PATCH] mss thermal patch from Mike Pradik
+
+Change-Id: I0980f7b996a854f92c0ffad39eb32758539df91e
+---
+ .../mss_thermal_init/mss_thermal_init.C            | 23 ++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/src/usr/hwpf/hwp/dram_initialization/mss_thermal_init/mss_thermal_init.C b/src/usr/hwpf/hwp/dram_initialization/mss_thermal_init/mss_thermal_init.C
+index aa217c6..2e6600f 100644
+--- a/src/usr/hwpf/hwp/dram_initialization/mss_thermal_init/mss_thermal_init.C
++++ b/src/usr/hwpf/hwp/dram_initialization/mss_thermal_init/mss_thermal_init.C
+@@ -22,7 +22,7 @@
+ /* permissions and limitations under the License.                         */
+ /*                                                                        */
+ /* IBM_PROLOG_END_TAG                                                     */
+-// $Id: mss_thermal_init.C,v 1.18 2015/01/23 17:54:09 dcrowell Exp $
++// $Id: mss_thermal_init.C,v 1.18b CHANGED IN OPENPOWER PATCH maploetz Exp $
+ // $Source: /afs/awd/projects/eclipz/KnowledgeBase/.cvsroot/eclipz/chips/centaur/working/procedures/ipl/fapi/mss_thermal_init.C,v $
+ //------------------------------------------------------------------------------
+ // *! (C) Copyright International Business Machines Corp. 2011
+@@ -49,6 +49,7 @@
+ //------------------------------------------------------------------------------
+ // Version:|  Author: |  Date:  | Comment:
+ //---------|----------|---------|-----------------------------------------------
++//   1.18u | pardeik  |03-MAR-15| user version to be like v1.20
+ //   1.17  | pardeik  |19-NOV-14| Use MRW attribute for SC address map for ISDIMMs
+ //   1.16  | pardeik  |06-FEB-14| removed string in trace statement
+ //   1.15  | pardeik  |24-FEB-14| added support for ATTR_MRW_CDIMM_SPARE_I2C_TEMP_SENSOR_ENABLE
+@@ -158,6 +159,7 @@ fapi::ReturnCode mss_thermal_init(const fapi::Target & i_target)
+       const uint8_t I2C_BUS_ENCODE_PRIMARY = 0;
+       const uint8_t I2C_BUS_ENCODE_SECONDARY = 8;
+       const uint8_t MAX_NUM_DIMM_SENSORS = 8;
++      const uint8_t MAX_I2C_BUSSES = 2;
+ 
+       // Variable declaration
+       uint8_t l_dimm_ranks_array[l_NUM_MBAS][l_NUM_PORTS][l_NUM_DIMMS];	// Number of ranks for each configured DIMM in each MBA
+@@ -247,6 +249,19 @@ fapi::ReturnCode mss_thermal_init(const fapi::Target & i_target)
+           l_custom_dimm[i] = fapi::ENUM_ATTR_EFF_CUSTOM_DIMM_NO;
+       }
+ 
++      // zero out the l_dimm_ranks_array so it is initialized for later use if there is a deconfigured MBA
++      for (uint8_t i = 0; i < l_NUM_MBAS; i++)
++      {
++	  for (uint8_t j = 0; j < l_NUM_PORTS; j++)
++	  {
++	      for (uint8_t k = 0; k < l_NUM_DIMMS; k++)
++	      {
++		  l_dimm_ranks_array[i][j][k]=0;
++	      }
++	  }
++
++      }
++
+       for (uint8_t mba_index = 0; mba_index < l_target_mba_array.size(); mba_index++){
+          l_rc = FAPI_ATTR_GET(ATTR_CHIP_UNIT_POS, &l_target_mba_array[mba_index], l_mba_pos);
+ 	 if (l_rc) return l_rc;
+@@ -397,9 +412,9 @@ fapi::ReturnCode mss_thermal_init(const fapi::Target & i_target)
+ 
+ 	  l_cdimm_number_dimm_temp_sensors = 0;
+ 	  // cycle through both primary and secondary i2c busses, determine i2c address and enable bits
+-	  for (uint8_t k = 0; k < 2; k++)
++	  for (uint8_t k = 0; k < MAX_I2C_BUSSES; k++)
+ 	  {
+-	      for (uint8_t i = 0; i < 8; i++)
++	      for (uint8_t i = 0; i < MAX_NUM_DIMM_SENSORS; i++)
+ 	      {
+ 		  if (k == 0)
+ 		  {
+@@ -490,7 +505,7 @@ fapi::ReturnCode mss_thermal_init(const fapi::Target & i_target)
+          // Iterate through the num_ranks array to determine what DIMMs are plugged
+ 	 // Enable sensor monitoring for each plugged DIMM
+          uint32_t l_iterator = 0;
+-         for (uint32_t i = 0; i < 2; i++){
++         for (uint32_t i = 0; i < l_NUM_MBAS; i++){
+ 	    if (l_dimm_ranks_array[i][0][0] != 0){
+ 	       l_ecmd_rc |= l_data_scac_enable.setBit(l_iterator);
+ 	    }
+-- 
+1.8.2.2
+
