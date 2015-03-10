@@ -1,6 +1,10 @@
 #!/bin/bash
 __PWD=`pwd`
 
+if [ -e ./customrc ]; then
+    source ./customrc
+fi
+
 export BR2_EXTERNAL=${__PWD}/openpower
 export BR2_DL_DIR=${__PWD}/dl
 
