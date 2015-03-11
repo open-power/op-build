@@ -1,0 +1,28 @@
+From 961d01024912ce7b0547095d38921bdd61ae8cd8 Mon Sep 17 00:00:00 2001
+From: Brian Horton <brianh@linux.ibm.com>
+Date: Wed, 11 Mar 2015 10:14:31 -0500
+Subject: [PATCH] fix SBE/PNOR merge issues
+
+Change-Id: I74752dbfa50fc78be66a9f185a7c6bc4d31732cd
+---
+ src/usr/sbe/sbe_update.C |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/usr/sbe/sbe_update.C b/src/usr/sbe/sbe_update.C
+index a559229..5ac4909 100644
+--- a/src/usr/sbe/sbe_update.C
++++ b/src/usr/sbe/sbe_update.C
+@@ -1791,8 +1791,8 @@ namespace SBE
+                                         reinterpret_cast<void*>(SBE_IMG_VADDR),
+                                         ((io_sbeState.seeprom_side_to_update ==
+                                          EEPROM::SBE_PRIMARY ) ?
+-                                            PNOR::SBE_SEEPROM0 :
+-                                            PNOR::SBE_SEEPROM1  ),
++                                            SBE_SEEPROM0 :
++                                            SBE_SEEPROM1  ),
+                                         PNOR::WORKING,
+                                         imageWasUpdated );
+ 
+-- 
+1.7.4.1
+
