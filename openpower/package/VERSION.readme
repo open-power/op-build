@@ -1,0 +1,119 @@
+#### Version String Readme ####
+
+    ## Customrc ##
+
+    Create a file at the top level of op-build called 'customrc'
+    to specify custom $(OPBUILD_VENDOR), $(OPBUILD_PLATFORM), and $(OPBUILD_VERSION).
+
+    Example:
+    #!/bin/sh
+    #export OPBUILD_VENDOR=IBM
+    #export OPBUILD_PLATFORM=plat-ibm
+    #export OPBUILD_VERSION=v-1.0.1
+
+    ## Op-build Commands ##
+
+    # Display package version
+    op-build $(package)-version
+
+    # Force a rebuild of a package version
+    op-build $(package)-build-version
+
+    ##  Version String (ASCII) ##
+
+    General:
+    $(op-build)\n
+    \t$(subpackage0)\n
+    \t$(subpackage1)\n
+    \0
+
+    ## Version String Details ##
+
+    $(op-build):
+    - Clean
+        + $(vendor)-$(platform)-$(op-version)
+    - Dirty.
+        + $(vendor)-$(platform)-$(gitcommit+dirty)
+    $(sub-package):
+    - Directly upstream, no patches, op-build clean.
+        + $(package)-$(version)
+    - Directly upstream, no patches, op-build dirty.
+        + $(package)-$(version)-$(op-dirty)
+    - Directly upstream, op-build patches, op-build clean
+        + $(package)-$(version)-$(patch-level)
+    - Directly upstream, op-build patches, op-build dirty.
+        + $(package)-$(version)-$(op-dirty)-$(patch-level)
+    - SITE=local
+        + $(package)-site_local-$(user)-$(gitcommit+dirty)
+
+    ## Variable Details ##
+
+    - $(vendor) = $(OPBUILD_VENDOR) or 'open-power'.
+    - $(platform) = $(OPBUILD_PLATFORM) or defconfig
+        + Order $(OPBUILD_PLATFORM), defconfig
+    - $(op-version) = git tag or first 7 characters of commit or $(OPBUILD_VERSION) or 'unknown'.
+        + Order $(OPBUILD_VERSION), tag, commit, unknown
+    - **$(gitcommit+dirty) = abcd123 or abcd123-dirty or 'unknown'
+    - $(version) = git tag or first 7 characters of commit
+    - $(user) = `whoami`
+    - **$(op-dirty) = opdirty or 'unknown'
+    - $(patch-level) = $(first 7 characters of 'sha512sum *.patch | sha512sum')
+        + the output of this gives us a quick way to check all the patches with one string
+
+    ** Indicates possible unknown case when source downloaded versus git clone due to git commands required
+
+    ## Sub Packages ##
+
+    Current sub packages included in openpower-pnor.mk $(OPENPOWER_VERSIONED_SUBPACKAGES)
+
+    - hostboot
+    - occ
+    - skiboot
+    - $(platform)-xml
+    - hostboot-binaries
+    - capp-ucode
+
+    ## PNOR section ##
+
+    - There is one version PNOR section per side
+    - Each is one page w/o ECC so 4K
+    - The data in the section will just be ASCII
+
+    ## Op-build Command Examples ##
+
+    cmd> op-build openpower-pnor-version
+    === OPENPOWER_PNOR_VERSION ===
+    IBM-plat-ibm-v-1.2.3-dirty
+        hostboot-3593853-99cca2b
+        occ-cc8376d
+        skiboot-9a3f68b-7c66ab4
+        hostboot-binaries-e3c9356
+        habanero-xml-4c1e936
+        capp-ucode-d4b2683
+
+    cmd> op-build hostboot-version
+    === HOSTBOOT_VERSION ===
+        hostboot-3593853-opdirty-99cca2b
+
+    If a version does not already exist, the commands to make one will be run.
+    Additionally you can force with op-build $(package)-build-version
+
+    cmd> op-build hostboot-version (or op-build hostboot-build-version)
+    === HOSTBOOT_VERSION ===
+            Searching for patches...
+    op-build/openpower/package/hostboot/hostboot-0001-Increase-uart-delay.patch
+    op-build/openpower/package/hostboot/hostboot-0002-Disable-centaur-memory-throttle.patch
+    op-build/openpower/package/hostboot/hostboot-0003-GCC-4.9-Make-compiler-use-ELFv1-ABI-and-use-O2.patch
+    op-build/openpower/package/hostboot/hostboot-0004-Revert-SW294127-INITPROC-FSP-Hostboot-fast-exit-powe.patch
+    op-build/openpower/package/hostboot/hostboot-0005-Disable-SPD-writes-workaround-for-DRAM-repairs-error.patch
+    op-build/openpower/package/hostboot/hostboot-0006-Runtime-fixes-for-IPMI.patch
+    op-build/openpower/package/hostboot/hostboot-0007-Update-DIMM_TEMP-Sensor-Enum.patch
+    op-build/openpower/package/hostboot/hostboot-0008-mss-thermal-init-SW297647.patch
+    op-build/openpower/package/hostboot/hostboot-0009-Sel-instead-of-eSel.patch
+    op-build/openpower/package/hostboot/hostboot-0010-Reset-occ-when-fails-to-activate.patch
+    op-build/openpower/package/hostboot/hostboot-0011-eRepair-MBVPD-size-check-for-CDIMM-and-ISDIMM.patch
+            End of patches...
+            Creating version string (various output may display)...
+    heads/pnor_version-dirty
+            End creating version string...
+            version: hostboot-3593853-99cca2b
