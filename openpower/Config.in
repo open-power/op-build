@@ -8,4 +8,8 @@ source "$BR2_EXTERNAL/package/Config.in"
 endif
 endmenu
 
+menu "Custom Packages"
+source "$BR2_EXTERNAL/custom/Config.in"
+endmenu
+
 endmenu
