@@ -1,0 +1,142 @@
+From 1e70ee010552ad835b03751ebf4788e367bcecd4 Mon Sep 17 00:00:00 2001
+From: Brian Silver <bsilver@us.ibm.com>
+Date: Thu, 26 Mar 2015 15:34:54 -0500
+Subject: [PATCH 2/5] Reject IPMI events which aren't destined for the host
+
+Change-Id: I378e0763c5ca8c13830d0e6c057b24e6beb5dc8c
+(cherry picked from commit e7b68743f7d2a160fd1dd3019f5614860576de64)
+---
+ src/include/usr/ipmi/ipmiif.H |  8 ++++
+ src/usr/ipmi/ipmirp.C         | 92 +++++++++++++++++++++++++++----------------
+ 2 files changed, 65 insertions(+), 35 deletions(-)
+
+diff --git a/src/include/usr/ipmi/ipmiif.H b/src/include/usr/ipmi/ipmiif.H
+index 56e3c53..e65252a 100644
+--- a/src/include/usr/ipmi/ipmiif.H
++++ b/src/include/usr/ipmi/ipmiif.H
+@@ -88,6 +88,14 @@ namespace IPMI
+         NETFUN_NONE     = (0x30 << 2),
+     };
+ 
++    // SMS_ATN OEM Event constants
++    enum oem_event
++    {
++        OEM_VALID_NETFUN      = 0x3a,
++        OEM_VALID_SEL_ID      = 0x5555,
++        OEM_VALID_RECORD_TYPE = 0xC0,
++    };
++
+     // IPMI Completion Codes
+     enum completion_code
+     {
+diff --git a/src/usr/ipmi/ipmirp.C b/src/usr/ipmi/ipmirp.C
+index 5925d45..de1b219 100644
+--- a/src/usr/ipmi/ipmirp.C
++++ b/src/usr/ipmi/ipmirp.C
+@@ -331,46 +331,68 @@ void IpmiRP::postEvent(IPMI::oemSEL* i_event)
+ {
+     // Called in the context of the RP message loop, mutex locked
+ 
+-    // Check to see if this event has a queue registered
+-    IPMI::event_q_t::iterator it = iv_eventq.find(i_event->iv_cmd[0]);
++    do {
++        // Check to see if event is valid. AMI recomends we check the netfun,
++        // the SEL id, and the record id. If they don't match, we're allowed
++        // to consider this an unhandled message.
++        if ( (i_event->iv_netfun      != IPMI::OEM_VALID_NETFUN) ||
++             (i_event->iv_record      != IPMI::OEM_VALID_SEL_ID) ||
++             (i_event->iv_record_type != IPMI::OEM_VALID_RECORD_TYPE) )
++        {
++            IPMI_TRAC("rejecting event netfun: 0x%x record: 0x%x record type: 0x%x cmd: 0x%x",
++                      i_event->iv_netfun,
++                      i_event->iv_record,
++                      i_event->iv_record_type,
++                      i_event->iv_cmd[0]);
+ 
+-    msg_q_t outq = (it == iv_eventq.end()) ? iv_last_chanceq : it->second;
++            // ... and clean up the memory for the caller
++            delete i_event;
++            break;
++        }
+ 
+-    // Create a message to send asynchronously to the event handler queue
+-    // Assign the event to the message, the caller will delete the message
+-    // and the event.
+-    msg_t* msg = msg_allocate();
+-    msg->type = IPMI::TYPE_EVENT;
+-    msg->extra_data = i_event;
++        // Check to see if this event has a queue registered
++        IPMI::event_q_t::iterator it = iv_eventq.find(i_event->iv_cmd[0]);
++        msg_q_t outq = (it == iv_eventq.end()) ? iv_last_chanceq : it->second;
+ 
+-    IPMI_TRAC("queuing event %x:%x for handler",
+-              i_event->iv_netfun, i_event->iv_cmd[0])
+-    int rc = msg_send(outq, msg);
++        // Create a message to send asynchronously to the event handler queue
++        // Assign the event to the message, the caller will delete the message
++        // and the event.
++        msg_t* msg = msg_allocate();
++        msg->type = IPMI::TYPE_EVENT;
++        msg->extra_data = i_event;
+ 
+-    if (rc)
+-    {
+-        /* @errorlog tag
+-         * @errortype       ERRL_SEV_UNRECOVERABLE
+-         * @moduleid        IPMI::MOD_IPMISRV_SEND
+-         * @reasoncode      IPMI::RC_INVALID_SEND
+-         * @userdata1       rc from msq_send()
+-         * @devdesc         msg_send() failed
+-         * @custdesc        Firmware error during IPMI event handling
+-         */
+-        errlHndl_t err =
+-            new ERRORLOG::ErrlEntry(ERRORLOG::ERRL_SEV_UNRECOVERABLE,
+-                                    IPMI::MOD_IPMISRV_SEND,
+-                                    IPMI::RC_INVALID_SEND,
+-                                    rc,
+-                                    0,
+-                                    true);
+-        err->collectTrace(IPMI_COMP_NAME);
+-        errlCommit(err, IPMI_COMP_ID);
++        IPMI_TRAC("queuing event %x:%x for handler",
++                  i_event->iv_netfun, i_event->iv_cmd[0])
++            int rc = msg_send(outq, msg);
+ 
+-        // ... and clean up the memory for the caller
+-        delete i_event;
+-        msg_free(msg);
+-    }
++        if (rc)
++        {
++            /* @errorlog tag
++             * @errortype       ERRL_SEV_UNRECOVERABLE
++             * @moduleid        IPMI::MOD_IPMISRV_SEND
++             * @reasoncode      IPMI::RC_INVALID_SEND
++             * @userdata1       rc from msq_send()
++             * @devdesc         msg_send() failed
++             * @custdesc        Firmware error during IPMI event handling
++             */
++            errlHndl_t err =
++                new ERRORLOG::ErrlEntry(ERRORLOG::ERRL_SEV_UNRECOVERABLE,
++                                        IPMI::MOD_IPMISRV_SEND,
++                                        IPMI::RC_INVALID_SEND,
++                                        rc,
++                                        0,
++                                        true);
++            err->collectTrace(IPMI_COMP_NAME);
++            errlCommit(err, IPMI_COMP_ID);
++
++            // ... and clean up the memory for the caller
++            delete i_event;
++            msg_free(msg);
++        }
++
++    } while(0);
++
++    return;
+ }
+ 
+ /**
+-- 
+1.8.2.2
+
