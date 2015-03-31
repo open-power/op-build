@@ -1,0 +1,181 @@
+From c474b26291b009f7a9c97e2bf94ad2917f11b1b9 Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Sun, 22 Mar 2015 23:03:57 -0500
+Subject: [PATCH] Add support for POWER_CONTROL_CAPABLE to ISDIMMs
+
+Change-Id: If9de980385cac7706b321a9fefc1158dc540b7e0
+---
+ .../usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.H     |   11 +++-
+ .../hwp/mvpd_accessors/getControlCapableData.C     |   54 ++++++++++----------
+ src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.C     |   16 ++++++
+ src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttrData.C |    3 +
+ 4 files changed, 55 insertions(+), 29 deletions(-)
+
+diff --git a/src/include/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.H b/src/include/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.H
+index 07ea5fc..810cb40 100644
+--- a/src/include/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.H
++++ b/src/include/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.H
+@@ -46,11 +46,14 @@ namespace getAttrData
+     const uint8_t NUM_PORTS = 2;   //Each MBA has 2 ports
+     const uint8_t NUM_DIMMS = 2;   //Each port has 2 DIMMs
+     const uint8_t NUM_RANKS = 4;   //Number of ranks
+-    const uint8_t PORT_SECTION_SIZE = 64; //Each port has 64 bytes
++    //Each port has 64 bytes of space, but only 62 bytes is useable
++    const uint8_t PORT_SECTION_SIZE = 64; 
++    const uint8_t PORT_SECTION_USED = 62; 
+ 
+     struct port_attributes
+     {
+-       uint8_t port_attr[PORT_SECTION_SIZE];
++       uint8_t port_attr[PORT_SECTION_USED];
++       uint8_t nonport_data[PORT_SECTION_SIZE-PORT_SECTION_USED];
+     };
+     struct mba_attributes
+     {
+@@ -102,6 +105,7 @@ namespace getAttrData
+         UINT32_BY2        =0x0004,   // uint32_t [2]
+         UINT32_BY2_BY2    =0x0005,   // uint32_t [2][2]
+         UINT64            =0x0006,   // uint64_t
++        UINT8             =0x0007,   // uint8_t  
+     };
+     const uint16_t OUTPUT_TYPE_MASK = 0x00FF;
+ 
+@@ -111,6 +115,7 @@ namespace getAttrData
+     typedef uint32_t UINT32_BY2_t [2];
+     typedef uint32_t UINT32_BY2_BY2_t [2][2];
+     typedef uint64_t UINT64_t;
++    typedef uint8_t UINT8_t;
+ 
+     //  Special processing
+     //  Rules:
+@@ -343,6 +348,8 @@ template<>class MBvpdAttrDataType<fapi::ATTR_VPD_TSYS_ADR>
+     { public: typedef fapi::ATTR_VPD_TSYS_ADR_Type Type; };
+ template<>class MBvpdAttrDataType<fapi::ATTR_VPD_TSYS_DP18>
+     { public: typedef fapi::ATTR_VPD_TSYS_DP18_Type Type; };
++template<>class MBvpdAttrDataType<fapi::ATTR_VPD_POWER_CONTROL_CAPABLE>
++    { public: typedef fapi::ATTR_VPD_POWER_CONTROL_CAPABLE_Type Type; };
+ 
+ 
+ // Template function that checks that the type is as expected.
+diff --git a/src/usr/hwpf/hwp/mvpd_accessors/getControlCapableData.C b/src/usr/hwpf/hwp/mvpd_accessors/getControlCapableData.C
+index 4e4fe02..90afda6 100644
+--- a/src/usr/hwpf/hwp/mvpd_accessors/getControlCapableData.C
++++ b/src/usr/hwpf/hwp/mvpd_accessors/getControlCapableData.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2014                             */
++/* Contributors Listed Below - COPYRIGHT 2014,2015                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -40,38 +40,38 @@ fapi::ReturnCode getControlCapableData(
+                 const fapi::Target &i_mbTarget,
+                 uint8_t & o_val)
+ {
+-    //Record:VSPD, Keyword:MR, offset: 253, 1 byte.
+-    const uint32_t MR_KEYWORD_SIZE = 255;
++    fapi::ReturnCode l_rc;
+ 
+-    struct mr_keyword
+-    {
+-        uint8_t filler[253];
+-        uint8_t position; //offset 253
+-        uint8_t extraFiller[MR_KEYWORD_SIZE-sizeof(filler)-sizeof(position)];
+-    };
+-
+-    fapi::ReturnCode l_fapirc;
+-    mr_keyword * l_pMrBuffer = new mr_keyword;
+-    uint32_t l_MrBufsize = MR_KEYWORD_SIZE;
+-    do{
+-
+-        l_fapirc = fapiGetMBvpdField(fapi::MBVPD_RECORD_VSPD,
+-                    fapi::MBVPD_KEYWORD_MR,
+-                    i_mbTarget,
+-                    reinterpret_cast<uint8_t *>(l_pMrBuffer),
+-                    l_MrBufsize);
+-        if(l_fapirc)
++    FAPI_DBG("getControlCapableData: start");
++    do {
++        // ATTR_VPD_POWER_CONTROL_CAPABLE is at the membuf level, but the
++        //  getMBvpdAttr() function takes a mba, so need to do a
++        //  conversion
++        std::vector<fapi::Target> l_mbas;
++        l_rc = fapiGetChildChiplets( i_mbTarget,
++                                     fapi::TARGET_TYPE_MBA_CHIPLET,
++                                     l_mbas );
++        if( l_rc )
+         {
+-            FAPI_ERR("getControlCapableData: Read of MR Keyword failed");
++            FAPI_ERR("getControlCapableData: fapiGetChildChiplets failed");
+             break;
+         }
+-        o_val = l_pMrBuffer->position;
+ 
+-    }while(0);
++        // If we don't have any functional MBAs then we will fail in
++        //  the other function so just return a default value here
++        if( l_mbas.empty() )
++        {
++            o_val = fapi::ENUM_ATTR_VPD_POWER_CONTROL_CAPABLE_NONE;
++            break;
++        }
+ 
+-    delete l_pMrBuffer;
+-    l_pMrBuffer = NULL;
++        // Call a VPD Accessor HWP to get the data
++        FAPI_EXEC_HWP(l_rc, getMBvpdAttr,
++                      l_mbas[0], ATTR_VPD_POWER_CONTROL_CAPABLE,
++                      &o_val, sizeof(ATTR_VPD_POWER_CONTROL_CAPABLE_Type));
++    } while(0);
++    FAPI_ERR("getControlCapableData: end");
+ 
+-    return l_fapirc;
++    return l_rc;
+ }
+ }
+diff --git a/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.C b/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.C
+index b13e4f9..7be8ed2 100644
+--- a/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.C
++++ b/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttr.C
+@@ -976,6 +976,22 @@ fapi::ReturnCode returnValue (const MBvpdAttrDef*   i_pAttrDef,
+             (*(UINT64_t*)o_pVal) = l_value;
+             break ;
+         }
++        case  UINT8:            // uint8_t
++        {
++            // make sure return value size is correct
++            if (sizeof(UINT8_t) != i_valSize)
++            {
++                l_fapirc = sizeMismatch(sizeof(UINT8_t),
++                                        i_valSize,
++                                        i_pAttrDef->iv_attrId);
++                break; //return with error
++            }
++
++            // only 1 value is present, it isn't stored per mba/port
++            uint8_t l_value = (reinterpret_cast<uint8_t*>(i_pBuffer))[l_attrOffset];
++            (*(UINT8_t*)o_pVal) = l_value;
++            break ;
++        }
+         default: // Hard to do, but needs to be caught
+             FAPI_ERR("returnValue: invalid output type 0x%04x for"
+                        " attribute ID 0x%08x",
+diff --git a/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttrData.C b/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttrData.C
+index 4b18e40..5a599b5 100644
+--- a/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttrData.C
++++ b/src/usr/hwpf/hwp/mvpd_accessors/getMBvpdAttrData.C
+@@ -178,6 +178,9 @@ const MBvpdAttrDef g_MBVPD_ATTR_DEF_array [] =
+     {ATTR_VPD_DRAM_2N_MODE_ENABLED,ALL_DIMM,ALL_VER,MBVPD_KEYWORD_MR,48,UINT8_BY2,0},
+     {ATTR_VPD_TSYS_ADR,ALL_DIMM,ALL_VER,MBVPD_KEYWORD_MR,49,UINT8_BY2|PORT00,0},
+     {ATTR_VPD_TSYS_DP18,ALL_DIMM,ALL_VER,MBVPD_KEYWORD_MR,49,UINT8_BY2|PORT11,0},
++
++// Membuf-level data that is stored within MR
++    {ATTR_VPD_POWER_CONTROL_CAPABLE,ALL_DIMM,ALL_VER,MBVPD_KEYWORD_MR,253,UINT8,0},
+ };
+ 
+ const uint32_t g_MBVPD_ATTR_DEF_array_size =
+-- 
+1.7.4.1
+
