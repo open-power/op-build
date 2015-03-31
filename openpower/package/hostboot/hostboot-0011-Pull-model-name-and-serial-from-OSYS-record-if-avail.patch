@@ -1,0 +1,213 @@
+From 438ebf4b5acbaab0da69009d4248a6aac45fbed6 Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Wed, 11 Mar 2015 16:44:59 -0500
+Subject: [PATCH 3/5] Pull model name and serial from OSYS record if available
+
+The supported level of OP planar VPD has the system model
+name inside OSYS:MM, not OPFR:DR.
+
+Change-Id: Iaa9c4e00325f8fa6efb7a9fca1275bcea2759308
+Reviewed-on: http://gfw160.aus.stglabs.ibm.com:8080/gerrit/16308
+Reviewed-by: William H. Schwartz <whs@us.ibm.com>
+Tested-by: Jenkins Server
+Reviewed-by: A. Patrick Williams III <iawillia@us.ibm.com>
+(cherry picked from commit 2114a66c76558f41cd305fc294ccdfaf6607c0e5)
+---
+ src/usr/devtree/bld_devtree.C | 142 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 126 insertions(+), 16 deletions(-)
+
+diff --git a/src/usr/devtree/bld_devtree.C b/src/usr/devtree/bld_devtree.C
+index f2e9438..622178a 100644
+--- a/src/usr/devtree/bld_devtree.C
++++ b/src/usr/devtree/bld_devtree.C
+@@ -1034,18 +1034,26 @@ errlHndl_t bld_fdt_system(devTree * i_dt, bool i_smallTree)
+     // Nothing to do for small trees currently.
+     if (!i_smallTree)
+     {
++        //===== compatible =====
+         /* Fetch the MRW-defined compatible model from attributes */
+         ATTR_OPAL_MODEL_type l_model = {0};
+         TARGETING::Target* sys = NULL;
+         TARGETING::targetService().getTopLevelTarget(sys);
+         sys->tryGetAttr<TARGETING::ATTR_OPAL_MODEL>(l_model);
+ 
+-        /* Add compatibility node */
++        /* Add compatibility value */
+         const char* l_compats[] = { "ibm,powernv", l_model, NULL };
+         i_dt->addPropertyStrings(rootNode, "compatible", l_compats);
+ 
+-        /* Add system model node */
+-        // Based off of the DR field in the OPFR
++        //===== model =====
++        /* Add system model value
++           Depending on the vintage of the planar VPD, there are 3 places
++           we need to look for this data.
++           1) OSYS:MM
++           2) OPFR:DR
++           3) Default to 'unknown'
++         */
++        bool foundvpd = false;
+         // TODO RTC 118373 -- update to account for firestone/memory riser
+         TARGETING::TargetHandleList l_membTargetList;
+         getAllChips(l_membTargetList, TYPE_MEMBUF);
+@@ -1061,42 +1069,144 @@ errlHndl_t bld_fdt_system(devTree * i_dt, bool i_smallTree)
+             errhdl = deviceRead( l_pMem,
+                                  NULL,
+                                  vpdSize,
+-                                 DEVICE_CVPD_ADDRESS( CVPD::OPFR,
+-                                                      CVPD::DR ));
++                                 DEVICE_CVPD_ADDRESS( CVPD::OSYS,
++                                                      CVPD::MM ));
+ 
+             if(errhdl)
+             {
+-                TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't get DR size for HUID=0x%.8X",
++                TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't get OSYS:MM size for HUID=0x%.8X",
+                           TARGETING::get_huid(l_pMem));
+-                i_dt->addPropertyString(rootNode, "model", "unknown");
+-                errlCommit(errhdl, DEVTREE_COMP_ID);
++
++                // Try the OPFR record
++                errlHndl_t opfr_errhdl = deviceRead( l_pMem,
++                                           NULL,
++                                           vpdSize,
++                                           DEVICE_CVPD_ADDRESS( CVPD::OPFR,
++                                                                CVPD::DR ));
++                if(opfr_errhdl)
++                {
++                    TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't get OPFR:DR size for HUID=0x%.8X",
++                              TARGETING::get_huid(l_pMem));
++                    delete opfr_errhdl; //delete OPFR log, VPD is just bad
++                }
++                else
++                {
++                    delete errhdl; //ignore lack of OSYS due to older vpd
++                    errhdl = NULL;
++                    char drBuf[vpdSize+1];
++                    memset(&drBuf, 0x0, (vpdSize+1)); //null terminated str
++                    errhdl = deviceRead( l_pMem,
++                                         reinterpret_cast<void*>( &drBuf ),
++                                         vpdSize,
++                                         DEVICE_CVPD_ADDRESS( CVPD::OPFR,
++                                                              CVPD::DR ));
++
++                    if(errhdl)
++                    {
++                        TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't read OPFR:DR for HUID=0x%.8X",
++                                  TARGETING::get_huid(l_pMem));
++                    }
++                    else
++                    {
++                        foundvpd = true;
++                        i_dt->addPropertyString(rootNode, "model", drBuf);
++                    }
++                }
+             }
+             else
+             {
+-                char drBuf[vpdSize+1];
+-                memset(&drBuf, 0x0, (vpdSize+1)); //ensure null terminated str
++                char mmBuf[vpdSize+1];
++                memset(&mmBuf, 0x0, (vpdSize+1)); //ensure null terminated str
+                 errhdl = deviceRead( l_pMem,
+-                                     reinterpret_cast<void*>( &drBuf ),
++                                     reinterpret_cast<void*>( &mmBuf ),
+                                      vpdSize,
+-                                     DEVICE_CVPD_ADDRESS( CVPD::OPFR,
+-                                                          CVPD::DR ));
++                                     DEVICE_CVPD_ADDRESS( CVPD::OSYS,
++                                                          CVPD::MM ));
+ 
+                 if(errhdl)
+                 {
+-                    TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't read DR for HUID=0x%.8X",
++                    TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't read OSYS:MM for HUID=0x%.8X",
+                               TARGETING::get_huid(l_pMem));
+                 }
+                 else
+                 {
+-                    i_dt->addPropertyString(rootNode, "model", drBuf);
++                    foundvpd = true;
++                    i_dt->addPropertyString(rootNode, "model", mmBuf);
+                 }
+             }
+         }
+-        else //chassis info not found, default to unknown
++
++        // just commit any errors we get, this isn't critical
++        if( errhdl )
++        {
++            errlCommit(errhdl, DEVTREE_COMP_ID); //commit original OSYS log
++        }
++
++        if( !foundvpd ) //chassis info not found, default to unknown
+         {
+             TRACFCOMP(g_trac_devtree,ERR_MRK" VPD not found, model defaulted to unknown");
+             i_dt->addPropertyString(rootNode, "model", "unknown");
+         }
++
++        //===== system-id =====
++        /* Add system-id value
++           1) OSYS:SS
++           2) Default to 'unavailable'
++         */
++        // TODO RTC 118373 -- update to account for firestone/memory riser
++        foundvpd = false;
++        if( l_membTargetList.size() )
++        {
++            // TODO RTC 118373 - Should be able to read from attribute
++            TARGETING::Target * l_pMem = l_membTargetList[0];
++            size_t vpdSize = 0x0;
++
++            // Note: First read with NULL for o_buffer sets vpdSize to the
++            // correct length
++            errhdl = deviceRead( l_pMem,
++                                 NULL,
++                                 vpdSize,
++                                 DEVICE_CVPD_ADDRESS( CVPD::OSYS,
++                                                      CVPD::SS ));
++
++            if(errhdl)
++            {
++                TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't get OSYS:SS size for HUID=0x%.8X",
++                          TARGETING::get_huid(l_pMem));
++                // Note - not supporting old vpd versions without OSYS here
++            }
++            else
++            {
++                char ssBuf[vpdSize+1];
++                memset(&ssBuf, 0x0, (vpdSize+1)); //ensure null terminated str
++                errhdl = deviceRead( l_pMem,
++                                     reinterpret_cast<void*>( &ssBuf ),
++                                     vpdSize,
++                                     DEVICE_CVPD_ADDRESS( CVPD::OSYS,
++                                                          CVPD::SS ));
++
++                if(errhdl)
++                {
++                    TRACFCOMP(g_trac_devtree,ERR_MRK" Couldn't read OSYS:SS for HUID=0x%.8X",
++                              TARGETING::get_huid(l_pMem));
++                }
++                else
++                {
++                    foundvpd = true;
++                    i_dt->addPropertyString(rootNode, "system-id", ssBuf);
++                }
++            }
++        }
++        // just commit any errors we get, this isn't critical
++        if( errhdl )
++        {
++            errlCommit(errhdl, DEVTREE_COMP_ID);
++        }
++
++        if( !foundvpd ) //serial number not found, default to unavailable
++        {
++            i_dt->addPropertyString(rootNode, "system-id", "unavailable");
++        }
+     }
+ 
+     return errhdl;
+-- 
+1.8.2.2
+

@@ -1,0 +1,84 @@
+From 55eae8d646b3c95df32b67ef8d67887581f94fa0 Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Tue, 31 Mar 2015 08:15:06 -0500
+Subject: [PATCH] Revert "Merge pull request #12 from
+ open-power/bofferdn-pal-loadline"
+
+This reverts commit dbe13549a81c15c81e1fbd2d3de80ea91dd20503, reversing
+changes made to 167ded68387aa69fabb28e6cafaa6ae4bf165a40.
+
+Conflicts:
+	palmetto.xml
+---
+ palmetto.xml | 48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/palmetto.xml b/palmetto.xml
+index 6df6652..89669ab 100644
+--- a/palmetto.xml
++++ b/palmetto.xml
+@@ -2854,6 +2854,30 @@
+ 		<default>1</default>
+ 	</attribute>
+ 	<attribute>
++		<id>PROC_R_DISTLOSS_VCS</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_R_DISTLOSS_VDD</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_R_LOADLINE_VCS</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_R_LOADLINE_VDD</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_VRM_VOFFSET_VCS</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_VRM_VOFFSET_VDD</id>
++		<default></default>
++	</attribute>
++	<attribute>
+ 		<id>PROC_X_BUS_WIDTH</id>
+ 		<default>2</default>
+ 	</attribute>
+@@ -3735,30 +3759,6 @@
+ 		<default>0</default>
+ 	</attribute>
+ 	<attribute>
+-		<id>PROC_R_DISTLOSS_VCS</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_R_DISTLOSS_VDD</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_R_LOADLINE_VCS</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_R_LOADLINE_VDD</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_VRM_VOFFSET_VCS</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_VRM_VOFFSET_VDD</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+ 		<id>PSI_BRIDGE_BASE_ADDR</id>
+ 		<default>0,0x0000000000000000</default>
+ 	</attribute>
+-- 
+1.8.2.2
+

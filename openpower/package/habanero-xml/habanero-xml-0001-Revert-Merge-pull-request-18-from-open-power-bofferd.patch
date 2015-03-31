@@ -1,0 +1,84 @@
+From b1eb2395a4bf796603cb34aa5913f43b84c42855 Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Tue, 31 Mar 2015 07:56:06 -0500
+Subject: [PATCH] Revert "Merge pull request #18 from
+ open-power/bofferdn-hab-loadline"
+
+This reverts commit ddb962894919657517f0d9bca4540a427953f987, reversing
+changes made to a98bf456ff5d9f18dc2af1ffc59d67a302029a76.
+
+Conflicts:
+	habanero.xml
+---
+ habanero.xml | 48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/habanero.xml b/habanero.xml
+index 8768f72..1aa85a8 100644
+--- a/habanero.xml
++++ b/habanero.xml
+@@ -4967,6 +4967,30 @@
+ 		<default>1</default>
+ 	</attribute>
+ 	<attribute>
++		<id>PROC_R_DISTLOSS_VCS</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_R_DISTLOSS_VDD</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_R_LOADLINE_VCS</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_R_LOADLINE_VDD</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_VRM_VOFFSET_VCS</id>
++		<default></default>
++	</attribute>
++	<attribute>
++		<id>PROC_VRM_VOFFSET_VDD</id>
++		<default></default>
++	</attribute>
++	<attribute>
+ 		<id>PROC_X_BUS_WIDTH</id>
+ 		<default>2</default>
+ 	</attribute>
+@@ -6996,30 +7020,6 @@
+ 		<default>0</default>
+ 	</attribute>
+ 	<attribute>
+-		<id>PROC_R_DISTLOSS_VCS</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_R_DISTLOSS_VDD</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_R_LOADLINE_VCS</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_R_LOADLINE_VDD</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_VRM_VOFFSET_VCS</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+-		<id>PROC_VRM_VOFFSET_VDD</id>
+-		<default></default>
+-	</attribute>
+-	<attribute>
+ 		<id>PSI_BRIDGE_BASE_ADDR</id>
+ 		<default>0,0x0000000000000000</default>
+ 	</attribute>
+-- 
+1.8.2.2
+
