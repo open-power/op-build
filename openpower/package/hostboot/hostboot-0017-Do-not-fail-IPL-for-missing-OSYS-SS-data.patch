@@ -1,0 +1,51 @@
+From 632df20fb598f38c246eb6ce93d972a9cbec4145 Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Wed, 1 Apr 2015 10:29:25 -0500
+Subject: [PATCH] Do not fail IPL for missing OSYS:SS data
+
+Older planar vpd vintages may not have the OSYS record filled
+in.  We should allow the system to boot in this case but log
+an error pointing to the planar in need of update.
+
+CQ: SW201885
+Change-Id: Ia4f6440551b4bb6d4a849d24290c19667f3a6c6b
+---
+ src/usr/devtree/bld_devtree.C |    7 +++++--
+ src/usr/errl/errlentry.C      |    1 +
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/usr/devtree/bld_devtree.C b/src/usr/devtree/bld_devtree.C
+index 622178a..a73c812 100644
+--- a/src/usr/devtree/bld_devtree.C
++++ b/src/usr/devtree/bld_devtree.C
+@@ -1197,10 +1197,13 @@ errlHndl_t bld_fdt_system(devTree * i_dt, bool i_smallTree)
+                 }
+             }
+         }
+-        // just commit any errors we get, this isn't critical
++        // just delete any errors we get, this isn't critical
+         if( errhdl )
+         {
+-            errlCommit(errhdl, DEVTREE_COMP_ID);
++            // since there are old parts out in the wild without
++            //  this data, we can't log an error
++            delete errhdl;
++            errhdl = NULL;
+         }
+ 
+         if( !foundvpd ) //serial number not found, default to unavailable
+diff --git a/src/usr/errl/errlentry.C b/src/usr/errl/errlentry.C
+index 2d604ce..967638f 100644
+--- a/src/usr/errl/errlentry.C
++++ b/src/usr/errl/errlentry.C
+@@ -94,6 +94,7 @@ struct epubTargetTypeToSub_t
+ // Target type to subsystem table.
+ static const epubTargetTypeToSub_t TARGET_TO_SUBSYS_TABLE[] =
+ {
++    { TARGETING::TYPE_NODE             , EPUB_CEC_HDW_SUBSYS       },
+     { TARGETING::TYPE_DIMM             , EPUB_MEMORY_DIMM          },
+     { TARGETING::TYPE_MEMBUF           , EPUB_MEMORY_SUBSYS        },
+     { TARGETING::TYPE_PROC             , EPUB_PROCESSOR_SUBSYS     },
+-- 
+1.7.4.1
+
