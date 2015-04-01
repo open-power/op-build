@@ -1,0 +1,71 @@
+From 07b936c1c5f97314719e7e988e6c07810637b8c1 Mon Sep 17 00:00:00 2001
+From: Dean Sanner <dsanner@us.ibm.com>
+Date: Wed, 11 Mar 2015 09:11:14 -0500
+Subject: [PATCH 3/8] Support partial good Xbus
+
+Change-Id: I245cd9947d5b7a05ff9a8f92ff18c658b1fe09d6
+Reviewed-on: http://gfw160.aus.stglabs.ibm.com:8080/gerrit/16300
+Tested-by: Jenkins Server
+Reviewed-by: Daniel M. Crowell <dcrowell@us.ibm.com>
+Reviewed-by: Brian H. Horton <brianh@linux.ibm.com>
+Reviewed-by: A. Patrick Williams III <iawillia@us.ibm.com>
+(cherry picked from commit a0f4a934254572ce49a1ddf5e4d5d944b52779be)
+---
+ src/usr/hwpf/plat/fapiPlatAttributeService.C | 22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/src/usr/hwpf/plat/fapiPlatAttributeService.C b/src/usr/hwpf/plat/fapiPlatAttributeService.C
+index 6e4f400..7da841a 100644
+--- a/src/usr/hwpf/plat/fapiPlatAttributeService.C
++++ b/src/usr/hwpf/plat/fapiPlatAttributeService.C
+@@ -58,11 +58,14 @@
+ #include <hwpf/hwp/pll_accessors/getPllRingInfoAttr.H>
+ #include <hwpf/hwp/winkle_ring_accessors/getL3DeltaDataAttr.H>
+ #include <fapiAttributeIds.H>
++#include <hwas/common/hwasCommon.H>
++
+ // The following file checks at compile time that all HWPF attributes are
+ // handled by Hostboot. This is done to ensure that the HTML file listing
+ // supported HWPF attributes lists attributes handled by Hostboot
+ #include <fapiAttributePlatCheck.H>
+ 
++
+ //******************************************************************************
+ // Implementation
+ //******************************************************************************
+@@ -1239,6 +1242,7 @@ fapi::ReturnCode fapiPlatGetEnableAttr ( fapi::AttributeId i_id,
+ {
+     fapi::ReturnCode l_rc;
+     TARGETING::Target * l_pTarget = NULL;
++    o_enable = 0;
+ 
+     // Get the Targeting Target
+     l_rc = getTargetingTarget(i_pFapiTarget, l_pTarget);
+@@ -1271,10 +1275,20 @@ fapi::ReturnCode fapiPlatGetEnableAttr ( fapi::AttributeId i_id,
+                 o_enable = 1;
+                 break;
+             case fapi::ATTR_PROC_X_ENABLE:
+-                // The enable flag reflects the state of the pervasive chiplet,
+-                //  NOT the bus logic, so always return true since we don't
+-                //  support partial good on the XBUS chiplet
+-                o_enable = 1;
++                // Need to support having the X bus chiplet partial good
++                // Look at the saved away PG data
++                TARGETING::ATTR_CHIP_REGIONS_TO_ENABLE_type l_chipRegionData;
++                l_rc = FAPI_ATTR_GET(ATTR_CHIP_REGIONS_TO_ENABLE, i_pFapiTarget,
++                                     l_chipRegionData);
++                if (l_rc) {
++                    FAPI_ERR("fapi_attr_get( ATTR_CHIP_REGIONS_TO_ENABLE ) failed. With rc = 0x%x",
++                             (uint32_t) l_rc );
++                    break;
++                }
++                else if (l_chipRegionData[HWAS::VPD_CP00_PG_XBUS_INDEX] != 0)
++                {
++                    o_enable = 0x1;
++                }
+                 break;
+             default:
+                 o_enable = 0;
+-- 
+1.8.2.2
+

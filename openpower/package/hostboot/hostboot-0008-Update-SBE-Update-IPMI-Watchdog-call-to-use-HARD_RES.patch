@@ -1,0 +1,33 @@
+From a048585e96058e9bf1ba43853de3a6b70053d740 Mon Sep 17 00:00:00 2001
+From: Mike Baiocchi <baiocchi@us.ibm.com>
+Date: Thu, 26 Mar 2015 13:16:18 -0500
+Subject: [PATCH 1/5] Update SBE Update IPMI Watchdog call to use HARD_RESET
+ action
+
+This commit updates how the SBE Update code will setup the IPMI
+watchdog timer before calling doShutdown().  Rather than using
+NO_ACTIONS, the updated code will use the HARD_RESET action.
+
+Change-Id: Id251307aa76259d8a290a92d9e9f3418b181bc3e
+RTC: 124679
+(cherry picked from commit 815998ab802c19ade01cdc71a9e59946eedf1ab1)
+---
+ src/usr/sbe/sbe_resolve_sides.C | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/usr/sbe/sbe_resolve_sides.C b/src/usr/sbe/sbe_resolve_sides.C
+index 49d2c25..26ac4e6 100644
+--- a/src/usr/sbe/sbe_resolve_sides.C
++++ b/src/usr/sbe/sbe_resolve_sides.C
+@@ -1350,7 +1350,7 @@ void sbePreShutdownIpmiCalls( void )
+                                static_cast<uint8_t>
+                                           (IPMIWATCHDOG::DO_NOT_STOP |
+                                            IPMIWATCHDOG::BIOS_FRB2), // default
+-                               IPMIWATCHDOG::NO_ACTIONS); // boot count reset
++                               IPMIWATCHDOG::TIMEOUT_HARD_RESET);
+         if(err)
+         {
+                TRACFCOMP( g_trac_sbe,
+-- 
+1.8.2.2
+
