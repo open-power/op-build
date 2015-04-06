@@ -1,0 +1,116 @@
+From 5f06da05527c3ef2d9ee709e912c5840eb366e87 Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Thu, 2 Apr 2015 12:29:45 -0500
+Subject: [PATCH 04/10] Fix constant refresh of vpd cache
+
+Code was inadvertantly detecting mismatched pnor cache contents
+on every boot.
+
+Change-Id: I631dc758e03316a28d13f6d19032c1a76e3cffc1
+(cherry picked from commit 0d95414e03ff337404a3e20fd421fd8b4272ebc5)
+---
+ src/usr/vpd/ipvpd.C | 18 ++++++++++++------
+ src/usr/vpd/ipvpd.H |  5 ++++-
+ src/usr/vpd/vpd.C   |  2 +-
+ 3 files changed, 17 insertions(+), 8 deletions(-)
+
+diff --git a/src/usr/vpd/ipvpd.C b/src/usr/vpd/ipvpd.C
+index a0682d2..2cefb6e 100644
+--- a/src/usr/vpd/ipvpd.C
++++ b/src/usr/vpd/ipvpd.C
+@@ -397,6 +397,9 @@ errlHndl_t IpVpdFacade::cmpPnorToSeeprom ( TARGETING::Target * i_target,
+                     l_dataSeeprom,
+                     l_sizePnor ) != 0 )
+         {
++            TRACFCOMP( g_trac_vpd, "cmpPnorToSeeprom found mismatch for HUID %.8X 0x%X:0x%X", TARGETING::get_huid(i_target), i_record, i_keyword );
++            TRACFBIN( g_trac_vpd, "EEPROM", l_dataSeeprom, l_sizeSeeprom );
++            TRACFBIN( g_trac_vpd, "PNOR", l_dataPnor, l_sizePnor );
+             break;
+         }
+ 
+@@ -898,8 +901,9 @@ bool IpVpdFacade::hasVpdPresent( TARGETING::Target * i_target,
+         }
+ 
+         vpdPresent = recordPresent( recordName,
+-                                recordOffset,
+-                                i_target );
++                                    recordOffset,
++                                    i_target,
++                                    VPD::AUTOSELECT );
+ 
+     }while( 0 );
+ 
+@@ -918,7 +922,8 @@ bool IpVpdFacade::hasVpdPresent( TARGETING::Target * i_target,
+ // ------------------------------------------------------------------
+ bool IpVpdFacade::recordPresent( const char * i_record,
+                                  uint16_t & o_offset,
+-                                 TARGETING::Target * i_target )
++                                 TARGETING::Target * i_target,
++                                 VPD::vpdCmdTarget i_location )
+ {
+     errlHndl_t err = NULL;
+     uint64_t tmpOffset = 0x0;
+@@ -946,7 +951,7 @@ bool IpVpdFacade::recordPresent( const char * i_record,
+                              RECORD_BYTE_SIZE,
+                              record,
+                              i_target,
+-                             VPD::AUTOSELECT );
++                             i_location );
+             tmpOffset += RECORD_BYTE_SIZE;
+ 
+             if( err )
+@@ -963,7 +968,7 @@ bool IpVpdFacade::recordPresent( const char * i_record,
+                                  RECORD_ADDR_BYTE_SIZE,
+                                  &o_offset,
+                                  i_target,
+-                                 VPD::AUTOSELECT );
++                                 i_location );
+                 if( err )
+                 {
+                     break;
+@@ -1003,7 +1008,8 @@ errlHndl_t IpVpdFacade::findRecordOffsetPnor ( const char * i_record,
+ 
+     matchFound = recordPresent( i_record,
+                                 offset,
+-                                i_target );
++                                i_target,
++                                i_args.location );
+ 
+     if( !matchFound )
+     {
+diff --git a/src/usr/vpd/ipvpd.H b/src/usr/vpd/ipvpd.H
+index 2350bdd..7c2090c 100644
+--- a/src/usr/vpd/ipvpd.H
++++ b/src/usr/vpd/ipvpd.H
+@@ -353,11 +353,14 @@ class IpVpdFacade
+      *
+      * @param[in] i_target - The target to retrieve the data for.
+      *
++     * @param[in] i_location - VPD location to fetch data from (PNOR/SEEPROM)
++     *
+      * @return bool - True if the record is found, False otherwise.
+      */
+     bool recordPresent( const char * i_record,
+                         uint16_t & offset,
+-                        TARGETING::Target * i_target );
++                        TARGETING::Target * i_target,
++                        VPD::vpdCmdTarget i_location );
+ 
+     /**
+      * @brief This function will read the VPD TOC to find the offset where the
+diff --git a/src/usr/vpd/vpd.C b/src/usr/vpd/vpd.C
+index 3533af9..963025f 100755
+--- a/src/usr/vpd/vpd.C
++++ b/src/usr/vpd/vpd.C
+@@ -533,7 +533,7 @@ errlHndl_t ensureCacheIsInSync ( TARGETING::Target * i_target )
+         // If we did not match, we need to load SEEPROM VPD data into PNOR
+         if( l_matchPN && l_matchSN )
+         {
+-            TRACFCOMP(g_trac_vpd,"VPD::ensureCacheIsInSync: PNOR_PN/SN = SEEPROM_PN/SN for target %.8X",TARGETING::get_huid(i_target));
++            TRACFCOMP(g_trac_vpd,"VPD::ensureCacheIsInSync: PNOR_PN/SN == SEEPROM_PN/SN for target %.8X",TARGETING::get_huid(i_target));
+         }
+         else
+         {
+-- 
+1.8.2.2
+
