@@ -1,0 +1,102 @@
+From 42ad0709dfe4c053498660fe9bc884126082c2d6 Mon Sep 17 00:00:00 2001
+From: Norman James <njames@us.ibm.com>
+Date: Tue, 17 Mar 2015 23:49:24 -0500
+Subject: [PATCH] Serverwiz2: TX_MSBSWAP and PEER_PATH fix
+
+Change-Id: I733f9c09837482469365b4de533f3560d049d0a6
+---
+ src/usr/targeting/common/Targets.pm    |  7 +++++++
+ src/usr/targeting/common/processMrw.pl | 29 ++++++++++++++++-------------
+ 2 files changed, 23 insertions(+), 13 deletions(-)
+
+diff --git a/src/usr/targeting/common/Targets.pm b/src/usr/targeting/common/Targets.pm
+index 29f6bcb..ea5ffde 100644
+--- a/src/usr/targeting/common/Targets.pm
++++ b/src/usr/targeting/common/Targets.pm
+@@ -338,8 +338,15 @@ sub buildHierarchy
+     {
+         foreach my $b (@{ $target_xml->{bus} })
+         {
++            if (ref($b->{dest_path}) eq "HASH") {
++                $b->{dest_path}="";
++            }
++            if (ref($b->{source_path}) eq "HASH") {
++                $b->{source_path}="";
++            }
+             my $source_target =
+               $key . "/" . $b->{source_path} . $b->{source_target};
++
+             my $dest_target = $key . "/" . $b->{dest_path} . $b->{dest_target};
+             my $bus_type    = $b->{bus_type};
+             push(
+diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
+index 691cbcb..7133534 100644
+--- a/src/usr/targeting/common/processMrw.pl
++++ b/src/usr/targeting/common/processMrw.pl
+@@ -667,11 +667,15 @@ sub processAbus
+     my $target    = shift;
+ 
+     my $found_abus = 0;
+-   $targetObj->setAttribute($target, "PEER_PATH","physical:na");
+-   $targetObj->setAttribute($target, "EI_BUS_TX_LANE_INVERT","0");
+-   $targetObj->setAttribute($target, "EI_BUS_TX_MSBSWAP","0");
+-   # $targetObj->setAttribute($target, "PEER_TARGET","");
+-
++    if ($targetObj->isBadAttribute($target, "PEER_PATH"))
++    {
++        $targetObj->setAttribute($target, "PEER_PATH","physical:na");
++    }
++    $targetObj->setAttribute($target, "EI_BUS_TX_LANE_INVERT","0");
++    if ($targetObj->isBadAttribute($target, "EI_BUS_TX_MSBSWAP"))
++    {
++        $targetObj->setAttribute($target, "EI_BUS_TX_MSBSWAP","0");
++    }
+     my $abus_child_conn = $targetObj->getFirstConnectionDestination($target);
+     if ($abus_child_conn ne "")
+     {
+@@ -787,12 +791,12 @@ sub processPcie
+ 
+     #iop_swap{iop}{clk swap}{clk group reversal}
+     $iop_swap{0}{0}{'00'}=$t[0];
+-    $iop_swap{0}{0}{'01'}=$t[1];
+-    $iop_swap{0}{0}{'10'}=$t[2];
++    $iop_swap{0}{0}{'10'}=$t[1];
++    $iop_swap{0}{0}{'01'}=$t[2];
+     $iop_swap{0}{0}{'11'}=$t[3];
+     $iop_swap{0}{1}{'00'}=$t[4];
+-    $iop_swap{0}{1}{'01'}=$t[5];
+-    $iop_swap{0}{1}{'10'}=$t[6];
++    $iop_swap{0}{1}{'10'}=$t[5];
++    $iop_swap{0}{1}{'01'}=$t[6];
+     $iop_swap{0}{1}{'11'}=$t[7];
+ 
+     $iop_swap{1}{0}{'00'}=$t[8];
+@@ -800,8 +804,8 @@ sub processPcie
+     $iop_swap{1}{0}{'10'}=$t[10];
+     $iop_swap{1}{0}{'11'}=$t[11];
+     $iop_swap{1}{1}{'00'}=$t[12];
+-    $iop_swap{1}{1}{'01'}=$t[13];
+-    $iop_swap{1}{1}{'10'}=$t[14];
++    $iop_swap{1}{1}{'10'}=$t[13];
++    $iop_swap{1}{1}{'01'}=$t[14];
+     $iop_swap{1}{1}{'11'}=$t[15];
+ 
+     my @lane_eq;
+@@ -958,13 +962,12 @@ sub processMembufVpdAssociation
+ {
+     my $targetObj = shift;
+     my $target    = shift;
+-
+     my $vpds=$targetObj->findConnections($target,"I2C","VPD");
+     if ($vpds ne "" ) {
+         my $vpd = $vpds->{CONN}->[0];
+-
+         my $membuf_assocs=$targetObj->findConnections($vpd->{DEST_PARENT},
+                           "LOGICAL_ASSOCIATION","MEMBUF");
++
+         if ($membuf_assocs ne "") {
+             foreach my $membuf_assoc (@{$membuf_assocs->{CONN}}) {
+                 my $membuf_target = $membuf_assoc->{DEST_PARENT};
+-- 
+1.8.2.2
+

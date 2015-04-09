@@ -1,0 +1,60 @@
+From d6882c71233b9c4b2fb801c4f3e588b47c2c73bc Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Wed, 1 Apr 2015 11:07:42 -0500
+Subject: [PATCH] Move slave sbe start before proc_cen_ref_clk_enable
+
+The proc_cen_ref_clk_enable step contains scoms to the processor
+that do not work if the proc hasn't run through its sbe code yet.
+
+Change-Id: I7665992a01bd66a37cd5e79aa2bb2142a304a8f4
+---
+ src/include/usr/isteps/istep06list.H | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/include/usr/isteps/istep06list.H b/src/include/usr/isteps/istep06list.H
+index 6adb784..6a26b2a 100644
+--- a/src/include/usr/isteps/istep06list.H
++++ b/src/include/usr/isteps/istep06list.H
+@@ -68,12 +68,12 @@ namespace   INITSERVICE
+  *      :   Clear deconfigured states
+  *  06.8    proc_revert_sbe_mcs_setup
+  *      :   Clean up MCS extent regs
+- *  06.9    proc_cen_ref_clk_enable
+- *      :   Setup centaur ref clocks
+- *  06.10    host_slave_sbe_config
++ *  06.10   host_slave_sbe_config
+  *  06.11   host_sbe_start
+  *  06.12   proc_check_slave_sbe_seeprom_complete
+  *        : Check Slave SBE Complete
++ *  06.9    proc_cen_ref_clk_enable
++ *      :   Setup centaur ref clocks
+  *  06.13   proc_xmit_sbe
+  *        : vSBE Init of Slave Chips
+  *
+@@ -127,11 +127,6 @@ const   TaskInfo    g_istep06[]  =   {
+                 { START_FN, EXT_IMAGE, NORMAL_IPL_OP, false }
+         },
+         {
+-                ISTEPNAME(06,09,"proc_cen_ref_clk_enable"),
+-                SLAVE_SBE::call_proc_cen_ref_clk_enable,
+-                { START_FN, EXT_IMAGE, NORMAL_IPL_OP, false }
+-        },
+-        {
+                 ISTEPNAME(06,10,"host_slave_sbe_config"),
+                 SLAVE_SBE::call_host_slave_sbe_config,
+                 { START_FN, EXT_IMAGE, NORMAL_IPL_OP, false }
+@@ -147,6 +142,11 @@ const   TaskInfo    g_istep06[]  =   {
+                 { START_FN, EXT_IMAGE, NORMAL_IPL_OP | MPIPL_OP, false }
+         },
+         {
++                ISTEPNAME(06,09,"proc_cen_ref_clk_enable"),
++                SLAVE_SBE::call_proc_cen_ref_clk_enable,
++                { START_FN, EXT_IMAGE, NORMAL_IPL_OP, false }
++        },
++        {
+                 ISTEPNAME(06,13,"proc_xmit_sbe"),
+                 SLAVE_SBE::call_proc_xmit_sbe,
+                 { START_FN, EXT_IMAGE, NORMAL_IPL_OP, false }
+-- 
+1.8.2.2
+
