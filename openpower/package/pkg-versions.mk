@@ -184,9 +184,15 @@ $(1)-print-version:
 		@cat $$($$(UPPER_CASE_PKG)_VERSION_FILE)
 		@echo ""; echo "**See openpower/package/VERSION.readme for detailed info on package strings"; echo ""
 
-
 # Rule to generate pnor version
 $(1)-build-version: $$(foreach pkg,$$(OPENPOWER_VERSIONED_SUBPACKAGES), $$(pkg)-version)
+		@$$($$(UPPER_CASE_PKG)_OPENPOWER_VERSION_FILE)
+		@echo "=== $$(UPPER_CASE_PKG)_VERSION ==="
+		@cat $$($$(UPPER_CASE_PKG)_VERSION_FILE)
+		@echo ""; echo "**See openpower/package/VERSION.readme for detailed info on package strings"; echo ""
+
+# Rule to force re-generation of all versioned subpackages
+$(1)-build-version-all: $$(foreach pkg,$$(OPENPOWER_VERSIONED_SUBPACKAGES), $$(pkg)-build-version)
 		@$$($$(UPPER_CASE_PKG)_OPENPOWER_VERSION_FILE)
 		@echo "=== $$(UPPER_CASE_PKG)_VERSION ==="
 		@cat $$($$(UPPER_CASE_PKG)_VERSION_FILE)
