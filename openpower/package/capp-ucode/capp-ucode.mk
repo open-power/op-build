@@ -3,7 +3,7 @@
 # capp-ucode.mk
 #
 ################################################################################
-CAPP_UCODE_VERSION ?= d4b26834dd674b83971d00a8c0952fa5830c8f6a
+CAPP_UCODE_VERSION ?= e4f3923e60979ea42494f590db03d965e478eef1
 CAPP_UCODE_SITE ?= $(call github,open-power,capp-ucode,$(CAPP_UCODE_VERSION))
 PETITBOOT_LICENSE = Apache-2.0
 
