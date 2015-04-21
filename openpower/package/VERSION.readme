@@ -13,11 +13,17 @@
 
     ## Op-build Commands ##
 
-    # Display package version
+    # Display subpackage version
     op-build $(package)-version
 
-    # Force a rebuild of a package version
+    # Display entire pnor version
+    op-build openpower-pnor-version
+
+    # Force a rebuild of a subpackage version
     op-build $(package)-build-version
+
+    # Force a rebuild of all subpackage versions
+    op-build openpower-pnor-build-version-all
 
     ##  Version String (ASCII) ##
 
