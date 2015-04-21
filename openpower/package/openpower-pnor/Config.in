@@ -24,6 +24,11 @@ config BR2_OPENPOWER_PNOR_FILENAME
         help
             String used to define pnor filename to be created
 
+config BR2_OPENPOWER_PNOR_UPDATE_FILENAME
+        string "Name of pnor file to be created for updates, if needed"
+        help
+            String used to define pnor filename to be created for updates, if needed
+
 config BR2_SKIBOOT_LID_NAME
         string "Name of skiboot lid name to be used"
         default "skiboot.lid"
