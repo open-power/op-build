@@ -1,11 +1,10 @@
-From 5bda70dc5e135261f5393858959056b44332885b Mon Sep 17 00:00:00 2001
+From 1674da76fadc52f8c6aff6d8435536dd33b7417f Mon Sep 17 00:00:00 2001
 From: Bill Hoffa <wghoffa@us.ibm.com>
 Date: Mon, 30 Mar 2015 15:11:28 -0500
-Subject: [PATCH 6/7] Add PNOR Version Information to IPMI Fru Inventory
+Subject: [PATCH] Add PNOR Version Information to IPMI Fru Inventory
 
 Change-Id: Ib49fe67e9c6631b2b7ea0005e692c9aea6d84057
 RTC:123353
-(cherry picked from commit 90f8e938932e867283e28cade6741b6bf968602c)
 ---
  src/usr/ipmi/ipmifruinv.C                          | 207 +++++++++++++++++++++
  src/usr/ipmi/ipmifruinvprvt.H                      |  47 +++++
@@ -14,18 +13,18 @@ RTC:123353
  4 files changed, 263 insertions(+)
 
 diff --git a/src/usr/ipmi/ipmifruinv.C b/src/usr/ipmi/ipmifruinv.C
-index c6c7a30..b376ebf 100644
+index 4f0d7d7..aaf62d1 100644
 --- a/src/usr/ipmi/ipmifruinv.C
 +++ b/src/usr/ipmi/ipmifruinv.C
-@@ -36,6 +36,7 @@
- #include "ipmifru.H"
+@@ -37,6 +37,7 @@
  #include "ipmifruinvprvt.H"
  #include <stdio.h>
+ #include <assert.h>
 +#include <pnor/pnorif.H>
  
  extern trace_desc_t * g_trac_ipmi;
  
-@@ -83,6 +84,10 @@ IpmiFruInv *IpmiFruInv::Factory(TARGETING::TargetHandleList i_targets,
+@@ -84,6 +85,10 @@ IpmiFruInv *IpmiFruInv::Factory(TARGETING::TargetHandleList i_targets,
              // @todo-RTC:117702
              l_fru = new backplaneIpmiFruInv(l_target, i_targets, i_updateData);
              break;
@@ -36,7 +35,7 @@ index c6c7a30..b376ebf 100644
          default:
              assert(false,
                  "IpmiFruInv::Factory: No support for target type given: [%08x]",
-@@ -926,6 +931,199 @@ errlHndl_t backplaneIpmiFruInv::addVpdData(std::vector<uint8_t> &io_data,
+@@ -927,6 +932,199 @@ errlHndl_t backplaneIpmiFruInv::addVpdData(std::vector<uint8_t> &io_data,
      return l_errl;
  }
  
@@ -76,7 +75,7 @@ index c6c7a30..b376ebf 100644
 +        //Set formatting data that goes at the beginning of the record
 +        preFormatProcessing(io_data, true);
 +
-+        uint8_t l_data[] = {IPMIFRUINV::TYPELENGTH_BYTE_ASCII + 3,'I','B','M',
++        uint8_t l_data[] = {IPMIFRUINV::TYPELENGTH_BYTE_NULL,
 +                            IPMIFRUINV::TYPELENGTH_BYTE_ASCII + 18, 'O','p','e',
 +                            'n','P','O','W','E','R',' ','F','i','r','m','w','a',
 +                            'r','e', IPMIFRUINV::TYPELENGTH_BYTE_NULL};
@@ -102,7 +101,7 @@ index c6c7a30..b376ebf 100644
 +        //First determine number of bytes in PNOR Version string
 +        //  with the caveat there is a max record size allowed, so
 +        //  the string will be cut off if too long
-+        //Also, remove whitespace/newline chars
++        //Also, remove newline chars
 +        while ((l_numBytes < IPMIFRUINV::MAX_RECORD_SIZE -
 +                              (uint8_t(sizeof(l_data) / sizeof(uint8_t))) -
 +                              IPMIFRUINV::COMMON_HEADER_FORMAT_SIZE - 8)
@@ -236,14 +235,14 @@ index c6c7a30..b376ebf 100644
  void IpmiFruInv::addEcidData(const TARGETING::TargetHandle_t& i_target,
                               const TARGETING::ATTR_ECID_type& i_ecidInfo,
                               std::vector<uint8_t> &io_data)
-@@ -993,6 +1191,15 @@ void IPMIFRUINV::setData(bool i_updateData)
+@@ -997,6 +1195,15 @@ void IPMIFRUINV::setData(bool i_updateData)
              IPMIFRUINV::gatherClearData(pSys, frusToClear);
          }
  
 +        //Get System FW FRU_ID if available
 +        uint32_t l_systemFwFruId;
 +        bool hasSystemFwFruId =
-+                            pSys->tryGetAttr<TARGETING::ATTR_BMC_FRU_ID>(l_systemFwFruId);
++                  pSys->tryGetAttr<TARGETING::ATTR_BMC_FRU_ID>(l_systemFwFruId);
 +        if (hasSystemFwFruId)
 +        {
 +            l_potentialFrus.push_back(std::make_pair(pSys, l_systemFwFruId));
@@ -316,10 +315,10 @@ index 2573a84..468a47f 100644
 +
  #endif
 diff --git a/src/usr/targeting/common/xmltohb/attribute_types.xml b/src/usr/targeting/common/xmltohb/attribute_types.xml
-index c961ebe..bbf02dd 100644
+index ec256de..17729cd 100644
 --- a/src/usr/targeting/common/xmltohb/attribute_types.xml
 +++ b/src/usr/targeting/common/xmltohb/attribute_types.xml
-@@ -11425,6 +11425,14 @@ firmware notes: Platforms should initialize this attribute to AUTO (0)</descript
+@@ -11659,6 +11659,14 @@ firmware notes: Platforms should initialize this attribute to AUTO (0)</descript
  </attribute>
  
  <attribute>
@@ -335,10 +334,10 @@ index c961ebe..bbf02dd 100644
      <description>
        Set to 1 by HWSV to indicate that attribute overrides exist in a PLCK IPL
 diff --git a/src/usr/targeting/common/xmltohb/target_types.xml b/src/usr/targeting/common/xmltohb/target_types.xml
-index 6dc4e58..b4b9a30 100644
+index 15d7921..82ec014 100644
 --- a/src/usr/targeting/common/xmltohb/target_types.xml
 +++ b/src/usr/targeting/common/xmltohb/target_types.xml
-@@ -305,6 +305,7 @@
+@@ -300,6 +300,7 @@
      <attribute><id>MNFG_TH_CEN_L4_CACHE_CES</id></attribute>
      <attribute><id>OPT_MEMMAP_GROUP_POLICY</id></attribute>
      <attribute><id>FRU_ID</id></attribute>

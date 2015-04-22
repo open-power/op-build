@@ -1,0 +1,29 @@
+From bc07c585c41d4c6119d8608af27ab7ad1acdaab8 Mon Sep 17 00:00:00 2001
+From: Mike Baiocchi <baiocchi@us.ibm.com>
+Date: Wed, 22 Apr 2015 10:31:08 -0500
+Subject: [PATCH] Add targeting support for backplane VPD
+
+Only the targeting support required by "Updated VPD_REC_NUM numbering"
+
+Change-Id: Ifa095f719b35de2cfae9344496dee63aea190334
+RTC: 118373
+---
+ src/usr/targeting/common/xmltohb/target_types.xml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/usr/targeting/common/xmltohb/target_types.xml b/src/usr/targeting/common/xmltohb/target_types.xml
+index 82ec014..759b73e 100644
+--- a/src/usr/targeting/common/xmltohb/target_types.xml
++++ b/src/usr/targeting/common/xmltohb/target_types.xml
+@@ -913,6 +913,8 @@
+     <attribute><id>FRU_ID</id></attribute>
+     <attribute><id>TPM_PRIMARY_INFO</id></attribute>
+     <attribute><id>TPM_BACKUP_INFO</id></attribute>
++    <attribute><id>EEPROM_VPD_PRIMARY_INFO</id></attribute>
++    <attribute><id>VPD_REC_NUM</id></attribute>
+ </targetType>
+ 
+ <targetType>
+-- 
+1.8.2.2
+
