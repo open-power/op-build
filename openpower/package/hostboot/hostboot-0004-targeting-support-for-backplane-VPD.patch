@@ -5,7 +5,7 @@ Subject: [PATCH] Add targeting support for backplane VPD
 
 Only the targeting support required by "Updated VPD_REC_NUM numbering"
 
-Change-Id: Ifa095f719b35de2cfae9344496dee63aea190334
+Change-Id: I24cda4d713806330a9f61d588006d63966f92550
 RTC: 118373
 ---
  src/usr/targeting/common/xmltohb/target_types.xml | 2 ++
