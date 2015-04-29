@@ -1,0 +1,69 @@
+From 98ade1f37bd00cf2f1e22f01d899eebd85fa7390 Mon Sep 17 00:00:00 2001
+From: Elizabeth Liner <eliner@us.ibm.com>
+Date: Tue, 28 Apr 2015 16:37:03 -0500
+Subject: [PATCH] Fixed strlen exception caused by an extra string
+ interpretation
+
+Change-Id: I44905323854339e7169a493285077de7909a0722
+RTC:124618
+---
+ src/include/usr/trace/interface.H | 9 +--------
+ src/include/usr/trace/trace.H     | 3 ---
+ src/usr/trace/service.C           | 2 +-
+ 3 files changed, 2 insertions(+), 12 deletions(-)
+
+diff --git a/src/include/usr/trace/interface.H b/src/include/usr/trace/interface.H
+index 4115ec2..f6be30f 100644
+--- a/src/include/usr/trace/interface.H
++++ b/src/include/usr/trace/interface.H
+@@ -218,19 +218,12 @@ const uint32_t TRACE_FIELD   = 0;       //Indicates trace is field
+ */
+ #define TRACFBIN(des,printf_string,address,len) \
+     { \
+-        /*TODO: RTC 124618 - remove this block once issue is resolved*/ \
+-        uint16_t l_length = len; \
+-        if(l_length > MAX_WORKING_TRACBIN_SIZE) \
+-        { \
+-            l_length = MAX_WORKING_TRACBIN_SIZE; \
+-            TRACFCOMP(des,"Shrinking to max size in TRACFBIN"); \
+-        } \
+         __TRACE_HASH_STRUCTURES(printf_string); \
+         TRACE::trace_adal_write_bin((des), \
+                                 &__traceData_codeInfo, \
+                                 __LINE__, \
+                                 address, \
+-                                l_length, \
++                                len, \
+                                 TRACE_FIELD); \
+     }
+ 
+diff --git a/src/include/usr/trace/trace.H b/src/include/usr/trace/trace.H
+index bf5421c..fdcce88 100644
+--- a/src/include/usr/trace/trace.H
++++ b/src/include/usr/trace/trace.H
+@@ -42,9 +42,6 @@ const uint32_t TRACE_DEBUG_OFF   = 0;       //< Set to this when debug trace off
+ const uint32_t TRAC_COMP_SIZE    = 16;      //< Max component name size
+ const uint32_t TRAC_MAX_ARGS     = 9;       //< Max number of arguments in trace
+ 
+-//TODO: RTC 124618 - remove this block once issue is resolved
+-const uint16_t MAX_WORKING_TRACBIN_SIZE = 64; //< Max working tracBin size
+-
+ typedef uint32_t trace_hash_val;    //< Hash values are 32 bits.
+ 
+ 
+diff --git a/src/usr/trace/service.C b/src/usr/trace/service.C
+index 0c12580..857ed0a 100644
+--- a/src/usr/trace/service.C
++++ b/src/usr/trace/service.C
+@@ -312,7 +312,7 @@ namespace TRACE
+             }
+ 
+             // Output full binary dump.
+-            CONSOLE::displayf(i_td->iv_compName, output);
++            CONSOLE::displayf(i_td->iv_compName,"%s",output);
+             free(output);
+ 
+         }
+-- 
+1.8.2.2
+
