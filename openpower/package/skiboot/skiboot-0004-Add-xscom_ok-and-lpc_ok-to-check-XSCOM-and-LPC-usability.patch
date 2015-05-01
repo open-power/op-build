@@ -1,0 +1,117 @@
+diff --git a/hw/bt.c b/hw/bt.c
+index 7bf1b2f..8bb44cd 100644
+--- a/hw/bt.c
++++ b/hw/bt.c
+@@ -350,7 +350,8 @@  static void print_debug_queue_info(void) {}
+ 
+ static void bt_send_and_unlock(void)
+ {
+-	if (bt.state == BT_STATE_IDLE && !list_empty(&bt.msgq))
++	if (lpc_ok() &&
++	    bt.state == BT_STATE_IDLE && !list_empty(&bt.msgq))
+ 		bt_send_msg();
+ 
+ 	unlock(&bt.lock);
+@@ -361,6 +362,10 @@  static void bt_poll(struct timer *t __unused, void *data __unused)
+ {
+ 	uint8_t bt_ctrl;
+ 
++	/* Don't do anything if the LPC bus is offline */
++	if (!lpc_ok())
++		return;
++
+ 	/* If we can't get the lock assume someone else will notice
+ 	 * the new message and process it. */
+ 	lock(&bt.lock);
+@@ -440,7 +445,9 @@  static int bt_add_ipmi_msg(struct ipmi_msg *ipmi_msg)
+ 
+ void bt_irq(void)
+ {
+-	uint8_t ireg = bt_inb(BT_INTMASK);
++	uint8_t ireg;
++
++	ireg = bt_inb(BT_INTMASK);
+ 
+ 	bt.irq_ok = true;
+ 	if (ireg & BT_INTMASK_B2H_IRQ) {
+diff --git a/hw/lpc-uart.c b/hw/lpc-uart.c
+index 2e6114a..7c3190e 100644
+--- a/hw/lpc-uart.c
++++ b/hw/lpc-uart.c
+@@ -135,6 +135,10 @@  static size_t uart_con_write(const char *buf, size_t len)
+ {
+ 	size_t written = 0;
+ 
++	/* If LPC bus is bad, we just swallow data */
++	if (!lpc_ok())
++		return written;
++
+ 	lock(&uart_lock);
+ 	while(written < len) {
+ 		if (tx_room == 0) {
+diff --git a/hw/lpc.c b/hw/lpc.c
+index 0db674f..b287020 100644
+--- a/hw/lpc.c
++++ b/hw/lpc.c
+@@ -500,3 +500,15 @@  void lpc_used_by_console(void)
+ 		unlock(&chip->lpc_lock);
+ 	}
+ }
++
++bool lpc_ok(void)
++{
++	struct proc_chip *chip;
++
++	if (lpc_default_chip_id < 0)
++		return false;
++	if (!xscom_ok())
++		return false;
++	chip = get_chip(lpc_default_chip_id);
++	return !lock_held_by_me(&chip->lpc_lock);
++}
+diff --git a/hw/xscom.c b/hw/xscom.c
+index a3533be..07b9b94 100644
+--- a/hw/xscom.c
++++ b/hw/xscom.c
+@@ -531,3 +531,8 @@  void xscom_used_by_console(void)
+ 	lock(&xscom_lock);
+ 	unlock(&xscom_lock);
+ }
++
++bool xscom_ok(void)
++{
++	return !lock_held_by_me(&xscom_lock);
++}
+diff --git a/include/lpc.h b/include/lpc.h
+index 5611c54..a0990fd 100644
+--- a/include/lpc.h
++++ b/include/lpc.h
+@@ -27,6 +27,12 @@  extern void lpc_init(void);
+ /* Check for a default bus */
+ extern bool lpc_present(void);
+ 
++/* Return of LPC is currently usable. This can be false if the caller
++ * currently holds a lock that would make it unsafe, or the LPC bus
++ * is known to be in some error condition (TBI).
++ */
++extern bool lpc_ok(void);
++
+ /* Handle the interrupt from LPC source */
+ extern void __attrconst lpc_interrupt(uint32_t chip_id);
+ 
+diff --git a/include/xscom.h b/include/xscom.h
+index b1ecaf5..a841261 100644
+--- a/include/xscom.h
++++ b/include/xscom.h
+@@ -173,6 +173,11 @@  extern void xscom_init(void);
+ /* Mark XSCOM lock as being in console path */
+ extern void xscom_used_by_console(void);
+ 
++/* Returns true if XSCOM can be used. Typically this returns false if
++ * the current CPU holds the XSCOM lock (to avoid re-entrancy from error path).
++ */
++extern bool xscom_ok(void);
++
+ extern int64_t xscom_read_cfam_chipid(uint32_t partid, uint32_t *chip_id);
+ 
+ #endif /* __XSCOM_H */
