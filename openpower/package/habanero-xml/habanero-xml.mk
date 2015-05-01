@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-HABANERO_XML_VERSION ?= b7f0e388bba972fcdcf749f9bb8e31bc9e1022c0
+HABANERO_XML_VERSION ?= 03d911f12311ba884ec9e08a6c114daabfce545a
 HABANERO_XML_SITE ?= $(call github,open-power,habanero-xml,$(HABANERO_XML_VERSION))
 
 HABANERO_XML_LICENSE = Apache-2.0
