@@ -46,6 +46,11 @@ config BR2_HOSTBOOT_BINARY_SBEC_FILENAME
         help
             String used to define name of sbec hostboot binary file
 
+config BR2_HOSTBOOT_BINARY_WINK_FILENAME
+        string "Name of winkle hostboot binary"
+        help
+            String used to define name of winkle hostboot binary file
+
 config BR2_OPENPOWER_TARGETING_BIN_FILENAME
         string "Name of openpower binary targeting file"
         help
