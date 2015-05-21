@@ -18,7 +18,7 @@ index 385a05c..a269168 100644
              {
                  const uint64_t DELAY_NS = 100;
 -                const uint64_t DELAY_LOOPS = 10000;
-+                const uint64_t DELAY_LOOPS = 1000000;
++                const uint64_t DELAY_LOOPS = 100000000;
  
                  uint8_t data = 0;
                  uint64_t loops = 0;
