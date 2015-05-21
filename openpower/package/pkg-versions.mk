@@ -70,16 +70,16 @@ whoami | xargs echo -n >> $$($(2)_VERSION_FILE); \
 echo -n "-" >> $$($(2)_VERSION_FILE); \
 \
 cd "$$($(2)_SITE)"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
-	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/;s/$(1)-//;' | xargs echo -n \
 	>> $$($(2)_VERSION_FILE); \
 \
-cd "$$($(2)_SITE)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
+cd "$$($(2)_SITE)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/;' | \
 	xargs echo -n >> $$($(2)_VERSION_FILE); \
 else \
 \
 [ `echo -n $$($(2)_VERSION) | wc -c` == "40" ] && (echo -n $$($(2)_VERSION) | \
-	sed "s/^\([0-9a-f]\{7\}\).*/\1/" >> $$($(2)_VERSION_FILE)) \
-	|| echo -n $$($(2)_VERSION) >> $$($(2)_VERSION_FILE); \
+	sed "s/^\([0-9a-f]\{7\}\).*/\1/;s/$(1)-//;" >> $$($(2)_VERSION_FILE)) \
+	|| echo -n $$($(2)_VERSION) | sed -e 's/$(1)-//' >> $$($(2)_VERSION_FILE); \
 \
 cd "$$(BR2_EXTERNAL)"; git describe --all --dirty | \
 	if grep -e "-dirty"; then \
