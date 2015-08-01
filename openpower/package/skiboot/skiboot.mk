@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-SKIBOOT_VERSION = skiboot-5.0.4
+SKIBOOT_VERSION = skiboot-5.0.5
 SKIBOOT_SITE = $(call github,open-power,skiboot,$(SKIBOOT_VERSION))
 SKIBOOT_INSTALL_IMAGES = YES
 SKIBOOT_INSTALL_TARGET = NO
@@ -26,7 +26,7 @@ endif
 endif
 
 define SKIBOOT_BUILD_CMDS
-	$(TARGET_CONFIGURE_OPTS) SKIBOOT_VERSION=$(SKIBOOT_VERSION) \
+	$(TARGET_CONFIGURE_OPTS) SKIBOOT_VERSION=`cat $(SKIBOOT_VERSION_FILE)` \
 		$(MAKE) $(SKIBOOT_MAKE_OPTS) -C $(@D) all
 endef
 
