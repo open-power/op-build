@@ -12,16 +12,14 @@ diff --git a/Makefile.main b/Makefile.main
 index 3c67037..76f0bd3 100644
 --- a/Makefile.main
 +++ b/Makefile.main
-@@ -50,7 +50,8 @@ CPPFLAGS += -DBITS_PER_LONG=64 -DHAVE_BIG_ENDIAN
- # causing all our printf's to warn
+@@ -51,6 +51,7 @@ CPPFLAGS += -DBITS_PER_LONG=64 -DHAVE_BIG_ENDIAN
  CPPFLAGS += -ffreestanding
  
--CFLAGS := -fno-strict-aliasing -fstack-protector-all -pie -mbig-endian -m64
-+CFLAGS := -fno-strict-aliasing -fstack-protector-all -pie \
-+	  -mbig-endian -m64 -mabi=elfv1
+ CFLAGS := -fno-strict-aliasing -fstack-protector-all -pie -mbig-endian -m64
++CFLAGS += -mabi=elfv1
+ CFLAGS += -Wl,--oformat,elf64-powerpc
  
- ifeq ($(STACK_CHECK),1)
- CFLAGS += -fstack-protector-all -pg
+ ifeq ($(SKIBOOT_GCOV),1)
 -- 
 1.9.1
 
