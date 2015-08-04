@@ -51,7 +51,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
             -capp_binary_filename $(BINARIES_DIR)/$(BR2_CAPP_UCODE_BIN_FILENAME) \
-            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE)
+            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
+            -payload  $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME)
 
         mkdir -p $(STAGING_DIR)/pnor/
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
@@ -60,14 +61,15 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
             -outdir $(STAGING_DIR)/pnor/ \
-            -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
+            -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_XZ_NAME) \
             -bootkernel $(BINARIES_DIR)/$(LINUX_IMAGE_NAME) \
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
-            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE)
+            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
+            -xz_compression $(XZ_COMPRESSION_ENABLED)
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
 
