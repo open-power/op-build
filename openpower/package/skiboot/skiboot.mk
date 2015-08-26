@@ -18,7 +18,7 @@ ifeq ($(BR2_TARGET_SKIBOOT_EMBED_PAYLOAD),y)
 SKIBOOT_MAKE_OPTS += KERNEL="$(BINARIES_DIR)/$(LINUX_IMAGE_NAME)"
 
 ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
-SKIBOOT_DEPENDENCIES += linux26-rebuild-with-initramfs
+SKIBOOT_DEPENDENCIES += linux-rebuild-with-initramfs
 else
 SKIBOOT_DEPENDENCIES += linux
 endif
