@@ -17,7 +17,7 @@ OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot 
 ifeq ($(BR2_TARGET_SKIBOOT_EMBED_PAYLOAD),n)
 
 ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
-OPENPOWER_PNOR_DEPENDENCIES += linux26-rebuild-with-initramfs
+OPENPOWER_PNOR_DEPENDENCIES += linux-rebuild-with-initramfs
 else
 OPENPOWER_PNOR_DEPENDENCIES += linux
 endif
