@@ -1,0 +1,25 @@
+From 23b29d36a614bcea6536c9c3c721674aba418813 Mon Sep 17 00:00:00 2001
+From: Thi Tran <thi@us.ibm.com>
+Date: Wed, 26 Aug 2015 15:24:25 -0500
+Subject: [PATCH] Fix fabric_io_dccal (8.2) failure on Alpine & Firestone
+
+Change-Id: Ic5a9a7bbc696298a30238a172189b7909539adec
+---
+ src/include/usr/isteps/istep08list.H | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/include/usr/isteps/istep08list.H b/src/include/usr/isteps/istep08list.H
+index 247fb48..9496539 100644
+--- a/src/include/usr/isteps/istep08list.H
++++ b/src/include/usr/isteps/istep08list.H
+@@ -119,6 +119,7 @@ const DepModInfo g_istep08Dependancies = {
+         DEP_LIB(libdmi_training.so),
+         DEP_LIB(libnest_chiplets.so),
+         DEP_LIB(libsecure_boot.so),
++        DEP_LIB(libslave_sbe.so),
+         NULL
+     }
+ };
+-- 
+1.8.2.2
+
