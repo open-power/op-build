@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-PETITBOOT_VERSION = 83a3159f19f237fa994d2c0a16f97f711d02472c
-PETITBOOT_SITE = git://ozlabs.org/~jk/petitboot
-PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex
+PETITBOOT_VERSION = 5acb43464206348b7cced9508852fdd2989aea58
+PETITBOOT_SITE = git://github.com/open-power/petitboot.git
+PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
 PETITBOOT_LICENSE = GPLv2
 PETITBOOT_LICENSE_FILES = COPYING
 
