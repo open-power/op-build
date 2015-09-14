@@ -48,6 +48,10 @@ define PETITBOOT_POST_INSTALL
 		$(TARGET_DIR)/etc/udev/rules.d/
 	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL)/package/petitboot/removable-event-poll.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL)/package/petitboot/63-md-raid-arrays.rules \
+		$(TARGET_DIR)/etc/udev/rules.d/
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL)/package/petitboot/65-md-incremental.rules \
+		$(TARGET_DIR)/etc/udev/rules.d/
 
 	ln -sf /usr/sbin/pb-udhcpc \
 		$(TARGET_DIR)/usr/share/udhcpc/default.script.d/
