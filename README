@@ -11,7 +11,7 @@ Building on *64-bit* Ubuntu/Debian systems
 1. Install Ubuntu 14.04 or Debian 7.5 64-bit.
 2. Install the packages necessary for the build:
 > sudo apt-get install cscope ctags libz-dev libexpat-dev \
-  python language-pack-en \
+  python language-pack-en texinfo \
   build-essential g++ git bison flex unzip \
   libxml-simple-perl libxml-sax-perl libxml2-dev libxml2-utils xsltproc
 3. Continue with the clone, environment setup, and build as noted above.
