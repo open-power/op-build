@@ -16,6 +16,7 @@ case "$1" in
     start)
         ulimit -c unlimited
         mkdir -p $(dirname $LOGFILE)
+        export $(cat /etc/locale)
         pb-discover -l $LOGFILE $verbose &
         echo $! > $PIDFILE
         ;;
