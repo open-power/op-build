@@ -1,24 +1,28 @@
-From 89cf6cbb22c46699151caf946856fd1f32412ef5 Mon Sep 17 00:00:00 2001
+From 359e321ac2e989d5a1b9810f3c1e54bc4971c331 Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Fri, 12 Dec 2014 08:03:11 +0800
-Subject: [PATCH 1/9] powerpc: Add openpower_defconfig
+Subject: [PATCH 01/18] powerpc: Add openpower_defconfig
 
 Simplifies building an openpower kernel a little. It is based on the
 configuration used by the op-build openpower buildroot overlay.
 
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+
+add accraid
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
- arch/powerpc/configs/openpower_defconfig | 216 +++++++++++++++++++++++++++++++
- 1 file changed, 216 insertions(+)
+ arch/powerpc/configs/openpower_defconfig | 217 +++++++++++++++++++++++++++++++
+ 1 file changed, 217 insertions(+)
  create mode 100644 arch/powerpc/configs/openpower_defconfig
 
 diff --git a/arch/powerpc/configs/openpower_defconfig b/arch/powerpc/configs/openpower_defconfig
 new file mode 100644
-index 0000000..314177e
+index 0000000..4d6779a
 --- /dev/null
 +++ b/arch/powerpc/configs/openpower_defconfig
-@@ -0,0 +1,216 @@
+@@ -0,0 +1,217 @@
 +CONFIG_PPC64=y
 +CONFIG_ALTIVEC=y
 +CONFIG_VSX=y
@@ -100,6 +104,7 @@ index 0000000..314177e
 +CONFIG_SCSI_CXGB4_ISCSI=y
 +CONFIG_SCSI_BNX2_ISCSI=y
 +CONFIG_BE2ISCSI=y
++CONFIG_SCSI_AACRAID=y
 +CONFIG_SCSI_MPT2SAS=y
 +CONFIG_SCSI_IBMVSCSI=y
 +CONFIG_SCSI_SYM53C8XX_2=y

@@ -1,7 +1,7 @@
-From a5b82ac114aaa4235f61cd2c289e3afc2aca667c Mon Sep 17 00:00:00 2001
+From 5c51532db6ffcf1ec521a8a0d19cf3e814f6b428 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Fri, 11 Sep 2015 16:09:56 +0930
-Subject: [PATCH 9/9] Release 4.2-openpower1
+Subject: [PATCH 18/18] Release 4.2.1-openpower1
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index c361593..0d12263 100644
+index a03efc1..49bbfb6 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 2
- SUBLEVEL = 0
+ SUBLEVEL = 1
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Hurr durr I'ma sheep

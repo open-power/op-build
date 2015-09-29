@@ -1,7 +1,8 @@
-From 301de197bdeefada57511b991f67a584e3ab2c43 Mon Sep 17 00:00:00 2001
+From 2d2ab23cbdbbb1907f1f34085c3904efe1979df0 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam.mj@au1.ibm.com>
 Date: Mon, 29 Jun 2015 13:43:51 +1000
-Subject: [PATCH 6/9] powerpc/kexec: Reset secondary cpu endianess before kexec
+Subject: [PATCH 06/18] powerpc/kexec: Reset secondary cpu endianess before
+ kexec
 
 If the target kernel does not inlcude the FIXUP_ENDIAN check, coming
 from a different-endian kernel will cause the target kernel to panic.
