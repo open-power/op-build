@@ -56,7 +56,7 @@ define PETITBOOT_POST_INSTALL
 	ln -sf /usr/sbin/pb-udhcpc \
 		$(TARGET_DIR)/usr/share/udhcpc/default.script.d/
 
-	$(MAKE) -C $(@D)/po install
+	$(MAKE) -C $(@D)/po DESTDIR=$(TARGET_DIR) install
 endef
 
 PETITBOOT_POST_INSTALL_TARGET_HOOKS += PETITBOOT_POST_INSTALL
