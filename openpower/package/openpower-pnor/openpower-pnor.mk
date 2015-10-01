@@ -8,7 +8,7 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= ed1682e10526ebd85825427fbf397361bb0e34aa
+OPENPOWER_PNOR_VERSION ?= 40e407735b317d0174645b7543e0a72019709ce2
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -17,7 +17,7 @@ OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot 
 ifeq ($(BR2_TARGET_SKIBOOT_EMBED_PAYLOAD),n)
 
 ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
-OPENPOWER_PNOR_DEPENDENCIES += linux26-rebuild-with-initramfs
+OPENPOWER_PNOR_DEPENDENCIES += linux-rebuild-with-initramfs
 else
 OPENPOWER_PNOR_DEPENDENCIES += linux
 endif

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# replace /var/* symlinks with actual directories
+
+find $TARGET_DIR/var/ -type l |
+while read path
+do
+    target=$(realpath $path)
+    [ -d "$target" ] || continue
+    rm $path
+    mkdir $path
+done
