@@ -1,7 +1,7 @@
-From f830d515678686ba2975dca0eac47dbae77a63b3 Mon Sep 17 00:00:00 2001
+From bea892898f5fe11ac0c24404db59d3ade6981b9e Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Fri, 31 Oct 2014 15:06:38 +1100
-Subject: [PATCH 5/9] drm/ast: Default to 8bpp on big endian
+Subject: [PATCH 05/18] drm/ast: Default to 8bpp on big endian
 
 This chip is LE only (some versions support HW swappers but not
 the latest and the driver doesn't anyway).
