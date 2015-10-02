@@ -5,8 +5,7 @@
 find $TARGET_DIR/var/ -type l |
 while read path
 do
-    target=$(realpath $path)
-    [ -d "$target" ] || continue
-    rm $path
-    mkdir $path
+    [ -d "$path" ] || continue
+    rm -v $path
+    mkdir -v $path
 done
