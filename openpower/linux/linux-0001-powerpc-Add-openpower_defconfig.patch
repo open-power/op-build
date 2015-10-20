@@ -1,4 +1,4 @@
-From 359e321ac2e989d5a1b9810f3c1e54bc4971c331 Mon Sep 17 00:00:00 2001
+From 2dd6f872aa2c1731e0c04b22654ee46d831626d0 Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Fri, 12 Dec 2014 08:03:11 +0800
 Subject: [PATCH 01/18] powerpc: Add openpower_defconfig
@@ -7,10 +7,6 @@ Simplifies building an openpower kernel a little. It is based on the
 configuration used by the op-build openpower buildroot overlay.
 
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
-Signed-off-by: Joel Stanley <joel@jms.id.au>
-
-add accraid
-
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
  arch/powerpc/configs/openpower_defconfig | 217 +++++++++++++++++++++++++++++++

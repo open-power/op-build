@@ -1,7 +1,7 @@
-From d9ba7aa29b0b509f955fc699e2cc46586350cc70 Mon Sep 17 00:00:00 2001
+From 6e70f88a512df5edf3483efe0495a86662e3da40 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:35 -0400
-Subject: [PATCH 11/18] aacraid: Change interrupt mode to MSI for Series 6
+Subject: [PATCH 10/18] aacraid: Change interrupt mode to MSI for Series 6
 
 This change always sets MSI interrupt mode for series-6 controller.
 

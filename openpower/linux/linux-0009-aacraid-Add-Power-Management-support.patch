@@ -1,7 +1,7 @@
-From b39c80fbb42cfca6766807c2f846c4d77dae0fa7 Mon Sep 17 00:00:00 2001
+From fc23728b0e620b2efef6f0cb0726070b4c26f557 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:34 -0400
-Subject: [PATCH 10/18] aacraid: Add Power Management support
+Subject: [PATCH 09/18] aacraid: Add Power Management support
 
 * .suspend() and .resume() routines implemented in the driver
 * aac_release_resources() initiates firmware shutdown

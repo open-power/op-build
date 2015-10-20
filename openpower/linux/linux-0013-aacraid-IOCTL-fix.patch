@@ -1,7 +1,7 @@
-From 892fadaa9806538ae2c419449c66f4c2838fff2d Mon Sep 17 00:00:00 2001
+From f87228d52a73d2f3b0443fb7b13675f5219ad45c Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:39 -0400
-Subject: [PATCH 14/18] aacraid: IOCTL fix
+Subject: [PATCH 13/18] aacraid: IOCTL fix
 
 Driver blocks ioctls once it received shutdown/suspend request during
 suspend/hybernation. This patch unblocks ioctls on resume path.
