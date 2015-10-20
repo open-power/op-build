@@ -1,0 +1,26 @@
+From 6912b53d84fbc50d2905a81de907c049909b824d Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@jms.id.au>
+Date: Tue, 20 Oct 2015 15:01:06 +1030
+Subject: [PATCH 18/18] Release 4.2.3-openpower1
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index a6edbb1..7979d55 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 4
+ PATCHLEVEL = 2
+ SUBLEVEL = 3
+-EXTRAVERSION =
++EXTRAVERSION = -openpower1
+ NAME = Hurr durr I'ma sheep
+ 
+ # *DOCUMENTATION*
+-- 
+2.5.0
+
