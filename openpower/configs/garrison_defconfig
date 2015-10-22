@@ -32,6 +32,7 @@ BR2_OPENPOWER_PNOR_UPDATE_FILENAME="garrison_update.pnor"
 # skiboot requirements
 BR2_TARGET_SKIBOOT=y
 BR2_TARGET_SKIBOOT_EMBED_PAYLOAD=n
+BR2_TARGET_SKIBOOT_XZ=n
 
 # petitboot requirements
 BR2_ENABLE_LOCALE_PURGE=y
