@@ -1,7 +1,7 @@
-From 1bd4a123c091f8c30c62e77b37b0bab2ca575477 Mon Sep 17 00:00:00 2001
+From 619791f38bad59c663ec9f9cc0247338b5e09c12 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:36 -0400
-Subject: [PATCH 12/18] aacraid: Enable 64bit write to controller register
+Subject: [PATCH 11/17] aacraid: Enable 64bit write to controller register
 
 If writeq() not supported, then do atomic two 32bit write
 

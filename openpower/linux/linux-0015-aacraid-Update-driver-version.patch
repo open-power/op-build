@@ -1,7 +1,7 @@
-From 0a810d9f8ef10a7ee4c1ef4578bebe8118cd3946 Mon Sep 17 00:00:00 2001
+From 9f662745af7e480b02144b743d7a7f548cd5a747 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:41 -0400
-Subject: [PATCH 16/18] aacraid: Update driver version
+Subject: [PATCH 15/17] aacraid: Update driver version
 
 Reviewed-by: Tomas Henzl <thenzl@redhat.com>
 Reviewed-by: Murthy Bhat <Murthy.Bhat@pmcs.com>

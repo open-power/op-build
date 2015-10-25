@@ -1,7 +1,7 @@
-From 2359429f4bd73ceaef1747320032ce1831fa49a4 Mon Sep 17 00:00:00 2001
+From 051c24b3c8b32db05e575e29c3a9d66c924e4bfc Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam.mj@au1.ibm.com>
 Date: Wed, 22 Jul 2015 11:09:15 +1000
-Subject: [PATCH 06/18] powerpc/kexec: Reset HILE before kexec_sequence
+Subject: [PATCH 05/17] powerpc/kexec: Reset HILE before kexec_sequence
 
 On powernv secondary cpus are returned to OPAL, and will then enter
 the target kernel in big-endian. However if it is set the HILE bit

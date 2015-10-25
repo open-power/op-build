@@ -1,7 +1,7 @@
-From 4ea1fbe9d509e4c1585c40b98a233c60d7fd4e9d Mon Sep 17 00:00:00 2001
+From 08b975ea29f077eacbf6c93c069ccf6e4e4b07bd Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:40 -0400
-Subject: [PATCH 15/18] aacraid: Use pci_enable_msix_range()
+Subject: [PATCH 14/17] aacraid: Use pci_enable_msix_range()
 
 As pci_enable_msix() deprecated, replaced with pci_enable_msix_range()
 

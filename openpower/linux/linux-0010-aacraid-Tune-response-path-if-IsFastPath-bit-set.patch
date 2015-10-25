@@ -1,7 +1,7 @@
-From ab0247691fd1f2aefaacb34e5c63784946ae98e9 Mon Sep 17 00:00:00 2001
+From 6cf0c4a6a076888155b73b6273b7628e39595cff Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:37 -0400
-Subject: [PATCH 11/18] aacraid: Tune response path if IsFastPath bit set
+Subject: [PATCH 10/17] aacraid: Tune response path if IsFastPath bit set
 
 If 'IsFastPath' bit is set, then response path assumes no error and skips error check.
 
