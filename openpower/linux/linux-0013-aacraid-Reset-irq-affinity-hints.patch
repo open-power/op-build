@@ -1,7 +1,7 @@
-From 80467b536223ec4b1f7f60198036a2c66b4031c6 Mon Sep 17 00:00:00 2001
+From 07900774dd2657b26dc72718fefdaeb1fb3613fe Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:38 -0400
-Subject: [PATCH 14/18] aacraid: Reset irq affinity hints
+Subject: [PATCH 13/17] aacraid: Reset irq affinity hints
 
 Reset irq affinity hints before releasing IRQ.
 Removed duplicate code of IRQ acquire/release.

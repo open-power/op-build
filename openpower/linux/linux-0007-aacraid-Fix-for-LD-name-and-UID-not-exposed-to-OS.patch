@@ -1,7 +1,7 @@
-From a4f608b4005ba460bf0f58297f3362b733a43424 Mon Sep 17 00:00:00 2001
+From 494f4a2d1496b3c4a9982dfb595bbd0a7997d09a Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:33 -0400
-Subject: [PATCH 08/18] aacraid: Fix for LD name and UID not exposed to OS
+Subject: [PATCH 07/17] aacraid: Fix for LD name and UID not exposed to OS
 
 Driver sends the right size of the response buffer.
 

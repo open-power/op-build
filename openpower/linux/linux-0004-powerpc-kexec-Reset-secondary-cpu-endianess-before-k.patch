@@ -1,7 +1,7 @@
-From be50ab4cae5557c5df79c347e75e2eb4ce71cd6f Mon Sep 17 00:00:00 2001
+From 8bd51183220742ce12d4c231d8a2cff13df796c4 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam.mj@au1.ibm.com>
 Date: Mon, 29 Jun 2015 13:43:51 +1000
-Subject: [PATCH 05/18] powerpc/kexec: Reset secondary cpu endianess before
+Subject: [PATCH 04/17] powerpc/kexec: Reset secondary cpu endianess before
  kexec
 
 If the target kernel does not inlcude the FIXUP_ENDIAN check, coming

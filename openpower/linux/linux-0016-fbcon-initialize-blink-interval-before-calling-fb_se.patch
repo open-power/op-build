@@ -1,7 +1,7 @@
-From 9c7d58df53ec5b6172b4b000423ab43fb47f1d8f Mon Sep 17 00:00:00 2001
+From fe9b91cd685ce61484091b8f1c36e19b65cda96b Mon Sep 17 00:00:00 2001
 From: Scot Doyle <lkml14@scotdoyle.com>
 Date: Fri, 9 Oct 2015 15:08:10 +0000
-Subject: [PATCH 17/18] fbcon: initialize blink interval before calling
+Subject: [PATCH 16/17] fbcon: initialize blink interval before calling
  fb_set_par
 
 Since commit 27a4c827c34ac4256a190cc9d24607f953c1c459

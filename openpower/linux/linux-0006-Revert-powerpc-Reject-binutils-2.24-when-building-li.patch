@@ -1,7 +1,7 @@
-From 6d9584ca6de2825d7253d3e9ab075468c51dc0b1 Mon Sep 17 00:00:00 2001
+From 910ade7272f5263f2a9bcc390ffee9e825516595 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Fri, 11 Sep 2015 14:43:18 +0930
-Subject: [PATCH 07/18] Revert "powerpc: Reject binutils 2.24 when building
+Subject: [PATCH 06/17] Revert "powerpc: Reject binutils 2.24 when building
  little endian"
 
 This reverts commit 60e065f70bdb0b0e916389024922ad40f3270c96.
