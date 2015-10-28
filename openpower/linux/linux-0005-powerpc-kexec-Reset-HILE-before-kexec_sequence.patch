@@ -1,4 +1,4 @@
-From 051c24b3c8b32db05e575e29c3a9d66c924e4bfc Mon Sep 17 00:00:00 2001
+From 67b97ec555099b7f84cd98c6f8e93cac588aa830 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam.mj@au1.ibm.com>
 Date: Wed, 22 Jul 2015 11:09:15 +1000
 Subject: [PATCH 05/17] powerpc/kexec: Reset HILE before kexec_sequence

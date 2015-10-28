@@ -1,4 +1,4 @@
-From 8bd51183220742ce12d4c231d8a2cff13df796c4 Mon Sep 17 00:00:00 2001
+From 7d09146cc906efed651f227864c8603fc57ee325 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam.mj@au1.ibm.com>
 Date: Mon, 29 Jun 2015 13:43:51 +1000
 Subject: [PATCH 04/17] powerpc/kexec: Reset secondary cpu endianess before

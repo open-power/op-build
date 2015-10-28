@@ -1,4 +1,4 @@
-From 494f4a2d1496b3c4a9982dfb595bbd0a7997d09a Mon Sep 17 00:00:00 2001
+From 6e9462ff5c5a1a4acdea277a8a5ba5c82c287b62 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:33 -0400
 Subject: [PATCH 07/17] aacraid: Fix for LD name and UID not exposed to OS
