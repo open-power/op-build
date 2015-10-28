@@ -1,4 +1,4 @@
-From 8d5243fed049a68b887d9c6a9db821dc82ba96c2 Mon Sep 17 00:00:00 2001
+From 9b99db2b1e54238f98477cdad37dba34731792be Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:35 -0400
 Subject: [PATCH 09/17] aacraid: Change interrupt mode to MSI for Series 6

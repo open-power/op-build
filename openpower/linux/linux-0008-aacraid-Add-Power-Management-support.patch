@@ -1,4 +1,4 @@
-From 7ab8dcb7103f8f4c2ae66d6860048928a1e68f81 Mon Sep 17 00:00:00 2001
+From 608f633800ba170ccdcaf8797fce5787f038eefb Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:34 -0400
 Subject: [PATCH 08/17] aacraid: Add Power Management support

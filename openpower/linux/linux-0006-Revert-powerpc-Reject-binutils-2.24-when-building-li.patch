@@ -1,4 +1,4 @@
-From 910ade7272f5263f2a9bcc390ffee9e825516595 Mon Sep 17 00:00:00 2001
+From a24b6a40ae28997b8543b5912dbcb69be94c3e69 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Fri, 11 Sep 2015 14:43:18 +0930
 Subject: [PATCH 06/17] Revert "powerpc: Reject binutils 2.24 when building
