@@ -37,6 +37,8 @@ define PETITBOOT_POST_INSTALL
 		$(TARGET_DIR)/etc/petitboot/boot.d/
 	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/20-set-stdout \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
+	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/90-sort-dtb \
+		$(TARGET_DIR)/etc/petitboot/boot.d/
 
 	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL)/package/petitboot/S14silence-console \
 		$(TARGET_DIR)/etc/init.d/
