@@ -1,7 +1,7 @@
-From 89253aff92b94764266fad985ef25103836575d0 Mon Sep 17 00:00:00 2001
+From 4ce229595057fb71ff775bd9b84a9f72848275b3 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:41 -0400
-Subject: [PATCH 15/17] aacraid: Update driver version
+Subject: [PATCH 14/15] aacraid: Update driver version
 
 Reviewed-by: Tomas Henzl <thenzl@redhat.com>
 Reviewed-by: Murthy Bhat <Murthy.Bhat@pmcs.com>
@@ -13,7 +13,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/aacraid/aacraid.h b/drivers/scsi/aacraid/aacraid.h
-index 2de5ebc..074878b 100644
+index 2de5ebcce138..074878b55a0b 100644
 --- a/drivers/scsi/aacraid/aacraid.h
 +++ b/drivers/scsi/aacraid/aacraid.h
 @@ -62,7 +62,7 @@ enum {
@@ -26,5 +26,5 @@ index 2de5ebc..074878b 100644
  #endif
  #define MAXIMUM_NUM_CONTAINERS	32
 -- 
-2.5.0
+2.6.2
 

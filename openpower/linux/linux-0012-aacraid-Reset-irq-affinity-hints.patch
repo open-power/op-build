@@ -1,7 +1,7 @@
-From 39231523523eadf49e7cc88426dfebc1bf3fcfbe Mon Sep 17 00:00:00 2001
+From 691bc6c6570ffbd9e1c4733dd12cd513ff6e19ec Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:38 -0400
-Subject: [PATCH 13/17] aacraid: Reset irq affinity hints
+Subject: [PATCH 12/15] aacraid: Reset irq affinity hints
 
 Reset irq affinity hints before releasing IRQ.
 Removed duplicate code of IRQ acquire/release.
@@ -18,7 +18,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  3 files changed, 88 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/scsi/aacraid/aacraid.h b/drivers/scsi/aacraid/aacraid.h
-index e54f597..7b95227 100644
+index e54f597a058d..7b95227af478 100644
 --- a/drivers/scsi/aacraid/aacraid.h
 +++ b/drivers/scsi/aacraid/aacraid.h
 @@ -2110,6 +2110,8 @@ static inline unsigned int cap_to_cyls(sector_t capacity, unsigned divisor)
@@ -31,7 +31,7 @@ index e54f597..7b95227 100644
  struct fib *aac_fib_alloc(struct aac_dev *dev);
  int aac_fib_setup(struct aac_dev *dev);
 diff --git a/drivers/scsi/aacraid/commsup.c b/drivers/scsi/aacraid/commsup.c
-index 4da5749..a1f90fe 100644
+index 4da574925284..a1f90fe849c9 100644
 --- a/drivers/scsi/aacraid/commsup.c
 +++ b/drivers/scsi/aacraid/commsup.c
 @@ -1270,13 +1270,12 @@ retry_next:
@@ -171,7 +171,7 @@ index 4da5749..a1f90fe 100644
 +		pci_disable_msix(dev->pdev);
 +}
 diff --git a/drivers/scsi/aacraid/src.c b/drivers/scsi/aacraid/src.c
-index 1409a0b..2aa34ea 100644
+index 1409a0b945ea..2aa34ea8ceb1 100644
 --- a/drivers/scsi/aacraid/src.c
 +++ b/drivers/scsi/aacraid/src.c
 @@ -798,9 +798,7 @@ int aac_srcv_init(struct aac_dev *dev)
@@ -238,5 +238,5 @@ index 1409a0b..2aa34ea 100644
  	dev->dbg_base_mapped = dev->base;
  	dev->dbg_size = dev->base_size;
 -- 
-2.5.0
+2.6.2
 

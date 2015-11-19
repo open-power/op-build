@@ -1,7 +1,7 @@
-From 3700065f5c1b076e49aa81eff729012fd2da6b54 Mon Sep 17 00:00:00 2001
+From bbf8dfe1ddb782c0ed75a14c3dcbb473c8563987 Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Fri, 12 Dec 2014 08:03:11 +0800
-Subject: [PATCH 01/17] powerpc: Add openpower_defconfig
+Subject: [PATCH 01/15] powerpc: Add openpower_defconfig
 
 Simplifies building an openpower kernel a little. It is based on the
 configuration used by the op-build openpower buildroot overlay.
@@ -15,7 +15,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
 
 diff --git a/arch/powerpc/configs/openpower_defconfig b/arch/powerpc/configs/openpower_defconfig
 new file mode 100644
-index 0000000..4d6779a
+index 000000000000..4d6779a3c753
 --- /dev/null
 +++ b/arch/powerpc/configs/openpower_defconfig
 @@ -0,0 +1,217 @@
@@ -237,5 +237,5 @@ index 0000000..4d6779a
 +CONFIG_CRYPTO_ECHAINIV=y
 +# CONFIG_CRYPTO_HW is not set
 -- 
-2.5.0
+2.6.2
 

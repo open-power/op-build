@@ -1,7 +1,7 @@
-From a24b6a40ae28997b8543b5912dbcb69be94c3e69 Mon Sep 17 00:00:00 2001
+From 8ff76b10e7d83cb4ac2ec13e792644493613a2c2 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Fri, 11 Sep 2015 14:43:18 +0930
-Subject: [PATCH 06/17] Revert "powerpc: Reject binutils 2.24 when building
+Subject: [PATCH 05/15] Revert "powerpc: Reject binutils 2.24 when building
  little endian"
 
 This reverts commit 60e065f70bdb0b0e916389024922ad40f3270c96.
@@ -15,7 +15,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 8 deletions(-)
 
 diff --git a/arch/powerpc/Makefile b/arch/powerpc/Makefile
-index 05f464e..b2ae85d 100644
+index 05f464eb6952..b2ae85dca1f7 100644
 --- a/arch/powerpc/Makefile
 +++ b/arch/powerpc/Makefile
 @@ -358,14 +358,6 @@ checkbin:
@@ -34,5 +34,5 @@ index 05f464e..b2ae85d 100644
  CLEAN_FILES += $(TOUT)
  
 -- 
-2.5.0
+2.6.2
 

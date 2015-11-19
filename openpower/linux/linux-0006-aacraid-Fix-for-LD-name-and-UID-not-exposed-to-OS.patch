@@ -1,7 +1,7 @@
-From 6e9462ff5c5a1a4acdea277a8a5ba5c82c287b62 Mon Sep 17 00:00:00 2001
+From 5c0ce63abf423b06ad4a9dd0340dc691cf6af7ea Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:33 -0400
-Subject: [PATCH 07/17] aacraid: Fix for LD name and UID not exposed to OS
+Subject: [PATCH 06/15] aacraid: Fix for LD name and UID not exposed to OS
 
 Driver sends the right size of the response buffer.
 
@@ -15,7 +15,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/scsi/aacraid/aachba.c b/drivers/scsi/aacraid/aachba.c
-index 9b3dd6e..fe59b00 100644
+index 9b3dd6ef6a0b..fe59b0084575 100644
 --- a/drivers/scsi/aacraid/aachba.c
 +++ b/drivers/scsi/aacraid/aachba.c
 @@ -570,7 +570,7 @@ static int aac_get_container_name(struct scsi_cmnd * scsicmd)
@@ -37,5 +37,5 @@ index 9b3dd6e..fe59b00 100644
  		  0, 1,
  		  (fib_callback) get_container_serial_callback,
 -- 
-2.5.0
+2.6.2
 

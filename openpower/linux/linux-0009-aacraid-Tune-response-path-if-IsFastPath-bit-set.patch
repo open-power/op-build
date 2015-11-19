@@ -1,7 +1,7 @@
-From 841c01b02751a163bd66ab6ad0c5b7b7e147b47d Mon Sep 17 00:00:00 2001
+From abcbb5d7d8e9e6144487bfcc22d14efe3f76de40 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:37 -0400
-Subject: [PATCH 10/17] aacraid: Tune response path if IsFastPath bit set
+Subject: [PATCH 09/15] aacraid: Tune response path if IsFastPath bit set
 
 If 'IsFastPath' bit is set, then response path assumes no error and skips error check.
 
@@ -14,7 +14,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 137 insertions(+), 122 deletions(-)
 
 diff --git a/drivers/scsi/aacraid/aachba.c b/drivers/scsi/aacraid/aachba.c
-index 05f2a02..e4c2437 100644
+index 05f2a0295f4d..e4c243748a97 100644
 --- a/drivers/scsi/aacraid/aachba.c
 +++ b/drivers/scsi/aacraid/aachba.c
 @@ -2977,11 +2977,16 @@ static void aac_srb_callback(void *context, struct fib * fibptr)
@@ -315,5 +315,5 @@ index 05f2a02..e4c2437 100644
  	/*
  	 * OR in the scsi status (already shifted up a bit)
 -- 
-2.5.0
+2.6.2
 
