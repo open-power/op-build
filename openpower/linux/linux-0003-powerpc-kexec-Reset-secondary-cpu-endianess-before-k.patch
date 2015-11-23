@@ -1,7 +1,7 @@
-From 7d09146cc906efed651f227864c8603fc57ee325 Mon Sep 17 00:00:00 2001
+From a0fa3be3772983f7b96cc4133542a0eac25f6ed9 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam.mj@au1.ibm.com>
 Date: Mon, 29 Jun 2015 13:43:51 +1000
-Subject: [PATCH 04/17] powerpc/kexec: Reset secondary cpu endianess before
+Subject: [PATCH 03/15] powerpc/kexec: Reset secondary cpu endianess before
  kexec
 
 If the target kernel does not inlcude the FIXUP_ENDIAN check, coming
@@ -19,7 +19,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/arch/powerpc/kernel/misc_64.S b/arch/powerpc/kernel/misc_64.S
-index 4e314b9..6e4168c 100644
+index 4e314b90c75d..6e4168cf4698 100644
 --- a/arch/powerpc/kernel/misc_64.S
 +++ b/arch/powerpc/kernel/misc_64.S
 @@ -475,9 +475,18 @@ _GLOBAL(kexec_wait)
@@ -44,5 +44,5 @@ index 4e314b9..6e4168c 100644
  /* this can be in text because we won't change it until we are
   * running in real anyways
 -- 
-2.5.0
+2.6.2
 

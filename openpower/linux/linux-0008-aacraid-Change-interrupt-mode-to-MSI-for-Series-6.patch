@@ -1,7 +1,7 @@
-From 9b99db2b1e54238f98477cdad37dba34731792be Mon Sep 17 00:00:00 2001
+From 3b9ff8cca5a7d0745311e06c71286090ffd17392 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:35 -0400
-Subject: [PATCH 09/17] aacraid: Change interrupt mode to MSI for Series 6
+Subject: [PATCH 08/15] aacraid: Change interrupt mode to MSI for Series 6
 
 This change always sets MSI interrupt mode for series-6 controller.
 
@@ -16,7 +16,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/scsi/aacraid/aachba.c b/drivers/scsi/aacraid/aachba.c
-index fe59b00..05f2a02 100644
+index fe59b0084575..05f2a0295f4d 100644
 --- a/drivers/scsi/aacraid/aachba.c
 +++ b/drivers/scsi/aacraid/aachba.c
 @@ -259,7 +259,7 @@ MODULE_PARM_DESC(commit, "Control whether a COMMIT_CONFIG is issued to the"
@@ -29,7 +29,7 @@ index fe59b00..05f2a02 100644
  MODULE_PARM_DESC(startup_timeout, "The duration of time in seconds to wait for"
  	" adapter to have it's kernel up and\n"
 diff --git a/drivers/scsi/aacraid/src.c b/drivers/scsi/aacraid/src.c
-index b147341..eb07b3d 100644
+index b147341ac24d..eb07b3d4ed38 100644
 --- a/drivers/scsi/aacraid/src.c
 +++ b/drivers/scsi/aacraid/src.c
 @@ -742,7 +742,7 @@ int aac_src_init(struct aac_dev *dev)
@@ -42,5 +42,5 @@ index b147341..eb07b3d 100644
  	dev->aac_msix[0].vector_no = 0;
  	dev->aac_msix[0].dev = dev;
 -- 
-2.5.0
+2.6.2
 

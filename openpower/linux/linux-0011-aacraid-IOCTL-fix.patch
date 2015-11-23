@@ -1,7 +1,7 @@
-From 97d883832a9083aad13b736b2e513307edd1216d Mon Sep 17 00:00:00 2001
+From 21b4be79f2475bc5acd600400c47110695675ac0 Mon Sep 17 00:00:00 2001
 From: Mahesh Rajashekhara <Mahesh.Rajashekhara@pmcs.com>
 Date: Fri, 28 Aug 2015 06:38:39 -0400
-Subject: [PATCH 12/17] aacraid: IOCTL fix
+Subject: [PATCH 11/15] aacraid: IOCTL fix
 
 Driver blocks ioctls once it received shutdown/suspend request during
 suspend/hybernation. This patch unblocks ioctls on resume path.
@@ -16,7 +16,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 5 insertions(+)
 
 diff --git a/drivers/scsi/aacraid/linit.c b/drivers/scsi/aacraid/linit.c
-index 37375cf..3b6e5c6 100644
+index 37375cf7d126..3b6e5c67e853 100644
 --- a/drivers/scsi/aacraid/linit.c
 +++ b/drivers/scsi/aacraid/linit.c
 @@ -1448,6 +1448,11 @@ static int aac_resume(struct pci_dev *pdev)
@@ -32,5 +32,5 @@ index 37375cf..3b6e5c6 100644
  
  	return 0;
 -- 
-2.5.0
+2.6.2
 
