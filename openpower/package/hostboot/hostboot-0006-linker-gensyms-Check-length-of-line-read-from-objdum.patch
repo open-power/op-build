@@ -1,0 +1,53 @@
+From a708efda83b669ca527fef14d1faeba39adf57f9 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Tue, 8 Dec 2015 19:14:05 +1100
+Subject: [PATCH] linker/gensyms: Check length of line read from objdump
+
+Otherwise, when run with valgrind on my fedora 23 laptop:
+
+==27841== Thread 2:
+==27841== Conditional jump or move depends on uninitialised value(s)
+==27841==    at 0x4028AE: read_module_symbols(void*) (gensyms.C:308)
+==27841==    by 0x4E3C609: start_thread (pthread_create.c:334)
+==27841==    by 0x59EFA9C: clone (clone.S:109)
+==27841==
+
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/build/linker/gensyms.C | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/build/linker/gensyms.C b/src/build/linker/gensyms.C
+index acd1f8d..be64adc 100644
+--- a/src/build/linker/gensyms.C
++++ b/src/build/linker/gensyms.C
+@@ -305,7 +305,7 @@ void* read_module_symbols(void* input)
+         // Skip absolute values (ex. constants) and undefined symbols.
+         if (strstr(line, "*ABS*") || strstr(line, "*UND*")) continue;
+         // Skip section symbols (marked by 'd' in the 22nd column).
+-        if ('d' == line[22]) continue;
++        if (strlen(line) > 22 && 'd' == line[22]) continue;
+ 
+         // First part of an objdump line is the symbol address, parse that.
+         uint64_t line_address;
+@@ -315,14 +315,15 @@ void* read_module_symbols(void* input)
+         // Determine if the symbol is a function and if it is in the .rodata
+         // section.  Symbols in the .rodata section have a slightly longer
+         // line than those in the .text/.data sections (by 2 characters).
+-        bool is_function = ('F' == line[23]);
++        bool is_function = (strlen(line) > 23 && 'F' == line[23]);
+         size_t rodata = (NULL != strstr(line, ".rodata")) ? 2 : 0;
+ 
+         // Parse the symbol size.
+         uint64_t symbol_size;
+-        if (1 != sscanf(&line[32+rodata], "%lx", &symbol_size)) continue;
++        if (strlen(line) > 32+rodata && 1 != sscanf(&line[32+rodata], "%lx", &symbol_size)) continue;
+ 
+         // Parse the function name.
++	assert(strlen(line) > 48+rodata);
+         string function = &line[48+rodata];
+         function.resize(function.length() - 1); // remove the newline.
+ 
+-- 
+2.5.0
+

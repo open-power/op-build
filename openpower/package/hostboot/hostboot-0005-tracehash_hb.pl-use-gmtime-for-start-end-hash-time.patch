@@ -1,0 +1,42 @@
+From b6b97b7c64f9eeb4fcea641100cd3957b18d389a Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Tue, 8 Dec 2015 13:27:15 +1100
+Subject: [PATCH 3/3] tracehash_hb.pl: use gmtime for start/end hash time
+
+Previously, end time would come from `date` - which involves fork()/exec()
+and a differently formatted date than the start time, which was from
+the perl gmtime function.
+
+As the date is used to assemble the string identifying the build, we use
+gmtime() in both places rather than localtime().
+
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/build/trace/tracehash_hb.pl | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/build/trace/tracehash_hb.pl b/src/build/trace/tracehash_hb.pl
+index 9163be7..e4cdb63 100755
+--- a/src/build/trace/tracehash_hb.pl
++++ b/src/build/trace/tracehash_hb.pl
+@@ -166,7 +166,7 @@ if (!$file && !$dir && !$in_sand) {
+ #          M A I N              #
+ #################################
+ 
+-my $clock = gmtime;
++my $clock = gmtime();
+ 
+ $build = $HEAD_EYE_CATCHER . "$HEAD_VER_FLAG" . $HEAD_SEP . $clock . $HEAD_SEP  . $HEAD_BUILD_FLAG;
+ 
+@@ -232,7 +232,7 @@ else
+ write_string_file();
+ 
+ print "Hashing Started at $clock\n";
+-$clock = `date`;
++$clock = gmtime();
+ print "Hashing Finished at $clock\n";
+ 
+ exit 0;
+-- 
+2.5.0
+

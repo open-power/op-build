@@ -1,0 +1,161 @@
+From 1f4c9166c8724d9566ea77a958cd6f40200de9fd Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Wed, 9 Dec 2015 10:22:30 +1100
+Subject: [PATCH] genlist/gensyms: Remove pthread usage
+
+Usage of pthreads and popen() triggers what I think is a GNU libc bug:
+- https://patchwork.ozlabs.org/patch/539329/
+- https://sourceware.org/bugzilla/show_bug.cgi?id=19182
+
+I could 100% hit this on Fedora 23, making Hostboot impossible to compile
+on modern Fedora.
+
+looking into the code, the pthread usage isn't really needed as since
+there's a couple of calls it's going to be done in parallel anyway.
+
+Plus, since there was pretty much no error checking going on, doing
+things in parallel is just going to increase the possibility of things
+going wrong.
+
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/build/linker/genlist.C | 28 ++++++----------------------
+ src/build/linker/gensyms.C | 16 +---------------
+ src/build/linker/makefile  |  6 ++----
+ 3 files changed, 9 insertions(+), 41 deletions(-)
+
+diff --git a/src/build/linker/genlist.C b/src/build/linker/genlist.C
+index 69b52a1..5f99f35 100644
+--- a/src/build/linker/genlist.C
++++ b/src/build/linker/genlist.C
+@@ -80,7 +80,7 @@ string find_symbol_name(uint64_t i_addr, bool i_match = false);
+  *
+  *  @return Pointer to a string containing the module's listing.
+  */
+-void* read_module_content(void*);
++char* read_module_content(void*);
+ 
+     /** Module information parsed from modinfo.  <Module, Offset> */
+ vector<pair<string, uint64_t> > g_modules;
+@@ -119,7 +119,6 @@ int main(int argc, char** argv)
+     parse_syms_file(g_imageName);
+ 
+     // Create threads for each ELF object in the image to get their listing.
+-    vector<pthread_t*> threads;
+     for(vector<pair<string, uint64_t> >::const_iterator i = g_modules.begin();
+         i != g_modules.end(); ++i)
+     {
+@@ -128,25 +127,10 @@ int main(int argc, char** argv)
+         if (strstr(m.c_str(), ".o") || strstr(m.c_str(), ".elf") ||
+             strstr(m.c_str(), ".so"))
+         {
+-            pthread_t* thread = new pthread_t;
+-            pthread_create(thread, NULL, read_module_content,
+-                           new pair<string,uint64_t>(*i));
+-            threads.push_back(thread);
+-        }
+-    }
+-
+-    // Wait for all threads to finish and display listing result from each.
+-    //    Since we started in the address order and join in that same order
+-    //    the output becomes in-order as well.
+-    for (vector<pthread_t*>::const_iterator i = threads.begin();
+-         i != threads.end(); ++i)
+-    {
+-        char* result;
+-        pthread_join(*(*i), (void**)&result);
+-        if (result)
+-        {
+-            printf("%s", result);
+-            free(result);
++	    char *result;
++	    result = read_module_content(new pair<string,uint64_t>(*i));
++	    printf("%s", result);
++	    free(result);
+         }
+     }
+ 
+@@ -296,7 +280,7 @@ string find_symbol_name(uint64_t addr, bool match)
+     }
+ }
+ 
+-void* read_module_content(void* input)
++char* read_module_content(void* input)
+ {
+     // Get module name and offset from input parameter.
+     pair<string, uint64_t>* mod_info =
+diff --git a/src/build/linker/gensyms.C b/src/build/linker/gensyms.C
+index acd1f8d..50b1bbd 100644
+--- a/src/build/linker/gensyms.C
++++ b/src/build/linker/gensyms.C
+@@ -105,7 +105,6 @@ char* g_crossPrefix = NULL;
+      */
+ multimap<uint64_t, string> g_symbols;
+     /** Mutex to protect symbol map. */
+-pthread_mutex_t g_symbolMutex = PTHREAD_MUTEX_INITIALIZER;
+ 
+ int main(int argc, char** argv)
+ {
+@@ -185,7 +184,6 @@ int main(int argc, char** argv)
+ 
+     // Create threads for each ELF object in the image(s) to get their symbol
+     // information.
+-    vector<pthread_t*> threads;
+     for(vector<pair<string, uint64_t> >::const_iterator i = g_modules.begin();
+         i != g_modules.end(); ++i)
+     {
+@@ -194,20 +192,10 @@ int main(int argc, char** argv)
+         if (strstr(m.c_str(), ".o") || strstr(m.c_str(), ".elf") ||
+             strstr(m.c_str(), ".so"))
+         {
+-            pthread_t* thread = new pthread_t;
+-            pthread_create(thread, NULL, read_module_symbols,
+-                           new pair<string,uint64_t>(*i));
+-            threads.push_back(thread);
++	    read_module_symbols(new pair<string,uint64_t>(*i));
+         }
+     }
+ 
+-    // Wait for all threads to finish.
+-    for(vector<pthread_t*>::const_iterator i = threads.begin();
+-        i != threads.end(); ++i)
+-    {
+-        pthread_join(*(*i), NULL);
+-    }
+-
+     // Output (in order) each symbol information.
+     for (multimap<uint64_t, string>::const_iterator i = g_symbols.begin();
+          i != g_symbols.end(); ++i)
+@@ -368,9 +356,7 @@ void* read_module_symbols(void* input)
+     pclose(pipe);
+ 
+     // Copy our local symbol list all at once into the global symbol list.
+-    pthread_mutex_lock(&g_symbolMutex);
+     g_symbols.insert(l_symbols.begin(), l_symbols.end());
+-    pthread_mutex_unlock(&g_symbolMutex);
+ 
+     return NULL;
+ }
+diff --git a/src/build/linker/makefile b/src/build/linker/makefile
+index 523b385..da6394f 100644
+--- a/src/build/linker/makefile
++++ b/src/build/linker/makefile
+@@ -48,13 +48,11 @@ linker: linker.C
+ gensyms: gensyms.C
+ 	$(C2) "    CXX        $(notdir $<)"
+ 	$(C1)$(CCACHE) $(HOST_PREFIX)g++ -O3 -g gensyms.C -o gensyms.o -c
+-	$(C1)$(CCACHE) $(HOST_PREFIX)g++ -O3 -g gensyms.o -o gensyms \
+-					 -lpthread
++	$(C1)$(CCACHE) $(HOST_PREFIX)g++ -O3 -g gensyms.o -o gensyms
+ 	$(C1)rm gensyms.o
+ 
+ genlist: genlist.C
+ 	$(C2) "    CXX        $(notdir $<)"
+ 	$(C1)$(CCACHE) $(HOST_PREFIX)g++ -O3 -g genlist.C -o genlist.o -c
+-	$(C1)$(CCACHE) $(HOST_PREFIX)g++ -O3 -g genlist.o -o genlist \
+-					 -lpthread
++	$(C1)$(CCACHE) $(HOST_PREFIX)g++ -O3 -g genlist.o -o genlist
+ 	$(C1)rm genlist.o
+-- 
+2.5.0
+

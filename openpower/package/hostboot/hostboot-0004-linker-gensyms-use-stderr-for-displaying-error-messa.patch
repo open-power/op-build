@@ -1,0 +1,82 @@
+From a880abdf22a6e44696b9823e77232afcb01837d4 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Tue, 8 Dec 2015 12:06:17 +1100
+Subject: [PATCH 2/3] linker/gensyms: use stderr for displaying error messages
+
+Since genlist is used in makefiles and stdout redirected,
+if there is an error, you will not see it in make output at
+all, instead having things fail in weird ways.
+
+Use fprintf for stderr rather than to stdout to avoid
+
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/build/linker/gensyms.C | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/build/linker/gensyms.C b/src/build/linker/gensyms.C
+index acd1f8d..ecadea0 100644
+--- a/src/build/linker/gensyms.C
++++ b/src/build/linker/gensyms.C
+@@ -136,13 +136,13 @@ int main(int argc, char** argv)
+     int base_fd = open(g_imageName.c_str(), O_RDONLY);
+     if (-1 == base_fd)
+     {
+-        printf("Failed to open image file: %s.\n", g_imageName.c_str());
++        fprintf(stderr, "Failed to open image file: %s.\n", g_imageName.c_str());
+         exit(-1);
+     }
+     struct stat base_stat;
+     if (0 != fstat(base_fd, &base_stat))
+     {
+-        printf("Failed to stat image file: %s.\n", g_imageName.c_str());
++        fprintf(stderr, "Failed to stat image file: %s.\n", g_imageName.c_str());
+         exit(-1);
+     }
+     g_imageFileSize = base_stat.st_size;
+@@ -156,13 +156,13 @@ int main(int argc, char** argv)
+         int ext_fd = open(g_extImageName.c_str(), O_RDONLY);
+         if (-1 == ext_fd)
+         {
+-            printf("Failed to open image file: %s.\n", g_extImageName.c_str());
++            fprintf(stderr, "Failed to open image file: %s.\n", g_extImageName.c_str());
+             exit(-1);
+         }
+         struct stat ext_stat;
+         if (0 != fstat(ext_fd, &ext_stat))
+         {
+-            printf("Failed to stat image file: %s.\n", g_extImageName.c_str());
++            fprintf(stderr, "Failed to stat image file: %s.\n", g_extImageName.c_str());
+             exit(-1);
+         }
+         g_extImageFileSize = ext_stat.st_size;
+@@ -175,7 +175,7 @@ int main(int argc, char** argv)
+     g_crossPrefix = getenv("CROSS_PREFIX");
+     if (NULL == g_crossPrefix)
+     {
+-        printf("Environment variable CROSS_PREFIX not set.\n");
++        fprintf(stderr, "Environment variable CROSS_PREFIX not set.\n");
+         exit(-1);
+     }
+     g_crossPrefix = strdup(g_crossPrefix);
+@@ -220,7 +220,7 @@ int main(int argc, char** argv)
+ 
+ void print_usage()
+ {
+-    printf("gensyms <image> [<extimage> <extoffset>]\n");
++    fprintf(stderr, "gensyms <image> [<extimage> <extoffset>]\n");
+     exit(-1);
+ }
+ 
+@@ -241,7 +241,7 @@ void parse_modinfo_file(const string& i_image)
+     FILE* modinfo_file = fopen(modinfo_name.c_str(), "r");
+     if (NULL == modinfo_file)
+     {
+-        printf("Unable to open modinfo file.\n");
++        fprintf(stderr, "Unable to open modinfo file.\n");
+         exit(-1);
+     }
+ 
+-- 
+2.5.0
+
