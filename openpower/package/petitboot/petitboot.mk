@@ -5,7 +5,7 @@
 ################################################################################
 
 PETITBOOT_VERSION = d171258160f7ed4756531f51e66fb116753bc990
-PETITBOOT_SITE = git://github.com/open-power/petitboot.git
+PETITBOOT_SITE ?= $(call github,open-power,petitboot,$(PETITBOOT_VERSION))
 PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
 PETITBOOT_LICENSE = GPLv2
 PETITBOOT_LICENSE_FILES = COPYING
