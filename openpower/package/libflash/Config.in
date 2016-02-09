@@ -1,0 +1,4 @@
+config BR2_PACKAGE_LIBFLASH
+	bool "libflash"
+	help
+	  Build libflash shared library
