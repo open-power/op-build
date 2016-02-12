@@ -29,7 +29,7 @@ BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME="defaultPnorLayoutSingleSide.xml"
 BR2_OPENPOWER_PNOR_FILENAME="palmetto.pnor"
 
 # skiboot requirements
-BR2_TARGET_SKIBOOT=y
+BR2_PACKAGE_SKIBOOT=y
 BR2_TARGET_SKIBOOT_EMBED_PAYLOAD=n
 
 # petitboot requirements

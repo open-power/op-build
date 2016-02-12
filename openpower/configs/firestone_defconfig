@@ -30,7 +30,7 @@ BR2_OPENPOWER_PNOR_FILENAME="firestone.pnor"
 BR2_OPENPOWER_PNOR_UPDATE_FILENAME="firestone_update.pnor"
 
 # skiboot requirements
-BR2_TARGET_SKIBOOT=y
+BR2_PACKAGE_SKIBOOT=y
 BR2_TARGET_SKIBOOT_EMBED_PAYLOAD=n
 
 # petitboot requirements

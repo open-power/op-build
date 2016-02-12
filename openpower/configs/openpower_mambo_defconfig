@@ -18,7 +18,7 @@ BR2_PACKAGE_OCC=n
 BR2_PACKAGE_OPENPOWER_PNOR=n
 
 # skiboot will be built but we don't need embedded payload
-BR2_TARGET_SKIBOOT=y
+BR2_PACKAGE_SKIBOOT=y
 BR2_TARGET_SKIBOOT_EMBED_PAYLOAD=n
 
 # petitboot requirements
