@@ -1,0 +1,11 @@
+--- a/src/build/mkrules/cflags.env.mk	2016-01-20 14:08:32.333805918 +1100
++++ b/src/build/mkrules/cflags.env.mk	2016-01-20 14:08:52.734052063 +1100
+@@ -39,7 +39,7 @@
+ COMMONFLAGS += $(OPT_LEVEL) -nostdlib
+ # TODO RTC: 123994 - ELFv2 ABI support (-mabi=elfv1)
+ CFLAGS += $(COMMONFLAGS) -mcpu=power7 -nostdinc -g -mno-vsx -mno-altivec\
+-          -Wall -Werror -mtraceback=no -pipe \
++          -Wall -mtraceback=no -pipe \
+ 	  -ffunction-sections -fdata-sections -ffreestanding -mbig-endian \
+       -mabi=elfv1
+ ASMFLAGS += $(COMMONFLAGS) -mcpu=power7 -mbig-endian -mabi=elfv1

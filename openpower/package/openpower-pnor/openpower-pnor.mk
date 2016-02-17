@@ -73,7 +73,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
 
         # if this config has an UPDATE_FILENAME defined, create a 32M (1/2 size)
         # image that only updates the non-golden side
-        if [ "$(BR2_OPENPOWER_PNOR_UPDATE_FILENAME)" != "" ]; then \
+        if [ -n $(BR2_OPENPOWER_PNOR_UPDATE_FILENAME) ]; then \
             dd if=$(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) of=$(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_UPDATE_FILENAME) bs=32M count=1; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_UPDATE_FILENAME) $(BINARIES_DIR); \
         fi
