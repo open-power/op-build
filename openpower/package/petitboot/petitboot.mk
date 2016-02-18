@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PETITBOOT_VERSION = d171258160f7ed4756531f51e66fb116753bc990
+PETITBOOT_VERSION = 7460bbb60ff7070c6884b700fc6370cd58703c4b
 PETITBOOT_SITE = git://github.com/open-power/petitboot.git
 PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
 PETITBOOT_LICENSE = GPLv2
@@ -21,6 +21,13 @@ PETITBOOT_CONF_OPTS += --with-ncurses --without-twin-x11 --without-twin-fbdev \
 
 ifdef PETITBOOT_DEBUG
 PETITBOOT_CONF_OPTS += --enable-debug
+endif
+
+ifeq ($(BR2_PACKAGE_PETITBOOT_MTD),y)
+PETITBOOT_CONF_OPTS += --enable-mtd
+PETITBOOT_DEPENDENCIES += libflash
+PETITBOOT_CPPFLAGS += -I$(STAGING_DIR)
+PETITBOOT_LDFLAGS += -L$(STAGING_DIR)
 endif
 
 ifeq ($(BR2_PACKAGE_NCURSES_WCHAR),y)
