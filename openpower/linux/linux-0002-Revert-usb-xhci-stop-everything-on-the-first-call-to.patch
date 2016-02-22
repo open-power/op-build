@@ -1,4 +1,4 @@
-From 8afabdc0db0f80e45c9bfdeb3faadaa89d4dd775 Mon Sep 17 00:00:00 2001
+From 26096712324781dbc4156f51dfd7e69847e1bbd0 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Thu, 28 Jan 2016 13:07:06 +1030
 Subject: [PATCH 2/5] Revert "usb: xhci: stop everything on the first call to
@@ -17,7 +17,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 3f912705dcef..2cc689a3b549 100644
+index dca0a4692f08..6df15fd445e6 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
 @@ -665,6 +665,15 @@ int xhci_run(struct usb_hcd *hcd)
@@ -58,5 +58,5 @@ index 3f912705dcef..2cc689a3b549 100644
  	 * (xhci_stop() could be called as part of failed init).
  	 */
 -- 
-2.7.0.rc3
+2.7.0
 
