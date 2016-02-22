@@ -1,4 +1,4 @@
-From 82addbe4d27c12454572e1200f962cd5ee25523f Mon Sep 17 00:00:00 2001
+From 11e2befd6a0f7f5d6d01b3f48b8129089ca930d4 Mon Sep 17 00:00:00 2001
 From: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
 Date: Mon, 10 Mar 2014 13:02:13 -0300
 Subject: [PATCH 3/5] xhci: do not halt the secondary HCD
@@ -14,7 +14,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 2cc689a3b549..aa6d1e0b4bea 100644
+index 6df15fd445e6..478b4fd3d182 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
 @@ -670,7 +670,18 @@ static void xhci_only_stop_hcd(struct usb_hcd *hcd)
@@ -38,5 +38,5 @@ index 2cc689a3b549..aa6d1e0b4bea 100644
  }
  
 -- 
-2.7.0.rc3
+2.7.0
 

@@ -1,4 +1,4 @@
-From 3cbe4777b9d0640df25fa4eb41b15199f78f9e99 Mon Sep 17 00:00:00 2001
+From c82da6da37a975fb2b8d07723b76be3b339b5291 Mon Sep 17 00:00:00 2001
 From: Gavin Shan <gwshan@linux.vnet.ibm.com>
 Date: Thu, 28 Jan 2016 16:18:37 +1100
 Subject: [PATCH 4/5] powerpc/eeh: Fix PE location code
@@ -71,5 +71,5 @@ index 8654cb166c19..ca9e5371930e 100644
  
  /**
 -- 
-2.7.0.rc3
+2.7.0
 
