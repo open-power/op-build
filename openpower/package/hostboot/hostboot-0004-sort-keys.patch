@@ -1,0 +1,52 @@
+--- a/src/usr/hwpf/fapi/fapiParseErrorInfo.pl	2016-01-29 14:13:43.107940821 +1100
++++ b/src/usr/hwpf/fapi/fapiParseErrorInfo.pl	2016-01-29 14:14:23.924445038 +1100
+@@ -819,7 +819,7 @@
+         } # gard
+ 
+         # Process the callout, deconfigures and GARDs for each Target
+-        foreach my $cdg (keys %cdgTargetHash)
++        foreach my $cdg (sort keys %cdgTargetHash)
+         {
+             # Check the type
+             print EIFILE "fapi::fapiCheckType<const fapi::Target *>(&$cdg); \\\n";
+@@ -860,12 +860,12 @@
+         }
+ 
+         # Process the callout, deconfigures and GARDs for Child Targets
+-        foreach my $parent (keys %cdgChildHash)
++        foreach my $parent (sort keys %cdgChildHash)
+         {
+             # Check the type
+             print EIFILE "fapi::fapiCheckType<const fapi::Target *>(&$parent); \\\n";
+ 
+-            foreach my $childType (keys %{$cdgChildHash{$parent}})
++            foreach my $childType (sort keys %{$cdgChildHash{$parent}})
+             {
+                 my $callout = 0;
+                 my $priority = 'LOW';
+@@ -1174,14 +1174,14 @@
+ print RCFILE " *\/\n";
+ print RCFILE "enum HwpReturnCode\n";
+ print RCFILE "{\n";
+-foreach my $key (keys %errNameToValueHash)
++foreach my $key (sort keys %errNameToValueHash)
+ {
+     print RCFILE "    $key = 0x$errNameToValueHash{$key},\n";
+ }
+ print RCFILE "};\n\n";
+ print RCFILE "}\n\n";
+ print RCFILE "#else\n";
+-foreach my $key (keys %errNameToValueHash)
++foreach my $key (sort keys %errNameToValueHash)
+ {
+     print RCFILE "    .set $key, 0x$errNameToValueHash{$key}\n";
+ }
+@@ -1198,7 +1198,7 @@
+ print EIFILE " *\/\n";
+ print EIFILE "enum HwpFfdcId\n";
+ print EIFILE "{\n";
+-foreach my $key (keys %ffdcNameToValueHash)
++foreach my $key (sort keys %ffdcNameToValueHash)
+ {
+     print EIFILE "    $key = 0x$ffdcNameToValueHash{$key},\n";
+ }
