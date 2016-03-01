@@ -33,7 +33,7 @@ OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 OPENPOWER_VERSION_DIR = $(STAGING_DIR)/openpower_version
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
-OPENPOWER_VERSIONED_SUBPACKAGES = hostboot occ skiboot hostboot-binaries $(XML_PACKAGE) capp-ucode
+OPENPOWER_VERSIONED_SUBPACKAGES = skiboot linux petitboot hostboot occ hostboot-binaries $(XML_PACKAGE) capp-ucode
 OPENPOWER_PNOR = openpower-pnor
 
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS

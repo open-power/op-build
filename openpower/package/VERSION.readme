@@ -75,6 +75,8 @@
     - hostboot
     - occ
     - skiboot
+    - petitboot kernel
+    - petitboot
     - $(platform)-xml
     - hostboot-binaries
     - capp-ucode
