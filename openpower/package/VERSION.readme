@@ -72,10 +72,12 @@
 
     Current sub packages included in openpower-pnor.mk $(OPENPOWER_VERSIONED_SUBPACKAGES)
 
-    - hostboot
-    - occ
     - skiboot
+    - hostboot
+    - petitboot kernel
+    - petitboot
     - $(platform)-xml
+    - occ
     - hostboot-binaries
     - capp-ucode
 
