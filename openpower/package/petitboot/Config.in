@@ -12,6 +12,8 @@ config BR2_PACKAGE_PETITBOOT
 	select BR2_PACKAGE_POWERPC_UTILS if BR2_powerpc || BR2_powerpc64 || BR2_powerpc64le
 	# run-time dependency only
 	select BR2_PACKAGE_IPRUTILS if BR2_powerpc || BR2_powerpc64 || BR2_powerpc64le
+	# run-time dependency only
+	select BR2_PACKAGE_NVME if BR2_powerpc || BR2_powerpc64 || BR2_powerpc64le
 	help
 	  Petitboot is a small kexec-based bootloader
 
@@ -19,3 +21,12 @@ config BR2_PACKAGE_PETITBOOT
 
 comment "petitboot requires udev to be enabled"
 	depends on !BR2_PACKAGE_HAS_UDEV
+
+config BR2_PACKAGE_PETITBOOT_MTD
+	bool "petitboot-mtd"
+	depends on BR2_PACKAGE_PETITBOOT
+	select BR2_PACKAGE_LIBFLASH
+	help
+	  Adds Petitboot support for MTD devices
+
+comment "Add support for accessing MTD devices"
