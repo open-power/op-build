@@ -1,4 +1,4 @@
-From f9f63ceed65d3dae3eddb8ac1b513c41999d881b Mon Sep 17 00:00:00 2001
+From bdc501c682bfd1f79f1238485690ef07ca19b62d Mon Sep 17 00:00:00 2001
 From: Thadeu Lima De Souza Cascardo <thadeul@br.ibm.com>
 Date: Tue, 25 Mar 2014 10:45:16 -0400
 Subject: [PATCH 1/7] xhci: Use xhci_pci_remove for xhci device shutdown

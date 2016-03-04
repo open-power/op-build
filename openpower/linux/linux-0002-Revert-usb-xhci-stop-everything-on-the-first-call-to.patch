@@ -1,4 +1,4 @@
-From 39013a21f92d0d4aa0a9588ba380037af33f3c1a Mon Sep 17 00:00:00 2001
+From 062041d7651b350d58b96186cba34205b888649d Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Thu, 28 Jan 2016 13:07:06 +1030
 Subject: [PATCH 2/7] Revert "usb: xhci: stop everything on the first call to
