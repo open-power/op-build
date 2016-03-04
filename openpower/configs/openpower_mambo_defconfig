@@ -4,7 +4,7 @@ BR2_OPENPOWER_PLATFORM=y
 
 BR2_BINUTILS_EXTRA_CONFIG_OPTIONS="--enable-targets=powerpc64-linux"
 BR2_EXTRA_GCC_CONFIG_OPTIONS="--enable-targets=powerpc64-linux"
-BR2_GLIBC_VERSION_2_22=y
+BR2_GLIBC_VERSION_2_23=y
 
 # No HostBoot for Mambo
 BR2_PACKAGE_HOSTBOOT=n
