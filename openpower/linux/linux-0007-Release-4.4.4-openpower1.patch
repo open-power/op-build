@@ -1,11 +1,7 @@
-From b7817dfcac99fc23993be54fe1a6fbbe3416bc79 Mon Sep 17 00:00:00 2001
+From d358107befbf8f80329274837938a426afbc0f43 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 20 Oct 2015 15:01:06 +1030
-Subject: [PATCH 7/7] Release 4.4.3-openpower2
-
- - ast: Switch SCU to VGA output on POST
- - scsi: ignore errors from scsi_dh_add_device()
- - mlx4: Set UAR page size to 4KB regardless of system page size
+Subject: [PATCH 7/7] Release 4.4.4-openpower1
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
@@ -13,15 +9,15 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 802be10c40c5..898d37d2de72 100644
+index 344bc6f27ea1..a350bd11456d 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 4
- SUBLEVEL = 3
+ SUBLEVEL = 4
 -EXTRAVERSION =
-+EXTRAVERSION = -openpower2
++EXTRAVERSION = -openpower1
  NAME = Blurry Fish Butt
  
  # *DOCUMENTATION*
