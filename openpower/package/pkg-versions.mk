@@ -174,6 +174,23 @@ cd "$$(BR2_EXTERNAL)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*
 # Add new line to $$($$(UPPER_CASE_PKG)_VERSION_FILE)
 echo "" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
 
+# Add a specific line for op-build regardless of overrides
+echo -n "	op-build-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
+cd "$$(BR2_EXTERNAL)"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
+	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
+cd "$$(BR2_EXTERNAL)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
+	xargs echo >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
+
+# Similarly, add a line for buildroot
+echo -n "	buildroot-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
+cd "./buildroot"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
+	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
+cd "./buildroot"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
+	xargs echo >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
+
+
 # Combing subpackage version files into $$($$(UPPER_CASE_PKG)_VERSION_FILE)
 $$(foreach verFile,$$(ALL_SUBPACKAGE_VERSIONS),
 	if [ -f $$(verFile) ]; then cat $$(verFile) \
