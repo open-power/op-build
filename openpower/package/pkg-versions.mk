@@ -39,6 +39,14 @@ else \
 	fi; \
 fi
 
+# If this is for linux, also check openpower/linux
+if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+	if ls $$(BR2_EXTERNAL)/$(1)/*.patch 2>/dev/null; then sha512sum \
+		$$(BR2_EXTERNAL)/$(1)/*.patch | sha512sum | \
+		xargs echo >> $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt; \
+	fi; \
+fi;
+
 # Combine all the patches found in the package and global package directories
 if [ -f $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt ]; then \
 		cat $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt | sha512sum | cut -c 1-7 | \
