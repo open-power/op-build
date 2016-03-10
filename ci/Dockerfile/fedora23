@@ -1,0 +1,5 @@
+FROM fedora:23
+RUN dnf -y install gcc-c++ flex bison git ctags cscope expat-devel patch zlib-devel zlib-static texinfo perl-bignum "perl(XML::Simple)" "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" libxml2-devel
+RUN dnf -y install which wget unzip tar cpio python bzip2 bc
+RUN dnf -y install findutils
+RUN dnf -y install ncurses-devel
