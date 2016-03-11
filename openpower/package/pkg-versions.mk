@@ -71,7 +71,7 @@ echo -n "	$(1)-" > $$($(2)_VERSION_FILE)
 # If site local
 # Add site local and user, local commit, if local is dirty
 # Else not local
-# Add package version, op-build is dirty, op-build patches
+# Add package version, extraversion if linux, op-build is dirty, op-build patches
 if [ "$$($(2)_SITE_METHOD)" == "local" ]; then \
 echo -n "site_local-" >> $$($(2)_VERSION_FILE); \
 whoami | xargs echo -n >> $$($(2)_VERSION_FILE); \
@@ -88,6 +88,14 @@ else \
 [ `echo -n $$($(2)_VERSION) | wc -c` == "40" ] && (echo -n $$($(2)_VERSION) | \
 	sed "s/^\([0-9a-f]\{7\}\).*/\1/;s/$(1)-//;" >> $$($(2)_VERSION_FILE)) \
 	|| echo -n $$($(2)_VERSION) | sed -e 's/$(1)-//' >> $$($(2)_VERSION_FILE); \
+\
+if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+	if ls $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile 1>/dev/null; then \
+		head $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile | grep EXTRAVERSION \
+		| cut -d ' ' -f 3 | \
+		xargs echo -n >> $$($(2)_VERSION_FILE); \
+	fi; \
+fi; \
 \
 cd "$$(BR2_EXTERNAL)"; git describe --all --dirty | \
 	if grep -e "-dirty"; then \
