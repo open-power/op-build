@@ -1,4 +1,4 @@
-From 2c528a67f670f6caf76200967b2eedf6ed6a9c67 Mon Sep 17 00:00:00 2001
+From 05ac3b2476dd66ba26622d437c2517dd3ac389f1 Mon Sep 17 00:00:00 2001
 From: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
 Date: Mon, 10 Mar 2014 13:02:13 -0300
 Subject: [PATCH 3/7] xhci: do not halt the secondary HCD
@@ -38,5 +38,5 @@ index cef80e930db9..90f48eb32d93 100644
  }
  
 -- 
-2.7.0
+2.7.3
 
