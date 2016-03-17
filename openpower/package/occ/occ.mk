@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OCC_VERSION ?= 0362706b9b9eac5af36ba5b41c5d93a108ccd90d
+OCC_VERSION ?= 1093bf945e6c22650ca0b83da2347ee7d21cbe41
 OCC_SITE ?= $(call github,open-power,occ,$(OCC_VERSION))
 OCC_LICENSE = Apache-2.0
 OCC_DEPENDENCIES = host-binutils host-p8-pore-binutils

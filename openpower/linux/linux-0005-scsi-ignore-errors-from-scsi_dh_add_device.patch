@@ -1,0 +1,42 @@
+From 9d3559f97bd5183d4f84bbef3ea445a2ef841080 Mon Sep 17 00:00:00 2001
+From: Hannes Reinecke <hare@suse.de>
+Date: Tue, 1 Mar 2016 13:57:59 +1100
+Subject: [PATCH 5/7] scsi: ignore errors from scsi_dh_add_device()
+
+device handler initialisation might fail due to a number of
+reasons. But as device_handlers are optional this shouldn't
+cause us to disable the device entirely.
+So just ignore errors from scsi_dh_add_device().
+
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Hannes Reinecke <hare@suse.de>
+Signed-off-by: Martin K. Petersen <martin.petersen@oracle.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ drivers/scsi/scsi_sysfs.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/scsi/scsi_sysfs.c b/drivers/scsi/scsi_sysfs.c
+index c8115b4fe474..750df9b9b11c 100644
+--- a/drivers/scsi/scsi_sysfs.c
++++ b/drivers/scsi/scsi_sysfs.c
+@@ -1058,11 +1058,12 @@ int scsi_sysfs_add_sdev(struct scsi_device *sdev)
+ 	}
+ 
+ 	error = scsi_dh_add_device(sdev);
+-	if (error) {
++	if (error)
++		/*
++		 * device_handler is optional, so any error can be ignored
++		 */
+ 		sdev_printk(KERN_INFO, sdev,
+ 				"failed to add device handler: %d\n", error);
+-		return error;
+-	}
+ 
+ 	device_enable_async_suspend(&sdev->sdev_dev);
+ 	error = device_add(&sdev->sdev_dev);
+-- 
+2.7.3
+

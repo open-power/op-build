@@ -1,7 +1,7 @@
-From a8538355237e20fe0a0b204ca67465350701f98c Mon Sep 17 00:00:00 2001
+From 05ac3b2476dd66ba26622d437c2517dd3ac389f1 Mon Sep 17 00:00:00 2001
 From: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
 Date: Mon, 10 Mar 2014 13:02:13 -0300
-Subject: [PATCH 03/18] xhci: do not halt the secondary HCD
+Subject: [PATCH 3/7] xhci: do not halt the secondary HCD
 
 We can't halt the secondary HCD, because it's also the primary HCD,
 which will cause problems if we have devices attached to the primary
@@ -14,10 +14,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 526ebc0..07f9683 100644
+index cef80e930db9..90f48eb32d93 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -659,7 +659,18 @@ static void xhci_only_stop_hcd(struct usb_hcd *hcd)
+@@ -670,7 +670,18 @@ static void xhci_only_stop_hcd(struct usb_hcd *hcd)
  	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
  
  	spin_lock_irq(&xhci->lock);
@@ -38,5 +38,5 @@ index 526ebc0..07f9683 100644
  }
  
 -- 
-2.5.0
+2.7.3
 

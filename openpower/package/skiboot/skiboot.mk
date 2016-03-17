@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-SKIBOOT_VERSION = skiboot-5.1.5
+SKIBOOT_VERSION = $(call qstrip,$(BR2_SKIBOOT_VERSION))
+
 SKIBOOT_SITE = $(call github,open-power,skiboot,$(SKIBOOT_VERSION))
 SKIBOOT_INSTALL_IMAGES = YES
 SKIBOOT_INSTALL_TARGET = NO

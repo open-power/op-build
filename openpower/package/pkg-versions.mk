@@ -39,6 +39,14 @@ else \
 	fi; \
 fi
 
+# If this is for linux, also check openpower/linux
+if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+	if ls $$(BR2_EXTERNAL)/$(1)/*.patch 2>/dev/null; then sha512sum \
+		$$(BR2_EXTERNAL)/$(1)/*.patch | sha512sum | \
+		xargs echo >> $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt; \
+	fi; \
+fi;
+
 # Combine all the patches found in the package and global package directories
 if [ -f $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt ]; then \
 		cat $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt | sha512sum | cut -c 1-7 | \
@@ -63,7 +71,7 @@ echo -n "	$(1)-" > $$($(2)_VERSION_FILE)
 # If site local
 # Add site local and user, local commit, if local is dirty
 # Else not local
-# Add package version, op-build is dirty, op-build patches
+# Add package version, extraversion if linux, op-build is dirty, op-build patches
 if [ "$$($(2)_SITE_METHOD)" == "local" ]; then \
 echo -n "site_local-" >> $$($(2)_VERSION_FILE); \
 whoami | xargs echo -n >> $$($(2)_VERSION_FILE); \
@@ -80,6 +88,14 @@ else \
 [ `echo -n $$($(2)_VERSION) | wc -c` == "40" ] && (echo -n $$($(2)_VERSION) | \
 	sed "s/^\([0-9a-f]\{7\}\).*/\1/;s/$(1)-//;" >> $$($(2)_VERSION_FILE)) \
 	|| echo -n $$($(2)_VERSION) | sed -e 's/$(1)-//' >> $$($(2)_VERSION_FILE); \
+\
+if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+	if ls $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile 1>/dev/null; then \
+		head $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile | grep EXTRAVERSION \
+		| cut -d ' ' -f 3 | \
+		xargs echo -n >> $$($(2)_VERSION_FILE); \
+	fi; \
+fi; \
 \
 cd "$$(BR2_EXTERNAL)"; git describe --all --dirty | \
 	if grep -e "-dirty"; then \
@@ -165,6 +181,25 @@ cd "$$(BR2_EXTERNAL)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*
 
 # Add new line to $$($$(UPPER_CASE_PKG)_VERSION_FILE)
 echo "" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
+
+# Add a specific line for op-build if it has been overwritten
+if [ "$$(OPBUILD_VENDOR)" != '' ]; then \
+echo -n "	op-build-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
+cd "$$(BR2_EXTERNAL)"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
+	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
+cd "$$(BR2_EXTERNAL)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
+	xargs echo >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
+fi
+
+# Include the currently checked-out buildroot version
+echo -n "	buildroot-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
+cd "./buildroot"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
+	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
+git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
+	xargs echo >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
+
 
 # Combing subpackage version files into $$($$(UPPER_CASE_PKG)_VERSION_FILE)
 $$(foreach verFile,$$(ALL_SUBPACKAGE_VERSIONS),

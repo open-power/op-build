@@ -8,7 +8,7 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= 40e407735b317d0174645b7543e0a72019709ce2
+OPENPOWER_PNOR_VERSION ?= 1e4410052a26acf4b439226860afae9507f0d94a
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -33,7 +33,7 @@ OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 OPENPOWER_VERSION_DIR = $(STAGING_DIR)/openpower_version
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
-OPENPOWER_VERSIONED_SUBPACKAGES = hostboot occ skiboot hostboot-binaries $(XML_PACKAGE) capp-ucode
+OPENPOWER_VERSIONED_SUBPACKAGES = skiboot hostboot linux petitboot $(XML_PACKAGE) occ hostboot-binaries capp-ucode
 OPENPOWER_PNOR = openpower-pnor
 
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
