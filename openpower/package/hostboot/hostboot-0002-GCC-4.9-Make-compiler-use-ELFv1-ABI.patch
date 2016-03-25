@@ -1,12 +1,10 @@
 From 005cac73915ee6f6b67e9b01ae840b798c1fc80e Mon Sep 17 00:00:00 2001
 From: Andrew Geissler <andrewg@us.ibm.com>
 Date: Mon, 16 Feb 2015 13:43:51 -0600
-Subject: [PATCH] GCC 4.9: Make compiler use ELFv1 ABI and use -O2
+Subject: [PATCH] GCC 4.9: Make compiler use ELFv1 ABI.
 
 GCC4.9 defaults to ELFv2 ABI support but we do not have all
 of the needed tools to suppor this.
-GCC4.9 also does not work well with -O3 so I've had to
-knock us down to -O2 for now.
 
 Change-Id: Iacf49c46b1fb25776ba60d6506ccadff7b46bf60
 RTC: 123430
@@ -18,16 +16,6 @@ diff --git a/src/build/mkrules/cflags.env.mk b/src/build/mkrules/cflags.env.mk
 index 8ca32b1..c729341 100644
 --- a/src/build/mkrules/cflags.env.mk
 +++ b/src/build/mkrules/cflags.env.mk
-@@ -28,7 +28,8 @@
- # Description:
- #     Configuration of the compiler, linker, etc. flags.
- 
--OPT_LEVEL ?= -O3
-+# TODO RTC 124305 - Get -O3 to work with gcc4.9
-+OPT_LEVEL ?= -O2
- 
- ifdef MODULE
- COMMONFLAGS += -fPIC -Bsymbolic -Bsymbolic-functions
 @@ -36,10 +37,12 @@ CFLAGS += -D__HOSTBOOT_MODULE=$(MODULE)
  endif
  
