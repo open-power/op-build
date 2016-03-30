@@ -73,7 +73,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
-            -xz_compression $(XZ_COMPRESSION_ENABLED)
+            -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED)
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
 
