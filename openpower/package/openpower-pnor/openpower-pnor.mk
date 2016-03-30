@@ -14,7 +14,7 @@ OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot host-openpower-ffs occ capp-ucode
 
-ifeq ($(BR2_TARGET_SKIBOOT_EMBED_PAYLOAD),n)
+ifeq ($(BR2_PACKAGE_SKIBOOT_EMBED_PAYLOAD),n)
 
 ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
 OPENPOWER_PNOR_DEPENDENCIES += linux-rebuild-with-initramfs
