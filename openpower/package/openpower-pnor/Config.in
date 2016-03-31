@@ -79,6 +79,17 @@ config BR2_SKIBOOT_LID_XZ_NAME
         help
             String used to define compressed sapphire lid filename
 
+config BR2_TARGET_SKIBOOT_XZ
+        boolean "Compress the skiboot image with XZ"
+        default n
+
+config BR2_SKIBOOT_LID_XZ_NAME
+        string "Name of compressed skiboot lid name to be used"
+        default "skiboot.lid" if !BR2_TARGET_SKIBOOT_XZ
+        default "skiboot.lid.xz" if BR2_TARGET_SKIBOOT_XZ
+        help
+            String used to define compressed sapphire lid filename
+
 config BR2_HOSTBOOT_BINARY_SBE_FILENAME
         string "Name of sbe hostboot binary"
         help
