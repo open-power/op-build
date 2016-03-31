@@ -33,7 +33,18 @@ config BR2_SKIBOOT_LID_NAME
         string "Name of skiboot lid name to be used"
         default "skiboot.lid"
         help
-            String used to define sapphire lid filename
+            String used to define skiboot lid filename
+
+config BR2_TARGET_SKIBOOT_XZ
+        boolean "Compress the skiboot image with XZ"
+        default n
+
+config BR2_SKIBOOT_LID_XZ_NAME
+        string "Name of compressed skiboot lid"
+        default "skiboot.lid" if !BR2_TARGET_SKIBOOT_XZ
+        default "skiboot.lid.xz" if BR2_TARGET_SKIBOOT_XZ
+        help
+            String used to define compressed skiboot lid filename
 
 config BR2_HOSTBOOT_BINARY_SBE_FILENAME
         string "Name of sbe hostboot binary"
@@ -60,3 +71,8 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
         string "Name of openpower binary targeting file"
         help
             String used to define name of openpower targeting binary file, ecc protected
+
+config BR2_OPENPOWER_PNOR_XZ_ENABLED
+        string "False if we are not compressing with XZ anywhere"
+        default "false" if !BR2_TARGET_SKIBOOT_XZ
+        default "true" if BR2_TARGET_SKIBOOT_XZ
