@@ -1,0 +1,9 @@
+#!/bin/sh
+
+case "$1" in
+    start)
+        loadkeys /etc/kbd/config
+        ;;
+esac
+
+exit 0
