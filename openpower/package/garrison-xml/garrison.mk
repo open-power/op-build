@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GARRISON_XML_VERSION ?= dcf4876fafbadbdd9fc3b5a277ef8a13e1d72d6e
+GARRISON_XML_VERSION ?= 9b88db66d1d2766e526f81980c6fb1339c929ef5
 GARRISON_XML_SITE ?= $(call github,open-power,garrison-xml,$(GARRISON_XML_VERSION))
 
 GARRISON_XML_LICENSE = Apache-2.0
