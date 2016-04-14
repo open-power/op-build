@@ -28,7 +28,6 @@ ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
 OPENPOWER_PNOR_DEPENDENCIES += host_xz
 endif
 
-
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
 OPENPOWER_PNOR_INSTALL_TARGET = NO
 
@@ -61,6 +60,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED)
 
         mkdir -p $(STAGING_DIR)/pnor/
+
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
             -xml_layout_file $(@D)/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
             -pnor_filename $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) \
@@ -68,7 +68,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
             -outdir $(STAGING_DIR)/pnor/ \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_XZ_NAME) \
-            -bootkernel $(BINARIES_DIR)/$(LINUX_IMAGE_NAME) \
+            $(if $(findstring "true",$(BR2_BOOTKERNEL_ENABLED)), -bootkernel $(BINARIES_DIR)/$(LINUX_IMAGE_NAME)) \
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
