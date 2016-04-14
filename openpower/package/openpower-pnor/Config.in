@@ -76,3 +76,8 @@ config BR2_OPENPOWER_PNOR_XZ_ENABLED
         string "False if we are not compressing with XZ anywhere"
         default "false" if !BR2_TARGET_SKIBOOT_XZ
         default "true" if BR2_TARGET_SKIBOOT_XZ
+
+config BR2_BOOTKERNEL_ENABLED
+        string "Bootkernel is enabled in this package"
+        default "true" if BR2_LINUX_KERNEL
+        default "false" if !BR2_LINUX_KERNEL

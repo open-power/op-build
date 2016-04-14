@@ -61,6 +61,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED)
 
         mkdir -p $(STAGING_DIR)/pnor/
+
+    if $(BR2_BOOTKERNEL_ENABLED); then \
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
             -xml_layout_file $(@D)/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
             -pnor_filename $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) \
@@ -75,7 +77,24 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
-            -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED)
+            -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED);\
+    else \
+        $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
+            -xml_layout_file $(@D)/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
+            -pnor_filename $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) \
+            -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
+            -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
+            -outdir $(STAGING_DIR)/pnor/ \
+            -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_XZ_NAME) \
+            -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
+            -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
+            -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
+            -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
+            -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
+            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
+            -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED);\
+    fi
+
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
 
