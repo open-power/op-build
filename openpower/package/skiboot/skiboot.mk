@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-SKIBOOT_VERSION = skiboot-5.1.0-beta1
+SKIBOOT_VERSION = $(call qstrip,$(BR2_SKIBOOT_VERSION))
+
 SKIBOOT_SITE = $(call github,open-power,skiboot,$(SKIBOOT_VERSION))
 SKIBOOT_INSTALL_IMAGES = YES
 SKIBOOT_INSTALL_TARGET = NO
@@ -18,7 +19,7 @@ ifeq ($(BR2_TARGET_SKIBOOT_EMBED_PAYLOAD),y)
 SKIBOOT_MAKE_OPTS += KERNEL="$(BINARIES_DIR)/$(LINUX_IMAGE_NAME)"
 
 ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
-SKIBOOT_DEPENDENCIES += linux26-rebuild-with-initramfs
+SKIBOOT_DEPENDENCIES += linux-rebuild-with-initramfs
 else
 SKIBOOT_DEPENDENCIES += linux
 endif

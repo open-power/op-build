@@ -1,0 +1,10 @@
+# Enable backtab for VGA consoles
+# Thanks to http://web.mit.edu/daveg/Info/backtab-howto.txt
+
+keycode  15 = Tab   F91
+	alt     keycode  15 = Meta_Tab
+	shift   alt     keycode  15 = F92
+
+# backtab and M-backtab
+string F91 = "\033[Z"
+string F92 = "\033\033[Z"

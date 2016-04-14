@@ -8,4 +8,6 @@ fi
 export BR2_EXTERNAL=${__PWD}/openpower
 export BR2_DL_DIR=${__PWD}/dl
 
-alias op-build="make --directory=${__PWD}/buildroot O=${__PWD}/output "
+op-build () {
+    make --directory=${__PWD}/buildroot O=${__PWD}/output $@
+}

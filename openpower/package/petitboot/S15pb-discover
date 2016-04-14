@@ -1,0 +1,33 @@
+#!/bin/sh
+
+LOGFILE=/var/log/petitboot/pb-discover.log
+PIDFILE=/var/run/petitboot.pid
+
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
+export PATH
+
+verbose=
+if pb-config debug | grep -q enabled
+then
+	verbose=-v
+fi
+
+case "$1" in
+    start)
+        ulimit -c unlimited
+        mkdir -p $(dirname $LOGFILE)
+        export $(cat /etc/locale)
+        pb-discover -l $LOGFILE $verbose &
+        echo $! > $PIDFILE
+        ;;
+    stop)
+        pid=$(cat $PIDFILE)
+        [ -n "$pid" ] && kill -TERM $pid
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0
