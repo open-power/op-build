@@ -67,6 +67,8 @@ define PETITBOOT_POST_INSTALL
 	ln -sf /usr/sbin/pb-udhcpc \
 		$(TARGET_DIR)/usr/share/udhcpc/default.script.d/
 
+	mkdir -p $(TARGET_DIR)/var/log/petitboot
+
 	$(MAKE) -C $(@D)/po DESTDIR=$(TARGET_DIR) install
 endef
 
