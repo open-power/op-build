@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-BARRELEYE_XML_VERSION ?= 2ae82feca041e3dc5452fc6e5402b26e1af4921e
+BARRELEYE_XML_VERSION ?= 81ac3ff3c4ccd16d2174f455c1cb17976daca948
 BARRELEYE_XML_SITE = $(call github,open-power,barreleye-xml,$(BARRELEYE_XML_VERSION))
 
 BARRELEYE_XML_LICENSE = Apache-2.0
