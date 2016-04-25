@@ -1,0 +1,264 @@
+From 8610ad5c1ea5488cf432dc5dab6401acc99ac1c7 Mon Sep 17 00:00:00 2001
+From: Stephen Cprek <smcprek@us.ibm.com>
+Date: Tue, 19 Apr 2016 17:38:43 -0500
+Subject: [PATCH] Port empty bin file sections to new buildpnor structure
+
+Sections that have no initial bin file passed in for FSP machines:
+GUARD, HBEL, GLOBAL, DJVPD, MVPD, CVPD, PAYLOAD, TEST, TESTRO
+
+Change-Id: I5b8dfae64494ae6ac66cee0b11639ead2edf5cdd
+RTC: 125298
+---
+ src/build/buildpnor/buildpnor.pl    | 100 +++++++++++++++++++++++-------------
+ src/build/mkrules/hbfw/img/makefile |  39 +-------------
+ 2 files changed, 65 insertions(+), 74 deletions(-)
+
+diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
+index 58ab0c0..b4a8ff6 100755
+--- a/src/build/buildpnor/buildpnor.pl
++++ b/src/build/buildpnor/buildpnor.pl
+@@ -629,52 +629,62 @@ sub manipulateImages
+     # Remove when all partitions supported by secureboot
+     my %supportedPartitions = (
+         HBI => 1,
++        GUARD => 1,
++        HBEL => 1,
++        GLOBAL => 1,
++        DJVPD => 1,
++        MVPD => 1,
++        CVPD => 1,
++        PAYLOAD => 1,
++        TEST => 1,
++        TESTRO => 1
+     );
+ 
+-    foreach my $key (keys %{$i_binFiles})
++    foreach my $key ( keys %sectionHash)
+     {
+-        my $layoutKey = findLayoutKeyByEyeCatch($key, \%$i_pnorLayoutRef);
+-        if( $layoutKey == -1)
+-        {
+-            die "ERROR: $this_func: entry not found in PNOR layout for file $$i_binFiles{$key}, under eyecatcher $key" if($?);
+-        }
+-
+-        my $eyeCatch = $sectionHash{$layoutKey}{eyeCatch};
+-        my $size = $sectionHash{$layoutKey}{physicalRegionSize};
+-
+-        my $bin_file = $$i_binFiles{$key};
++        my $eyeCatch = $sectionHash{$key}{eyeCatch};
++        my $size = $sectionHash{$key}{physicalRegionSize};
++        my $bin_file = "";
+         my $final_bin_file = "$bin_dir/$eyeCatch.$image_target.bin";
+ 
+-        if ($sectionHash{$layoutKey}{ecc} eq "yes")
++        if(exists $$i_binFiles{$eyeCatch})
+         {
+-            $size = page_aligned_size_wo_ecc($size);
++            $bin_file = $$i_binFiles{$eyeCatch};
+         }
+-        $size = byte_to_metric_notation($size);
+ 
+         # Remove after all partitions supported
+         if (exists $supportedPartitions{$eyeCatch})
+         {
+             # FSP workaround
+             my $fsp_prefix = "";
+-            # Header Phase
+-            if( ($sectionHash{$layoutKey}{sha512Version} eq "yes") )
+-            {
+-                $fsp_prefix.=".header";
+-                run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
+-                run_command("sha512sum $bin_file | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
+-                run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{HDR_PHASE} ibs=4k conv=sync");
+-                run_command("cat $bin_file >> $tempImages{HDR_PHASE}");
+-            }
+-            elsif( ($sectionHash{$layoutKey}{sha512perEC} eq "yes") )
++            # Header Phase - only necessary if bin file passed in
++            if ($bin_file ne "")
+             {
++                if( ($sectionHash{$key}{sha512Version} eq "yes") )
++                {
++                    $fsp_prefix.=".header";
++                    run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
++                    run_command("sha512sum $bin_file | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
++                    run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{HDR_PHASE} ibs=4k conv=sync");
++                    run_command("cat $bin_file >> $tempImages{HDR_PHASE}");
++                }
++                elsif( ($sectionHash{$key}{sha512perEC} eq "yes") )
++                {
+ 
++                }
++                else
++                {
++                    run_command("cp $bin_file $tempImages{HDR_PHASE}");
++                }
+             }
+-            else
++
++            # Padding Phase
++            if ($sectionHash{$key}{ecc} eq "yes")
+             {
+-                run_command("cp $bin_file $tempImages{HDR_PHASE}");
++                $size = page_aligned_size_wo_ecc($size);
+             }
++            $size = byte_to_metric_notation($size);
+ 
+-            # Padding Phase
+             if ($eyeCatch eq "HBI" && $testRun)
+             {
+                 # If "--test" flag set do not pad as the test HBI images is
+@@ -682,18 +692,35 @@ sub manipulateImages
+                 # fully padded. Size adjustments made in checkSpaceConstraints
+                 run_command("dd if=$tempImages{HDR_PHASE} of=$tempImages{PAD_PHASE} ibs=4k conv=sync");
+             }
++            elsif ($bin_file eq "")
++            {
++                # Test partitions have random data
++                if ($eyeCatch eq "TEST" || $eyeCatch eq "TESTRO")
++                {
++                    run_command("dd if=/dev/urandom of=$tempImages{PAD_PHASE} count=1 bs=$size");
++                }
++                # Other partitions fill with FF's if no bin file provided
++                else
++                {
++                    run_command("dd if=/dev/zero bs=$size count=1 | tr \"\\000\" \"\\377\" > $tempImages{PAD_PHASE}");
++                }
++            }
+             else
+             {
+                 run_command("dd if=$tempImages{HDR_PHASE} of=$tempImages{PAD_PHASE} ibs=$size conv=sync");
+             }
+ 
+             # FSP workaround
+-            my $fsp_file = $bin_file;
+-            $fsp_file =~ s/.bin/$fsp_prefix.bin/;
+-            run_command("cp $tempImages{PAD_PHASE} $fsp_file");
++            if ($bin_file ne "")
++            {
++                my $fsp_file = $bin_file;
++                $fsp_file =~ s/.bin/$fsp_prefix.bin/;
++                run_command("cp $tempImages{PAD_PHASE} $fsp_file");
++            }
++
+ 
+             # ECC Phase
+-            if( ($sectionHash{$layoutKey}{ecc} eq "yes") )
++            if( ($sectionHash{$key}{ecc} eq "yes") )
+             {
+                 run_command("ecc --inject $tempImages{PAD_PHASE} --output $tempImages{ECC_PHASE} --p8");
+             }
+@@ -703,18 +730,18 @@ sub manipulateImages
+             }
+ 
+             # Compression phase
+-            if( ($sectionHash{$layoutKey}{compressed}{algorithm} eq "xz"))
++            if( ($sectionHash{$key}{compressed}{algorithm} eq "xz"))
+             {
+                 # Placeholder for compression partitions
+             }
+ 
+             # Move content to final bin filename
+             run_command("cp $tempImages{ECC_PHASE} $final_bin_file");
+-            $$o_finalBinFiles{$key} = $final_bin_file;
++            $$o_finalBinFiles{$eyeCatch} = $final_bin_file;
+         }
+         else
+         {
+-            $$o_finalBinFiles{$key} = $bin_file;
++            $$o_finalBinFiles{$eyeCatch} = $bin_file;
+         }
+ 
+     }
+@@ -722,7 +749,8 @@ sub manipulateImages
+     # Clean up temp images
+     foreach my $image (keys %tempImages)
+     {
+-        run_command("rm -f $tempImages{$image}");
++        system("rm -f $tempImages{$image}");
++        die $? if ($?);
+     }
+ 
+     return 0;
+@@ -822,7 +850,7 @@ sub checkSpaceConstraints
+         my $layoutKey = findLayoutKeyByEyeCatch($key, \%$i_pnorLayoutRef);
+         if( $layoutKey == -1)
+         {
+-            die "ERROR: $this_func: entry not found in PNOR layout for file $$i_binFiles{$key}, under eyecatcher $key" if($?);
++            die "ERROR: $this_func: entry not found in PNOR layout for file $$i_binFiles{$key}, under eyecatcher $key";
+         }
+ 
+         my $eyeCatch = $sectionHash{$layoutKey}{eyeCatch};
+diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
+index 679a6ed..868629b 100755
+--- a/src/build/mkrules/hbfw/img/makefile
++++ b/src/build/mkrules/hbfw/img/makefile
+@@ -63,15 +63,6 @@ BASE_W_HEADER_ECC_IMAGE = hostboot.header.bin.ecc
+ BASE_ECC_IMAGE = hostboot.bin.ecc
+ BASE_SHA_IMAGE = hostboot.sha.bin
+ TEMP_IMAGE = hostboot.temp.bin
+-TESTDATA = hbtestdata.bin
+-TESTDATA_ECC = hbtestdata.bin.ecc
+-HBEL_ECC_IMAGE = hbel.bin.ecc
+-GUARD_ECC_IMAGE = guard.bin.ecc
+-GLOBAL_ECC_IMAGE = global.bin.ecc
+-DJVPD_ECC_IMAGE = djvpd.bin.ecc
+-MVPD_ECC_IMAGE = mvpd.bin.ecc
+-CVPD_ECC_IMAGE = cvpd.bin.ecc
+-PAYLOAD_ECC_IMAGE = payload.bin.ecc
+ 
+ ALL_HB_IMAGES = ${BASE_IMAGES} \
+                 ${BASE_W_HEADER_IMAGE} \
+@@ -79,10 +70,6 @@ ALL_HB_IMAGES = ${BASE_IMAGES} \
+                 ${BASE_W_HEADER_ECC_IMAGE} ${BASE_SHA_IMAGE}\
+                 ${HBRT_SHA_IMAGE} \
+                 ${HBRT_HEADER_IMAGE} ${HBRT_ECC_HEADER_IMAGE} \
+-                ${TESTDATA} ${TESTDATA_ECC} \
+-                ${HBEL_ECC_IMAGE} ${GUARD_ECC_IMAGE} ${GLOBAL_ECC_IMAGE} \
+-                ${DJVPD_ECC_IMAGE} ${MVPD_ECC_IMAGE} ${CVPD_ECC_IMAGE} \
+-                ${PAYLOAD_ECC_IMAGE}
+ 
+ cp_hbfiles: .SPECTARG
+ 	${BASE_IMAGES:@image@cp -f ${SRCPATH:F${image}} ${image};@}
+@@ -105,30 +92,6 @@ cp_hbfiles: .SPECTARG
+ 	# HBRT partition size w/o ECC = 2MB (2048K)
+ 	dd if=${TEMP_IMAGE} of=${HBRT_HEADER_IMAGE} ibs=3072K conv=sync
+ 	ecc --inject ${HBRT_HEADER_IMAGE} --output ${HBRT_ECC_HEADER_IMAGE} --p8
+-	# create data for a test partition in pnor
+-	dd if=/dev/urandom of=${TESTDATA} count=1 bs=32K
+-	ecc --inject ${TESTDATA} --output ${TESTDATA_ECC} --p8
+-	# Fill the following partitions with FF's and then ECC them
+-	dd if=/dev/zero bs=128K count=1 | tr "\000" "\377" > ${TEMP_IMAGE}
+-	ecc --inject ${TEMP_IMAGE} --output ${HBEL_ECC_IMAGE} --p8
+-	# GUARD partition
+-	dd if=/dev/zero bs=16K count=1 | tr "\000" "\377" > ${TEMP_IMAGE}
+-	ecc --inject ${TEMP_IMAGE} --output ${GUARD_ECC_IMAGE} --p8
+-	# GLOBAL partition
+-	dd if=/dev/zero bs=32K count=1 | tr "\000" "\377" > ${TEMP_IMAGE}
+-	ecc --inject ${TEMP_IMAGE} --output ${GLOBAL_ECC_IMAGE} --p8
+-	# DJVPD partition
+-	dd if=/dev/zero bs=256K count=1 | tr "\000" "\377" > ${TEMP_IMAGE}
+-	ecc --inject ${TEMP_IMAGE} --output ${DJVPD_ECC_IMAGE} --p8
+-	# MVPD partition
+-	dd if=/dev/zero bs=512K count=1 | tr "\000" "\377" > ${TEMP_IMAGE}
+-	ecc --inject ${TEMP_IMAGE} --output ${MVPD_ECC_IMAGE} --p8
+-	# CVPD partition
+-	dd if=/dev/zero bs=256K count=1 | tr "\000" "\377" > ${TEMP_IMAGE}
+-	ecc --inject ${TEMP_IMAGE} --output ${CVPD_ECC_IMAGE} --p8
+-	# PAYLOAD partition
+-	dd if=/dev/zero bs=20480K count=1 | tr "\000" "\377" > ${TEMP_IMAGE}
+-	ecc --inject ${TEMP_IMAGE} --output ${PAYLOAD_ECC_IMAGE} --p8
+ 	rm ${TEMP_IMAGE}
+ 
+ clobber_cp_hbfiles:
+@@ -206,7 +169,7 @@ PNOR_BUILD_SCRIPT = ${buildpnor.pl:P}
+ #so need to use tryinclude for now.
+ .tryinclude <${.PATH:Ffips_pnor.mk}>
+ 
+-HOSTBOOT_DEFAULT_SECTIONS = HBB=${BASE_W_HEADER_ECC_IMAGE},HBI=${EXT_IMAGE},HBRT=${HBRT_ECC_HEADER_IMAGE},TEST=${TESTDATA_ECC},TESTRO=${TESTDATA_ECC},HBEL=${HBEL_ECC_IMAGE},GUARD=${GUARD_ECC_IMAGE},GLOBAL=${GLOBAL_ECC_IMAGE},PAYLOAD=${PAYLOAD_ECC_IMAGE},CVPD=${CVPD_ECC_IMAGE},MVPD=${MVPD_ECC_IMAGE},DJVPD=${DJVPD_ECC_IMAGE}
++HOSTBOOT_DEFAULT_SECTIONS = HBB=${BASE_W_HEADER_ECC_IMAGE},HBI=${EXT_IMAGE},HBRT=${HBRT_ECC_HEADER_IMAGE}
+ 
+ 
+ HBFW_OBJPATH = ${.PATH:M*obj*}
+-- 
+2.6.4 (Apple Git-63)
+
