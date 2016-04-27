@@ -1,4 +1,4 @@
-From 3f099329a4aa747c3cccb502bb3a671df6e76cfd Mon Sep 17 00:00:00 2001
+From b9b3f9efd871e228ae14a8adbd7ef4b7d4a46123 Mon Sep 17 00:00:00 2001
 From: Thadeu Lima De Souza Cascardo <thadeul@br.ibm.com>
 Date: Tue, 25 Mar 2014 10:45:16 -0400
 Subject: [PATCH 1/7] xhci: Use xhci_pci_remove for xhci device shutdown
@@ -23,5 +23,5 @@ index c2d65206ec6c..c2d33e274542 100644
  	.driver = {
  		.pm = &usb_hcd_pci_pm_ops
 -- 
-2.7.3
+2.7.4
 
