@@ -8,7 +8,7 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= 50e3204e108a5fa4033019de84e3ca72d38248a6
+OPENPOWER_PNOR_VERSION ?= cc4dbbb459ef42204e29860ec3d813a568958c9a
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
