@@ -1,0 +1,130 @@
+From 296911584cc5dda6763857110862f5267b7f47ee Mon Sep 17 00:00:00 2001
+From: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
+Date: Thu, 5 May 2016 13:24:02 +0930
+Subject: [PATCH 1/5] xhci: Cleanup only when releasing primary hcd
+
+Under stress occasions some TI devices might not return early when
+reading the status register during the quirk invocation of xhci_irq made
+by usb_hcd_pci_remove.  This means that instead of returning, we end up
+handling this interruption in the middle of a shutdown.  Since
+xhci->event_ring has already been freed in xhci_mem_cleanup, we end up
+accessing freed memory, causing the Oops below.
+
+commit 8c24d6d7b09d ("usb: xhci: stop everything on the first call to
+xhci_stop") is the one that changed the instant in which we clean up the
+event queue when stopping a device.  Before, we didn't call
+xhci_mem_cleanup at the first time xhci_stop is executed (for the shared
+HCD), instead, we only did it after the invocation for the primary HCD,
+much later at the removal path.  The code flow for this oops looks like
+this:
+
+xhci_pci_remove()
+	usb_remove_hcd(xhci->shared)
+	        xhci_stop(xhci->shared)
+ 			xhci_halt()
+			xhci_mem_cleanup(xhci);  // Free the event_queue
+	usb_hcd_pci_remove(primary)
+		xhci_irq()  // Access the event_queue if STS_EINT is set. Crash.
+		xhci_stop()
+			xhci_halt()
+			// return early
+
+The fix modifies xhci_stop to only cleanup the xhci data when releasing
+the primary HCD.  This way, we still have the event_queue configured
+when invoking xhci_irq.  We still halt the device on the first call to
+xhci_stop, though.
+
+I could reproduce this issue several times on the mainline kernel by
+doing a bind-unbind stress test with a specific storage gadget attached.
+I also ran the same test over-night with my patch applied and didn't
+observe the issue anymore.
+
+[  113.334124] Unable to handle kernel paging request for data at address 0x00000028
+[  113.335514] Faulting instruction address: 0xd00000000d4f767c
+[  113.336839] Oops: Kernel access of bad area, sig: 11 [#1]
+[  113.338214] SMP NR_CPUS=1024 NUMA PowerNV
+
+[c000000efe47ba90] c000000000720850 usb_hcd_irq+0x50/0x80
+[c000000efe47bac0] c00000000073d328 usb_hcd_pci_remove+0x68/0x1f0
+[c000000efe47bb00] d00000000daf0128 xhci_pci_remove+0x78/0xb0
+[xhci_pci]
+[c000000efe47bb30] c00000000055cf70 pci_device_remove+0x70/0x110
+[c000000efe47bb70] c00000000061c6bc __device_release_driver+0xbc/0x190
+[c000000efe47bba0] c00000000061c7d0 device_release_driver+0x40/0x70
+[c000000efe47bbd0] c000000000619510 unbind_store+0x120/0x150
+[c000000efe47bc20] c0000000006183c4 drv_attr_store+0x64/0xa0
+[c000000efe47bc60] c00000000039f1d0 sysfs_kf_write+0x80/0xb0
+[c000000efe47bca0] c00000000039e14c kernfs_fop_write+0x18c/0x1f0
+[c000000efe47bcf0] c0000000002e962c __vfs_write+0x6c/0x190
+[c000000efe47bd90] c0000000002eab40 vfs_write+0xc0/0x200
+[c000000efe47bde0] c0000000002ec85c SyS_write+0x6c/0x110
+[c000000efe47be30] c000000000009260 system_call+0x38/0x108
+
+Signed-off-by: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
+Cc: Roger Quadros <rogerq@ti.com>
+Cc: joel@jms.id.au
+Cc: stable@vger.kernel.org
+Reviewed-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ drivers/usb/host/xhci-ring.c |  3 ++-
+ drivers/usb/host/xhci.c      | 27 +++++++++++++++------------
+ 2 files changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 2b63969c2bbf..920296f555dd 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2727,7 +2727,8 @@ hw_died:
+ 		writel(irq_pending, &xhci->ir_set->irq_pending);
+ 	}
+ 
+-	if (xhci->xhc_state & XHCI_STATE_DYING) {
++	if (xhci->xhc_state & XHCI_STATE_DYING ||
++	    xhci->xhc_state & XHCI_STATE_HALTED) {
+ 		xhci_dbg(xhci, "xHCI dying, ignoring interrupt. "
+ 				"Shouldn't IRQs be disabled?\n");
+ 		/* Clear the event handler busy flag (RW1C);
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index ec9e758d5fcd..6fe0174da226 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -680,20 +680,23 @@ void xhci_stop(struct usb_hcd *hcd)
+ 	u32 temp;
+ 	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
+ 
+-	if (xhci->xhc_state & XHCI_STATE_HALTED)
+-		return;
+-
+ 	mutex_lock(&xhci->mutex);
+-	spin_lock_irq(&xhci->lock);
+-	xhci->xhc_state |= XHCI_STATE_HALTED;
+-	xhci->cmd_ring_state = CMD_RING_STATE_STOPPED;
+ 
+-	/* Make sure the xHC is halted for a USB3 roothub
+-	 * (xhci_stop() could be called as part of failed init).
+-	 */
+-	xhci_halt(xhci);
+-	xhci_reset(xhci);
+-	spin_unlock_irq(&xhci->lock);
++	if (!(xhci->xhc_state & XHCI_STATE_HALTED)) {
++		spin_lock_irq(&xhci->lock);
++
++		xhci->xhc_state |= XHCI_STATE_HALTED;
++		xhci->cmd_ring_state = CMD_RING_STATE_STOPPED;
++		xhci_halt(xhci);
++		xhci_reset(xhci);
++
++		spin_unlock_irq(&xhci->lock);
++	}
++
++	if (!usb_hcd_is_primary_hcd(hcd)) {
++		mutex_unlock(&xhci->mutex);
++		return;
++	}
+ 
+ 	xhci_cleanup_msix(xhci);
+ 
+-- 
+2.8.1
+
