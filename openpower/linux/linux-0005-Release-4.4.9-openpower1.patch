@@ -1,7 +1,7 @@
-From 1a760bf8893312c55a31323ce3d28e316bef2be3 Mon Sep 17 00:00:00 2001
+From 1ef895a037e6db091b3f349081f0af6f09d572c5 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Thu, 14 Apr 2016 21:40:26 +0930
-Subject: [PATCH 7/7] Release 4.4.8-openpower1
+Subject: [PATCH 5/5] Release 4.4.9-openpower1
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
@@ -9,18 +9,18 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 1928fcd539cc..48e579df4201 100644
+index 0722cdf52152..adca207f285e 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 4
- SUBLEVEL = 8
+ SUBLEVEL = 9
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Blurry Fish Butt
  
  # *DOCUMENTATION*
 -- 
-2.7.4
+2.8.1
 
