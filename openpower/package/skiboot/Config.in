@@ -1,15 +1,15 @@
 menu "Skiboot"
 
-config BR2_TARGET_SKIBOOT
+config BR2_PACKAGE_SKIBOOT
 	bool "skiboot"
 	depends on BR2_powerpc64 || BR2_powerpc64le
         default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
 	help
 	  Build skiboot POWER8 firmware
 
-if BR2_TARGET_SKIBOOT
+if BR2_PACKAGE_SKIBOOT
 
-config BR2_TARGET_SKIBOOT_EMBED_PAYLOAD
+config BR2_PACKAGE_SKIBOOT_EMBED_PAYLOAD
 	bool "Embed kernel payload in skiboot image"
 	depends on BR2_LINUX_KERNEL_ZIMAGE_EPAPR
 
@@ -31,7 +31,7 @@ config BR2_SKIBOOT_CUSTOM_VERSION_VALUE
 
 config BR2_SKIBOOT_VERSION
 	string
-	default "skiboot-5.1.15" if BR2_SKIBOOT_LATEST_VERSION
+	default "skiboot-5.2.2" if BR2_SKIBOOT_LATEST_VERSION
 	default BR2_SKIBOOT_CUSTOM_VERSION_VALUE \
 		if BR2_SKIBOOT_CUSTOM_VERSION
 

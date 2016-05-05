@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PETITBOOT_VERSION = 72928ed32ab3684be74e4a3b90329dee7cfa6bbb
+PETITBOOT_VERSION = v1.0.1
 PETITBOOT_SITE ?= $(call github,open-power,petitboot,$(PETITBOOT_VERSION))
 PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
 PETITBOOT_LICENSE = GPLv2
@@ -66,6 +66,8 @@ define PETITBOOT_POST_INSTALL
 
 	ln -sf /usr/sbin/pb-udhcpc \
 		$(TARGET_DIR)/usr/share/udhcpc/default.script.d/
+
+	mkdir -p $(TARGET_DIR)/var/log/petitboot
 
 	$(MAKE) -C $(@D)/po DESTDIR=$(TARGET_DIR) install
 endef
