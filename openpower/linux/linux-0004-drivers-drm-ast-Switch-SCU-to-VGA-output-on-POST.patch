@@ -1,4 +1,4 @@
-From 0d888c4e2a38d43e5e24bae62b18418ab667f38a Mon Sep 17 00:00:00 2001
+From 29834b73735bb6f71b241aa85cc500d2907bcbe6 Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Wed, 2 Mar 2016 11:25:47 +0800
 Subject: [PATCH 4/7] drivers/drm/ast: Switch SCU to VGA output on POST
@@ -68,5 +68,5 @@ index 810c51d92b99..703dba2ba84b 100644
 +	ast_moutdwm(ast, scu_addr | 0x2c, val);
 +}
 -- 
-2.8.1
+2.7.4
 
