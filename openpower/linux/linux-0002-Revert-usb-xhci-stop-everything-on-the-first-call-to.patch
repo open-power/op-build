@@ -1,4 +1,4 @@
-From 1b835d3c6e8411c27801e8299a5996b661f9d0e6 Mon Sep 17 00:00:00 2001
+From 2481d9f7a822f3e5273c9bd4e273685eeb939b26 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Thu, 28 Jan 2016 13:07:06 +1030
 Subject: [PATCH 2/7] Revert "usb: xhci: stop everything on the first call to
@@ -58,5 +58,5 @@ index ec9e758d5fcd..0e66476d4866 100644
  	 * (xhci_stop() could be called as part of failed init).
  	 */
 -- 
-2.7.4
+2.8.1
 
