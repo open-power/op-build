@@ -8,7 +8,7 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= b937782225b96b6fb176f8acb59278026c8d9fd6
+OPENPOWER_PNOR_VERSION ?= a3df90817b7046a26005f2333ae90eae22e53be
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -74,8 +74,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
-            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
-            -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED)
+            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE)
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
 
