@@ -23,7 +23,7 @@ define HOSTBOOT_BUILD_CMDS
 endef
 
 define HOSTBOOT_INSTALL_IMAGES_CMDS
-        cd $(@D) && $(@D)/src/build/tools/hbDistribute --openpower $(STAGING_DIR)/hostboot_build_images/
+        cd $(@D) && source ./env.bash && $(@D)/src/build/tools/hbDistribute --openpower $(STAGING_DIR)/hostboot_build_images/
 endef
 
 $(eval $(generic-package))
