@@ -114,7 +114,7 @@ endef ###
 
 # Add appropriate templates to hooks
 $(2)_POST_PATCH_HOOKS += $(2)_OPENPOWER_PATCH_FILE
-$(2)_PRE_BUILD_HOOKS += $(2)_OPENPOWER_VERSION_FILE
+$(2)_PRE_CONFIGURE_HOOKS += $(2)_OPENPOWER_VERSION_FILE
 
 # Top-level rule to print or generate a subpackage version
 $(1)-version: $$(if $$(wildcard $$($(2)_VERSION_FILE)),$(1)-print-version,$(1)-build-version)
