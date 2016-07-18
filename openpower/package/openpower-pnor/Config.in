@@ -37,7 +37,7 @@ config BR2_SKIBOOT_LID_NAME
 
 config BR2_TARGET_SKIBOOT_XZ
         boolean "Compress the skiboot image with XZ"
-        default n
+        default y
 
 config BR2_SKIBOOT_LID_XZ_NAME
         string "Name of compressed skiboot lid"
