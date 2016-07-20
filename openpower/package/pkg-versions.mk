@@ -40,7 +40,7 @@ else \
 fi
 
 # If this is for linux, also check openpower/linux
-if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+if [ "$(filter "LINUX", "$(2)")" == "$(2)" ]; then \
 	if ls $$(BR2_EXTERNAL)/$(1)/*.patch 2>/dev/null; then sha512sum \
 		$$(BR2_EXTERNAL)/$(1)/*.patch | sha512sum | \
 		xargs echo >> $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt; \
@@ -89,7 +89,7 @@ else \
 	sed "s/^\([0-9a-f]\{7\}\).*/\1/;s/$(1)-//;" >> $$($(2)_VERSION_FILE)) \
 	|| echo -n $$($(2)_VERSION) | sed -e 's/$(1)-//' >> $$($(2)_VERSION_FILE); \
 \
-if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+if [ "$(filter "LINUX", "$(2)")" == "$(2)" ]; then \
 	if ls $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile 1>/dev/null; then \
 		head $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile | grep EXTRAVERSION \
 		| cut -d ' ' -f 3 | \
