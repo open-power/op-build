@@ -48,6 +48,7 @@ config BR2_SKIBOOT_LID_NAME
 
 config BR2_TARGET_SKIBOOT_XZ
         boolean "Compress the skiboot image with XZ"
+        select BR2_OPENPOWER_PNOR_XZ_ENABLED
         default y
 
 config BR2_SKIBOOT_LID_XZ_NAME
@@ -85,4 +86,4 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
 
 config BR2_OPENPOWER_PNOR_XZ_ENABLED
         bool "Enable xz compression in PNOR payloads"
-        default y if BR2_TARGET_SKIBOOT_XZ
+        default n
