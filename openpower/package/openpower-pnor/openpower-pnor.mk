@@ -25,7 +25,7 @@ endif
 endif
 
 ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
-OPENPOWER_PNOR_DEPENDENCIES += host_xz
+OPENPOWER_PNOR_DEPENDENCIES += host-xz
 endif
 
 
