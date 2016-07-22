@@ -56,7 +56,6 @@ sub package_deps
     my $package = shift;
     my $level = shift;
 
-    $package =~ s/-install-images//;    # Strip off -install-images subpass.
     $package =~ s/-rebuild.*//;         # Strip off -rebuild* subpass.
     $package =~ s/linux[0-9]*/linux/;   # Strip off linux version.
 
