@@ -1,6 +1,8 @@
 source "$BR2_EXTERNAL/package/openpower-ffs/Config.in"
 source "$BR2_EXTERNAL/package/hostboot/Config.in"
 source "$BR2_EXTERNAL/package/hostboot-binaries/Config.in"
+source "$BR2_EXTERNAL/package/openpower-mrw/Config.in"
+source "$BR2_EXTERNAL/package/common-p8-xml/Config.in"
 source "$BR2_EXTERNAL/package/palmetto-xml/Config.in"
 source "$BR2_EXTERNAL/package/habanero-xml/Config.in"
 source "$BR2_EXTERNAL/package/firestone-xml/Config.in"

@@ -1,0 +1,3 @@
+config BR2_PACKAGE_OPENPOWER_MRW
+        bool "Machine Readable Workbook (MRW) infrastructure"
+        default y if BR2_PACKAGE_HOSTBOOT
