@@ -84,6 +84,5 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
             String used to define name of openpower targeting binary file, ecc protected
 
 config BR2_OPENPOWER_PNOR_XZ_ENABLED
-        string "False if we are not compressing with XZ anywhere"
-        default "false" if !BR2_TARGET_SKIBOOT_XZ
-        default "true" if BR2_TARGET_SKIBOOT_XZ
+        bool "Enable xz compression in PNOR payloads"
+        default y if BR2_TARGET_SKIBOOT_XZ
