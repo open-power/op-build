@@ -1,6 +1,7 @@
 config BR2_PACKAGE_FIRESTONE_XML
         bool "firestone_xml"
         default y if (BR2_OPENPOWER_CONFIG_NAME = "firestone")
+        select BR2_PACKAGE_COMMON_P8_XML
         help
             Utilites for building xml and the targeting binary image
 

@@ -1,6 +1,7 @@
 config BR2_PACKAGE_HABANERO_XML
         bool "habanero_xml"
         default y if (BR2_OPENPOWER_CONFIG_NAME = "habanero")
+        select BR2_PACKAGE_COMMON_P8_XML
         help
             Utilites for building xml and the targeting binary image
 
