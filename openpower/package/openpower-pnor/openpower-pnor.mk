@@ -25,7 +25,7 @@ endif
 endif
 
 ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
-OPENPOWER_PNOR_DEPENDENCIES += host_xz
+OPENPOWER_PNOR_DEPENDENCIES += host-xz
 endif
 
 
@@ -58,7 +58,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -capp_binary_filename $(BINARIES_DIR)/$(BR2_CAPP_UCODE_BIN_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
-            -xz_compression $(BR2_OPENPOWER_PNOR_XZ_ENABLED)
+            $(if ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y),-xz_compression true)
 
         mkdir -p $(STAGING_DIR)/pnor/
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
