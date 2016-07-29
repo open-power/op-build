@@ -1,4 +1,4 @@
-From e51e878aac1ea5018c7accac28afa4db8c620489 Mon Sep 17 00:00:00 2001
+From 42474bf9816cd3f7498e606494050ac30cf803e8 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Date: Wed, 13 Jul 2016 11:15:41 +1000
 Subject: [PATCH 09/10] tty/hvc: Use IRQF_SHARED for OPAL hvc consoles
