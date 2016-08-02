@@ -1,0 +1,180 @@
+#!/bin/env perl
+use strict;
+
+my $repos =
+{
+    'op-build' => { REPO => "http://github.com/open-power/op-build" },
+    'hostboot' => { REPO => "http://github.com/open-power/hostboot" ,
+                    DIR => "openpower/package/hostboot",
+                    PACKAGE => "HOSTBOOT" },
+    'skiboot'  => { REPO => "http://github.com/open-power/skiboot" ,
+                    DIR => "openpower/package/skiboot",
+                    PACKAGE => "SKIBOOT" },
+    'occ'      => { REPO => "http://github.com/open-power/occ" ,
+                    DIR => "openpower/package/occ",
+                    PACKAGE => "OCC" },
+    'pnor'     => { REPO => "http://github.com/open-power/pnor" ,
+                    DIR => "openpower/package/openpower-pnor",
+                    PACKAGE => "OPENPOWER_PNOR" },
+    'palmetto-xml' => { REPO => "http://github.com/open-power/palmetto-xml" ,
+                    DIR => "openpower/package/palmetto-xml",
+                    PACKAGE => "PALMETTO_XML" },
+    'habanero-xml' => { REPO => "http://github.com/open-power/habanero-xml" ,
+                    DIR => "openpower/package/habanero-xml",
+                    PACKAGE => "HABANERO_XML" },
+    'firestone-xml' => { REPO => "http://github.com/open-power/firestone-xml" ,
+                    DIR => "openpower/package/firestone-xml",
+                    PACKAGE => "FIRESTONE_XML" },
+    'garrison-xml'  => { REPO => "http://github.com/open-power/garrison-xml" ,
+                    DIR => "openpower/package/garrison-xml",
+                    PACKAGE => "GARRISON_XML" },
+    'barreleye-xml'  => { REPO => "http://github.com/open-power/barreleye-xml" ,
+                    DIR => "openpower/package/barreleye-xml",
+                    PACKAGE => "BARRELEYE_XML" },
+    'petitboot'     => { REPO => "http://github.com/open-power/petitboot" ,
+                    DIR => "openpower/package/petitboot",
+                    PACKAGE => "PETITBOOT" },
+};
+
+my $begin_release = shift;
+my $end_release = shift;
+
+foreach my $repo (keys %{$repos})
+{
+    if (-e $repo)
+    {
+        system("cd $repo; git fetch") && die "Could not fetch $repo";
+    }
+    else
+    {
+        system("git clone $repos->{$repo}->{REPO} $repo") &&
+            die "Could not clone $repo";
+    }
+}
+
+system("cd op-build; git checkout $end_release --force; git reset HEAD --hard");
+
+
+open(OP_SUMMARY, "cd op-build; ".
+        "git diff $begin_release...$end_release --name-only |".
+        "grep -e \"\.mk\" -e \"Config.in\" |".
+        "xargs git diff $begin_release...$end_release -- |".
+        "grep -e '^[+-][^[:space:]]*_VERSION' ".
+        "-e'^[+-][[:space:]]*default.*if.*LATEST_VERSION' |") || die;
+
+my $old_level = {};
+my $new_level = {};
+
+while(my $line = <OP_SUMMARY>)
+{
+    chomp $line;
+    if ($line =~ m/\$/) # Sanity check there are not variables here.
+    {
+        next;
+    }
+    if ($line =~ m/-([^[:space:]]*)_VERSION([[:space:]]*\?*=[[:space:]]*)(.*)/)
+    {
+        print "Old $1:$3\n";
+        $old_level->{$1} = $3;
+    }
+    if ($line =~ m/\+([^[:space:]]*)_VERSION([[:space:]]*\?*=[[:space:]]*)(.*)/)
+    {
+        print "New $1:$3\n";
+        $new_level->{$1} = $3;
+    }
+    if ($line =~ m/-[[:space:]]*default[[:space:]]*"([^[:space:]]*)"[[:space:]]*if[[:space:]]BR2_([^[:space:]]*)_LATEST_VERSION/)
+    {
+        print "Old $2:$1\n";
+        $old_level->{$2} = $1;
+    }
+    if ($line =~ m/\+[[:space:]]*default[[:space:]]*"([^[:space:]]*)"[[:space:]]*if[[:space:]]BR2_([^[:space:]]*)_LATEST_VERSION/)
+    {
+        print "New $2:$1\n";
+        $new_level->{$2} = $1;
+    }
+}
+
+open(OUTPUT, "> RELEASE.md") || die "Failed to open RELEASE.md";
+
+print OUTPUT "# Release Notes for OpenPower Firmware $end_release\n";
+
+my $op_url = $repos->{'op-build'}->{REPO};
+
+foreach my $repo (sort keys %{$repos})
+{
+    next if (not exists $repos->{$repo}->{PACKAGE});
+
+    my $package = $repos->{$repo}->{PACKAGE};
+    my $url = $repos->{$repo}->{REPO};
+    my $dir = $repos->{$repo}->{DIR};
+
+    print OUTPUT "## Package: $repo\n";
+    print OUTPUT "[Repository]($url)\n";
+    print OUTPUT "\n";
+
+    my $package = $repos->{$repo}->{PACKAGE};
+
+    # Display patches.
+    if (open(LSLOG, "ls op-build/$dir/*.patch | ".
+                    "xargs -n1 --no-run-if-empty basename |"))
+    {
+        print OUTPUT "### Patches\n";
+        while (my $logline = <LSLOG>)
+        {
+            chomp $logline;
+            print OUTPUT "* [$logline]".
+                "($op_url/tree/$end_release/$dir/$logline)\n";
+        }
+        close LSLOG;
+        print OUTPUT "\n";
+    }
+    else
+    {
+        print OUTPUT "None.\n";
+    }
+
+    # Display changes.
+    print OUTPUT "### Commits\n";
+    if ((not exists $old_level->{$package}) &&
+        (not exists $new_level->{$package}))
+    {
+        # No change identified.
+        print "No changes: $repo\n";
+        print OUTPUT "No changes.\n";
+        next;
+    }
+
+    if ((exists $old_level->{$package}) &&
+        (exists $new_level->{$package}))
+    {
+        print "Changes in $repo...\n";
+
+        open(GITLOG, "cd $repo; git shortlog $old_level->{$package}...".
+                     "$new_level->{$package} --no-merges --format=".
+                     "\"* [%h]($url/commit/%h) %s\" |");
+
+        while (my $logline = <GITLOG>)
+        {
+            chomp $logline;
+            $logline =~ s/^[[:space:]]*//;
+            print OUTPUT "$logline\n";
+        }
+        close GITLOG;
+        print OUTPUT "\n";
+        next;
+    }
+
+    if (not exists $old_level->{$package})
+    {
+        print "New package $repo.\n";
+        print OUTPUT "New package.\n";
+        next;
+    }
+
+    if (not exists $new_level->{$package})
+    {
+        print "Deleted package $repo.\n";
+        print OUTPUT "Package removed.\n";
+        next;
+    }
+}
