@@ -1,6 +1,17 @@
 config BR2_PACKAGE_OPENPOWER_PNOR
         bool "openpower_pnor"
         default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        select BR2_PACKAGE_HOSTBOOT
+        select BR2_PACKAGE_HOSTBOOT_BINARIES
+        select BR2_PACKAGE_SKIBOOT
+        select BR2_PACKAGE_OPENPOWER_FFS
+        select BR2_PACKAGE_OCC
+        select BR2_PACKAGE_CAPP_UCODE
+        select BR2_PACKAGE_BARRELEYE_XML if (BR2_OPENPOWER_XML_PACKAGE = "barreleye-xml")
+        select BR2_PACKAGE_FIRESTONE_XML if (BR2_OPENPOWER_XML_PACKAGE = "firestone-xml")
+        select BR2_PACKAGE_GARRISON_XML if (BR2_OPENPOWER_XML_PACKAGE = "garrison-xml")
+        select BR2_PACKAGE_HABANERO_XML if (BR2_OPENPOWER_XML_PACKAGE = "habanero-xml")
+        select BR2_PACKAGE_PALMETTO_XML if (BR2_OPENPOWER_XML_PACKAGE = "palmetto-xml")
         help
             Utilites for building a targeting binary image
 
@@ -37,7 +48,8 @@ config BR2_SKIBOOT_LID_NAME
 
 config BR2_TARGET_SKIBOOT_XZ
         boolean "Compress the skiboot image with XZ"
-        default n
+        select BR2_OPENPOWER_PNOR_XZ_ENABLED
+        default y
 
 config BR2_SKIBOOT_LID_XZ_NAME
         string "Name of compressed skiboot lid"
@@ -73,6 +85,5 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
             String used to define name of openpower targeting binary file, ecc protected
 
 config BR2_OPENPOWER_PNOR_XZ_ENABLED
-        string "False if we are not compressing with XZ anywhere"
-        default "false" if !BR2_TARGET_SKIBOOT_XZ
-        default "true" if BR2_TARGET_SKIBOOT_XZ
+        bool "Enable xz compression in PNOR payloads"
+        default n

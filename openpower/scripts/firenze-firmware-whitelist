@@ -1,0 +1,46 @@
+#!/bin/bash
+# Scan the /lib/firmware directory of the target and delete any firmware
+# binaries that are not in our whitelist
+
+# A whitelist of entire directories or specific binary files
+whitelist=(     'acenic'
+                'bnx2'
+                'bnx2x'
+                'cxgb4'
+                'cxgb3'
+                'e100'
+                'radeon/CAICOS_me.bin'
+                'radeon/CEDAR_rlc.bin'
+                'radeon/CAICOS_mc.bin'
+                'radeon/CAICOS_pfp.bin'
+                'radeon/CEDAR_pfp.bin'
+                'radeon/CAICOS_smc.bin'
+                'radeon/CEDAR_smc.bin'
+                'radeon/CEDAR_me.bin'
+                'radeon/CYPRESS_uvd.bin')
+
+if [ -z "${TARGET_DIR}" ] ; then
+        echo "TARGET_DIR not defined, setting to $1"
+        TARGET_DIR=$1
+fi
+
+files=$(find ${TARGET_DIR}/lib/firmware/*)
+for file in ${files};
+do
+        if [ -d  $file ] ; then
+                continue
+        fi
+
+        found=0
+        for item in ${whitelist[@]};
+        do
+                if [ "${file/${item}}" != "${file}" ] ; then
+                        found=1
+                        break
+                fi
+        done
+
+        if [ "${found}" -ne "1" ] ; then
+                rm -v ${file}
+        fi
+done

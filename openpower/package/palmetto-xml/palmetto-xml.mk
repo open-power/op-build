@@ -4,11 +4,11 @@
 #
 ################################################################################
 
-PALMETTO_XML_VERSION ?= 82818682f2c2009c30d700df6d5f8897a3096e4f
+PALMETTO_XML_VERSION ?= c6f563966e9fadc4fb60194c064b2310c9b916b1
 PALMETTO_XML_SITE = $(call github,open-power,palmetto-xml,$(PALMETTO_XML_VERSION))
 
 PALMETTO_XML_LICENSE = Apache-2.0
-PALMETTO_XML_DEPENDENCIES = hostboot-install-images openpower-mrw-install-images common-p8-xml-install-images
+PALMETTO_XML_DEPENDENCIES = hostboot openpower-mrw common-p8-xml
 
 PALMETTO_XML_INSTALL_IMAGES = YES
 PALMETTO_XML_INSTALL_TARGET = YES

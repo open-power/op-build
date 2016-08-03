@@ -1,6 +1,7 @@
 config BR2_PACKAGE_BARRELEYE_XML
         bool "barreleye_xml"
         default y if (BR2_OPENPOWER_CONFIG_NAME = "barreleye")
+        select BR2_PACKAGE_COMMON_P8_XML
         help
             Utilites for building xml and the targeting binary image
 

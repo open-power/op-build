@@ -4,11 +4,11 @@
 #
 ################################################################################
 
-FIRESTONE_XML_VERSION ?= 15e371874a8dec1d8ef279aef2d0a0fed3ded8dd
+FIRESTONE_XML_VERSION ?= 783df1f6efce8f0283ca6683825578d1a260cad3
 FIRESTONE_XML_SITE ?= $(call github,open-power,firestone-xml,$(FIRESTONE_XML_VERSION))
 
 FIRESTONE_XML_LICENSE = Apache-2.0
-FIRESTONE_XML_DEPENDENCIES = hostboot-install-images openpower-mrw-install-images common-p8-xml-install-images
+FIRESTONE_XML_DEPENDENCIES = hostboot openpower-mrw common-p8-xml
 
 FIRESTONE_XML_INSTALL_IMAGES = YES
 FIRESTONE_XML_INSTALL_TARGET = YES

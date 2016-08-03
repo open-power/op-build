@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-HOSTBOOT_VERSION ?= dcf07f54b2b8cdf15ee930cc027660d37637331e
+HOSTBOOT_VERSION ?= 1f6784db750fc7df499381496b82c8ca4472d375
 HOSTBOOT_SITE ?= $(call github,open-power,hostboot,$(HOSTBOOT_VERSION))
 
 HOSTBOOT_LICENSE = Apache-2.0
@@ -23,7 +23,7 @@ define HOSTBOOT_BUILD_CMDS
 endef
 
 define HOSTBOOT_INSTALL_IMAGES_CMDS
-        cd $(@D) && $(@D)/src/build/tools/hbDistribute --openpower $(STAGING_DIR)/hostboot_build_images/
+        cd $(@D) && source ./env.bash && $(@D)/src/build/tools/hbDistribute --openpower $(STAGING_DIR)/hostboot_build_images/
 endef
 
 $(eval $(generic-package))

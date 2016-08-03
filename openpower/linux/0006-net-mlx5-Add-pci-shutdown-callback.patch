@@ -1,0 +1,161 @@
+From e5debfe251a2aee37b54f768855aac11593c0e2e Mon Sep 17 00:00:00 2001
+From: Carol L Soto <clsoto@linux.vnet.ibm.com>
+Date: Tue, 12 Jul 2016 17:04:07 -0500
+Subject: [PATCH 06/10] net/mlx5: Add pci shutdown callback
+
+Backport of commit 5fc7197d3a256 ("net/mlx5: Add pci shutdown callback")
+so we can use for the OpenPower kernel.
+
+This patch introduces kexec support for mlx5.
+When switching kernels, kexec() calls shutdown, which unloads
+the driver and cleans its resources.
+
+In addition, remove unregister netdev from shutdown flow. This will
+allow a clean shutdown, even if some netdev clients did not release their
+reference from this netdev. Releasing The HW resources only is enough as
+the kernel is shutting down
+
+Signed-off-by: Majd Dibbiny <majd@mellanox.com>
+Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: Haggai Abramovsky <hagaya@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Carol L Soto <clsoto@linux.vnet.ibm.com>
+(cherry picked from commit 5fc7197d3a256d9c5de3134870304b24892a4908)
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 15 +++++++++++++--
+ drivers/net/ethernet/mellanox/mlx5/core/main.c    | 23 +++++++++++++++++++----
+ include/linux/mlx5/driver.h                       |  7 ++++---
+ 3 files changed, 36 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index cbd17e25beeb..887a54c8e98b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -2241,7 +2241,16 @@ static void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, void *vpriv)
+ 	schedule_work(&priv->set_rx_mode_work);
+ 	mlx5e_disable_async_events(priv);
+ 	flush_scheduled_work();
+-	unregister_netdev(netdev);
++	if (test_bit(MLX5_INTERFACE_STATE_SHUTDOWN, &mdev->intf_state)) {
++		netif_device_detach(netdev);
++		mutex_lock(&priv->state_lock);
++		if (test_bit(MLX5E_STATE_OPENED, &priv->state))
++			mlx5e_close_locked(netdev);
++		mutex_unlock(&priv->state_lock);
++	} else {
++		unregister_netdev(netdev);
++	}
++
+ 	mlx5e_destroy_flow_tables(priv);
+ 	mlx5e_destroy_tirs(priv);
+ 	mlx5e_destroy_rqt(priv, MLX5E_SINGLE_RQ_RQT);
+@@ -2252,7 +2261,9 @@ static void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, void *vpriv)
+ 	mlx5_dealloc_transport_domain(priv->mdev, priv->tdn);
+ 	mlx5_core_dealloc_pd(priv->mdev, priv->pdn);
+ 	mlx5_unmap_free_uar(priv->mdev, &priv->cq_uar);
+-	free_netdev(netdev);
++
++	if (!test_bit(MLX5_INTERFACE_STATE_SHUTDOWN, &mdev->intf_state))
++		free_netdev(netdev);
+ }
+ 
+ static void *mlx5e_get_netdev(void *vpriv)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 6cf6d93d8831..8a371bdb823e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -914,7 +914,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+ 	int err;
+ 
+ 	mutex_lock(&dev->intf_state_mutex);
+-	if (dev->interface_state == MLX5_INTERFACE_STATE_UP) {
++	if (test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
+ 		dev_warn(&dev->pdev->dev, "%s: interface is up, NOP\n",
+ 			 __func__);
+ 		goto out;
+@@ -1063,7 +1063,8 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+ 	if (err)
+ 		pr_info("failed request module on %s\n", MLX5_IB_MOD);
+ 
+-	dev->interface_state = MLX5_INTERFACE_STATE_UP;
++	clear_bit(MLX5_INTERFACE_STATE_DOWN, &dev->intf_state);
++	set_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state);
+ out:
+ 	mutex_unlock(&dev->intf_state_mutex);
+ 
+@@ -1125,7 +1126,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+ 	int err = 0;
+ 
+ 	mutex_lock(&dev->intf_state_mutex);
+-	if (dev->interface_state == MLX5_INTERFACE_STATE_DOWN) {
++	if (test_bit(MLX5_INTERFACE_STATE_DOWN, &dev->intf_state)) {
+ 		dev_warn(&dev->pdev->dev, "%s: interface is down, NOP\n",
+ 			 __func__);
+ 		goto out;
+@@ -1155,7 +1156,8 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+ 	mlx5_cmd_cleanup(dev);
+ 
+ out:
+-	dev->interface_state = MLX5_INTERFACE_STATE_DOWN;
++	clear_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state);
++	set_bit(MLX5_INTERFACE_STATE_DOWN, &dev->intf_state);
+ 	mutex_unlock(&dev->intf_state_mutex);
+ 	return err;
+ }
+@@ -1365,6 +1367,18 @@ static const struct pci_error_handlers mlx5_err_handler = {
+ 	.resume		= mlx5_pci_resume
+ };
+ 
++static void shutdown(struct pci_dev *pdev)
++{
++	struct mlx5_core_dev *dev  = pci_get_drvdata(pdev);
++	struct mlx5_priv *priv = &dev->priv;
++
++	dev_info(&pdev->dev, "Shutdown was called\n");
++	/* Notify mlx5 clients that the kernel is being shut down */
++	set_bit(MLX5_INTERFACE_STATE_SHUTDOWN, &dev->intf_state);
++	mlx5_unload_one(dev, priv);
++	mlx5_pci_disable_device(dev);
++}
++
+ static const struct pci_device_id mlx5_core_pci_table[] = {
+ 	{ PCI_VDEVICE(MELLANOX, 0x1011) }, /* Connect-IB */
+ 	{ PCI_VDEVICE(MELLANOX, 0x1012) }, /* Connect-IB VF */
+@@ -1382,6 +1396,7 @@ static struct pci_driver mlx5_core_driver = {
+ 	.id_table       = mlx5_core_pci_table,
+ 	.probe          = init_one,
+ 	.remove         = remove_one,
++	.shutdown       = shutdown,
+ 	.err_handler	= &mlx5_err_handler
+ };
+ 
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 412aa988c6ad..dc26d9942120 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -493,8 +493,9 @@ enum mlx5_device_state {
+ };
+ 
+ enum mlx5_interface_state {
+-	MLX5_INTERFACE_STATE_DOWN,
+-	MLX5_INTERFACE_STATE_UP,
++	MLX5_INTERFACE_STATE_DOWN = BIT(0),
++	MLX5_INTERFACE_STATE_UP = BIT(1),
++	MLX5_INTERFACE_STATE_SHUTDOWN = BIT(2),
+ };
+ 
+ enum mlx5_pci_status {
+@@ -518,7 +519,7 @@ struct mlx5_core_dev {
+ 	enum mlx5_device_state	state;
+ 	/* sync interface state */
+ 	struct mutex		intf_state_mutex;
+-	enum mlx5_interface_state interface_state;
++	unsigned long		intf_state;
+ 	void			(*event) (struct mlx5_core_dev *dev,
+ 					  enum mlx5_dev_event event,
+ 					  unsigned long param);
+-- 
+2.8.1
+

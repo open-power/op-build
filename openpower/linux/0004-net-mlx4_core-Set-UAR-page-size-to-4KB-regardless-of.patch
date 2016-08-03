@@ -1,7 +1,7 @@
-From 6189e547b0a411e22dffdd79768d67945eb81c8b Mon Sep 17 00:00:00 2001
+From 5671fd1faf1b9185ad846db4e134f05a1b109ca3 Mon Sep 17 00:00:00 2001
 From: Huy Nguyen <huyn@mellanox.com>
 Date: Wed, 17 Feb 2016 17:24:26 +0200
-Subject: [PATCH 6/7] net/mlx4_core: Set UAR page size to 4KB regardless of
+Subject: [PATCH 04/10] net/mlx4_core: Set UAR page size to 4KB regardless of
  system page size
 
 problem description:
@@ -105,7 +105,7 @@ index 12aab5a659d3..02e925d6f734 100644
  	context->pri_path.ackto = 1 & 0x07;
  	context->pri_path.sched_queue = 0x83 | (priv->port - 1) << 6;
 diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
-index 4421bf5463f6..e0946ab22010 100644
+index e4019a803a9c..0debb611da8b 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
 @@ -213,7 +213,9 @@ int mlx4_en_activate_tx_ring(struct mlx4_en_priv *priv,
