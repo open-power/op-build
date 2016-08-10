@@ -17,7 +17,8 @@ whitelist=(     'acenic'
                 'radeon/CAICOS_smc.bin'
                 'radeon/CEDAR_smc.bin'
                 'radeon/CEDAR_me.bin'
-                'radeon/CYPRESS_uvd.bin')
+                'radeon/CYPRESS_uvd.bin'
+                'radeon/BTC_rlc.bin')
 
 if [ -z "${TARGET_DIR}" ] ; then
         echo "TARGET_DIR not defined, setting to $1"
