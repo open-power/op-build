@@ -1,0 +1,61 @@
+From 26588c9a9f21292cd78e0aabeb3c0fbba0c8b1b0 Mon Sep 17 00:00:00 2001
+From: Mamatha Inamdar <mamatha4@linux.vnet.ibm.com>
+Date: Tue, 28 Jun 2016 00:31:48 +0530
+Subject: [PATCH 10/11] drivers/drm/ast: Update VGA Ownership register value
+
+Problem Description:
+Right now SCU2C: Control Register values are not set correctly to enable
+VGA mode. SCU2C register value is set to 0x00041080, where bit 18, 17,
+16 and bit 7 are set to 1 which is CRT mode.
+
+Fix:
+To enable VGA mode we have to set all register bit values to default
+values ie VGA mode.
+
+1) bit 18 in SCU2C register is to select  the DVO source for display output,
+   by default it is VGA mode but it was set to 1(CRT mode).
+
+	18  RW Select the DVO source for display output
+	0: VGA mode (default)
+	1: Graphics CRT mode
+
+2) bit 17 and 16 in SCU2C register is to select the DAC source for
+   display output, by default it is VGA mode but it was set to 1(CRT mode).
+	00: VGA mode
+	01: Grafics CRT mode
+	1X: pass-through DVO mode
+
+2) second issue is  bit 7 in SCU2C register is to Enable 2D CRT Mode
+   function as below and it was set to 1 as CRT mode.
+
+	7 Enable 2D CRT Mode function
+	0: VGA mode (default)
+	1: CRT mode
+
+The new value of SCU2C register is updated with mask value ~0x70080,
+which will enable VGA mode by resetting bits 18,17,16 and 7 in SCU2C
+control register.
+
+Signed-off-by: Mamatha Inamdar <mamatha4@linux.vnet.ibm.com>
+Acked-By: Jeremy Kerr <jk@ozlabs.org>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ drivers/gpu/drm/ast/ast_post.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
+index 703dba2ba84b..00ebe4fa0381 100644
+--- a/drivers/gpu/drm/ast/ast_post.c
++++ b/drivers/gpu/drm/ast/ast_post.c
+@@ -1681,7 +1681,7 @@ static void ast_init_output_control(struct drm_device *dev)
+ 		break;
+ 	default:
+ 		/* VGA only: enable DAC output */
+-		val &= ~0x30000;
++		val &= ~0x70080;
+ 		break;
+ 	}
+ 
+-- 
+2.8.1
+
