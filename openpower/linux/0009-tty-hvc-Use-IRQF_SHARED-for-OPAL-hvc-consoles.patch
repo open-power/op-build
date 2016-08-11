@@ -1,7 +1,7 @@
-From 42474bf9816cd3f7498e606494050ac30cf803e8 Mon Sep 17 00:00:00 2001
+From 3b4ea30def24c57500e1564c788b263d70308210 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Date: Wed, 13 Jul 2016 11:15:41 +1000
-Subject: [PATCH 09/10] tty/hvc: Use IRQF_SHARED for OPAL hvc consoles
+Subject: [PATCH 09/11] tty/hvc: Use IRQF_SHARED for OPAL hvc consoles
 
 Commit 2def86a7200c
 ("hvc: Convert to using interrupts instead of opal events")
