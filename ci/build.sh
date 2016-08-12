@@ -1,5 +1,36 @@
 #!/bin/bash
 
+while getopts ":ahp:" opt; do
+  case $opt in
+    a)
+      echo "Build firmware images for all platforms"
+      TEMP=""
+      ;;
+    p)
+      echo "Build firmware images for the platform: $OPTARG"
+      TEMP=$OPTARG
+      ;;
+    h)
+      echo "Usage: ./ci/build.sh [options] [--]"
+      echo "-h          Print this help and exit successfully."
+      echo "-a          Build firmware images for all the platform defconfig's."
+      echo "-p          Platform name as parameter to build firmware images for particular platform."
+      echo "Example:./ci/build.sh -a"
+      echo -e "\t./ci/build.sh -p firestone"
+      echo -e "\t./ci/build.sh -p garrison"
+      exit 1
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG"
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument."
+      exit 1
+      ;;
+  esac
+done
+
 set -ex
 set -eo pipefail
 
@@ -45,7 +76,7 @@ EOF
 )
 	$DOCKER_PREFIX docker build -t openpower/op-build-$distro - <<< "${Dockerfile}"
 	mkdir -p output-images/$distro
-	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh output-images/$distro"
+	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh output-images/$distro $TEMP"
 	if [ $? = 0 ]; then
 		mv *-images output-$distro/
 	else

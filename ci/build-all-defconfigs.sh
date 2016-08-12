@@ -3,7 +3,14 @@
 set -ex
 set -eo pipefail
 
-DEFCONFIGS=`(cd openpower/configs; ls -1 *_defconfig)`
+CONFIGTAG="_defconfig"
+
+if [ -z "$2" ]; then
+        echo "Using all the defconfigs for all the platforms"
+        DEFCONFIGS=`(cd openpower/configs; ls -1 *_defconfig)`
+else
+        DEFCONFIGS=$2$CONFIGTAG
+fi
 
 if [ -z "$1" or ! -d "$1" ]; then
 	echo "No output directory specified"
