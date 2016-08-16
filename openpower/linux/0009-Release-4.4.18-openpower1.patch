@@ -1,0 +1,32 @@
+From 24dbdaecf50eb930b11a691164b72061f79bcacd Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@jms.id.au>
+Date: Tue, 16 Aug 2016 23:00:23 +0930
+Subject: [PATCH 9/9] Release 4.4.18-openpower1
+
+ - v4.4.18 stable release
+ - drop scsi: ignore errors from scsi_dh_add_device() as this is
+   upstream
+ - drop drivers/drm/ast: Update VGA Ownership register value as
+   this was found to not fix the issue it was claimed to have fixed
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index eaedea88a8a7..71bb47cd7f53 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 4
+ PATCHLEVEL = 4
+ SUBLEVEL = 18
+-EXTRAVERSION =
++EXTRAVERSION = -openpower1
+ NAME = Blurry Fish Butt
+ 
+ # *DOCUMENTATION*
+-- 
+2.8.1
+

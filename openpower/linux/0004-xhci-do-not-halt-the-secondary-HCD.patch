@@ -1,7 +1,7 @@
-From 1fa191317a34d5178377c84fd89fb3737566bab1 Mon Sep 17 00:00:00 2001
+From c5075769d7124310b14f93e8ceb98f520a0b7087 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 19 Jul 2016 22:43:26 +0930
-Subject: [PATCH 05/11] xhci: do not halt the secondary HCD
+Subject: [PATCH 4/9] xhci: do not halt the secondary HCD
 
 We can't halt the secondary HCD, because it's also the primary HCD,
 which will cause problems if we have devices attached to the primary
