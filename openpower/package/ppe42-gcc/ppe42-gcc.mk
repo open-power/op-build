@@ -26,7 +26,7 @@ define HOST_PPE42_GCC_BUILD_CMDS
 					--with-mpfr=$(HOST_DIR)/usr \
 					&& \
         make configure-host && \
-        make all-gcc LDFLAGS=-all-static
+        make all-gcc
 endef
 
 define HOST_PPE42_GCC_INSTALL_CMDS

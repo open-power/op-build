@@ -22,7 +22,7 @@ define HOST_PPE42_BINUTILS_BUILD_CMDS
 					--enable-64-bit-bfd \
 					&& \
         make configure-host && \
-        make LDFLAGS=-all-static
+        make LDFLAGS=-all-static CFLAGS=-Wno-error=unused-value
 endef
 
 define HOST_PPE42_BINUTILS_INSTALL_CMDS
