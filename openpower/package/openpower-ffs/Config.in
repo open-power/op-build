@@ -1,5 +1,5 @@
 config BR2_PACKAGE_HOST_OPENPOWER_FFS
         bool "ffs"
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        default y if (BR2_OPENPOWER_PLATFORM)
         help
             Utilites for building an 'ffs' image file.
