@@ -1,0 +1,26 @@
+From d71055295a21e7fe9105bdfe0085006462ab568c Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Tue, 9 Aug 2016 10:08:15 -0500
+Subject: [PATCH] Remove attribute override compile
+
+Change-Id: Ia3f4cda97ff1ec80619bf8b5144144903b2b24f5
+---
+ src/usr/targeting/makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/usr/targeting/makefile b/src/usr/targeting/makefile
+index 61dfb0a..c0c31ea 100644
+--- a/src/usr/targeting/makefile
++++ b/src/usr/targeting/makefile
+@@ -65,7 +65,7 @@ OBJS += ${HOSTBOOT_SPECIFIC_OBJS}
+ SUBDIRS += test.d
+ SUBDIRS += xmltohb.d
+ SUBDIRS += runtime.d
+-SUBDIRS += attroverride.d
++#SUBDIRS += attroverride.d
+ 
+ include ${ROOTPATH}/config.mk
+ 
+-- 
+1.8.2.2
+

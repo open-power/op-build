@@ -2,3 +2,11 @@ config BR2_OPENPOWER_PLATFORM
     bool "Enable the OpenPower Platform"
     default n
     depends on BR2_powerpc64 || BR2_powerpc64le
+
+config BR2_OPENPOWER_POWER8
+    bool "Builds the Power 8 codebase"
+    default n
+
+config BR2_OPENPOWER_POWER9
+    bool "Builds the Power 9 codebase"
+    default n
