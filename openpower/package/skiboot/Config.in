@@ -3,9 +3,9 @@ menu "Skiboot"
 config BR2_PACKAGE_SKIBOOT
 	bool "skiboot"
 	depends on BR2_powerpc64 || BR2_powerpc64le
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        default y if (BR2_OPENPOWER_PLATFORM)
 	help
-	  Build skiboot POWER8 firmware
+	  Build skiboot POWER firmware
 
 if BR2_PACKAGE_SKIBOOT
 
