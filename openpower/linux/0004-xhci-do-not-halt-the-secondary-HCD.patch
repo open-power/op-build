@@ -1,4 +1,4 @@
-From c5075769d7124310b14f93e8ceb98f520a0b7087 Mon Sep 17 00:00:00 2001
+From 59a6044c4ca2c6e9f06dccb7fcb50cabce84c6d1 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 19 Jul 2016 22:43:26 +0930
 Subject: [PATCH 4/9] xhci: do not halt the secondary HCD
@@ -52,5 +52,5 @@ index 6fe0174da226..8f48dd84ddd2 100644
  
  	/* Deleting Compliance Mode Recovery Timer */
 -- 
-2.8.1
+2.9.3
 

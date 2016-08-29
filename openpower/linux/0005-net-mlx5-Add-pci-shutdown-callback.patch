@@ -1,4 +1,4 @@
-From 029b63c53cbd2092288ecb68e2304d880332a81f Mon Sep 17 00:00:00 2001
+From 2a81a42abe8629c8ab1012e2376918665b9cab47 Mon Sep 17 00:00:00 2001
 From: Carol L Soto <clsoto@linux.vnet.ibm.com>
 Date: Tue, 12 Jul 2016 17:04:07 -0500
 Subject: [PATCH 5/9] net/mlx5: Add pci shutdown callback
@@ -157,5 +157,5 @@ index 412aa988c6ad..dc26d9942120 100644
  					  enum mlx5_dev_event event,
  					  unsigned long param);
 -- 
-2.8.1
+2.9.3
 
