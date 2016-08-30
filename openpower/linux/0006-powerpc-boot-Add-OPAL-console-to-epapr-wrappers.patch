@@ -1,4 +1,4 @@
-From b31da157b20a30a1de1221755bff5fd68c0da885 Mon Sep 17 00:00:00 2001
+From ceebdd09bb811c2815065a5940448d0980a10e8c Mon Sep 17 00:00:00 2001
 From: Oliver O'Halloran <oohall@gmail.com>
 Date: Fri, 24 Jun 2016 17:28:43 +1000
 Subject: [PATCH 6/9] powerpc/boot: Add OPAL console to epapr wrappers
@@ -282,5 +282,5 @@ index 31393d17a9c1..85565a89bcc2 100644
  	typeof(x) _x = (x);	\
  	typeof(y) _y = (y);	\
 -- 
-2.8.1
+2.9.3
 
