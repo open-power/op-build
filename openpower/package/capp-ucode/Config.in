@@ -1,6 +1,6 @@
 config BR2_PACKAGE_CAPP_UCODE
         bool "capp_capp"
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        default y if (BR2_OPENPOWER_PLATFORM)
         help
             Microcode for CAPP hardware
 

@@ -1,6 +1,6 @@
 config BR2_PACKAGE_HOST_P8_PORE_BINUTILS
         bool "p8-pore-binutils"
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        default y if (BR2_OPENPOWER_PLATFORM)
         select BR2_CPP
         help
             Project to build the P8 PORE binutils
