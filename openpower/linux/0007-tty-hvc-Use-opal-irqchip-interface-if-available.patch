@@ -1,7 +1,7 @@
-From 02f5c9908edd9066788c53a0175ba9d3d217248c Mon Sep 17 00:00:00 2001
+From 20035018cb2ce4ba294d6be14855b7a93ee1e46d Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Date: Wed, 13 Jul 2016 11:15:42 +1000
-Subject: [PATCH 08/10] tty/hvc: Use opal irqchip interface if available
+Subject: [PATCH 7/9] tty/hvc: Use opal irqchip interface if available
 
 Update the hvc driver to use the OPAL irqchip if made available by the
 running firmware. If it is not present, the driver falls back to the
@@ -34,5 +34,5 @@ index 47b54c6aefd2..276b796b24e4 100644
  		pr_err("hvc_opal: Unable to map interrupt for device %s\n",
  			dev->dev.of_node->full_name);
 -- 
-2.8.1
+2.9.3
 

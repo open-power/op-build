@@ -1,7 +1,7 @@
-From 5671fd1faf1b9185ad846db4e134f05a1b109ca3 Mon Sep 17 00:00:00 2001
+From e27139f1d1d098e7504f0e85304d05865cd2314b Mon Sep 17 00:00:00 2001
 From: Huy Nguyen <huyn@mellanox.com>
 Date: Wed, 17 Feb 2016 17:24:26 +0200
-Subject: [PATCH 04/10] net/mlx4_core: Set UAR page size to 4KB regardless of
+Subject: [PATCH 3/9] net/mlx4_core: Set UAR page size to 4KB regardless of
  system page size
 
 problem description:
@@ -57,10 +57,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  8 files changed, 84 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 13eaaf45288f..c981fba11da8 100644
+index ea1e2ddaddf5..7d65bdb4cddf 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1591,9 +1591,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+@@ -1593,9 +1593,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
  	}
  
  	if (qp->ibqp.uobject)
@@ -295,5 +295,5 @@ index d3133be12d92..8bab38f8872a 100644
 +}
  #endif /* MLX4_DEVICE_H */
 -- 
-2.8.1
+2.9.3
 
