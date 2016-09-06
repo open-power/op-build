@@ -1,0 +1,40 @@
+From 52929548d943e0387fabb70d658905120cad7cd8 Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Tue, 6 Sep 2016 12:49:13 -0500
+Subject: [PATCH] Add openpower conditional to sbfw directory in hbDistribute
+
+Change-Id: I5e6759526a07fcbeea3a510a9a11369546367bf9
+RTC:160442
+---
+ src/build/tools/hbDistribute | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/src/build/tools/hbDistribute b/src/build/tools/hbDistribute
+index e999b49..75d0b14 100755
+--- a/src/build/tools/hbDistribute
++++ b/src/build/tools/hbDistribute
+@@ -116,12 +116,16 @@ fi
+ echo "sbfw dir = ${SBFW_DIR}"
+ # Verify SBFW directory or default to sandbox.
+ if [ "${SBFW_DIR}" == "invalid directory" ]; then
+-    if [ -z "${SANDBOXROOT}" -o -z "${SANDBOXNAME}" ]; then
+-        echo "ERROR:SBFW - No path specified and \$SANDBOXBASE undefined."
+-        print_usage
+-        exit -1
++    if [ "${TARGET}" == "openpower_TARGET" ]; then
++        :
+     else
+-        SBFW_DIR=${SANDBOXROOT}/${SANDBOXNAME}/src/sbei/sbfw
++        if [ -z "${SANDBOXROOT}" -o -z "${SANDBOXNAME}" ]; then
++            echo "ERROR:SBFW - No path specified and \$SANDBOXBASE undefined."
++            print_usage
++            exit -1
++        else
++            SBFW_DIR=${SANDBOXROOT}/${SANDBOXNAME}/src/sbei/sbfw
++        fi
+     fi
+ fi
+ 
+-- 
+1.8.2.2
+
