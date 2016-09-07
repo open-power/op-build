@@ -1,0 +1,6 @@
+config BR2_PACKAGE_PERL_CLASS_ERRORHANDLER
+	bool "perl-class-errorhandler"
+	help
+	  Base class for error handling
+
+	  https://github.com/tokuhirom/Class-ErrorHandler
