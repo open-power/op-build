@@ -9,16 +9,11 @@ whitelist=(     'acenic'
                 'cxgb4'
                 'cxgb3'
                 'e100'
-                'radeon/CAICOS_me.bin'
                 'radeon/CEDAR_rlc.bin'
-                'radeon/CAICOS_mc.bin'
-                'radeon/CAICOS_pfp.bin'
                 'radeon/CEDAR_pfp.bin'
-                'radeon/CAICOS_smc.bin'
                 'radeon/CEDAR_smc.bin'
                 'radeon/CEDAR_me.bin'
-                'radeon/CYPRESS_uvd.bin'
-                'radeon/BTC_rlc.bin')
+                'radeon/CYPRESS_uvd.bin')
 
 if [ -z "${TARGET_DIR}" ] ; then
         echo "TARGET_DIR not defined, setting to $1"
