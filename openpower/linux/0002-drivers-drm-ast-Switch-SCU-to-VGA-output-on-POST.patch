@@ -1,4 +1,4 @@
-From 5dc72365fce737764362d609bea5f969991efa75 Mon Sep 17 00:00:00 2001
+From 1bb5c96e14feb939411bcc8d53c6a85aefc3e533 Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Wed, 2 Mar 2016 11:25:47 +0800
 Subject: [PATCH 2/9] drivers/drm/ast: Switch SCU to VGA output on POST
