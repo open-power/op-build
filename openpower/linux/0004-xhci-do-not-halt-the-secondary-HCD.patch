@@ -1,4 +1,4 @@
-From 59a6044c4ca2c6e9f06dccb7fcb50cabce84c6d1 Mon Sep 17 00:00:00 2001
+From 99b0645ed21b4006db3ac585df59e693cdff9745 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 19 Jul 2016 22:43:26 +0930
 Subject: [PATCH 4/9] xhci: do not halt the secondary HCD
@@ -14,7 +14,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 6fe0174da226..8f48dd84ddd2 100644
+index adc169d2fd76..ec92a843325b 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
 @@ -682,6 +682,21 @@ void xhci_stop(struct usb_hcd *hcd)

@@ -1,4 +1,4 @@
-From 20035018cb2ce4ba294d6be14855b7a93ee1e46d Mon Sep 17 00:00:00 2001
+From 2d69ffcf74ecc917a4cb3efdb0f29b466658ddd7 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Date: Wed, 13 Jul 2016 11:15:42 +1000
 Subject: [PATCH 7/9] tty/hvc: Use opal irqchip interface if available
