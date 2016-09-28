@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WITHERSPOON_XML_VERSION ?= 8625696cf60951885b9af780027aa7d047b63949
+WITHERSPOON_XML_VERSION ?= 166b3135edbc7299aaa991a42f6eb0fc40d784e6
 WITHERSPOON_XML_SITE ?= $(call github,open-power,witherspoon-xml,$(WITHERSPOON_XML_VERSION))
 
 WITHERSPOON_XML_LICENSE = Apache-2.0
@@ -32,9 +32,13 @@ define WITHERSPOON_XML_BUILD_CMDS
         bash -c 'mkdir -p $(MRW_SCRATCH) && cp -r $(@D)/* $(MRW_SCRATCH)'
 
         # generate the system mrw xml
-        perl -I $(MRW_HB_TOOLS) \
+        #perl -I $(MRW_HB_TOOLS) \
         $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/witherspoon.xml
         
+        # copy local simics_NIMBUS xml until processMrw changes are in
+        # RTC: 143114
+        cp $(MRW_HB_TOOLS)/simics_NIMBUS.system.xml $(MRW_SCRATCH)/$(BR2_WITHERSPOON_SYSTEM_XML_FILENAME)
+
         # merge in any system specific attributes, hostboot attributes
         $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_WITHERSPOON_SYSTEM_XML_FILENAME) \
             $(MRW_HB_TOOLS)/attribute_types.xml \
