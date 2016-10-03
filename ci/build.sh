@@ -60,16 +60,15 @@ do
 	fi
 	if [[ -n "$http_proxy" ]]; then
 	  if [[ "$distro" == fedora23 ]]; then
-	    PROXY="RUN echo \"proxy=${http_proxy}\" >> /etc/dnf/dnf.conf"
+	    PROXY="ENV http_proxy ${http_proxy}\nRUN echo \"proxy=${http_proxy}\" >> /etc/dnf/dnf.conf"
 	  fi
 	  if [[ "$distro" == ubuntu1404 ]]; then
-	    PROXY="RUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
+	    PROXY="ENV http_proxy ${http_proxy}\nRUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
 	  fi
         fi
 
-	Dockerfile=$(head -n1 $base_dockerfile; echo ${PROXY}; tail -n +2 $base_dockerfile; cat << EOF
+	Dockerfile=$(head -n1 $base_dockerfile; echo -e ${PROXY}; tail -n +2 $base_dockerfile; cat << EOF
 RUN groupadd -g ${GROUPS} ${USER} && useradd -d ${HOME} -m -u ${UID} -g ${GROUPS} ${USER}
-${PROXY}
 USER ${USER}
 ENV HOME ${HOME}
 EOF
