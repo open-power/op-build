@@ -1,0 +1,37 @@
+diff --git a/src/usr/isteps/istep20/call_host_load_payload.C b/src/usr/isteps/istep20/call_host_load_payload.C
+index 8325426..6ab8346 100644
+--- a/src/usr/isteps/istep20/call_host_load_payload.C
++++ b/src/usr/isteps/istep20/call_host_load_payload.C
+@@ -131,11 +131,11 @@ void* call_host_load_payload (void *io_pArgs)
+     return l_err;
+ }
+ 
+-static void simics_load_payload(uint64_t addr) __attribute__((noinline));
+-static void simics_load_payload(uint64_t addr)
+-{
+-    MAGIC_INSTRUCTION(MAGIC_LOAD_PAYLOAD);
+-}
++//static void simics_load_payload(uint64_t addr) __attribute__((noinline));
++//static void simics_load_payload(uint64_t addr)
++//{
++//    MAGIC_INSTRUCTION(MAGIC_LOAD_PAYLOAD);
++//}
+ 
+ static errlHndl_t load_pnor_section(PNOR::SectionId i_section,
+         uint64_t i_physAddr)
+@@ -183,6 +183,7 @@ static errlHndl_t load_pnor_section(PNOR::SectionId i_section,
+     uint64_t loadAddr = NULL;
+     // Use simics optimization if we are running under simics which has very
+     // slow PNOR access.
++#if 0
+     if ( Util::isSimicsRunning()  )
+     {
+         //TODO RTC 143500
+@@ -195,6 +196,7 @@ static errlHndl_t load_pnor_section(PNOR::SectionId i_section,
+         simics_load_payload( i_physAddr );
+     }
+     else
++#endif
+     {
+         // Map in the physical memory we are loading into.
+         // If we are not xz compressed, the uncompressedSize
