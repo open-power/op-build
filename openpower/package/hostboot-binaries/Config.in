@@ -1,5 +1,5 @@
 config BR2_PACKAGE_HOSTBOOT_BINARIES
         bool "hostboot_binaries"
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        default y if (BR2_OPENPOWER_PLATFORM)
         help
             Project to stage hostboot binary images

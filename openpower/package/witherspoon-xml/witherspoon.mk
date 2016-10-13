@@ -1,24 +1,24 @@
 ################################################################################
 #
-# barreleye_xml
+# witherspoon_xml
 #
 ################################################################################
 
-BARRELEYE_XML_VERSION ?= 253622f22fe142ea67a0025e9bcc3044db038898
-BARRELEYE_XML_SITE = $(call github,open-power,barreleye-xml,$(BARRELEYE_XML_VERSION))
+WITHERSPOON_XML_VERSION ?= 166b3135edbc7299aaa991a42f6eb0fc40d784e6
+WITHERSPOON_XML_SITE ?= $(call github,open-power,witherspoon-xml,$(WITHERSPOON_XML_VERSION))
 
-BARRELEYE_XML_LICENSE = Apache-2.0
-BARRELEYE_XML_DEPENDENCIES = hostboot openpower-mrw common-p8-xml
+WITHERSPOON_XML_LICENSE = Apache-2.0
+WITHERSPOON_XML_DEPENDENCIES = hostboot-install-images openpower-mrw-install-images common-p8-xml-install-images
 
-BARRELEYE_XML_INSTALL_IMAGES = YES
-BARRELEYE_XML_INSTALL_TARGET = YES
+WITHERSPOON_XML_INSTALL_IMAGES = YES
+WITHERSPOON_XML_INSTALL_TARGET = YES
 
 MRW_SCRATCH=$(STAGING_DIR)/openpower_mrw_scratch
 MRW_HB_TOOLS=$(STAGING_DIR)/hostboot_build_images
 
 # Defines for BIOS metadata creation
 BIOS_SCHEMA_FILE = $(MRW_HB_TOOLS)/bios.xsd
-BARRELEYE_BIOS_XML_CONFIG_FILE = $(MRW_SCRATCH)/$(BR2_BARRELEYE_BIOS_XML_FILENAME)
+WITHERSPOON_BIOS_XML_CONFIG_FILE = $(MRW_SCRATCH)/$(BR2_WITHERSPOON_BIOS_XML_FILENAME)
 BIOS_XML_METADATA_FILE = \
     $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_CONFIG_NAME)_bios_metadata.xml
 PETITBOOT_XSLT_FILE = $(MRW_HB_TOOLS)/bios_metadata_petitboot.xslt
@@ -27,23 +27,25 @@ PETITBOOT_BIOS_XML_METADATA_FILE = \
 PETITBOOT_BIOS_XML_METADATA_INITRAMFS_FILE = \
     $(TARGET_DIR)/usr/share/bios_metadata.xml
 
-define BARRELEYE_XML_BUILD_CMDS
-        # copy the barreleye xml where the common lives
+define WITHERSPOON_XML_BUILD_CMDS
+        # copy the witherspoon xml where the common lives
         bash -c 'mkdir -p $(MRW_SCRATCH) && cp -r $(@D)/* $(MRW_SCRATCH)'
 
         # generate the system mrw xml
-        perl -I $(MRW_HB_TOOLS) \
-        $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/barreleye.xml
+        #perl -I $(MRW_HB_TOOLS) \
+        $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/witherspoon.xml
         
+        # copy local simics_NIMBUS xml until processMrw changes are in
+        # RTC: 143114
+        cp $(MRW_HB_TOOLS)/simics_NIMBUS.system.xml $(MRW_SCRATCH)/$(BR2_WITHERSPOON_SYSTEM_XML_FILENAME)
+
         # merge in any system specific attributes, hostboot attributes
-        $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_BARRELEYE_SYSTEM_XML_FILENAME) \
+        $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_WITHERSPOON_SYSTEM_XML_FILENAME) \
             $(MRW_HB_TOOLS)/attribute_types.xml \
             $(MRW_HB_TOOLS)/attribute_types_hb.xml \
-            $(MRW_HB_TOOLS)/attribute_types_openpower.xml \
             $(MRW_HB_TOOLS)/target_types_merged.xml \
             $(MRW_HB_TOOLS)/target_types_hb.xml \
-            $(MRW_HB_TOOLS)/target_types_openpower.xml \
-            $(MRW_SCRATCH)/$(BR2_BARRELEYE_MRW_XML_FILENAME) > $(MRW_HB_TOOLS)/temporary_hb.hb.xml;
+            $(MRW_SCRATCH)/$(BR2_WITHERSPOON_MRW_XML_FILENAME) > $(MRW_HB_TOOLS)/temporary_hb.hb.xml;
 
         # creating the targeting binary
         $(MRW_HB_TOOLS)/xmltohb.pl  \
@@ -52,7 +54,7 @@ define BARRELEYE_XML_BUILD_CMDS
             --src-output-dir=none \
             --img-output-dir=$(MRW_HB_TOOLS)/ \
             --vmm-consts-file=$(MRW_HB_TOOLS)/vmmconst.h --noshort-enums \
-            --bios-xml-file=$(BARRELEYE_BIOS_XML_CONFIG_FILE) \
+            --bios-xml-file=$(WITHERSPOON_BIOS_XML_CONFIG_FILE) \
             --bios-schema-file=$(BIOS_SCHEMA_FILE) \
             --bios-output-file=$(BIOS_XML_METADATA_FILE)
 
@@ -63,11 +65,11 @@ define BARRELEYE_XML_BUILD_CMDS
             $(BIOS_XML_METADATA_FILE)
 endef
 
-define BARRELEYE_XML_INSTALL_IMAGES_CMDS
+define WITHERSPOON_XML_INSTALL_IMAGES_CMDS
         mv $(MRW_HB_TOOLS)/targeting.bin $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME)
 endef
 
-define BARRELEYE_XML_INSTALL_TARGET_CMDS
+define WITHERSPOON_XML_INSTALL_TARGET_CMDS
         # Install Petitboot specific BIOS XML into initramfs's usr/share/ dir
         $(INSTALL) -D -m 0644 \
             $(PETITBOOT_BIOS_XML_METADATA_FILE) \

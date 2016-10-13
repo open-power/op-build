@@ -1,6 +1,6 @@
 config BR2_PACKAGE_OPENPOWER_PNOR
         bool "openpower_pnor"
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        default y if (BR2_OPENPOWER_PLATFORM)
         select BR2_PACKAGE_HOSTBOOT
         select BR2_PACKAGE_HOSTBOOT_BINARIES
         select BR2_PACKAGE_SKIBOOT
@@ -63,7 +63,6 @@ config BR2_HOSTBOOT_BINARY_SBE_FILENAME
         help
             String used to define name of sbe hostboot binary file
 
-
 config BR2_HOSTBOOT_BINARY_SBEC_FILENAME
         string "Name of sbec hostboot binary"
         help
@@ -73,6 +72,16 @@ config BR2_HOSTBOOT_BINARY_WINK_FILENAME
         string "Name of winkle hostboot binary"
         help
             String used to define name of winkle hostboot binary file
+
+config BR2_IMA_CATALOG_FILENAME
+        string "Name of IMA catalog binary"
+        help
+            String used to define name of IMA catalog binary file
+
+config BR2_IMA_CATALOG_ECC_FILENAME
+        string "Name of IMA catalog binary"
+        help
+            String used to define name of IMA catalog binary file, ecc protected
 
 config BR2_OPENPOWER_TARGETING_BIN_FILENAME
         string "Name of openpower binary targeting file"
