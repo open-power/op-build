@@ -5,7 +5,7 @@
 # A whitelist of entire directories or specific binary files
 whitelist=(     'acenic'
                 'bnx2'
-                'bnx2x'
+                'bnx2x/bnx2x-e2-7.12.30.0.fw'
                 'cxgb4'
                 'cxgb3'
                 'e100'
