@@ -24,15 +24,15 @@ OCC_DEPENDENCIES ?= $(if $(BR2_OPENPOWER_POWER9),$(OCC_DEPENDENCIES_P9),$(OCC_DE
 
 define OCC_APPLY_PATCHES
        if [ "$(BR2_OPENPOWER_POWER9)" == "y" ]; then \
-           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/package/occ/p9Patches \*.patch; \
-           if [ -d $(BR2_EXTERNAL)/custom/patches/occ/p9Patches ]; then \
-               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/custom/patches/occ/p9Patches \*.patch; \
+           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/package/occ/p9Patches \*.patch; \
+           if [ -d $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p9Patches ]; then \
+               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p9Patches \*.patch; \
            fi; \
        fi; \
        if [ "$(BR2_OPENPOWER_POWER8)" == "y" ]; then \
-           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/package/occ/p8Patches \*.patch; \
-           if [ -d $(BR2_EXTERNAL)/custom/patches/occ/p8Patches ]; then \
-               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/custom/patches/occ/p8Patches \*.patch; \
+           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/package/occ/p8Patches \*.patch; \
+           if [ -d $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p8Patches ]; then \
+               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p8Patches \*.patch; \
            fi; \
        fi;
 endef

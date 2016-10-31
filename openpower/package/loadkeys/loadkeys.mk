@@ -20,9 +20,9 @@ define LOADKEYS_INSTALL_TARGET_CMDS
 endef
 
 define LOADKEYS_POST_INSTALL
-	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL)/package/loadkeys/S16-keymap \
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/loadkeys/S16-keymap \
 		$(TARGET_DIR)/etc/init.d/
-	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL)/package/loadkeys/backtab-keymap \
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/loadkeys/backtab-keymap \
 		$(TARGET_DIR)/etc/kbd/config
 endef
 
