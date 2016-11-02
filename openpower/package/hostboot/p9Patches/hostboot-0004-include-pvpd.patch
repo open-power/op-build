@@ -1,0 +1,25 @@
+From 6a6b23ff055da56f758d3719abecae4ebc464e9f Mon Sep 17 00:00:00 2001
+From: Matt Ploetz <maploetz@us.ibm.com>
+Date: Wed, 2 Nov 2016 16:29:26 -0500
+Subject: [PATCH] Include pvpd in dvpd
+
+Change-Id: Iff83d5ab6cebabb623f9317f34b5b8d46e5d7554
+---
+ src/usr/vpd/dvpd.C | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/usr/vpd/dvpd.C b/src/usr/vpd/dvpd.C
+index 9ce0999..2839172 100644
+--- a/src/usr/vpd/dvpd.C
++++ b/src/usr/vpd/dvpd.C
+@@ -43,6 +43,7 @@
+ #include "dvpd.H"
+ #include "cvpd.H"
+ #include "vpd.H"
++#include "pvpd.H"
+ #include <initservice/initserviceif.H>
+ 
+ 
+-- 
+1.8.2.2
+
