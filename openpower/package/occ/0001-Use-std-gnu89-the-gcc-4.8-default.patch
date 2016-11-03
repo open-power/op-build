@@ -1,0 +1,60 @@
+From c103611841ea1d28bb8850b415bae2997af93981 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Thu, 3 Nov 2016 15:34:38 +1100
+Subject: [PATCH] Use std=gnu89, the gcc 4.8 default
+
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/occApplet/productApplet/Makefile | 2 +-
+ src/occApplet/testApplet/Makefile    | 2 +-
+ src/ssx/pgp/ssx.mk                   | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/occApplet/productApplet/Makefile b/src/occApplet/productApplet/Makefile
+index ab233e1..04133df 100755
+--- a/src/occApplet/productApplet/Makefile
++++ b/src/occApplet/productApplet/Makefile
+@@ -71,7 +71,7 @@ DEFS += -DUSE_SSX_APP_CFG_H=1
+ 
+ # Note: Do not use SDA sections for product applets
+ GCC-CFLAGS = -c -g -Wall -fsigned-char -msoft-float -pipe \
+--Wa,-m405 -mbig-endian -m32 -mcpu=405 -mmultiple -mstring -meabi -ffreestanding -Os -mno-sdata
++-Wa,-m405 -mbig-endian -m32 -mcpu=405 -mmultiple -mstring -meabi -ffreestanding -Os -mno-sdata -std=gnu89
+ 
+ #*******************************************************************************
+ # Compilation
+diff --git a/src/occApplet/testApplet/Makefile b/src/occApplet/testApplet/Makefile
+index 09d1622..803d354 100755
+--- a/src/occApplet/testApplet/Makefile
++++ b/src/occApplet/testApplet/Makefile
+@@ -64,7 +64,7 @@ DEFS += -DOCC=1 -DUSE_SSX_APP_CFG_H=1
+ 
+ GCC-CFLAGS = -c -g -Wall -fsigned-char -msoft-float -pipe \
+ -m32 -mbig-endian -Wa,-m405 -mcpu=405 -mmultiple -mstring -meabi \
+--ffreestanding -Os -mno-sdata 
++-ffreestanding -Os -mno-sdata -std=gnu89
+ 
+ #*******************************************************************************
+ # Compilation 
+diff --git a/src/ssx/pgp/ssx.mk b/src/ssx/pgp/ssx.mk
+index fafaa04..506f2fc 100755
+--- a/src/ssx/pgp/ssx.mk
++++ b/src/ssx/pgp/ssx.mk
+@@ -154,12 +154,12 @@ INCLUDES += $(APP_INCLUDES) \
+ 	-I$(SSX)/pgp -I$(SSX)/pgp/registers \
+ 	-I$(LIB)
+ 
+-PIPE-CFLAGS = -pipe -Wa,-m405
++PIPE-CFLAGS = -pipe -Wa,-m405 -std=gnu89
+ 
+ GCC-CFLAGS += -g -Wall -fsigned-char -msoft-float  \
+ 	-m32 -mbig-endian -mcpu=405 -mmultiple -mstring \
+ 	-meabi -msdata=eabi -ffreestanding -fno-common \
+-	-fno-inline-functions-called-once
++	-fno-inline-functions-called-once -std=gnu89
+ 
+ CFLAGS      =  -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES) 
+ PORE-CFLAGS =  -E $(GCC-CFLAGS) $(OPT) $(INCLUDES) 
+-- 
+2.7.4
+
