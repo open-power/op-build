@@ -56,7 +56,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
             -capp_binary_filename $(BINARIES_DIR)/$(BR2_CAPP_UCODE_BIN_FILENAME) \
-            -ima_catalog_filename $(BR2_IMA_CATALOG_FILENAME) \
+            -ima_catalog_filename $(BINARIES_DIR)/$(BR2_IMA_CATALOG_BIN_FILENAME)\
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
             $(if ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y),-xz_compression)
