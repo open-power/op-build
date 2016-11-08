@@ -9,8 +9,8 @@ OCC, Petitboot etc.
 Issues, Milestones, pull requests and code hosting is on GitHub:
 https://github.com/open-power/op-build
 
-Mailing list: openpower-firmware@lists.ozlabs.org
-Info/Subscribe: https://lists.ozlabs.org/listinfo/openpower-firmware
+Mailing list: openpower-firmware@lists.ozlabs.org  
+Info/Subscribe: https://lists.ozlabs.org/listinfo/openpower-firmware  
 Archives: https://lists.ozlabs.org/pipermail/openpower-firmware/
 
 ## Building an image
