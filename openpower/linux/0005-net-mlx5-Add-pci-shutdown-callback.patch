@@ -1,4 +1,4 @@
-From 58d44e694f0be4c75d20e002047014d260e7075d Mon Sep 17 00:00:00 2001
+From bf94ddb62ca4c299d54b15bff1ea55d1c84a1557 Mon Sep 17 00:00:00 2001
 From: Carol L Soto <clsoto@linux.vnet.ibm.com>
 Date: Tue, 12 Jul 2016 17:04:07 -0500
 Subject: [PATCH 5/9] net/mlx5: Add pci shutdown callback
