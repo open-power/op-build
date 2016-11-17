@@ -1,0 +1,28 @@
+From 736a9f4abae56b795754d2e41d96a20ebcade574 Mon Sep 17 00:00:00 2001
+From: Prachi Gupta <pragupta@us.ibm.com>
+Date: Thu, 17 Nov 2016 22:14:58 -0600
+Subject: [PATCH] Include pvpd header file when reading from pnor in dvpd.C
+
+Change-Id: Idfe1438c80d779cd6dbc0ac6f6bd8def8f64d7b7
+---
+ src/usr/vpd/dvpd.C | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/usr/vpd/dvpd.C b/src/usr/vpd/dvpd.C
+index 9ce0999..fdd25c4 100644
+--- a/src/usr/vpd/dvpd.C
++++ b/src/usr/vpd/dvpd.C
+@@ -44,7 +44,9 @@
+ #include "cvpd.H"
+ #include "vpd.H"
+ #include <initservice/initserviceif.H>
+-
++#ifdef CONFIG_PVPD_READ_FROM_PNOR
++#include "pvpd.H"
++#endif
+ 
+ // ----------------------------------------------
+ // Trace definitions
+-- 
+1.8.2.2
+
