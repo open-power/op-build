@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PETITBOOT_VERSION = v1.3.1
+PETITBOOT_VERSION = v1.3.2
 PETITBOOT_SITE ?= $(call github,open-power,petitboot,$(PETITBOOT_VERSION))
 PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
 PETITBOOT_LICENSE = GPLv2
@@ -44,7 +44,7 @@ define PETITBOOT_POST_INSTALL
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc/petitboot/boot.d
 	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/01-create-default-dtb \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
-	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/30-dtb_updates \
+	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/30-dtb-updates \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
 	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/90-sort-dtb \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
