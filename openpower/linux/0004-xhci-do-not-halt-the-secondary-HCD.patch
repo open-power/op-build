@@ -1,4 +1,4 @@
-From b11df1592f45a849a12737a7b57217f2a2b08ff8 Mon Sep 17 00:00:00 2001
+From dc80fa5aeb79858a9ee9f1575ca7aaf085b7b3f8 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 19 Jul 2016 22:43:26 +0930
 Subject: [PATCH 4/9] xhci: do not halt the secondary HCD

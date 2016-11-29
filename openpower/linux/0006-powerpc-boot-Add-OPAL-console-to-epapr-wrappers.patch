@@ -1,4 +1,4 @@
-From 4345b1a21ee14934cbef712b6694db5c10d3dae1 Mon Sep 17 00:00:00 2001
+From e114c51a2db906edeedde2439b18e86ef1401a1a Mon Sep 17 00:00:00 2001
 From: Oliver O'Halloran <oohall@gmail.com>
 Date: Fri, 24 Jun 2016 17:28:43 +1000
 Subject: [PATCH 6/9] powerpc/boot: Add OPAL console to epapr wrappers
