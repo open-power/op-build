@@ -8,8 +8,8 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= bf4b7288c38e772f5d71207dc2ed44edd2900571
-OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
+OPENPOWER_PNOR_VERSION ?= 4f012763e3d704c7de41582ba0e894acc91c4081
+OPENPOWER_PNOR_SITE ?= $(call github,pragupta,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot host-openpower-ffs occ capp-ucode
@@ -66,6 +66,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -ima_catalog_filename $(BR2_IMA_CATALOG_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
+            -vpd_file_dir $(@D)\
             $(if ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y),-xz_compression)
 
         mkdir -p $(STAGING_DIR)/pnor/
