@@ -1,0 +1,2 @@
+# load modules to scsi disks, if they aren't in kernel
+SUBSYSTEM=="scsi_device", ACTION=="add", RUN+="/sbin/modprobe sg"
