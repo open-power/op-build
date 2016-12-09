@@ -17,7 +17,7 @@ PETITBOOT_CONF_OPTS += --with-ncurses --without-twin-x11 --without-twin-fbdev \
 	      --localstatedir=/var \
 	      HOST_PROG_KEXEC=/usr/sbin/kexec \
 	      HOST_PROG_SHUTDOWN=/usr/libexec/petitboot/bb-kexec-reboot \
-	      $(if $(BR2_PACKAGE_BUSYBOX),--with-tftp=busybox)
+	      $(if $(BR2_PACKAGE_BUSYBOX),--with-tftp=busybox --enable-busybox)
 
 PETITBOOT_AUTORECONF_ENV += PETITBOOT_VERSION=`cat $(PETITBOOT_VERSION_FILE) | cut -d '-' -f 2-`
 
