@@ -1,7 +1,7 @@
-From 2f6a9eb658b2bda754c41e7595449ea61cc05643 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Huy Nguyen <huyn@mellanox.com>
 Date: Wed, 17 Feb 2016 17:24:26 +0200
-Subject: [PATCH 3/9] net/mlx4_core: Set UAR page size to 4KB regardless of
+Subject: [PATCH 03/12] net/mlx4_core: Set UAR page size to 4KB regardless of
  system page size
 
 problem description:
@@ -295,5 +295,5 @@ index d3133be12d92..8bab38f8872a 100644
 +}
  #endif /* MLX4_DEVICE_H */
 -- 
-2.10.2
+2.11.0
 
