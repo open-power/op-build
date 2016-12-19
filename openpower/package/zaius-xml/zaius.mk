@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-ZAIUS_XML_VERSION ?= e0cc4f8f9d983dbc1b762ca4cb6e6b95eb88ab76
+ZAIUS_XML_VERSION ?= db53313f3873fc0a822121c0d95f257604387a76
 ZAIUS_XML_SITE ?= $(call github,rlippert,zaius-xml,$(ZAIUS_XML_VERSION))
 
 ZAIUS_XML_LICENSE = Apache-2.0
@@ -34,6 +34,18 @@ define ZAIUS_XML_BUILD_CMDS
         # generate the system mrw xml
         perl -I $(MRW_HB_TOOLS) \
         $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/zaius.xml
+
+        # filter out unwanted attributes
+        chmod +x $(MRW_HB_TOOLS)/filter_out_unwanted_attributes.pl
+
+        $(MRW_HB_TOOLS)/filter_out_unwanted_attributes.pl \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_merged.xml \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_hb.xml \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            --mrw-xml $(MRW_SCRATCH)/$(BR2_ZAIUS_MRW_XML_FILENAME)
+
+        cp $(MRW_SCRATCH)/$(BR2_ZAIUS_MRW_XML_FILENAME).updated \
+            $(MRW_SCRATCH)/$(BR2_ZAIUS_MRW_XML_FILENAME)
 
         # merge in any system specific attributes, hostboot attributes
         $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_ZAIUS_SYSTEM_XML_FILENAME) \
