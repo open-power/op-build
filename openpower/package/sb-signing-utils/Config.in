@@ -1,0 +1,5 @@
+config BR2_PACKAGE_HOST_SB_SIGNING_UTILS
+        bool "OpenPOWER secureboot signing utilities"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8 && BR2_OPENPOWER_SECUREBOOT_ENABLED)
+        help
+            Secureboot utilities for signing OpenPOWER firmware images
