@@ -1,0 +1,253 @@
+From 18909052c3eb6e0918bfb4daf0177acea67f7520 Mon Sep 17 00:00:00 2001
+From: Stephen Cprek <smcprek@us.ibm.com>
+Date: Tue, 19 Apr 2016 12:45:49 -0500
+Subject: [PATCH] Add secureboot container header signing to buildpnor for HBI
+
+Change-Id: I2f3ba874b29a6838d53f6b608136a5eb75878fab
+RTC: 125298
+---
+ src/build/buildpnor/buildpnor.pl    | 126 +++++++++++++++++++++++++++++++-----
+ src/build/mkrules/hbfw/img/makefile |   2 +-
+ src/build/tools/hbDistribute        |  11 +++-
+ 3 files changed, 119 insertions(+), 20 deletions(-)
+
+diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
+index b4a8ff6..a592924 100755
+--- a/src/build/buildpnor/buildpnor.pl
++++ b/src/build/buildpnor/buildpnor.pl
+@@ -36,18 +36,7 @@ use XML::Simple;
+ use Data::Dumper;
+ use File::Basename;
+ use POSIX;
+-
+-# Digest::SHA1 module is now Digest::SHA in newer version of perl.  Need to
+-# do the below eval blocks to support both modules.
+-BEGIN
+-{
+-    eval "use Digest::SHA;";
+-    if ($@)
+-    {
+-        eval "use Digest::SHA1;";
+-        die $@ if $@;
+-    }
+-}
++use Digest::SHA qw(sha512);
+ 
+ ################################################################################
+ # Set PREFERRED_PARSER to XML::Parser. Otherwise it uses XML::SAX which contains
+@@ -79,7 +68,10 @@ my %SideOptions = (
+         sideless => "sideless",
+     );
+ my $bin_dir;
++my $secureboot;
+ use constant PAGE_SIZE => 4096;
++# Truncate SHA to n bytes
++use constant SHA_TRUNCATE_SIZE => 32;
+ 
+ if ($#ARGV < 0) {
+     usage();
+@@ -123,6 +115,10 @@ for (my $i=0; $i < $#ARGV + 1; $i++)
+         $bin_dir = $ARGV[++$i];
+         print "Found bin_dir = $bin_dir\n";
+     }
++    elsif($ARGV[$i] =~ /--secureboot/) {
++        $secureboot = 1;
++        print "Building Secure PNOR image\n";
++    }
+     else {
+         traceErr("Unrecognized Input: $ARGV[$i]");
+         exit 1;
+@@ -619,7 +615,15 @@ sub manipulateImages
+     my %sectionHash = %{$$i_pnorLayoutRef{sections}};
+     trace(1, "manipulateImages");
+ 
++    # Secureboot command strings
++    my $SIGNING_DIR="/esw/san2/hostboot/secure-boot/secure-boot-scripts/rom_new_header/sign/obj";
++    my $DEV_KEY_DIR = "/esw/san2/hostboot/secure-boot/dev_keys";
++    my $SIGN_PREFIX_PARAMS="-flag 0x80000000 -hka ${DEV_KEY_DIR}/hw_key_a -hkb ${DEV_KEY_DIR}/hw_key_b -hkc ${DEV_KEY_DIR}/hw_key_c -skp ${DEV_KEY_DIR}/sw_key_a";
++    my $SIGN_BUILD_PARAMS="-skp ${DEV_KEY_DIR}/sw_key_a";
++
+     my %tempImages = (
++        SECUREBOOT_HDR => "$bin_dir/$image_target.secureboot.hdr.bin",
++        HASH_PAGE_TABLE_HDR => "$bin_dir/$image_target.temp.page_hash_table.bin",
+         HDR_PHASE => "$bin_dir/$image_target.temp.hdr.bin",
+         TEMP_SHA_IMG => "$bin_dir/$image_target.temp.sha.bin",
+         PAD_PHASE => "$bin_dir/$image_target.temp.pad.bin",
+@@ -640,6 +644,17 @@ sub manipulateImages
+         TESTRO => 1
+     );
+ 
++    # Maybe make this a new xml tag?
++    my %hashPageTablePartitions = (
++        HBI => 1,
++    );
++
++    # Key prefix used for all partitions
++    if ($secureboot)
++    {
++        run_command("$SIGNING_DIR/prefix -good -of $tempImages{SECUREBOOT_HDR} $SIGN_PREFIX_PARAMS");
++    }
++
+     foreach my $key ( keys %sectionHash)
+     {
+         my $eyeCatch = $sectionHash{$key}{eyeCatch};
+@@ -663,10 +678,33 @@ sub manipulateImages
+                 if( ($sectionHash{$key}{sha512Version} eq "yes") )
+                 {
+                     $fsp_prefix.=".header";
+-                    run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
+-                    run_command("sha512sum $bin_file | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
+-                    run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{HDR_PHASE} ibs=4k conv=sync");
+-                    run_command("cat $bin_file >> $tempImages{HDR_PHASE}");
++                    # Add secure container header
++                    if ($secureboot)
++                    {
++                        if (exists $hashPageTablePartitions{$eyeCatch})
++                        {
++                            $tempImages{hashPageTable} = genHashPageTable($bin_file, $eyeCatch);
++                        }
++                        # Add hash page table
++                        if ($tempImages{hashPageTable} ne "" && -e $tempImages{hashPageTable})
++                        {
++                            trace(1,"Adding hash page table");
++                            run_command("$SIGNING_DIR/build -good -if $tempImages{SECUREBOOT_HDR} -of $tempImages{HASH_PAGE_TABLE_HDR} -bin $tempImages{hashPageTable} $SIGN_BUILD_PARAMS");
++                            run_command("cat $tempImages{HASH_PAGE_TABLE_HDR} $bin_file > $tempImages{HDR_PHASE}")
++                        }
++                        else
++                        {
++                            run_command("$SIGNING_DIR/build -good -if $tempImages{SECUREBOOT_HDR} -of $tempImages{HDR_PHASE} -bin $bin_file $SIGN_BUILD_PARAMS");
++                        }
++                    }
++                    # Add simiple version header
++                    else
++                    {
++                        run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
++                        run_command("sha512sum $bin_file | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
++                        run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{HDR_PHASE} ibs=4k conv=sync");
++                        run_command("cat $bin_file >> $tempImages{HDR_PHASE}");
++                    }
+                 }
+                 elsif( ($sectionHash{$key}{sha512perEC} eq "yes") )
+                 {
+@@ -1131,6 +1169,62 @@ sub byte_to_metric_notation {
+ }
+ 
+ ################################################################################
++# truncate_sha - Truncates sha hash
++#   @return sha hash if already less than truncate size
++#           otherwise truncated sha hash
++################################################################################
++sub truncate_sha
++{
++    my ($sha) = @_;
++    # Switch Perl to byte mode vs char mode. Only lasts in scope.
++    use bytes;
++    (length($sha) < SHA_TRUNCATE_SIZE)? return $sha :
++            return substr ($sha, 0, SHA_TRUNCATE_SIZE);
++}
++
++################################################################################
++# genHashPageTable - Generates hash page table for PNOR partitions
++#   @return filename of binary hash page table content
++################################################################################
++sub genHashPageTable
++{
++    my ($bin_file, $eyeCatch) = @_;
++
++    # Open the file
++    my $hashPageTableFile = "$bin_dir/$eyeCatch.$image_target.page_hash_table";
++    open (INBINFILE, "<", $bin_file) or die "Error opening file $bin_file: $!\n";
++    open (OUTBINFILE, ">", $hashPageTableFile) or die "Error opening file $hashPageTableFile: $!\n";
++    # set stream to binary mode
++    binmode INBINFILE;
++    binmode OUTBINFILE;
++
++    # Enter Salt as first entry
++    my $salt_entry = truncate_sha(sha512(rand(0x7FFFFFFFFFFFFFFF)));
++    my @hashes = ($salt_entry);
++    print OUTBINFILE $salt_entry;
++
++    # read buffer
++    my $data;
++    my $nbytes;
++    # Read data in chunks of PAGE_SIZE bytes
++    my $index = 1;
++    while ($nbytes = read INBINFILE, $data, PAGE_SIZE)
++    {
++        # hash(salt + data)
++        #   salt = previous entry
++        #   data = current page
++        my $hash_entry = truncate_sha(sha512($hashes[$index-1].$data));
++        push @hashes, $hash_entry;
++        $index++;
++        print OUTBINFILE $hash_entry;
++    }
++
++    close INBINFILE or die "Error closing $bin_file: $!\n";
++    close OUTBINFILE or die "Error closing $hashPageTableFile: $!\n";
++    return $hashPageTableFile;
++}
++
++################################################################################
+ # print usage instructions
+ ################################################################################
+ sub usage
+diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
+index 868629b..a02d6c3 100755
+--- a/src/build/mkrules/hbfw/img/makefile
++++ b/src/build/mkrules/hbfw/img/makefile
+@@ -264,7 +264,7 @@ ${IMAGE_TARGET}: ${IMAGE_LAYOUT} ${IMAGE_BINS} ${PNOR_BUILD_SCRIPT}
+ 		${PNOR_BUILD_SCRIPT} --pnorOutBin ${IMAGE_TARGET} \
+ 			${TARGET_TEST:b--test} --pnorLayout ${IMAGE_LAYOUT} \
+ 			${IMAGE_BIN_OPTION} --fpartCmd "fpart" --fcpCmd "fcp" \
+-			--binDir ${PWD}
++			--binDir ${PWD} ${SECUREBOOT:b--secureboot}
+ 	.endif
+ .endif
+ 
+diff --git a/src/build/tools/hbDistribute b/src/build/tools/hbDistribute
+index d3c07da..f22d982 100755
+--- a/src/build/tools/hbDistribute
++++ b/src/build/tools/hbDistribute
+@@ -6,7 +6,9 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# COPYRIGHT International Business Machines Corp. 2012,2014
++# Contributors Listed Below - COPYRIGHT 2012,2016
++# [+] International Business Machines Corp.
++#
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+ # you may not use this file except in compliance with the License.
+@@ -41,7 +43,7 @@ print_usage()
+     echo "    --help: Prints usage information"
+     echo
+     echo "    --test: Includes test images and content instead of non-test."
+-    echo 
++    echo
+     echo "    --release: Create a full release distribution (all targets)."
+     echo "    --vpo: Generate just 'vpo' content."
+     echo "    --simics/--fsp: *default* Generate just 'fsp' content"
+@@ -79,7 +81,9 @@ do
+         "--debug")
+             DEBUG="-d"
+         ;;
+-
++        "--secureboot")
++            SECUREBOOT=1
++        ;;
+         --*)
+             echo "ERROR: Unknown option: $ARG"
+             exit
+@@ -118,6 +122,7 @@ fi
+ mkdir -p $TARGET_DIR
+ export TARGET_TEST
+ export TARGET_DIR
++export SECUREBOOT
+ cd $REPO_ROOT/src/build/mkrules
+ make -rR ${DEBUG:=} -f dist.targets.mk $TARGET
+ 
+-- 
+2.6.4 (Apple Git-63)
+

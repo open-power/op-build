@@ -1,0 +1,43 @@
+From 941e68e4dc5f8922bbe3a78e4f31a45a9a20fb74 Mon Sep 17 00:00:00 2001
+From: Stephen Cprek <smcprek@us.ibm.com>
+Date: Wed, 20 Apr 2016 17:25:35 -0500
+Subject: [PATCH] Fix TARGET_TEST syntax in makefile
+
+$TARGET_TEST always evaulated true
+
+Change-Id: I7152570887ad522506dccebac3a06bfedff0b336
+Reviewed-on: http://ralgit01.raleigh.ibm.com/gerrit1/23498
+Tested-by: Jenkins Server
+Tested-by: Jenkins OP Build CI
+Tested-by: Jenkins OP HW
+Tested-by: FSP CI Jenkins
+Reviewed-by: Daniel M. Crowell <dcrowell@us.ibm.com>
+---
+ src/build/mkrules/hbfw/img/makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
+index 6c4370b..2dc9441 100755
+--- a/src/build/mkrules/hbfw/img/makefile
++++ b/src/build/mkrules/hbfw/img/makefile
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2012,2015
++# Contributors Listed Below - COPYRIGHT 2012,2016
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -125,7 +125,7 @@ cp_hbfiles: .SPECTARG
+ 	# If "--test" flag set do not pad to ibs=5120k, as the test HBI images is
+ 	# possibly larger than parition size and does not need to be fully padded.
+ 	# Size adjustments made in buildpnor.pl
+-	.if($TARGET_TEST)
++	.if(${TARGET_TEST})
+ 		dd if=${TEMP_IMAGE} of=${EXT_HEADER_IMAGE} ibs=4k conv=sync
+ 	.else
+ 		dd if=${TEMP_IMAGE} of=${EXT_HEADER_IMAGE} ibs=5120k conv=sync
+-- 
+2.6.4 (Apple Git-63)
+
