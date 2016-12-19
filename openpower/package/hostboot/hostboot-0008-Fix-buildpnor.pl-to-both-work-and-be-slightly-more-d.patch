@@ -1,0 +1,70 @@
+From 2bf4465c00fdc970b58daa3c67a657d6b8b72d24 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Wed, 16 Dec 2015 17:59:44 +1100
+Subject: [PATCH] Fix buildpnor.pl to both work and be slightly more
+ deterministic
+
+The whole process of assembling a pnor image is currently a big
+non-deterministic trainwreck and needs a lot more fixing than
+this simple patch.
+
+However, in order to start fixing it, we need to make things work
+properly to begin with.
+
+With the code that went into 02353bc we seem to have started to rely
+on perl hash ordering in order to create the PNOR file successfully.
+
+What was occuring was that we were writing the backup TOCs in an order
+that meant we triggered an error in fpart (from open-power/ffs):
+
+fpart: unexpected : ../src/libffs.c(968) : (code=-1) 'BACKUP_PART' at offset 33521664 and size 32768 overlaps 'part' at offset 33521664 and size 4096
+
+This patch enforces order in the universe and (slightly) increases
+the determinism of the pnor creation process.
+
+In the near future, I plan to rip out all of this and replace it with a
+small amount of pflash invocations as this whole code path is near
+incomprehensible nonsense that is probably 10-100x longer than just hard
+coding the headers and using dd to inject the contents.
+
+Fixes: 02353bc
+Reported-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/build/buildpnor/buildpnor.pl | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
+index ad0cf72..116c779 100755
+--- a/src/build/buildpnor/buildpnor.pl
++++ b/src/build/buildpnor/buildpnor.pl
+@@ -506,12 +506,13 @@ sub addTOCInfo
+     my $other_idx = 0;
+     my $sideShift = 0;
+     my @all_tocs;
+-    foreach my $sideId (keys %{$$i_pnorLayout{metadata}{sides}})
++    foreach my $sideId (sort keys %{$$i_pnorLayout{metadata}{sides}})
+     {
+         push @all_tocs, $$i_pnorLayout{metadata}{sides}{$sideId}{toc}{primary};
+         push @all_tocs, $$i_pnorLayout{metadata}{sides}{$sideId}{toc}{backup};
+     }
+-    foreach my $sideId ( keys %{$$i_pnorLayout{metadata}{sides}} )
++    # sort sides so we write A,B not B,A
++    foreach my $sideId (sort keys %{$$i_pnorLayout{metadata}{sides}} )
+     {
+         my $physicalRegionSize = $$i_pnorLayout{metadata}{tocSize};
+         my $backup_part = "BACKUP_PART";
+@@ -524,7 +525,9 @@ sub addTOCInfo
+         #This is used to search for all the TOCs in PnorRP code. The idea is to create a link between the tocs such that
+         #if we can find one valid TOC, then we can look at its  BACKUP_PART entry or OTHER_SIDE entry in the TOC to
+         #determine the location of backup TOC.Each TOC has only one BACKUP_PART entry and one OTHER_SIDE entry.
+-        foreach my $toc (keys %{$$i_pnorLayout{metadata}{sides}{$sideId}{toc}})
++        #
++        # reverse sort is used to sort "primary,backup" rather than "backup,primary"
++        foreach my $toc (reverse sort keys %{$$i_pnorLayout{metadata}{sides}{$sideId}{toc}})
+         {
+             #adding backup_part
+             my $toc_offset    = $$i_pnorLayout{metadata}{sides}{$sideId}{toc}{$toc};
+-- 
+2.5.0
+
