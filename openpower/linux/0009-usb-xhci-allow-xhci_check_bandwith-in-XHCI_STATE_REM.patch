@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Thu, 1 Dec 2016 18:15:59 +0800
-Subject: [PATCH 09/12] usb/xhci: allow xhci_check_bandwith in
+Subject: [PATCH 09/13] usb/xhci: allow xhci_check_bandwith in
  XHCI_STATE_REMOVING
 
 Change 98d74f9ce (and backported as 0eb1e16bf9) introduced

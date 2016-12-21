@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@jms.id.au>
+Date: Wed, 14 Dec 2016 13:20:09 +1030
+Subject: [PATCH 13/13] Release 4.4.39-openpower1
+
+ - Add "drivers/gpu/drm/ast: Fix infinite loop if read fails" to avoid
+   hanging when probing the the Aspeed graphics device. This is queued in
+   drm-misc-fixes[1]
+
+ - Move to latest upstream stable release 4.4.39
+
+[1] https://patchwork.kernel.org/patch/9477147/
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 88d26a632bef..f10041067025 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 4
+ PATCHLEVEL = 4
+ SUBLEVEL = 39
+-EXTRAVERSION =
++EXTRAVERSION = -openpower1
+ NAME = Blurry Fish Butt
+ 
+ # *DOCUMENTATION*
+-- 
+2.11.0
+

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Carol L Soto <clsoto@linux.vnet.ibm.com>
 Date: Tue, 12 Jul 2016 17:04:07 -0500
-Subject: [PATCH 05/12] net/mlx5: Add pci shutdown callback
+Subject: [PATCH 05/13] net/mlx5: Add pci shutdown callback
 
 Backport of commit 5fc7197d3a256 ("net/mlx5: Add pci shutdown callback")
 so we can use for the OpenPower kernel.
