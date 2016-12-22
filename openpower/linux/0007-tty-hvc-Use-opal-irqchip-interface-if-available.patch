@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Date: Wed, 13 Jul 2016 11:15:42 +1000
-Subject: [PATCH 07/12] tty/hvc: Use opal irqchip interface if available
+Subject: [PATCH 07/13] tty/hvc: Use opal irqchip interface if available
 
 Update the hvc driver to use the OPAL irqchip if made available by the
 running firmware. If it is not present, the driver falls back to the

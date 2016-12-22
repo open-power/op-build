@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Segher Boessenkool <segher@kernel.crashing.org>
 Date: Thu, 6 Oct 2016 13:42:19 +0000
-Subject: [PATCH 11/12] powerpc: Convert cmp to cmpd in idle enter sequence
+Subject: [PATCH 11/13] powerpc: Convert cmp to cmpd in idle enter sequence
 
 PowerPC's "cmp" instruction has four operands. Normally people write
 "cmpw" or "cmpd" for the second cmp operand 0 or 1. But, frequently
