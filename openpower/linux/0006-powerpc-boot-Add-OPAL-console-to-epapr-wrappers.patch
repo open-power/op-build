@@ -1,7 +1,7 @@
-From 2357f5b53bbaf6a41c40001dccac19143810b4da Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Oliver O'Halloran <oohall@gmail.com>
 Date: Fri, 24 Jun 2016 17:28:43 +1000
-Subject: [PATCH 6/9] powerpc/boot: Add OPAL console to epapr wrappers
+Subject: [PATCH 06/13] powerpc/boot: Add OPAL console to epapr wrappers
 
 This patch adds an OPAL console backend to the powerpc boot wrapper so
 that decompression failures inside the wrapper can be reported to the
@@ -282,5 +282,5 @@ index 31393d17a9c1..85565a89bcc2 100644
  	typeof(x) _x = (x);	\
  	typeof(y) _y = (y);	\
 -- 
-2.9.3
+2.11.0
 

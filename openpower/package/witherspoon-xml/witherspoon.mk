@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WITHERSPOON_XML_VERSION ?= 166b3135edbc7299aaa991a42f6eb0fc40d784e6
+WITHERSPOON_XML_VERSION ?=5cfb191919a40752001e5918fb84dd64a783a00a
 WITHERSPOON_XML_SITE ?= $(call github,open-power,witherspoon-xml,$(WITHERSPOON_XML_VERSION))
 
 WITHERSPOON_XML_LICENSE = Apache-2.0
@@ -32,19 +32,27 @@ define WITHERSPOON_XML_BUILD_CMDS
         bash -c 'mkdir -p $(MRW_SCRATCH) && cp -r $(@D)/* $(MRW_SCRATCH)'
 
         # generate the system mrw xml
-        #perl -I $(MRW_HB_TOOLS) \
+        perl -I $(MRW_HB_TOOLS) \
         $(MRW_HB_TOOLS)/processMrw.pl -x $(MRW_SCRATCH)/witherspoon.xml
-        
-        # copy local simics_NIMBUS xml until processMrw changes are in
-        # RTC: 143114
-        cp $(MRW_HB_TOOLS)/simics_NIMBUS.system.xml $(MRW_SCRATCH)/$(BR2_WITHERSPOON_SYSTEM_XML_FILENAME)
+
+        chmod +x $(MRW_HB_TOOLS)/filter_out_unwanted_attributes.pl
+
+       $(MRW_HB_TOOLS)/filter_out_unwanted_attributes.pl \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_merged.xml \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_hb.xml \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            --mrw-xml $(MRW_SCRATCH)/WITHERSPOON_hb.mrw.xml
+
+       cp  $(MRW_SCRATCH)/WITHERSPOON_hb.mrw.xml.updated  $(MRW_SCRATCH)/WITHERSPOON_hb.mrw.xml
 
         # merge in any system specific attributes, hostboot attributes
         $(MRW_HB_TOOLS)/mergexml.sh $(MRW_SCRATCH)/$(BR2_WITHERSPOON_SYSTEM_XML_FILENAME) \
             $(MRW_HB_TOOLS)/attribute_types.xml \
             $(MRW_HB_TOOLS)/attribute_types_hb.xml \
+            $(MRW_HB_TOOLS)/attribute_types_oppowervm.xml \
             $(MRW_HB_TOOLS)/target_types_merged.xml \
             $(MRW_HB_TOOLS)/target_types_hb.xml \
+            $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
             $(MRW_SCRATCH)/$(BR2_WITHERSPOON_MRW_XML_FILENAME) > $(MRW_HB_TOOLS)/temporary_hb.hb.xml;
 
         # creating the targeting binary

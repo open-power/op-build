@@ -8,7 +8,7 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= 77ffb0442330c079bac911a23b379977a15e65de
+OPENPOWER_PNOR_VERSION ?= bf4b7288c38e772f5d71207dc2ed44edd2900571
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -28,6 +28,12 @@ ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
 OPENPOWER_PNOR_DEPENDENCIES += host-xz
 endif
 
+ifeq ($(BR2_OPENPOWER_POWER9),y)
+    OPENPOWER_RELEASE=p9
+else
+    OPENPOWER_RELEASE=p8
+endif
+
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
 OPENPOWER_PNOR_INSTALL_TARGET = NO
@@ -45,6 +51,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         mkdir -p $(OPENPOWER_PNOR_SCRATCH_DIR)
 
         $(TARGET_MAKE_ENV) $(@D)/update_image.pl \
+            -release  $(OPENPOWER_RELEASE) \
             -op_target_dir $(HOSTBOOT_IMAGE_DIR) \
             -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
@@ -63,7 +70,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
 
         mkdir -p $(STAGING_DIR)/pnor/
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
-            -xml_layout_file $(@D)/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
+            -release $(OPENPOWER_RELEASE) \
+            -xml_layout_file $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
             -pnor_filename $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) \
             -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
