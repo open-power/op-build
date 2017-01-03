@@ -16,7 +16,6 @@ define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
      $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_WINK_FILENAME) $(STAGING_DIR)/hostboot_binaries/
      $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) $(STAGING_DIR)/hostboot_binaries/
      $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_SBE_FILENAME)  $(STAGING_DIR)/hostboot_binaries/
-     $(INSTALL) -D $(@D)/$(BR2_IMA_CATALOG_FILENAME)  $(STAGING_DIR)/hostboot_binaries/
 endef
 
 $(eval $(generic-package))
