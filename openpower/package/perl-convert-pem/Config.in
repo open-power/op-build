@@ -1,0 +1,10 @@
+config BR2_PACKAGE_PERL_CONVERT_PEM
+	bool "perl-convert-pem"
+	default y if (BR2_PACKAGE_HOST_SB_SIGNING_UTILS)
+	select BR2_PACKAGE_PERL_CLASS_ERRORHANDLER
+	select BR2_PACKAGE_PERL_CONVERT_ASN1
+	select BR2_PACKAGE_PERL_CRYPT_DES_EDE3
+	help
+	  Read/write encrypted ASN.1 PEM files
+
+	  https://metacpan.org/release/Convert-PEM

@@ -1,0 +1,6 @@
+config BR2_PACKAGE_PERL_CRYPT_DES_EDE3
+	bool "perl-crypt-des-ede3"
+	help
+	  Triple-DES EDE encryption/decryption
+
+	  https://metacpan.org/release/Crypt-DES_EDE3
