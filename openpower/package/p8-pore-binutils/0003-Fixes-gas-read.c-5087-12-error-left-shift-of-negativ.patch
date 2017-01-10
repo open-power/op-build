@@ -1,0 +1,26 @@
+From 29798047afaa22335a504280a5bbdbafe2b1b63d Mon Sep 17 00:00:00 2001
+From: Nick Clifton <nickc@redhat.com>
+Date: Fri, 22 May 2015 14:27:36 +0100
+Subject: [PATCH] Fixes: "gas/read.c:5087:12: error: left shift of negative"
+
+	PR gas/18446
+	* read.c (output_big_sleb128): Use U suffix to prevent compile
+	time warning.
+---
+
+diff --git a/gas/read.c b/gas/read.c
+index 2224c0e..816c255 100644
+--- a/gas/read.c
++++ b/gas/read.c
+@@ -5084,7 +5084,7 @@ output_big_sleb128 (char *p, LITTLENUM_TYPE *bignum, int size)
+     {
+       /* Sign-extend VAL.  */
+       if (val & (1 << (loaded - 1)))
+-	val |= ~0 << loaded;
++	val |= ~0U << loaded;
+       if (orig)
+ 	*p = val & 0x7f;
+       p++;
+-- 
+2.9.3
+
