@@ -10,10 +10,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
-index e96ae80d107e..bbec9f434df4 100644
+index 954abfd5014d..dc8c490f6dd4 100644
 --- a/drivers/usb/host/xhci-pci.c
 +++ b/drivers/usb/host/xhci-pci.c
-@@ -470,7 +470,7 @@ static struct pci_driver xhci_pci_driver = {
+@@ -471,7 +471,7 @@ static struct pci_driver xhci_pci_driver = {
  	.remove =	xhci_pci_remove,
  	/* suspend and resume implemented later */
  
