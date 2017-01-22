@@ -4,12 +4,13 @@
 #
 ################################################################################
 
-OCC_VERSION_BRANCH_MASTER_P8 ?= d7efe30d9bee683578c31171af28baf8251ced4e
-OCC_VERSION_BRANCH_MASTER ?= a4e04571d60b58c0c778c870bc215bf467085fb6
+OCC_VERSION_BRANCH_MASTER_P8 ?= f0189405ba8c5bf974a68290bbdeec500e2fb397
+OCC_VERSION_BRANCH_MASTER ?= 4141b5f5fef2ba4b444aabbda1677e7f583cd4e8
 
 OCC_VERSION ?= $(if $(BR2_OPENPOWER_POWER9),$(OCC_VERSION_BRANCH_MASTER),$(OCC_VERSION_BRANCH_MASTER_P8))
 OCC_SITE ?= $(call github,open-power,occ,$(OCC_VERSION))
 OCC_LICENSE = Apache-2.0
+OCC_LICENSE_FILES = src/LICENSE
 
 OCC_INSTALL_IMAGES = YES
 OCC_INSTALL_TARGET = NO
@@ -24,15 +25,15 @@ OCC_DEPENDENCIES ?= $(if $(BR2_OPENPOWER_POWER9),$(OCC_DEPENDENCIES_P9),$(OCC_DE
 
 define OCC_APPLY_PATCHES
        if [ "$(BR2_OPENPOWER_POWER9)" == "y" ]; then \
-           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/package/occ/p9Patches \*.patch; \
-           if [ -d $(BR2_EXTERNAL)/custom/patches/occ/p9Patches ]; then \
-               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/custom/patches/occ/p9Patches \*.patch; \
+           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/package/occ/p9Patches \*.patch; \
+           if [ -d $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p9Patches ]; then \
+               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p9Patches \*.patch; \
            fi; \
        fi; \
        if [ "$(BR2_OPENPOWER_POWER8)" == "y" ]; then \
-           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/package/occ/p8Patches \*.patch; \
-           if [ -d $(BR2_EXTERNAL)/custom/patches/occ/p8Patches ]; then \
-               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL)/custom/patches/occ/p8Patches \*.patch; \
+           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/package/occ/p8Patches \*.patch; \
+           if [ -d $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p8Patches ]; then \
+               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/occ/p8Patches \*.patch; \
            fi; \
        fi;
 endef
