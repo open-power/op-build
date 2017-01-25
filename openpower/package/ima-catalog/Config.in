@@ -1,0 +1,15 @@
+config BR2_PACKAGE_IMA_CATALOG
+	bool "ima_catalog"
+	default y if (BR2_OPENPOWER_PLATFORM)
+	help
+		Event Catalog for In Memory Accumulation(IMA) hardware
+
+config BR2_IMA_CATALOG_DTS
+	string "Catalog DTS file to select"
+	help
+		String used to define the CATALOG dts file to select
+
+config BR2_IMA_CATALOG_FILENAME
+	string "Name of Catalog Binary file"
+	help
+		String used to define name of the CATALOG binary image file
