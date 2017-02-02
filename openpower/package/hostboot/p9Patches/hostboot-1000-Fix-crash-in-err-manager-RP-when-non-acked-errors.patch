@@ -1,0 +1,45 @@
+From 688da71328d881bb49a8c0980eab9593c73ddeb4 Mon Sep 17 00:00:00 2001
+From: Dean Sanner <dsanner@us.ibm.com>
+Date: Wed, 15 Feb 2017 12:25:43 -0600
+Subject: [PATCH v1] Fix crash in err manager RP when non acked errors in PNOR
+
+Change-Id: If2a46c6311765fa5e86b4e2e211aa10e1fd25cbf
+---
+ src/usr/errl/errlmanager_common.C | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/src/usr/errl/errlmanager_common.C b/src/usr/errl/errlmanager_common.C
+index 431ca52..264b631 100644
+--- a/src/usr/errl/errlmanager_common.C
++++ b/src/usr/errl/errlmanager_common.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -622,13 +622,12 @@ void ErrlManager::sendErrLogToBmc(errlHndl_t &io_err, bool i_sendSels)
+         if(!i_sendSels)
+         {
+             const char* l_prev_boot = "Error from a previous boot";
+-            ERRORLOG::ErrlUserDetailsString(l_prev_boot).addToLog(io_err);
++            // Create a raw user-defined section.  It does a copy of the
++            // string constant, then once added to io_err, io_err owns mem
++            ErrlUD* l_ffdcSection = new ErrlUD(l_prev_boot, strlen(l_prev_boot),
++                                         ERRL_COMP_ID, 1, ERRL_UDT_STRING );
+             io_err->iv_SectionVector.insert(io_err->iv_SectionVector.begin(),
+-                    1,io_err->iv_SectionVector.back());
+-            if(io_err->iv_SectionVector.size()!=0)
+-            {
+-                io_err->iv_SectionVector.pop_back();
+-            }
++                                            l_ffdcSection);
+         }
+ 
+         // flatten into buffer, truncate to max eSEL size
+-- 
+1.8.2.2
+
