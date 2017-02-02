@@ -1,0 +1,20 @@
+diff --git a/src/usr/errl/errlmanager_common.C b/src/usr/errl/errlmanager_common.C
+index 431ca52..7dad416 100644
+--- a/src/usr/errl/errlmanager_common.C
++++ b/src/usr/errl/errlmanager_common.C
+@@ -617,6 +617,7 @@ void ErrlManager::sendErrLogToBmc(errlHndl_t &io_err, bool i_sendSels)
+             }
+         } // if i_sendSels
+ 
++#if 0   //Temp remove this as it doesn't work (causes hangs on reboots w/ HBEL 
+         //Add additional user detail section to pel data after hw and procedure
+         //callouts to indicate esels from a previous boot.
+         if(!i_sendSels)
+@@ -630,6 +631,7 @@ void ErrlManager::sendErrLogToBmc(errlHndl_t &io_err, bool i_sendSels)
+                 io_err->iv_SectionVector.pop_back();
+             }
+         }
++#endif
+ 
+         // flatten into buffer, truncate to max eSEL size
+         uint32_t l_pelSize = io_err->flattenedSize();
