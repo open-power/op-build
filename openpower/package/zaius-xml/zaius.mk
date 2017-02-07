@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-ZAIUS_XML_VERSION ?= 3a8fb83213eee13cfb553382b9f1195e3dd8370c
+ZAIUS_XML_VERSION ?= 365f04dafc0a79f56b1a91b65b23571183ce1645
 ZAIUS_XML_SITE ?= $(call github,open-power,zaius-xml,$(ZAIUS_XML_VERSION))
 
 ZAIUS_XML_LICENSE = Apache-2.0
