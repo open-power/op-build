@@ -42,6 +42,7 @@ define ZAIUS_XML_BUILD_CMDS
             --tgt-xml $(MRW_HB_TOOLS)/target_types_merged.xml \
             --tgt-xml $(MRW_HB_TOOLS)/target_types_hb.xml \
             --tgt-xml $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_openpower.xml \
             --mrw-xml $(MRW_SCRATCH)/$(BR2_ZAIUS_MRW_XML_FILENAME)
 
         cp $(MRW_SCRATCH)/$(BR2_ZAIUS_MRW_XML_FILENAME).updated \
@@ -52,9 +53,11 @@ define ZAIUS_XML_BUILD_CMDS
             $(MRW_HB_TOOLS)/attribute_types.xml \
             $(MRW_HB_TOOLS)/attribute_types_hb.xml \
             $(MRW_HB_TOOLS)/attribute_types_oppowervm.xml \
+            $(MRW_HB_TOOLS)/attribute_types_openpower.xml \
             $(MRW_HB_TOOLS)/target_types_merged.xml \
             $(MRW_HB_TOOLS)/target_types_hb.xml \
             $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            $(MRW_HB_TOOLS)/target_types_openpower.xml \
             $(MRW_SCRATCH)/$(BR2_ZAIUS_MRW_XML_FILENAME) > $(MRW_HB_TOOLS)/temporary_hb.hb.xml;
 
         # creating the targeting binary
