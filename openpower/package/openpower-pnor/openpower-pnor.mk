@@ -8,7 +8,7 @@
 # make doesn't care for quotes in the dependencies.
 XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
 
-OPENPOWER_PNOR_VERSION ?= bf4b7288c38e772f5d71207dc2ed44edd2900571
+OPENPOWER_PNOR_VERSION ?= 974d4fc61dbb6e14e35d0a5caabf3b72442308aa
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -64,7 +64,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
             -capp_binary_filename $(BINARIES_DIR)/$(BR2_CAPP_UCODE_BIN_FILENAME) \
-            -ima_catalog_filename $(BR2_IMA_CATALOG_FILENAME) \
+            -ima_catalog_binary_filename $(BINARIES_DIR)/$(BR2_IMA_CATALOG_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
             $(if ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y),-xz_compression)
@@ -83,7 +83,6 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
-            -ima_catalog_filename $(BR2_IMA_CATALOG_ECC_FILENAME) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE)
 
