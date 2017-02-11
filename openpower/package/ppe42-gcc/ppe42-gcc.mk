@@ -9,6 +9,7 @@ PPE42_GCC_SITE ?= $(call github,open-power,ppe42-gcc,$(PPE42_GCC_VERSION))
 PPE42_GCC_LICENSE = GPLv3+
 
 PPE42_GCC_DEPENDENCIES = ppe42-binutils
+HOST_PPE42_GCC_DEPENDENCIES = host-ppe42-binutils
 
 PPE42_GCC_DIR = $(STAGING_DIR)/ppe42-binutils
 PPE42_GCC_BIN = $(STAGING_DIR)/ppe42-binutils/linux
