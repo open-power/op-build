@@ -1,0 +1,43 @@
+From 65879393f04e14a9ab8797a8e66e0ec8d94108b5 Mon Sep 17 00:00:00 2001
+From: Alan Modra <amodra@gmail.com>
+Date: Tue, 14 Oct 2014 13:36:20 +1030
+Subject: [PATCH] Avoid undefined behaviour with signed expressions
+
+	PR 17453
+binutils/
+	* dwarf.c (read_leb128): Avoid signed overflow.
+	(read_debug_line_header): Likewise.
+gas/
+
+[stewart@linux.vnet.ibm.com: partial backport]
+---
+ 
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index 3f4095a..ee982de 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -259,7 +259,7 @@ read_leb128 (unsigned char *data,
+     *length_return = num_read;
+ 
+   if (sign && (shift < 8 * sizeof (result)) && (byte & 0x40))
+-    result |= -1L << shift;
++    result |= (dwarf_vma) -1 << shift;
+ 
+   return result;
+ }
+diff --git a/gas/write.c b/gas/write.c
+index 0657b56..263b002 100644
+--- a/gas/write.c
++++ b/gas/write.c
+@@ -2309,7 +2309,7 @@ relax_align (register relax_addressT address,	/* Address now.  */
+   relax_addressT mask;
+   relax_addressT new_address;
+ 
+-  mask = ~((~0) << alignment);
++  mask = ~((relax_addressT) ~0 << alignment);
+   new_address = (address + mask) & (~mask);
+ #ifdef LINKER_RELAXING_SHRINKS_ONLY
+   if (linkrelax)
+-- 
+2.9.3
+

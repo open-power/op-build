@@ -1,0 +1,29 @@
+From c4e0beacd71d4a65cfbe27466ae3d0403c39ead5 Mon Sep 17 00:00:00 2001
+From: Dominik Vogt <vogt@linux.vnet.ibm.com>
+Date: Mon, 9 Nov 2015 17:12:56 +0100
+Subject: [PATCH] binutils: Fix left shift of negative value.
+
+This patch fixes all occurences of left-shifting negative constants in C code
+which is undefined by the C standard.
+
+binutils/ChangeLog:
+
+        * dwarf.c (read_leb128): Fix left shift of negative value.
+---
+
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index c14049a..9f1baea 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -292,7 +292,7 @@ read_leb128 (unsigned char *data,
+     *length_return = num_read;
+ 
+   if (sign && (shift < 8 * sizeof (result)) && (byte & 0x40))
+-    result |= (dwarf_vma) -1 << shift;
++    result |= -((dwarf_vma) 1 << shift);
+ 
+   return result;
+ }
+-- 
+2.9.3
+
