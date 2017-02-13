@@ -5,6 +5,12 @@ if [ -e ./customrc ]; then
     source ./customrc
 fi
 
+if [ ! -e buildroot/Makefile ]; then
+	echo "Please make sure you've checked out the buildroot submodule"
+	echo "  git submodule init && git submodule update"
+	return -1
+fi
+
 export BR2_EXTERNAL=${__PWD}/openpower
 export BR2_DL_DIR=${__PWD}/dl
 
