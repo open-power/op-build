@@ -49,7 +49,7 @@ cross-compiler. Cross-compiling from a x86-64 host is officially supported.
 
 ### Dependencies for *64-bit* Fedora systems
 
-1. Install Fedora 23 64-bit.
+1. Install Fedora 25 64-bit (older Fedora should also work).
 2. Install the packages necessary for the build:
 
         sudo dnf install gcc-c++ flex bison git ctags cscope expat-devel patch \

@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WITHERSPOON_XML_VERSION ?= b92c88f3106bfea675874b14eb66968fd3e17264
+WITHERSPOON_XML_VERSION ?= a3b74dd7d0e13bc4fec6f1de7ace3039aa6f27d4
 WITHERSPOON_XML_SITE ?= $(call github,open-power,witherspoon-xml,$(WITHERSPOON_XML_VERSION))
 
 WITHERSPOON_XML_LICENSE = Apache-2.0
@@ -41,6 +41,7 @@ define WITHERSPOON_XML_BUILD_CMDS
             --tgt-xml $(MRW_HB_TOOLS)/target_types_merged.xml \
             --tgt-xml $(MRW_HB_TOOLS)/target_types_hb.xml \
             --tgt-xml $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_openpower.xml \
             --mrw-xml $(MRW_SCRATCH)/WITHERSPOON_hb.mrw.xml
 
        cp  $(MRW_SCRATCH)/WITHERSPOON_hb.mrw.xml.updated  $(MRW_SCRATCH)/WITHERSPOON_hb.mrw.xml
@@ -50,9 +51,11 @@ define WITHERSPOON_XML_BUILD_CMDS
             $(MRW_HB_TOOLS)/attribute_types.xml \
             $(MRW_HB_TOOLS)/attribute_types_hb.xml \
             $(MRW_HB_TOOLS)/attribute_types_oppowervm.xml \
+            $(MRW_HB_TOOLS)/attribute_types_openpower.xml \
             $(MRW_HB_TOOLS)/target_types_merged.xml \
             $(MRW_HB_TOOLS)/target_types_hb.xml \
             $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            $(MRW_HB_TOOLS)/target_types_openpower.xml \
             $(MRW_SCRATCH)/$(BR2_WITHERSPOON_MRW_XML_FILENAME) > $(MRW_HB_TOOLS)/temporary_hb.hb.xml;
 
         # creating the targeting binary
