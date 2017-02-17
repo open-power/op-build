@@ -1,12 +1,15 @@
 config BR2_PACKAGE_OCC
-        bool "occ"
-        default y if (BR2_OPENPOWER_PLATFORM)
+        bool "OCC (POWER9)"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
         select BR2_CPP
         help
             Project to build OCC
 
+if BR2_PACKAGE_OCC
+
 config BR2_OCC_BIN_FILENAME
-        string "Name of OCC image file"
+        string "Name of OCC P9 image file"
+	default "occ.bin"
         help
             String used to define name of the OCC binary image file
 
@@ -21,4 +24,6 @@ config BR2_OCC_GPU_GPE_BIN_FILENAME
         string "Name of OCC GPU GPE Binary file"
         help
             String used to define name of the OCC GPUE GPE binary image file
+
+endif
 
