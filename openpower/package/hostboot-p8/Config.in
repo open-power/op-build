@@ -1,13 +1,13 @@
-config BR2_PACKAGE_HOSTBOOT
-        bool "hostboot"
-        default y if (BR2_OPENPOWER_POWER9)
+config BR2_PACKAGE_HOSTBOOT_P8
+        bool "hostboot-p8"
+        default y if (BR2_OPENPOWER_POWER8)
         select BR2_CPP
         help
             Project to build the hostboot firmware codebase
 
-if BR2_PACKAGE_HOSTBOOT
+if BR2_PACKAGE_HOSTBOOT_P8
 
-config BR2_HOSTBOOT_CONFIG_FILE
+config BR2_HOSTBOOT_P8_CONFIG_FILE
         string "Hostboot configuration file for compilation"
         default default
         help
