@@ -40,7 +40,7 @@ else \
 fi
 
 # If this is for linux, also check openpower/linux
-if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+if [ "LINUX" == "$(2)" ]; then \
 	if ls $$(BR2_EXTERNAL_OP_BUILD_PATH)/$(1)/*.patch 2>/dev/null; then sha512sum \
 		$$(BR2_EXTERNAL_OP_BUILD_PATH)/$(1)/*.patch | sha512sum | \
 		xargs echo >> $$(OPENPOWER_VERSION_DIR)/$(1).tmp_patch.txt; \
@@ -77,19 +77,17 @@ echo -n "site_local-" >> $$($(2)_VERSION_FILE); \
 whoami | xargs echo -n >> $$($(2)_VERSION_FILE); \
 echo -n "-" >> $$($(2)_VERSION_FILE); \
 \
-cd "$$($(2)_SITE)"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
-	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/;s/$(1)-//;' | xargs echo -n \
+cd "$$($(2)_SITE)"; (git describe --always --dirty || echo "unknown") \
+	|sed -e 's/$(1)-//' | xargs echo -n\
 	>> $$($(2)_VERSION_FILE); \
 \
-cd "$$($(2)_SITE)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/;' | \
-	xargs echo -n >> $$($(2)_VERSION_FILE); \
 else \
 \
 [ `echo -n $$($(2)_VERSION) | wc -c` == "40" ] && (echo -n $$($(2)_VERSION) | \
 	sed "s/^\([0-9a-f]\{7\}\).*/\1/;s/$(1)-//;" >> $$($(2)_VERSION_FILE)) \
 	|| echo -n $$($(2)_VERSION) | sed -e 's/$(1)-//' >> $$($(2)_VERSION_FILE); \
 \
-if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
+if [ "LINUX" == "$(2)" ]; then \
 	if ls $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile 1>/dev/null; then \
 		head $$(BUILD_DIR)/$(1)-$$($(2)_VERSION)/Makefile | grep EXTRAVERSION \
 		| cut -d ' ' -f 3 | \
@@ -97,13 +95,8 @@ if [ $(filter "LINUX", "$(2)") == "$(2)" ]; then \
 	fi; \
 fi; \
 \
-cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; git describe --all --dirty | \
-	if grep -e "-dirty"; then \
-	echo -n "-opdirty" >> $$($(2)_VERSION_FILE); \
-	fi; \
-\
 if [ -f $$(OPENPOWER_VERSION_DIR)/$(1).patch.txt ]; then \
-	echo -n "-" >> $$($(2)_VERSION_FILE); \
+	echo -n "-p" >> $$($(2)_VERSION_FILE); \
 	cat $$(OPENPOWER_VERSION_DIR)/$(1).patch.txt >> $$($(2)_VERSION_FILE); fi \
 fi
 
@@ -152,14 +145,14 @@ define $$(UPPER_CASE_PKG)_OPENPOWER_VERSION_FILE
 mkdir -p "$$(OPENPOWER_VERSION_DIR)"
 
 # Add vendor or default open-power
-if [ "$$(OPBUILD_VENDOR)" != '' ]; then \
+if [ -n "$$(OPBUILD_VENDOR)" ]; then \
 echo -n "$$(OPBUILD_VENDOR)-" > $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
 else \
 echo -n "open-power-" > $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
 fi
 
 # Add platform or default from defconfig
-if [ "$$(OPBUILD_PLATFORM)" != '' ]; then \
+if [ -n "$$(OPBUILD_PLATFORM)" ]; then \
 echo -n "$$(OPBUILD_PLATFORM)-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
 else \
 echo -n "$$(BR2_OPENPOWER_CONFIG_NAME)-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
@@ -167,38 +160,30 @@ fi
 
 # Add op-build version
 # Order: OPBUILD_VERSION, tag, commit, unknown
-if [ "$$(OPBUILD_VERSION)" != '' ]; then \
+if [ -n "$$(OPBUILD_VERSION)" ]; then \
 	echo -n "$$(OPBUILD_VERSION)" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
 else \
-cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
-	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; (git describe --always --dirty || echo "unknown") \
+	| xargs echo -n \
 	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
 fi
-
-# Check if op-build is dirty
-cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
-	xargs echo -n >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
 
 # Add new line to $$($$(UPPER_CASE_PKG)_VERSION_FILE)
 echo "" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
 
 # Add a specific line for op-build if it has been overwritten
-if [ "$$(OPBUILD_VENDOR)" != '' ]; then \
+if [ -n "$$(OPBUILD_VENDOR)" ]; then \
 echo -n "	op-build-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
-cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
-	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+(cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; (git describe --always --dirty  || echo "unknown")) \
+	| xargs echo \
 	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
-cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
-	xargs echo >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
 fi
 
 # Include the currently checked-out buildroot version
 echo -n "	buildroot-" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
-cd "./buildroot"; (git describe --tags || git log -n1 --pretty=format:'%h' || echo "unknown") \
-	| sed 's/\(.*\)-g\([0-9a-f]\{7\}\).*/\2/' | xargs echo -n \
+(git describe --always --dirty || echo "unknown") \
+	| xargs echo \
 	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
-git describe --all --dirty | grep -e "-dirty" | sed 's/.*\(-dirty\)/\1/' | \
-	xargs echo >> $$($$(UPPER_CASE_PKG)_VERSION_FILE);
 
 
 # Combing subpackage version files into $$($$(UPPER_CASE_PKG)_VERSION_FILE)
