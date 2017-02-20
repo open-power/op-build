@@ -21,8 +21,8 @@ define HOST_PPE42_BINUTILS_BUILD_CMDS
 					--enable-shared \
 					--enable-64-bit-bfd \
 					&& \
-        make configure-host && \
-        make LDFLAGS=-all-static CFLAGS=-Wno-error=unused-value
+        $(MAKE) configure-host && \
+        $(MAKE) LDFLAGS=-all-static CFLAGS=-Wno-error
 endef
 
 define HOST_PPE42_BINUTILS_INSTALL_CMDS

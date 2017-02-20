@@ -25,8 +25,8 @@ define HOST_PPE42_GCC_BUILD_CMDS
                     --with-gmp=$(HOST_DIR)/usr \
                     --with-mpfr=$(HOST_DIR)/usr \
                     && \
-        make configure-host && \
-        make all-gcc
+        $(MAKE) configure-host && \
+        $(MAKE) CFLAGS=-Wno-error all-gcc
 endef
 
 define HOST_PPE42_GCC_INSTALL_CMDS
