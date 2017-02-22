@@ -10,6 +10,7 @@ config BR2_PACKAGE_OPENPOWER_PNOR
         select BRZ_PACKAGE_IMA_CATALOG
         select BR2_PACKAGE_ZAIUS_XML if (BR2_OPENPOWER_XML_PACKAGE = "zaius-xml")
         select BR2_PACKAGE_WITHERSPOON_XML if (BR2_OPENPOWER_XML_PACKAGE = "witherspoon-xml")
+        select BR2_PACKAGE_ROMULUS_XML if (BR2_OPENPOWER_XML_PACKAGE = "romulus-xml")
         select BR2_PACKAGE_BARRELEYE_XML if (BR2_OPENPOWER_XML_PACKAGE = "barreleye-xml")
         select BR2_PACKAGE_FIRESTONE_XML if (BR2_OPENPOWER_XML_PACKAGE = "firestone-xml")
         select BR2_PACKAGE_GARRISON_XML if (BR2_OPENPOWER_XML_PACKAGE = "garrison-xml")
