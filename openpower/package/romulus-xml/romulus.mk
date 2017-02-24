@@ -6,9 +6,6 @@
 
 ROMULUS_XML_VERSION ?= 3ae36a611bf874299404c377224915952dbb9b15
 ROMULUS_XML_SITE ?= $(call github,open-power,romulus-xml,$(ROMULUS_XML_VERSION))
-#ROMULUS_XML_VERSION ?= romulus10
-#ROMULUS_XML_SITE ?= /home/mengze/code/romulus-xml
-#ROMULUS_XML_SITE_METHOD ?= local
 
 ROMULUS_XML_LICENSE = Apache-2.0
 ROMULUS_XML_DEPENDENCIES = hostboot-install-images openpower-mrw-install-images common-p8-xml-install-images
