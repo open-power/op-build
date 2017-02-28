@@ -1,0 +1,55 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "Y.C. Chen" <yc_chen@aspeedtech.com>
+Date: Fri, 17 Feb 2017 10:56:47 +0800
+Subject: [PATCH 09/15] drm/ast: Fixed vram size incorrect issue on POWER
+
+The default value of VGA scratch may incorrect.
+Should initial h/w before get vram info.
+
+Signed-off-by: Y.C. Chen <yc_chen@aspeedtech.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ drivers/gpu/drm/ast/ast_main.c | 6 +++---
+ drivers/gpu/drm/ast/ast_post.c | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_main.c b/drivers/gpu/drm/ast/ast_main.c
+index 5a83d3793000..eefc5124eeb3 100644
+--- a/drivers/gpu/drm/ast/ast_main.c
++++ b/drivers/gpu/drm/ast/ast_main.c
+@@ -518,6 +518,9 @@ int ast_driver_load(struct drm_device *dev, unsigned long flags)
+ 
+ 	ast_detect_chip(dev, &need_post);
+ 
++	if (need_post)
++		ast_post_gpu(dev);
++
+ 	if (ast->chip != AST1180) {
+ 		ret = ast_get_dram_info(dev);
+ 		if (ret)
+@@ -528,9 +531,6 @@ int ast_driver_load(struct drm_device *dev, unsigned long flags)
+ 			 ast->dram_bus_width, ast->vram_size);
+ 	}
+ 
+-	if (need_post)
+-		ast_post_gpu(dev);
+-
+ 	ret = ast_mm_init(ast);
+ 	if (ret)
+ 		goto out_free;
+diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
+index 64549cebcc5b..e8024502e749 100644
+--- a/drivers/gpu/drm/ast/ast_post.c
++++ b/drivers/gpu/drm/ast/ast_post.c
+@@ -79,7 +79,7 @@ ast_set_def_ext_reg(struct drm_device *dev)
+ 	const u8 *ext_reg_info;
+ 
+ 	/* reset scratch */
+-	for (i = 0x81; i <= 0x8f; i++)
++	for (i = 0x81; i <= 0x9f; i++)
+ 		ast_set_index_reg(ast, AST_IO_CRTC_PORT, i, 0x00);
+ 
+ 	if (ast->chip == AST2300 || ast->chip == AST2400) {
+-- 
+2.11.0
+

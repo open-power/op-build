@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "Y.C. Chen" <yc_chen@aspeedtech.com>
+Date: Wed, 22 Feb 2017 15:14:19 +1100
+Subject: [PATCH 14/15] drm/ast: Call open_key before enable_mmio in POST code
+
+open_key enables access the registers used by enable_mmio
+
+Signed-off-by: Y.C. Chen <yc_chen@aspeedtech.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ drivers/gpu/drm/ast/ast_post.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
+index a5a780921553..f7d421359d56 100644
+--- a/drivers/gpu/drm/ast/ast_post.c
++++ b/drivers/gpu/drm/ast/ast_post.c
+@@ -374,8 +374,8 @@ void ast_post_gpu(struct drm_device *dev)
+ 	pci_write_config_dword(ast->dev->pdev, 0x04, reg);
+ 
+ 	ast_enable_vga(dev);
+-	ast_enable_mmio(dev);
+ 	ast_open_key(ast);
++	ast_enable_mmio(dev);
+ 	ast_set_def_ext_reg(dev);
+ 
+ 	if (ast->config_mode == ast_use_p2a) {
+-- 
+2.11.0
+
