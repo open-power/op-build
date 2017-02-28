@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 16 Aug 2016 23:00:23 +0930
-Subject: [PATCH 4/4] Release 4.9.8-openpower1
+Subject: [PATCH 4/4] Release 4.9.13-openpower1
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 1130803ab93c..9931edcea668 100644
+index 14dc2758345b..c298688d38f3 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 9
- SUBLEVEL = 8
+ SUBLEVEL = 13
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Roaring Lionus
