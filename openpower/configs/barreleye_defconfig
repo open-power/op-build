@@ -1,6 +1,5 @@
 BR2_powerpc64le=y
 BR2_powerpc_power8=y
-BR2_KERNEL_HEADERS_4_4=y
 BR2_GLIBC_VERSION_2_24=y
 BR2_BINUTILS_VERSION_2_27_X=y
 BR2_BINUTILS_EXTRA_CONFIG_OPTIONS="--enable-targets=powerpc64-linux"
