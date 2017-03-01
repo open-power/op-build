@@ -1,23 +1,22 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 19 Jul 2016 22:43:26 +0930
-Subject: [PATCH 3/4] xhci: do not halt the secondary HCD
+Subject: [PATCH 02/15] xhci: do not halt the secondary HCD
 
 We can't halt the secondary HCD, because it's also the primary HCD,
 which will cause problems if we have devices attached to the primary
 HCD, like a keyboard.
 
-Sined-off-by: Joel Stanley <joel@jms.id.au>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
  drivers/usb/host/xhci.c | 20 +++++++++++++++-----
  1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 34e23c7d7797..4c6d135319c3 100644
+index 9a0ec116654a..315020dac049 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -683,6 +683,21 @@ void xhci_stop(struct usb_hcd *hcd)
+@@ -689,6 +689,21 @@ void xhci_stop(struct usb_hcd *hcd)
  
  	mutex_lock(&xhci->mutex);
  
@@ -39,7 +38,7 @@ index 34e23c7d7797..4c6d135319c3 100644
  	if (!(xhci->xhc_state & XHCI_STATE_HALTED)) {
  		spin_lock_irq(&xhci->lock);
  
-@@ -694,11 +709,6 @@ void xhci_stop(struct usb_hcd *hcd)
+@@ -699,11 +714,6 @@ void xhci_stop(struct usb_hcd *hcd)
  		spin_unlock_irq(&xhci->lock);
  	}
  
