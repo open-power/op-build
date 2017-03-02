@@ -1,0 +1,113 @@
+From 71be7757544b29527ac75fcbc0dc32b9cff16b95 Mon Sep 17 00:00:00 2001
+From: Dean Sanner <dsanner@us.ibm.com>
+Date: Thu, 20 Apr 2017 13:03:13 -0500
+Subject: [PATCH] Apply RINGOVD to SBE image prior to core data
+
+  -SBE is tight on space and if ALL core data is applied
+   then ring override section doesn't fit.  Since this is
+   debug only, apply ring overrides to the base and let
+   code winnow down the boot cores to fit constraints
+
+Change-Id: Ic0338e94b65d0481c51aac1dfa42f1c95abc9a4c
+---
+ src/usr/sbe/sbe_update.C | 54 ++++++++++++++++++++++++------------------------
+ src/usr/sbe/sbe_update.H |  4 ++++
+ 2 files changed, 31 insertions(+), 27 deletions(-)
+
+diff --git a/src/usr/sbe/sbe_update.C b/src/usr/sbe/sbe_update.C
+index 3b33345..8bbc471 100644
+--- a/src/usr/sbe/sbe_update.C
++++ b/src/usr/sbe/sbe_update.C
+@@ -930,8 +930,6 @@ namespace SBE
+             TRACFCOMP( g_trac_sbe,
+                        INFO_MRK"ringOvd():Valid overrides, applying them");
+ 
+-            // Hard coded value, pass in 2KB max
+-            uint32_t RING_OVD_SIZE = 0x800;
+             FAPI_INVOKE_HWP(l_err,p9_xip_section_append,
+                             (void *)l_pnorRingOvd.vaddr,
+                             RING_OVD_SIZE,
+@@ -1047,31 +1045,6 @@ namespace SBE
+                 // Check for no error and use of input cores
+                 if ( (NULL == err) && (procIOMask == coreMask))
+                 {
+-                    // Check if we have a valid ring override section and
+-                    // append it in if so
+-                    uint32_t l_ovdImgSize = static_cast<uint32_t>(i_maxImgSize);
+-                    err = ringOvd(io_imgPtr,l_ovdImgSize);
+-                    if(err)
+-                    {
+-                        TRACFCOMP( g_trac_sbe,
+-                              ERR_MRK"procCustomizeSbeImg(): "
+-                              "Error in call to ringOvd!");
+-                        break;
+-                    }
+-                    // If it's larger then the original size then we added some
+-                    // overrides
+-                    if(l_ovdImgSize > tmpImgSize)
+-                    {
+-                        // We added an override so adjust tmpImgSize
+-                        TRACFCOMP( g_trac_sbe,
+-                              INFO_MRK"procCustomizeSbeImg(): We added some "
+-                              "ring overrides, initial image size:%u "
+-                              "new image size:%u",
+-                              tmpImgSize, l_ovdImgSize);
+-
+-                        tmpImgSize = l_ovdImgSize;
+-                    }
+-
+                     // Procedure was successful
+                     procedure_success = true;
+ 
+@@ -1879,6 +1852,33 @@ namespace SBE
+                 break;
+             }
+ 
++            /*******************************************/
++            /*  Append RINGOVD Image from PNOR to SBE  */
++            /*******************************************/
++            // Check if we have a valid ring override section and
++            // append it in if so
++            uint32_t l_ovdImgSize =
++              static_cast<uint32_t>(sbeHbblImgSize+RING_OVD_SIZE);
++            err = ringOvd(sbeHbblImgPtr,l_ovdImgSize);
++            if(err)
++            {
++                TRACFCOMP( g_trac_sbe,
++                           ERR_MRK"procCustomizeSbeImg(): "
++                           "Error in call to ringOvd!");
++                break;
++            }
++
++            //If it's larger then the original size then we added some overrides
++            if(l_ovdImgSize > sbeHbblImgSize)
++            {
++                // We added an override so adjust tmpImgSize
++                TRACFCOMP( g_trac_sbe,
++                           INFO_MRK"procCustomizeSbeImg(): We added some "
++                           "ring overrides, initial image size:%u "
++                           "new image size:%u",
++                           sbeHbblImgSize, l_ovdImgSize);
++            }
++
+ 
+             /*******************************************/
+             /*  Customize SBE/HBBL Image and           */
+diff --git a/src/usr/sbe/sbe_update.H b/src/usr/sbe/sbe_update.H
+index d4ed027..8d82cb5 100644
+--- a/src/usr/sbe/sbe_update.H
++++ b/src/usr/sbe/sbe_update.H
+@@ -85,6 +85,10 @@ namespace SBE
+     // (PERV_SB_CS_SCOM 0x00050008 or PERV_SB_CS_FSI 0x2808)
+     const uint64_t SBE_BOOT_SELECT_MASK = 0x0000400000000000;
+ 
++    // Hard coded value, pass in 1KB max
++    const uint32_t RING_OVD_SIZE = 0x400;
++
++
+     // PNOR SBE and SBEC Partition constants
+     const uint32_t MAX_SBE_ENTRIES = 9;
+     const uint32_t SBETOC_EYECATCH = 0x53424500;  //'SBE\0'
+-- 
+1.8.2.2
+
