@@ -1,0 +1,39 @@
+From 668cfa0d7aee1e26793992f9c9d4a1354579fd0a Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Fri, 24 Feb 2017 11:36:24 +1100
+Subject: [PATCH] Fix build error: nonnull argument compared to NULL
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Shows up in GCC6:
+
+src/import/chips/p9/procedures/hwp/memory/lib/utils/find.H:437:5:
+error nonnull argument ‘i_array’ compared to NULL [-Werror=nonnull-compare]
+
+Change-Id: I25db14d9d9875c1f61f894b3d0df4dda6100f44d
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/import/chips/p9/procedures/hwp/memory/lib/utils/find.H | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/utils/find.H b/src/import/chips/p9/procedures/hwp/memory/lib/utils/find.H
+index d5b7a23d172c..c914106f49dd 100644
+--- a/src/import/chips/p9/procedures/hwp/memory/lib/utils/find.H
++++ b/src/import/chips/p9/procedures/hwp/memory/lib/utils/find.H
+@@ -434,12 +434,6 @@ fapi2::ReturnCode find_value_from_key( const std::pair<T, OT> (&i_array)[N],
+                                        OT& o_value)
+ {
+     // TK Use sort and binary search for larger arrays
+-    if (i_array == nullptr)
+-    {
+-        FAPI_ERR("nullptr passed to the find_value_from_key function");
+-        return fapi2::FAPI2_RC_INVALID_PARAMETER;
+-    }
+-
+     for (size_t i = 0; i < N; i++)
+     {
+         if (i_array[i].first == i_key)
+-- 
+2.9.3
+

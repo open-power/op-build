@@ -1,0 +1,69 @@
+From e15dc95ee1ddce87097e9a154c925a5315066a72 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Thu, 25 Aug 2016 19:33:42 +1000
+Subject: [PATCH] Change cv_forcedMemPeriodic to uint8_t as bool is invalid
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+GCC6 throws the following error:
+operand type ‘bool*’ is incompatible with argument 1 of ‘__sync_fetch_and_and’
+
+GCC documents that bool is invalid for __sync builtins over at:
+https://gcc.gnu.org/onlinedocs/gcc/_005f_005fsync-Builtins.html#g_t_005f_005fsync-Builtins
+" GCC allows any scalar type that is 1, 2, 4 or 8 bytes in size other than the C type _Bool or the C++ type bool"
+
+Change-Id: I4608b03e5d8aa16a0a350030b552a8f8e791649c
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/include/kernel/cpumgr.H | 2 +-
+ src/kernel/cpumgr.C         | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/include/kernel/cpumgr.H b/src/include/kernel/cpumgr.H
+index fc562521d747..303dcaa42f74 100644
+--- a/src/include/kernel/cpumgr.H
++++ b/src/include/kernel/cpumgr.H
+@@ -224,7 +224,7 @@ class CpuManager
+              */
+         static uint64_t cv_cpuSeq;
+ 
+-        static bool cv_forcedMemPeriodic;       //!<  force free / coalesce.
++        static uint8_t cv_forcedMemPeriodic;       //!<  force free / coalesce.
+ 
+         // If a shutdown of all CPUs is requested
+         static bool cv_shutdown_requested;
+diff --git a/src/kernel/cpumgr.C b/src/kernel/cpumgr.C
+index e6bf08dd9051..68e88b2a489f 100644
+--- a/src/kernel/cpumgr.C
++++ b/src/kernel/cpumgr.C
+@@ -51,7 +51,7 @@ cpu_t** CpuManager::cv_cpus[KERNEL_MAX_SUPPORTED_NODES];
+ bool CpuManager::cv_shutdown_requested = false;
+ uint64_t CpuManager::cv_shutdown_status = 0;
+ size_t CpuManager::cv_cpuSeq = 0;
+-bool CpuManager::cv_forcedMemPeriodic = false;
++uint8_t CpuManager::cv_forcedMemPeriodic = 0;
+ InteractiveDebug CpuManager::cv_interactive_debug;
+ 
+ CpuManager::CpuManager() : iv_lastStartTimebase(0)
+@@ -363,7 +363,7 @@ void CpuManager::executePeriodics(cpu_t * i_cpu)
+         }
+ 
+         bool forceMemoryPeriodic = __sync_fetch_and_and(&cv_forcedMemPeriodic,
+-                                                        false);
++                                                        0);
+ 
+         ++(i_cpu->periodic_count);
+         if((0 == (i_cpu->periodic_count % CPU_PERIODIC_CHECK_MEMORY)) ||
+@@ -481,7 +481,7 @@ size_t CpuManager::getThreadCount()
+ 
+ void CpuManager::forceMemoryPeriodic()
+ {
+-    cv_forcedMemPeriodic = true;
++    cv_forcedMemPeriodic = 1;
+ }
+ 
+ 
+-- 
+2.9.3
+

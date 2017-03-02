@@ -1,0 +1,44 @@
+From 302303ed4947ffd88d6c1d3ab3e9549cd0c21aa1 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Thu, 2 Mar 2017 16:37:27 +1100
+Subject: [PATCH] libc++: add sized delete and delete[] for C++14
+
+Change-Id: Ifa4a181d912c7a83cbd6f7e55bd2287124a9072e
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/libc++/builtins.C | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/src/libc++/builtins.C b/src/libc++/builtins.C
+index d66e81ec385e..3cd402cce2f8 100755
+--- a/src/libc++/builtins.C
++++ b/src/libc++/builtins.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2010,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2010,2017                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -59,6 +59,16 @@ void operator delete[](void* p)
+ {
+     return free(p);
+ };
++
++void operator delete(void* p, size_t)
++{
++    return free(p);
++}
++
++void operator delete[](void* p, size_t)
++{
++    return free(p);
++}
+ #endif // bl_builtins_C
+ 
+ extern "C" int __cxa_guard_acquire(volatile uint64_t* gv)
+-- 
+2.9.3
+

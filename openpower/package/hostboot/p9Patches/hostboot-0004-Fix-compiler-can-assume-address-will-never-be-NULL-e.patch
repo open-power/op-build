@@ -1,0 +1,106 @@
+From 988aadb2c4eccd0e834ecb0d25e8630f89aac7f5 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Thu, 25 Aug 2016 20:07:58 +1000
+Subject: [PATCH] Fix compiler can assume address will never be NULL error with
+ GCC6
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+So, it turns out that relying on the address of something passed by
+reference being able to be NULL isn't exactly a good idea, or remotely
+obvious code. So, instead, do the sane thing and pass a pointer and
+check it.
+
+In constructor ‘PRDF::AttnTypeRegister::AttnTypeRegister(...)’:
+the compiler can assume that the address of ‘i_check’ will never be NULL
+ [-Werror=address]
+         iv_check(  NULL == &i_check   ? &cv_null : &i_check),
+                   ~~^~~~~~~~~~~
+the compiler can assume that the address of ‘i_recov’ will never be NULL
+ [-Werror=address]
+         iv_recov(  NULL == &i_recov   ? &cv_null : &i_recov),
+                   ~~^~~~~~~~~~~
+the compiler can assume that the address of ‘i_special’ will never be NULL
+ [-Werror=address]
+         iv_special(NULL == &i_special ? &cv_null : &i_special),
+                    ~~^~~~~~~~~~~~~
+the compiler can assume that the address of ‘i_proccs’ will never be NULL
+ [-Werror=address]
+         iv_proccs( NULL == &i_proccs  ? &cv_null : &i_proccs),
+                    ~~^~~~~~~~~~~~
+
+src/usr/diag/prdf/common/framework/register/prdfErrorRegister.C:123:
+the compiler can assume that the address of ‘r’ will never be NULL
+ [-Werror=address]
+         PRDF_ASSERT( &r  != NULL );
+
+Change-Id: I46181487cea89c8918899bab2ab17c82b68122ee
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ .../common/framework/register/prdfErrorRegister.C    |  2 --
+ .../common/framework/register/prdfOperatorRegister.H | 20 ++++++++++----------
+ .../common/framework/register/prdfScanFacility.C     |  2 +-
+ 3 files changed, 11 insertions(+), 13 deletions(-)
+
+diff --git a/src/usr/diag/prdf/common/framework/register/prdfErrorRegister.C b/src/usr/diag/prdf/common/framework/register/prdfErrorRegister.C
+index f3939d1f5b2b..a4825427c72f 100755
+--- a/src/usr/diag/prdf/common/framework/register/prdfErrorRegister.C
++++ b/src/usr/diag/prdf/common/framework/register/prdfErrorRegister.C
+@@ -120,8 +120,6 @@ ErrorRegister::ErrorRegister( SCAN_COMM_REGISTER_CLASS & r, ResolutionMap & rm,
+     ErrorRegisterType(), scr(r), scr_rc(SUCCESS), rMap(rm),
+     xNoErrorOnZeroScr(false), xScrId(scrId)
+ {
+-    PRDF_ASSERT( &r  != NULL );
+-    PRDF_ASSERT( &rm != NULL );
+ }
+ 
+ /*---------------------------------------------------------------------*/
+diff --git a/src/usr/diag/prdf/common/framework/register/prdfOperatorRegister.H b/src/usr/diag/prdf/common/framework/register/prdfOperatorRegister.H
+index 893ee7ca06db..07d5ac981e56 100755
+--- a/src/usr/diag/prdf/common/framework/register/prdfOperatorRegister.H
++++ b/src/usr/diag/prdf/common/framework/register/prdfOperatorRegister.H
+@@ -513,17 +513,17 @@ class AttnTypeRegister : public SCAN_COMM_REGISTER_CLASS
+         iv_bs = &iv_iBS;
+     }
+ 
+-    AttnTypeRegister( SCAN_COMM_REGISTER_CLASS & i_check,
+-                      SCAN_COMM_REGISTER_CLASS & i_recov,
+-                      SCAN_COMM_REGISTER_CLASS & i_special,
+-                      SCAN_COMM_REGISTER_CLASS & i_proccs,
+-                      SCAN_COMM_REGISTER_CLASS & i_hostattn ) :
++    AttnTypeRegister( SCAN_COMM_REGISTER_CLASS *i_check,
++                      SCAN_COMM_REGISTER_CLASS *i_recov,
++                      SCAN_COMM_REGISTER_CLASS *i_special,
++                      SCAN_COMM_REGISTER_CLASS *i_proccs,
++                      SCAN_COMM_REGISTER_CLASS *i_hostattn ) :
+         SCAN_COMM_REGISTER_CLASS( ),
+-        iv_check(    NULL == &i_check    ? &cv_null : &i_check),
+-        iv_recov(    NULL == &i_recov    ? &cv_null : &i_recov),
+-        iv_special(  NULL == &i_special  ? &cv_null : &i_special),
+-        iv_proccs(   NULL == &i_proccs   ? &cv_null : &i_proccs),
+-        iv_hostattn( NULL == &i_hostattn ? &cv_null : &i_hostattn),
++        iv_check(    NULL == i_check    ? &cv_null : i_check),
++        iv_recov(    NULL == i_recov    ? &cv_null : i_recov),
++        iv_special(  NULL == i_special  ? &cv_null : i_special),
++        iv_proccs(   NULL == i_proccs   ? &cv_null : i_proccs),
++        iv_hostattn( NULL == i_hostattn ? &cv_null : i_hostattn),
+         iv_iBS(0)         // will fully initialize this inside ctor.
+     {
+         uint32_t l_length = 1024;
+diff --git a/src/usr/diag/prdf/common/framework/register/prdfScanFacility.C b/src/usr/diag/prdf/common/framework/register/prdfScanFacility.C
+index 6c46dea931b5..ad045614df8d 100755
+--- a/src/usr/diag/prdf/common/framework/register/prdfScanFacility.C
++++ b/src/usr/diag/prdf/common/framework/register/prdfScanFacility.C
+@@ -160,7 +160,7 @@ SCAN_COMM_REGISTER_CLASS &  ScanFacility::GetAttnTypeRegister(
+                                         SCAN_COMM_REGISTER_CLASS * i_proccs,
+                                         SCAN_COMM_REGISTER_CLASS * i_hostattn )
+ {
+-  AttnTypeRegister r(*i_check, *i_recov, *i_special, *i_proccs, *i_hostattn);
++  AttnTypeRegister r(i_check, i_recov, i_special, i_proccs, i_hostattn);
+   return iv_attnRegFw.get(r);
+ }
+ 
+-- 
+2.9.3
+

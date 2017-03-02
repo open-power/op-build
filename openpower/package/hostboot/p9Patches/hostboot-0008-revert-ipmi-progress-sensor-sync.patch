@@ -1,0 +1,138 @@
+From 9375e99c7a748cba00994b582be7571b8cc271dc Mon Sep 17 00:00:00 2001
+From: William G. Hoffa <wghoffa@us.ibm.com>
+Date: Thu, 23 Feb 2017 21:33:34 -0500
+Subject: [PATCH] Revert "Sending Firmware progress sensor is now synchronous"
+
+This reverts commit 9b188cdec934275ce65eab3ade91398fdec4ddb9.
+
+Change-Id: I6e61680c204734638b03f628abb1d0e4d4f590e8
+Reviewed-on: http://ralgit01.raleigh.ibm.com/gerrit1/36983
+Reviewed-by: STEWART E. SMITH <stewart@linux.vnet.ibm.com>
+Tested-by: Jenkins Server <pfd-jenkins+hostboot@us.ibm.com>
+Tested-by: FSP CI Jenkins <fsp-CI-jenkins+hostboot@us.ibm.com>
+Tested-by: Jenkins OP Build CI <op-jenkins+hostboot@us.ibm.com>
+Reviewed-by: William G. Hoffa <wghoffa@us.ibm.com>
+---
+
+diff --git a/src/include/usr/ipmi/ipmi_reasoncodes.H b/src/include/usr/ipmi/ipmi_reasoncodes.H
+index 8ba270c..3fe7461 100644
+--- a/src/include/usr/ipmi/ipmi_reasoncodes.H
++++ b/src/include/usr/ipmi/ipmi_reasoncodes.H
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2014,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2014,2017                        */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+@@ -38,7 +38,6 @@
+         MOD_IPMIDCMI            = 0x04, // IPMI::sensor
+         MOD_IPMIRT              = 0x05, // rt IPMI::send/IPMI::sendrecv
+         MOD_IPMISRV_POSTEVENT   = 0x06, // IpmiRP::postEvent
+-        MOD_IPMI_PROG_SENSOR    = 0x07, // IPMI::FirmwareProgressSensor
+     };
+ 
+     enum IPMIReasonCode
+diff --git a/src/include/usr/ipmi/ipmisensor.H b/src/include/usr/ipmi/ipmisensor.H
+index a5746ef..c57a350 100644
+--- a/src/include/usr/ipmi/ipmisensor.H
++++ b/src/include/usr/ipmi/ipmisensor.H
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2014,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2014,2017                        */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+@@ -377,7 +377,7 @@
+              * @return Errorlog handle
+              *
+              */
+-            virtual errlHndl_t sendSetSensorReading(
++            errlHndl_t sendSetSensorReading(
+                     setSensorReadingRequest * i_data);
+ 
+             /**
+@@ -495,19 +495,6 @@
+              */
+             errlHndl_t setBootProgressPhase(
+                             INITSERVICE::firmwareProgressPhase i_phase);
+-
+-
+-            /**
+-             *
+-             * @brief Synchronous implementation of sendSetSensor Reading used for
+-             *      avoiding a race condition.
+-             *
+-             * @param[in] i_data - the ipmi message data
+-             *
+-             * @return Errorlog handle
+-             */
+-            errlHndl_t sendSetSensorReading(
+-                            setSensorReadingRequest * i_data );
+ 
+         private:
+             // @enum firmwareProgressOfsets
+diff --git a/src/usr/ipmi/ipmisensor.C b/src/usr/ipmi/ipmisensor.C
+index 4b4a8f7f..c4d0883 100644
+--- a/src/usr/ipmi/ipmisensor.C
++++ b/src/usr/ipmi/ipmisensor.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2014,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2014,2017                        */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+@@ -556,45 +556,6 @@
+ 
+         return writeSensorData();
+     };
+-
+-    //
+-    // sendSetSensorReading
+-    //
+-    errlHndl_t FirmwareProgressSensor::sendSetSensorReading(
+-                                    setSensorReadingRequest * i_data )
+-    {
+-        size_t l_len = sizeof( setSensorReadingRequest );
+-        IPMI::completion_code cc = IPMI::CC_UNKBAD;
+-
+-        //i_data will hold the response when this returns
+-        errlHndl_t l_err = sendrecv(IPMI::set_sensor_reading(),
+-                                    cc,
+-                                    l_len,
+-                                    (uint8_t*&)i_data );
+-        // If no error, check completion code
+-        if( (l_err == NULL) && (cc != IPMI::CC_OK) )
+-        {
+-                TRACFCOMP(g_trac_ipmi, "bad completion code from BMC=0x%x",cc);
+-
+-                /*@
+-                 * @errortype       ERRL_SEV_INFORMATIONAL
+-                 * @moduleid        IPMI::MOD_IPMI_PROG_SENSOR
+-                 * @reasoncode      IPMI::RC_SET_SENSOR_FAILURE
+-                 * @userdata1       BMC IPMI Completion code.
+-                 * @devdesc         Request to set the firmware progress
+-                 *                  sensor failed.
+-                 */
+-                l_err = new ERRORLOG::ErrlEntry(
+-                            ERRORLOG::ERRL_SEV_INFORMATIONAL,
+-                            IPMI::MOD_IPMI_PROG_SENSOR,
+-                            IPMI::RC_SET_SENSOR_FAILURE,
+-                            static_cast<uint64_t>(cc),
+-                            0,
+-                            true );
+-                l_err->collectTrace(IPMI_COMP_NAME);
+-        }
+-        return l_err;
+-    }
+ 
+     //
+     // RebootCountSensor constructor - uses system target

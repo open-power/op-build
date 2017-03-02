@@ -1,0 +1,27 @@
+From 8818ab1e198553e2a35e557677253480bdfaba67 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Thu, 2 Mar 2017 16:43:23 +1100
+Subject: [PATCH] Use -Os
+
+Change-Id: I84a98406e2ec0781c6bfd2a1d339208002472293
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/build/mkrules/cflags.env.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/build/mkrules/cflags.env.mk b/src/build/mkrules/cflags.env.mk
+index 38ca4be10495..8cc1ec88bee6 100644
+--- a/src/build/mkrules/cflags.env.mk
++++ b/src/build/mkrules/cflags.env.mk
+@@ -28,7 +28,7 @@
+ # Description:
+ #     Configuration of the compiler, linker, etc. flags.
+ 
+-OPT_LEVEL ?= -O3
++OPT_LEVEL ?= -Os
+ 
+ ifdef MODULE
+ COMMONFLAGS += -fPIC -Bsymbolic -Bsymbolic-functions
+-- 
+2.9.3
+
