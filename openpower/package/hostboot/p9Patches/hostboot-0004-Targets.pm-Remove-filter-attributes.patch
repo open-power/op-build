@@ -1,0 +1,152 @@
+From 7eb5491aca60ac9211a88cd7165c297eb6a02653 Mon Sep 17 00:00:00 2001
+From: Prachi Gupta <pragupta@us.ibm.com>
+Date: Tue, 14 Mar 2017 16:22:58 -0500
+Subject: [PATCH] Targets.pm: Remove filter attributes
+
+Any attribute not in hostboot will be filtered out by
+filter_unwanted_attributes.pl script which already runs in
+op-build currently. So, these attributes here are redundant.
+
+Change-Id: I4d82603d0933b375f15a38de351b754cb82a1ffd
+Reviewed-on: http://ralgit01.raleigh.ibm.com/gerrit1/37942
+Tested-by: Jenkins Server <pfd-jenkins+hostboot@us.ibm.com>
+Tested-by: Jenkins OP Build CI <op-jenkins+hostboot@us.ibm.com>
+Tested-by: FSP CI Jenkins <fsp-CI-jenkins+hostboot@us.ibm.com>
+Reviewed-by: Matthew A. Ploetz <maploetz@us.ibm.com>
+Reviewed-by: William G. Hoffa <wghoffa@us.ibm.com>
+---
+ src/usr/targeting/common/Targets.pm | 116 ------------------------------------
+ 1 file changed, 116 deletions(-)
+
+diff --git a/src/usr/targeting/common/Targets.pm b/src/usr/targeting/common/Targets.pm
+index 1cfbe72..cd3ae5b 100644
+--- a/src/usr/targeting/common/Targets.pm
++++ b/src/usr/targeting/common/Targets.pm
+@@ -226,124 +226,8 @@ sub printAttribute
+     # TODO RTC: TBD
+     # temporary until we converge attribute types
+     my %filter;
+-    $filter{MRW_TYPE}                                               = 1;
+-    $filter{SYSTEM_NAME}                                            = 1;
+-    $filter{BUS_TYPE}                                               = 1;
+-    $filter{DIRECTION}                                              = 1;
+-    $filter{ENABLE_CAPI}                                            = 1;
+-    $filter{PCIE_CONFIG_NUM}                                        = 1;
+-    $filter{PCIE_LANE_MASK}                                         = 1;
+-    $filter{PCIE_LANE_GROUP}                                        = 1;
+-    $filter{PCIE_NUM_LANES}                                         = 1;
+-    $filter{PHB_NUM}                                                = 1;
+-    $filter{IOP_NUM}                                                = 1;
+-    $filter{LOCATION_CODE}                                          = 1;
+-    $filter{LOCATION_CODE_TYPE}                                     = 1;
+-    $filter{MCS_NUM}                                                = 1;
+-    $filter{SCHEMATIC_INTERFACE}                                    = 1;
+-    $filter{ENTITY_ID}                                              = 1;
+-    $filter{CLASS}                                                  = 1;
+     $filter{MODEL}                                                  = 1;
+-    $filter{TYPE}                                                   = 1;
+-    $filter{CDM_POLICIES}                                           = 1;
+-    $filter{CDM_POLICIES_BITMASK}                                   = 1;
+-    $filter{ENTITY_ID_LOOKUP}                                       = 1;
+-    $filter{ENTITY_INSTANCE}                                        = 1;
+-    $filter{MBA_NUM}                                                = 1;
+-    $filter{IPMI_NAME}                                              = 1;
+-    $filter{INSTANCE_ID}                                            = 1;
+-    $filter{INSTANCE_PATH}                                          = 1;
+-    $filter{IO_CONFIG_SELECT}                                       = 1;
+-    $filter{FRU_NAME}                                               = 1;
+-    $filter{TPM_BACKUP_INFO}                                        = 1;
+-    $filter{TPM_PRIMARY_INFO}                                       = 1;
+-    $filter{ALL_MCS_IN_INTERLEAVING_GROUP}                          = 1;
+-    $filter{AVERAGE_IPL_TIME}                                       = 1;
+-    $filter{CHECK_SCRIPT}                                           = 1;
+-    $filter{DMI_DFE_OVERRIDE}                                       = 1;
+-    $filter{FREQ_A}                                                 = 1;
+-    $filter{FREQ_NEST_HFT}                                          = 1;
+-    $filter{FREQ_PB}                                                = 1;
+-    $filter{FREQ_PB_HFT}                                            = 1;
+-    $filter{FREQ_PCIE}                                              = 1;
+-    $filter{FREQ_X}                                                 = 1;
+-    $filter{FREQ_X_HFT}                                             = 1;
+-    $filter{LED_ON_DEFAULT_GPIO_VALUE}                              = 1;
+-    $filter{LED_STRATEGY}                                           = 1;
+-    $filter{MSS_MCA_HASH_MODE}                                      = 1;
+-    $filter{MRW_ENHANCED_GROUPING_NO_MIRRORING}                     = 1;
+-    $filter{MRW_MEM_MIRRORING_ALLOWED}                              = 1;
+-    $filter{MRW_MEM_MIRRORING_ENABLE_DEFAULT}                       = 1;
+-    $filter{MRW_MEM_POWER_CONTROL_USAGE}                            = 1;
+-    $filter{MRW_VMEM_REGULATOR_MEMORY_POWER_LIMIT_PER_DIMM}         = 1;
+-    $filter{MRW_VMEM_REGULATOR_POWER_LIMIT_PER_DIMM_ADJ_ENABLE}     = 1;
+-    $filter{MSS_VOLT_VDDR_OFFSET_DISABLE}                           = 1;
+-    $filter{OCC_LOAD_TIMEOUT}                                       = 1;
+-    $filter{OCC_RESET_TIMEOUT}                                      = 1;
+-    $filter{PCIE_DEFAULT_HDDW_SLOT_COUNT}                           = 1;
+-    $filter{PCIE_MIN_HDDW_SLOT_COUNT}                               = 1;
+-    $filter{PCIE_MAX_HDDW_SLOT_COUNT}                               = 1;
+-    $filter{REDUNDANT_FSPS}                                         = 1;
+-    $filter{SYSTEM_MTM}                                             = 1;
+-    $filter{PM_EXTERNAL_VRM_STEPSIZE}                               = 1;
+-    $filter{PM_EXTERNAL_VRM_STEPDELAY}                              = 1;
+-    $filter{PM_SPIPSS_FREQUENCY}                                    = 1;
+-    $filter{PM_SYSTEM_IVRMS_ENABLED}                                = 1;
+     $filter{NUMERIC_POD_TYPE_TEST}                                  = 1;
+-    $filter{CARD_TYPE}                                              = 1;
+-    $filter{PROC_PCIE_DSMP_CAPABLE}                                 = 1;
+-    $filter{PROC_PCIE_IOP_CONFIG}                                   = 1;
+-    $filter{PROC_PCIE_IOP_REVERSAL}                                 = 1;
+-    $filter{PROC_PCIE_IOP_REVERSAL_BIFURCATED}                      = 1;
+-    $filter{PROC_PCIE_IOP_REVERSAL_NON_BIFURCATED}                  = 1;
+-    $filter{NPU_MMIO_BAR_SIZE}                                      = 1;
+-    $filter{NPU_MMIO_BAR_BASE_ADDR}                                 = 1;
+-    $filter{PROC_PCIE_REFCLOCK_ENABLE}                              = 1;
+-    $filter{PSI_HB_ESP_ADDR}                                        = 1;
+-    $filter{TPM_INFO}                                               = 1;
+-    $filter{STANDBY_PLUGGABLE}                                      = 1;
+-    $filter{CPM_INFLECTION_POINTS}                                  = 1;
+-    $filter{PROC_FABRIC_X_ATTACHED_CHIP_CNFG}                       = 1;
+-    $filter{SYSTEM_RESCLK_VALUE}                                    = 1;
+-    $filter{HWAS_STATE}                                             = 1;
+-    $filter{PROC_MIRROR_SIZES}                                      = 1;
+-    $filter{PROC_FABRIC_X_ADDR_DIS}                                 = 1;
+-    $filter{PROC_FABRIC_A_ATTACHED_LINK_ID}                         = 1;
+-    $filter{PROC_MEM_BASES}                                         = 1;
+-    $filter{UNIT_TEST_MCA_MEMORY_SIZES}                             = 1;
+-    $filter{SYSTEM_RESCLK_L3_VALUE}                                 = 1;
+-    $filter{PROC_CHTM_BAR_SIZES}                                    = 1;
+-    $filter{SYSTEM_RESCLK_FREQ_REGIONS}                             = 1;
+-    $filter{PROC_MIRROR_SIZES_ACK}                                  = 1;
+-    $filter{PROC_FABRIC_X_ATTACHED_LINK_ID}                         = 1;
+-    $filter{PROC_FABRIC_A_ATTACHED_LINK_ID}                         = 1;
+-    $filter{PROC_FABRIC_A_ATTACHED_CHIP_ID}                         = 1;
+-    $filter{PROC_MEM_SIZES}                                         = 1;
+-    $filter{PROC_FABRIC_OPTICS_CONFIG_MODE}                         = 1;
+-    $filter{PROC_PCIE_LANE_EQUALIZATION}                            = 1;
+-    $filter{HOT_PLUG_POWER_CONTROLLER_INFO}                         = 1;
+-    $filter{PROC_MEM_BASES_ACK}                                     = 1;
+-    $filter{PROC_FABRIC_A_ATTACHED_CHIP_CNFG}                       = 1;
+-    $filter{CHTM_TRACE_TYPE}                                        = 1;
+-    $filter{PROC_PCIE_NOT_F_LINK}                                   = 1;
+-    $filter{PROC_FABRIC_X_ATTACHED_CHIP_ID}                         = 1;
+-    $filter{PROC_FABRIC_A_ADDR_DIS}                                 = 1;
+-    $filter{MSS_MCS_GROUP_32}                                       = 1;
+-    $filter{PROC_MIRROR_BASES_ACK}                                  = 1;
+-    $filter{DELETE_AFFINITY_PATH}                                   = 1;
+-    $filter{PROC_MIRROR_BASES}                                      = 1;
+-    $filter{PROC_FABRIC_A_LINK_DELAY}                               = 1;
+-    $filter{PROC_MEM_SIZES_ACK}                                     = 1;
+-    $filter{SYSTEM_RESCLK_FREQ_REGION_INDEX}                        = 1;
+-    $filter{PROC_FABRIC_X_LINK_DELAY}                               = 1;
+-    $filter{PROC_CHTM_BAR_BASE_ADDR}                                = 1;
+-    $filter{TOD_CPU_DATA}                                           = 1;
+-    $filter{MSS_VOLT}                                               = 1;
+-    $filter{EFF_READ_DBI}                                           = 1;
+-    $filter{RU_TYPE}                                                = 1;
+-    $filter{STANDBY_PLUGGABLE}                                      = 1;
+-    $filter{MANUFACTURER}                                           = 1;
+-    $filter{HWAS_STATE_CHANGED_SUBSCRIPTION_MASK}                   = 1;
+     if ($filter{$attribute} == 1)
+     {
+         return;
+-- 
+1.8.2.2
+
