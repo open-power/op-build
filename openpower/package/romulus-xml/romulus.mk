@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-ROMULUS_XML_VERSION ?= 3ae36a611bf874299404c377224915952dbb9b15
+ROMULUS_XML_VERSION ?= 5cfad9acd067c4f919ff64b388848cfe8a3fb9b5
 ROMULUS_XML_SITE ?= $(call github,open-power,romulus-xml,$(ROMULUS_XML_VERSION))
 
 ROMULUS_XML_LICENSE = Apache-2.0
@@ -41,6 +41,7 @@ define ROMULUS_XML_BUILD_CMDS
             --tgt-xml $(MRW_HB_TOOLS)/target_types_merged.xml \
             --tgt-xml $(MRW_HB_TOOLS)/target_types_hb.xml \
             --tgt-xml $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            --tgt-xml $(MRW_HB_TOOLS)/target_types_openpower.xml \
             --mrw-xml $(MRW_SCRATCH)/ROMULUS_hb.mrw.xml
 
        cp  $(MRW_SCRATCH)/ROMULUS_hb.mrw.xml.updated  $(MRW_SCRATCH)/ROMULUS_hb.mrw.xml
@@ -50,9 +51,11 @@ define ROMULUS_XML_BUILD_CMDS
             $(MRW_HB_TOOLS)/attribute_types.xml \
             $(MRW_HB_TOOLS)/attribute_types_hb.xml \
             $(MRW_HB_TOOLS)/attribute_types_oppowervm.xml \
+            $(MRW_HB_TOOLS)/attribute_types_openpower.xml \
             $(MRW_HB_TOOLS)/target_types_merged.xml \
             $(MRW_HB_TOOLS)/target_types_hb.xml \
             $(MRW_HB_TOOLS)/target_types_oppowervm.xml \
+            $(MRW_HB_TOOLS)/target_types_openpower.xml \
             $(MRW_SCRATCH)/$(BR2_ROMULUS_MRW_XML_FILENAME) > $(MRW_HB_TOOLS)/temporary_hb.hb.xml;
 
         # creating the targeting binary
