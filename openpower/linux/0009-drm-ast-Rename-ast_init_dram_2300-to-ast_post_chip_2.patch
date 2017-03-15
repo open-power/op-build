@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Fri, 17 Feb 2017 13:51:34 +1100
-Subject: [PATCH 11/15] drm/ast: Rename ast_init_dram_2300 to
+Subject: [PATCH 09/12] drm/ast: Rename ast_init_dram_2300 to
  ast_post_chip_2300
 
 The function does more than initializing the DRAM and in turns
@@ -15,7 +15,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
-index c55067ccb0b1..561fd7d3a0cf 100644
+index 89b09d60b2be..3716795d27c8 100644
 --- a/drivers/gpu/drm/ast/ast_post.c
 +++ b/drivers/gpu/drm/ast/ast_post.c
 @@ -31,7 +31,7 @@
@@ -27,7 +27,7 @@ index c55067ccb0b1..561fd7d3a0cf 100644
  
  void ast_enable_vga(struct drm_device *dev)
  {
-@@ -381,7 +381,7 @@ void ast_post_gpu(struct drm_device *dev)
+@@ -377,7 +377,7 @@ void ast_post_gpu(struct drm_device *dev)
  
  	if (ast->config_mode == ast_use_p2a) {
  		if (ast->chip == AST2300 || ast->chip == AST2400)
@@ -36,7 +36,7 @@ index c55067ccb0b1..561fd7d3a0cf 100644
  		else
  			ast_init_dram_reg(dev);
  
-@@ -1589,7 +1589,7 @@ static void ddr2_init(struct ast_private *ast, struct ast2300_dram_param *param)
+@@ -1585,7 +1585,7 @@ static void ddr2_init(struct ast_private *ast, struct ast2300_dram_param *param)
  
  }
  

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "Y.C. Chen" <yc_chen@aspeedtech.com>
 Date: Fri, 17 Feb 2017 10:56:47 +0800
-Subject: [PATCH 09/15] drm/ast: Fixed vram size incorrect issue on POWER
+Subject: [PATCH 07/12] drm/ast: Fixed vram size incorrect issue on POWER
 
 The default value of VGA scratch may incorrect.
 Should initial h/w before get vram info.
@@ -38,10 +38,10 @@ index 5a83d3793000..eefc5124eeb3 100644
  	if (ret)
  		goto out_free;
 diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
-index 64549cebcc5b..e8024502e749 100644
+index c7c58becb25d..5b7db846a2c1 100644
 --- a/drivers/gpu/drm/ast/ast_post.c
 +++ b/drivers/gpu/drm/ast/ast_post.c
-@@ -79,7 +79,7 @@ ast_set_def_ext_reg(struct drm_device *dev)
+@@ -75,7 +75,7 @@ ast_set_def_ext_reg(struct drm_device *dev)
  	const u8 *ext_reg_info;
  
  	/* reset scratch */

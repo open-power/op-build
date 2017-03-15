@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "Y.C. Chen" <yc_chen@aspeedtech.com>
 Date: Fri, 17 Feb 2017 14:36:46 +1100
-Subject: [PATCH 08/15] drm/ast: Base support for AST2500
+Subject: [PATCH 06/12] drm/ast: Base support for AST2500
 
 Add detection and mode setting updates for AST2500 generation chip,
 code originally from Aspeed and slightly reworked for coding style

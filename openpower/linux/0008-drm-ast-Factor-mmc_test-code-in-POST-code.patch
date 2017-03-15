@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Sat, 18 Feb 2017 14:19:10 +1100
-Subject: [PATCH 10/15] drm/ast: Factor mmc_test code in POST code
+Subject: [PATCH 08/12] drm/ast: Factor mmc_test code in POST code
 
 There's a some duplication for what's essentially copies of
 two loops, so factor it. The upcoming AST2500 POST code adds
@@ -22,10 +22,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 31 insertions(+), 51 deletions(-)
 
 diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
-index e8024502e749..c55067ccb0b1 100644
+index 5b7db846a2c1..89b09d60b2be 100644
 --- a/drivers/gpu/drm/ast/ast_post.c
 +++ b/drivers/gpu/drm/ast/ast_post.c
-@@ -445,85 +445,65 @@ static const u32 pattern[8] = {
+@@ -441,85 +441,65 @@ static const u32 pattern[8] = {
  	0x7C61D253
  };
  
@@ -135,7 +135,7 @@ index e8024502e749..c55067ccb0b1 100644
  }
  
  static int cbr_test(struct ast_private *ast)
-@@ -601,16 +581,16 @@ static u32 cbr_scan2(struct ast_private *ast)
+@@ -597,16 +577,16 @@ static u32 cbr_scan2(struct ast_private *ast)
  	return data2;
  }
  
@@ -157,7 +157,7 @@ index e8024502e749..c55067ccb0b1 100644
  {
  	u32 patcnt, loop;
  
-@@ -621,9 +601,9 @@ static u32 cbr_scan3(struct ast_private *ast)
+@@ -617,9 +597,9 @@ static u32 cbr_scan3(struct ast_private *ast)
  				break;
  		}
  		if (loop == 2)

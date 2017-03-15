@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Fri, 17 Feb 2017 13:57:30 +1100
-Subject: [PATCH 07/15] drm/ast: Fix calculation of MCLK
+Subject: [PATCH 05/12] drm/ast: Fix calculation of MCLK
 
 Some braces were missing causing an incorrect calculation.
 
