@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "Y.C. Chen" <yc_chen@aspeedtech.com>
 Date: Fri, 17 Feb 2017 14:45:07 +1100
-Subject: [PATCH 12/15] drm/ast: POST code for the new AST2500
+Subject: [PATCH 10/12] drm/ast: POST code for the new AST2500
 
 This is used when the BMC isn't running any code and thus has
 to be initialized by the host.
@@ -95,7 +95,7 @@ index cc04539c0ff3..1d9c4e75d303 100644
 +
  #endif
 diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
-index 561fd7d3a0cf..c15f643915af 100644
+index 3716795d27c8..f7d421359d56 100644
 --- a/drivers/gpu/drm/ast/ast_post.c
 +++ b/drivers/gpu/drm/ast/ast_post.c
 @@ -32,6 +32,7 @@
@@ -106,7 +106,7 @@ index 561fd7d3a0cf..c15f643915af 100644
  
  void ast_enable_vga(struct drm_device *dev)
  {
-@@ -82,7 +83,8 @@ ast_set_def_ext_reg(struct drm_device *dev)
+@@ -78,7 +79,8 @@ ast_set_def_ext_reg(struct drm_device *dev)
  	for (i = 0x81; i <= 0x9f; i++)
  		ast_set_index_reg(ast, AST_IO_CRTC_PORT, i, 0x00);
  
@@ -116,7 +116,7 @@ index 561fd7d3a0cf..c15f643915af 100644
  		if (dev->pdev->revision >= 0x20)
  			ext_reg_info = extreginfo_ast2300;
  		else
-@@ -106,7 +108,8 @@ ast_set_def_ext_reg(struct drm_device *dev)
+@@ -102,7 +104,8 @@ ast_set_def_ext_reg(struct drm_device *dev)
  
  	/* Enable RAMDAC for A1 */
  	reg = 0x04;
@@ -126,7 +126,7 @@ index 561fd7d3a0cf..c15f643915af 100644
  		reg |= 0x20;
  	ast_set_index_reg_mask(ast, AST_IO_CRTC_PORT, 0xb6, 0xff, reg);
  }
-@@ -380,7 +383,9 @@ void ast_post_gpu(struct drm_device *dev)
+@@ -376,7 +379,9 @@ void ast_post_gpu(struct drm_device *dev)
  	ast_set_def_ext_reg(dev);
  
  	if (ast->config_mode == ast_use_p2a) {
@@ -137,7 +137,7 @@ index 561fd7d3a0cf..c15f643915af 100644
  			ast_post_chip_2300(dev);
  		else
  			ast_init_dram_reg(dev);
-@@ -506,6 +511,11 @@ static u32 mmc_test_single2(struct ast_private *ast, u32 datagen)
+@@ -502,6 +507,11 @@ static u32 mmc_test_single2(struct ast_private *ast, u32 datagen)
  	return mmc_test2(ast, datagen, 0x05);
  }
  
@@ -149,7 +149,7 @@ index 561fd7d3a0cf..c15f643915af 100644
  static int cbr_test(struct ast_private *ast)
  {
  	u32 data;
-@@ -1672,3 +1682,404 @@ static void ast_post_chip_2300(struct drm_device *dev)
+@@ -1668,3 +1678,404 @@ static void ast_post_chip_2300(struct drm_device *dev)
  	} while ((reg & 0x40) == 0);
  }
  

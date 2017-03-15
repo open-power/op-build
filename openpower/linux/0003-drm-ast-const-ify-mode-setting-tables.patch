@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Fri, 17 Feb 2017 13:45:24 +1100
-Subject: [PATCH 05/15] drm/ast: const'ify mode setting tables
+Subject: [PATCH 03/12] drm/ast: const'ify mode setting tables
 
 And fix some comment alignment & space/tabs while at it
 
