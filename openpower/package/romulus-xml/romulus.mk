@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-ROMULUS_XML_VERSION ?= 5cfad9acd067c4f919ff64b388848cfe8a3fb9b5
+ROMULUS_XML_VERSION ?= cee21733cf05784b401d04ac13d9ac43e9449147
 ROMULUS_XML_SITE ?= $(call github,open-power,romulus-xml,$(ROMULUS_XML_VERSION))
 
 ROMULUS_XML_LICENSE = Apache-2.0
