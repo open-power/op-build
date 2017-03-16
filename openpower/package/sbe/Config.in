@@ -1,0 +1,6 @@
+config BR2_PACKAGE_SBE
+        bool "sbe"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power9)
+        select BR2_CPP
+        help
+            Project to build the sbe firmware codebase
