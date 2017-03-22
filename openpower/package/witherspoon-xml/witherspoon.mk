@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WITHERSPOON_XML_VERSION ?= cf8d93baea764dfdac7f39429e936221ea191bc9
+WITHERSPOON_XML_VERSION ?= 96d984775de7eb5ed8b5298cfcbb62f17341ac5b
 WITHERSPOON_XML_SITE ?= $(call github,open-power,witherspoon-xml,$(WITHERSPOON_XML_VERSION))
 
 WITHERSPOON_XML_LICENSE = Apache-2.0
