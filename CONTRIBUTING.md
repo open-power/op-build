@@ -61,10 +61,6 @@ branch. When we're nearing a release, we move the content of the master branch
 over to a 'release' branch, ensuring development can continue while the release
 is prepared.
 
-Prior to v1.15, there was also a 'master-next' branch. In the 1.16 development
-cycle, this is being phased out although continues to exist as a mirror of the
-'master' branch so that automated tooling can catch up.
-
 We accept pull requests on GitHub: https://github.com/open-power/op-build/pulls
 
 Developer Certificate of Origin
