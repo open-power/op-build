@@ -5,7 +5,7 @@
 ################################################################################
 
 OCC_VERSION_BRANCH_MASTER_P8 ?= 301b535a933e0c9c41b0f014677004cc8da2c445
-OCC_VERSION_BRANCH_MASTER ?= 4141b5f5fef2ba4b444aabbda1677e7f583cd4e8
+OCC_VERSION_BRANCH_MASTER ?= e1889e5dfcb4707ac66ab5ee0427ce97156bf4c0
 
 OCC_VERSION ?= $(if $(BR2_OPENPOWER_POWER9),$(OCC_VERSION_BRANCH_MASTER),$(OCC_VERSION_BRANCH_MASTER_P8))
 OCC_SITE ?= $(call github,open-power,occ,$(OCC_VERSION))
