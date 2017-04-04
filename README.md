@@ -45,7 +45,7 @@ cross-compiler. Cross-compiling from a x86-64 host is officially supported.
           python language-pack-en texinfo \
           build-essential g++ git bison flex unzip \
           libxml-simple-perl libxml-sax-perl libxml2-dev libxml2-utils xsltproc \
-          wget bc
+          wget bc libssl-dev
 
 ### Dependencies for *64-bit* Fedora systems
 
