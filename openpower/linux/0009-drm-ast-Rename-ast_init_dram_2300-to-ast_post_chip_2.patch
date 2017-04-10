@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Fri, 17 Feb 2017 13:51:34 +1100
-Subject: [PATCH 09/12] drm/ast: Rename ast_init_dram_2300 to
+Subject: [PATCH 09/13] drm/ast: Rename ast_init_dram_2300 to
  ast_post_chip_2300
 
 The function does more than initializing the DRAM and in turns
