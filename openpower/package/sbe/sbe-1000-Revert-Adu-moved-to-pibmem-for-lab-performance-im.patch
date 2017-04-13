@@ -1,0 +1,138 @@
+From d4a199c33929e3257a53506a22f15ab8965ebcac Mon Sep 17 00:00:00 2001
+From: Sachin Gupta <sgupta2m@in.ibm.com>
+Date: Thu, 13 Apr 2017 07:46:05 -0500
+Subject: [PATCH v1] Revert "Adu moved to pibmem for lab performance
+ improvement"
+
+This reverts commit c2482796143deef37befa450b3fa73d4cfa1dcff.
+---
+ src/build/import_hwp_mk/istep2/istep2files.mk           |  7 +++++++
+ src/build/import_hwp_mk/istep4/istep4files.mk           |  3 +--
+ src/build/import_hwp_mk/istep5/istep5files.mk           |  5 +----
+ src/build/import_hwp_mk/istepcommon/istepcommonfiles.mk | 11 +++++------
+ src/build/linkerscripts/linkseeprom.cmd                 |  2 +-
+ src/sbefw/Makefile                                      |  2 +-
+ 6 files changed, 16 insertions(+), 14 deletions(-)
+
+diff --git a/src/build/import_hwp_mk/istep2/istep2files.mk b/src/build/import_hwp_mk/istep2/istep2files.mk
+index b1fa9c0..ad20cb1 100644
+--- a/src/build/import_hwp_mk/istep2/istep2files.mk
++++ b/src/build/import_hwp_mk/istep2/istep2files.mk
+@@ -41,6 +41,13 @@ ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_init2.C
+ ISTEP2-CPP-SOURCES +=p9_sbe_tp_arrayinit.C
+ ISTEP2-CPP-SOURCES +=p9_sbe_tp_initf.C
+ ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_init3.C
++# TODO via RTC 170704
++# These procedures also needed in PIBMEM. Just having a quick fix
++# for lab
++ISTEP2-CPP-SOURCES +=p9_pm_ocb_indir_access.C
++ISTEP2-CPP-SOURCES +=p9_pm_ocb_indir_setup_circular.C
++ISTEP2-CPP-SOURCES +=p9_pm_ocb_indir_setup_linear.C
++ISTEP2-CPP-SOURCES +=p9_pm_ocb_init.C
+ ISTEP2-C-SOURCES =
+ ISTEP2-S-SOURCES =
+ 
+diff --git a/src/build/import_hwp_mk/istep4/istep4files.mk b/src/build/import_hwp_mk/istep4/istep4files.mk
+index e4d0a42..5fa151e 100644
+--- a/src/build/import_hwp_mk/istep4/istep4files.mk
++++ b/src/build/import_hwp_mk/istep4/istep4files.mk
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER sbe Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2016,2017
++# Contributors Listed Below - COPYRIGHT 2016
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -60,7 +60,6 @@ ISTEP4-CPP-SOURCES +=p9_ncu_scom.C
+ ISTEP4-CPP-SOURCES +=p9_l2_scom.C
+ ISTEP4-CPP-SOURCES +=p9_l3_scom.C
+ ISTEP4-CPP-SOURCES +=p9_common_poweronoff.C
+-ISTEP4-CPP-SOURCES +=p9_sbe_check_master_stop15.C
+ ISTEP4-C-SOURCES =
+ ISTEP4-S-SOURCES =
+ 
+diff --git a/src/build/import_hwp_mk/istep5/istep5files.mk b/src/build/import_hwp_mk/istep5/istep5files.mk
+index 6c99335..3593ba2 100644
+--- a/src/build/import_hwp_mk/istep5/istep5files.mk
++++ b/src/build/import_hwp_mk/istep5/istep5files.mk
+@@ -5,8 +5,7 @@
+ #
+ # OpenPOWER sbe Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2016,2017
+-# [+] International Business Machines Corp.
++# Contributors Listed Below - COPYRIGHT 2016
+ #
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+@@ -31,8 +30,6 @@
+ ##########################################################################
+ 
+ ISTEP5-CPP-SOURCES = p9_sbe_instruct_start.C
+-ISTEP5-CPP-SOURCES +=p9_thread_control.C
+-ISTEP5-CPP-SOURCES +=p9_sbe_load_bootloader.C
+ ISTEP5-C-SOURCES =
+ ISTEP5-S-SOURCES =
+ 
+diff --git a/src/build/import_hwp_mk/istepcommon/istepcommonfiles.mk b/src/build/import_hwp_mk/istepcommon/istepcommonfiles.mk
+index 8833c75..adfa05f 100644
+--- a/src/build/import_hwp_mk/istepcommon/istepcommonfiles.mk
++++ b/src/build/import_hwp_mk/istepcommon/istepcommonfiles.mk
+@@ -29,21 +29,20 @@
+ ##########################################################################
+ # Object Files
+ ##########################################################################
+-ISTEPCOMMON-CPP-SOURCES +=p9_sbe_common.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_perv_sbe_cmn.C
++ISTEPCOMMON-CPP-SOURCES +=p9_sbe_common.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_sbe_gear_switcher.C
++ISTEPCOMMON-CPP-SOURCES +=p9_sbe_check_master_stop15.C
++ISTEPCOMMON-CPP-SOURCES +=p9_ram_core.C
++ISTEPCOMMON-CPP-SOURCES +=p9_thread_control.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
++ISTEPCOMMON-CPP-SOURCES +=p9_sbe_load_bootloader.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_pba_access.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_pba_coherent_utils.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_pba_setup.C
+-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_access.C
+-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_circular.C
+-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_linear.C
+-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_init.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_adu_setup.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_adu_coherent_utils.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_adu_access.C
+-ISTEPCOMMON-CPP-SOURCES +=p9_ram_core.C
+ #Istep2 Procedure but this is required to run from PIBMEM
+ ISTEPCOMMON-CPP-SOURCES +=p9_sbe_tp_switch_gears.C
+ ISTEPCOMMON-CPP-SOURCES +=p9_sbe_npll_setup.C
+diff --git a/src/build/linkerscripts/linkseeprom.cmd b/src/build/linkerscripts/linkseeprom.cmd
+index cabb2c1..feabacc 100644
+--- a/src/build/linkerscripts/linkseeprom.cmd
++++ b/src/build/linkerscripts/linkseeprom.cmd
+@@ -98,7 +98,7 @@ SECTIONS
+     ////////////////////////////////
+     .text ALIGN(8): {
+          _text_origin = .; _text_offset = . - _seeprom_origin;
+-        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) *\libistepmpipl.a:(.text* ) *\libistep5.a:(.text* ) } > seeprom
++        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) *\libistepmpipl.a:(.text* ) } > seeprom
+      _text_size = . - _text_origin;
+ 
+    ////////////////////////////////
+diff --git a/src/sbefw/Makefile b/src/sbefw/Makefile
+index 89d16d3..56c4fce 100644
+--- a/src/sbefw/Makefile
++++ b/src/sbefw/Makefile
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER sbe Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2016,2017
++# Contributors Listed Below - COPYRIGHT 2016
+ # [+] International Business Machines Corp.
+ #
+ #
+-- 
+1.8.2.2
+
