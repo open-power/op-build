@@ -13,6 +13,18 @@ SBE_DEPENDENCIES = host-ppe42-gcc
 SBE_INSTALL_IMAGES = YES
 SBE_INSTALL_TARGET = NO
 
+
+define SBE_APPLY_PATCHES
+       if [ "$(BR2_OPENPOWER_POWER9)" == "y" ]; then \
+           $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/package/sbe \*.patch; \
+           if [ -d $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/sbe ]; then \
+               $(APPLY_PATCHES) $(@D) $(BR2_EXTERNAL_OP_BUILD_PATH)/custom/patches/sbe \*.patch; \
+           fi; \
+       fi;
+endef
+
+SBE_POST_PATCH_HOOKS += SBE_APPLY_PATCHES
+
 define SBE_BUILD_CMDS
 		bash -c 'cd $(@D)  && make LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib CROSS_COMPILER_PATH=$(PPE42_GCC_BIN)'
 endef
