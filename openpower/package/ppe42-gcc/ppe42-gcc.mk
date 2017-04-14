@@ -8,8 +8,8 @@ PPE42_GCC_VERSION ?= d8a1bac8634033a3edd4e9a22455f97318718f43
 PPE42_GCC_SITE ?= $(call github,open-power,ppe42-gcc,$(PPE42_GCC_VERSION))
 PPE42_GCC_LICENSE = GPLv3+
 
-PPE42_GCC_DEPENDENCIES = ppe42-binutils
-HOST_PPE42_GCC_DEPENDENCIES = host-ppe42-binutils
+PPE42_GCC_DEPENDENCIES = ppe42-binutils gmp mpfr mpc
+HOST_PPE42_GCC_DEPENDENCIES = host-ppe42-binutils host-gmp host-mpfr host-mpc
 
 PPE42_GCC_DIR = $(STAGING_DIR)/ppe42-binutils
 PPE42_GCC_BIN = $(STAGING_DIR)/ppe42-binutils/linux
