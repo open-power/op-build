@@ -3,7 +3,7 @@
 # ima-catalog.mk
 #
 ################################################################################
-IMA_CATALOG_VERSION ?= 0894c8e392ea5b8ad63860136deff777343685c7
+IMA_CATALOG_VERSION ?= 0e3bbcb56dfc60fd99b862406ecd3e117117d9af
 IMA_CATALOG_SITE ?= $(call github,open-power,ima-catalog,$(IMA_CATALOG_VERSION))
 IMA_CATALOG_LICENSE = Apache-2.0
 IMA_CATALOG_DEPENDENCIES = host-dtc host-xz
