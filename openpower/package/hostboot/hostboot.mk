@@ -3,6 +3,7 @@
 # hostboot
 #
 ################################################################################
+#This is a test change
 HOSTBOOT_VERSION_BRANCH_MASTER_P8 ?= 695bd891343faf1f0ef85fe53148590e58239efd
 HOSTBOOT_VERSION_BRANCH_MASTER ?= c9bd42f923bbfa7fcefbbdff07c79947c0447393
 
