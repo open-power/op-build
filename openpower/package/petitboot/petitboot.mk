@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PETITBOOT_VERSION = v1.2.7
+PETITBOOT_VERSION = v1.4.2
 PETITBOOT_SITE ?= $(call github,open-power,petitboot,$(PETITBOOT_VERSION))
 PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
 PETITBOOT_LICENSE = GPLv2
@@ -17,7 +17,7 @@ PETITBOOT_CONF_OPTS += --with-ncurses --without-twin-x11 --without-twin-fbdev \
 	      --localstatedir=/var \
 	      HOST_PROG_KEXEC=/usr/sbin/kexec \
 	      HOST_PROG_SHUTDOWN=/usr/libexec/petitboot/bb-kexec-reboot \
-	      $(if $(BR2_PACKAGE_BUSYBOX),--with-tftp=busybox)
+	      $(if $(BR2_PACKAGE_BUSYBOX),--with-tftp=busybox --enable-busybox)
 
 PETITBOOT_AUTORECONF_ENV += PETITBOOT_VERSION=`cat $(PETITBOOT_VERSION_FILE) | cut -d '-' -f 2-`
 
@@ -44,9 +44,7 @@ define PETITBOOT_POST_INSTALL
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc/petitboot/boot.d
 	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/01-create-default-dtb \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
-	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/30-add-offb \
-		$(TARGET_DIR)/etc/petitboot/boot.d/
-	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/80-set-stdout \
+	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/30-dtb-updates \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
 	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/90-sort-dtb \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
