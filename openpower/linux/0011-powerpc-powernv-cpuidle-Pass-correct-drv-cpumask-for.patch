@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Date: Thu, 23 Mar 2017 20:52:46 +0530
-Subject: [PATCH 11/12] powerpc/powernv/cpuidle: Pass correct drv->cpumask for
+Subject: [PATCH 11/13] powerpc/powernv/cpuidle: Pass correct drv->cpumask for
  registration
 
 drv->cpumask defaults to cpu_possible_mask in __cpuidle_driver_init().

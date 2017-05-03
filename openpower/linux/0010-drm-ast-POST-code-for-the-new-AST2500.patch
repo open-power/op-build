@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "Y.C. Chen" <yc_chen@aspeedtech.com>
 Date: Fri, 17 Feb 2017 14:45:07 +1100
-Subject: [PATCH 10/12] drm/ast: POST code for the new AST2500
+Subject: [PATCH 10/13] drm/ast: POST code for the new AST2500
 
 This is used when the BMC isn't running any code and thus has
 to be initialized by the host.

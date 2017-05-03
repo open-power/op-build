@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Sat, 18 Feb 2017 14:19:10 +1100
-Subject: [PATCH 08/12] drm/ast: Factor mmc_test code in POST code
+Subject: [PATCH 08/13] drm/ast: Factor mmc_test code in POST code
 
 There's a some duplication for what's essentially copies of
 two loops, so factor it. The upcoming AST2500 POST code adds
