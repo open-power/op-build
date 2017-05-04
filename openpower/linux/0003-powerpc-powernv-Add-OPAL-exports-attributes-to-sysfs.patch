@@ -1,0 +1,120 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Matt Brown <matthew.brown.dev@gmail.com>
+Date: Thu, 30 Mar 2017 10:28:01 +1100
+Subject: [PATCH 3/4] powerpc/powernv: Add OPAL exports attributes to sysfs
+
+New versions of OPAL have a device node /ibm,opal/firmware/exports, each
+property of which describes a range of memory in OPAL that Linux might
+want to export to userspace for debugging.
+
+This patch adds a sysfs file under 'opal/exports' for each property
+found there, and makes it read-only by root.
+
+Signed-off-by: Matt Brown <matthew.brown.dev@gmail.com>
+[mpe: Drop counting of props, rename to attr, free on sysfs error, c'log]
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+(cherry picked from commit 11fe909d236263f62808dc3c73caf798e026d7aa)
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ arch/powerpc/platforms/powernv/opal.c | 76 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 76 insertions(+)
+
+diff --git a/arch/powerpc/platforms/powernv/opal.c b/arch/powerpc/platforms/powernv/opal.c
+index e0f856bfbfe8..25ea8f6fe7f8 100644
+--- a/arch/powerpc/platforms/powernv/opal.c
++++ b/arch/powerpc/platforms/powernv/opal.c
+@@ -595,6 +595,79 @@ static void opal_export_symmap(void)
+ 		pr_warn("Error %d creating OPAL symbols file\n", rc);
+ }
+ 
++static ssize_t export_attr_read(struct file *fp, struct kobject *kobj,
++				struct bin_attribute *bin_attr, char *buf,
++				loff_t off, size_t count)
++{
++	return memory_read_from_buffer(buf, count, &off, bin_attr->private,
++				       bin_attr->size);
++}
++
++/*
++ * opal_export_attrs: creates a sysfs node for each property listed in
++ * the device-tree under /ibm,opal/firmware/exports/
++ * All new sysfs nodes are created under /opal/exports/.
++ * This allows for reserved memory regions (e.g. HDAT) to be read.
++ * The new sysfs nodes are only readable by root.
++ */
++static void opal_export_attrs(void)
++{
++	struct bin_attribute *attr;
++	struct device_node *np;
++	struct property *prop;
++	struct kobject *kobj;
++	u64 vals[2];
++	int rc;
++
++	np = of_find_node_by_path("/ibm,opal/firmware/exports");
++	if (!np)
++		return;
++
++	/* Create new 'exports' directory - /sys/firmware/opal/exports */
++	kobj = kobject_create_and_add("exports", opal_kobj);
++	if (!kobj) {
++		pr_warn("kobject_create_and_add() of exports failed\n");
++		return;
++	}
++
++	for_each_property_of_node(np, prop) {
++		if (!strcmp(prop->name, "name") || !strcmp(prop->name, "phandle"))
++			continue;
++
++		if (of_property_read_u64_array(np, prop->name, &vals[0], 2))
++			continue;
++
++		attr = kmalloc(sizeof(*attr), GFP_KERNEL);
++
++		if (attr == NULL) {
++			pr_warn("Failed kmalloc for bin_attribute!");
++			continue;
++		}
++
++		attr->attr.name = kstrdup(prop->name, GFP_KERNEL);
++		attr->attr.mode = 0400;
++		attr->read = export_attr_read;
++		attr->private = __va(vals[0]);
++		attr->size = vals[1];
++
++		if (attr->attr.name == NULL) {
++			pr_warn("Failed kstrdup for bin_attribute attr.name");
++			kfree(attr);
++			continue;
++		}
++
++		rc = sysfs_create_bin_file(kobj, attr);
++		if (rc) {
++			pr_warn("Error %d creating OPAL sysfs exports/%s file\n",
++				 rc, prop->name);
++			kfree(attr->attr.name);
++			kfree(attr);
++		}
++	}
++
++	of_node_put(np);
++}
++
+ static void __init opal_dump_region_init(void)
+ {
+ 	void *addr;
+@@ -733,6 +806,9 @@ static int __init opal_init(void)
+ 		opal_msglog_sysfs_init();
+ 	}
+ 
++	/* Export all properties */
++	opal_export_attrs();
++
+ 	/* Initialize platform devices: IPMI backend, PRD & flash interface */
+ 	opal_pdev_init("ibm,opal-ipmi");
+ 	opal_pdev_init("ibm,opal-flash");
+-- 
+2.11.0
+
