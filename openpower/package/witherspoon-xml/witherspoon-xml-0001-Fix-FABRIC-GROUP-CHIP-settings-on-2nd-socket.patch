@@ -1,0 +1,30 @@
+From 71a38e19fbb44be2c084b03e3b833a7cb14f0017 Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Wed, 3 May 2017 09:54:06 -0500
+Subject: [PATCH] Fix FABRIC GROUP + CHIP settings on 2nd socket
+
+---
+ witherspoon.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/witherspoon.xml b/witherspoon.xml
+index d7a6d08..7597986 100644
+--- a/witherspoon.xml
++++ b/witherspoon.xml
+@@ -41022,11 +41022,11 @@
+ 	</attribute>
+ 	<attribute>
+ 		<id>FABRIC_CHIP_ID</id>
+-		<default>1</default>
++		<default>0</default>
+ 	</attribute>
+ 	<attribute>
+ 		<id>FABRIC_GROUP_ID</id>
+-		<default>0</default>
++		<default>1</default>
+ 	</attribute>
+ 	<attribute>
+ 		<id>LOCATION_CODE</id>
+-- 
+1.8.2.2
+
