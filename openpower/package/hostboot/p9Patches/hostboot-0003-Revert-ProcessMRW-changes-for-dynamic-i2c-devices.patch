@@ -1,0 +1,359 @@
+From 7a4142d229ddd0554684664df8d7fa9bd402abc7 Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Mon, 8 May 2017 13:03:51 -0500
+Subject: [PATCH] Revert "ProcessMRW changes for dynamic i2c devices"
+
+- Do this temporarily while the attribute dependencies are sorted out
+  (HDAT_I2C_DEVICE_TYPE + HDAT_I2C_DEVICE_PURPOSE)
+
+This reverts commit 651ed35f1c045ea0c52ac659f9c27d757a351877.
+---
+ src/usr/i2c/i2c.C                                  |  12 +-
+ src/usr/targeting/common/Targets.pm                |  16 --
+ src/usr/targeting/common/processMrw.pl             | 190 ---------------------
+ .../common/xmltohb/attribute_types_openpower.xml   |   4 +-
+ .../common/xmltohb/target_types_openpower.xml      |   6 +-
+ 5 files changed, 12 insertions(+), 216 deletions(-)
+
+diff --git a/src/usr/i2c/i2c.C b/src/usr/i2c/i2c.C
+index 3892497..835d9ea 100755
+--- a/src/usr/i2c/i2c.C
++++ b/src/usr/i2c/i2c.C
+@@ -3854,6 +3854,9 @@ void getDeviceInfo( TARGETING::Target* i_i2cMaster,
+                 case EEPROM::VPD_BACKUP:
+                     l_currentDI.devicePurpose =
+                             TARGETING::HDAT_I2C_DEVICE_PURPOSE_MODULE_VPD;
++                    //TODO RTC:165485 this isn't currently right. we'll need
++                    //to add the changes in the enum and possibly the other
++                    //struct/attribute.
+                     break;
+                 case EEPROM::SBE_PRIMARY:
+                 case EEPROM::SBE_BACKUP:
+@@ -3938,8 +3941,8 @@ void getDeviceInfo( TARGETING::Target* i_i2cMaster,
+         TARGETING::ATTR_HDAT_I2C_MASTER_PORT_type l_i2cMasterPort;
+         (*childItr)->tryGetAttr<TARGETING::ATTR_HDAT_I2C_MASTER_PORT>(
+                                                     l_i2cMasterPort);
+-        TARGETING::ATTR_HDAT_I2C_DEVICE_TYPE_type l_i2cDevType;
+-        (*childItr)->tryGetAttr<TARGETING::ATTR_HDAT_I2C_DEVICE_TYPE>(
++        TARGETING::ATTR_HDAT_I2C_DEVTYPE_type l_i2cDevType;
++        (*childItr)->tryGetAttr<TARGETING::ATTR_HDAT_I2C_DEVTYPE>(
+                                                     l_i2cDevType);
+         TARGETING::ATTR_HDAT_I2C_ADDR_type l_i2cAddr;
+         (*childItr)->tryGetAttr<TARGETING::ATTR_HDAT_I2C_ADDR>(l_i2cAddr);
+@@ -3949,8 +3952,8 @@ void getDeviceInfo( TARGETING::Target* i_i2cMaster,
+         TARGETING::ATTR_HDAT_I2C_BUS_FREQ_type l_i2cBusFreq;
+         (*childItr)->tryGetAttr<TARGETING::ATTR_HDAT_I2C_BUS_FREQ>(
+                                                     l_i2cBusFreq);
+-        TARGETING::ATTR_HDAT_I2C_DEVICE_PURPOSE_type l_i2cDevPurpose;
+-        (*childItr)->tryGetAttr<TARGETING::ATTR_HDAT_I2C_DEVICE_PURPOSE>(
++        TARGETING::ATTR_HDAT_I2C_DEV_PURPOSE_type l_i2cDevPurpose;
++        (*childItr)->tryGetAttr<TARGETING::ATTR_HDAT_I2C_DEV_PURPOSE>(
+                                                     l_i2cDevPurpose);
+ 
+         uint8_t l_arrayLength =
+@@ -3966,7 +3969,6 @@ void getDeviceInfo( TARGETING::Target* i_i2cMaster,
+                     l_idx++)
+         {
+             DeviceInfo_t l_currentDevice;
+-            l_currentDevice.masterChip = (*childItr);
+             l_currentDevice.engine = l_i2cEngine[l_idx];
+             l_currentDevice.masterPort = l_i2cMasterPort[l_idx];
+             l_currentDevice.addr = l_i2cAddr[l_idx];
+diff --git a/src/usr/targeting/common/Targets.pm b/src/usr/targeting/common/Targets.pm
+index 44b24bb..9009b4d 100644
+--- a/src/usr/targeting/common/Targets.pm
++++ b/src/usr/targeting/common/Targets.pm
+@@ -1708,18 +1708,6 @@ sub getBusAttribute
+       ->{default};
+ }
+ 
+-## returns a boolean for if a given bus attribute is defined
+-sub isBusAttributeDefined
+-{
+-    my $self       = shift;
+-    my $target     = shift;
+-    my $busnum     = shift;
+-    my $attr       = shift;
+-    my $target_ptr = $self->getTarget($target);
+-
+-    return defined($target_ptr->{CONNECTION}->{BUS}->[$busnum]->{bus_attribute}
+-            ->{$attr}->{default});
+-}
+ 
+ ## returns a pointer to an array of children target names
+ sub getTargetChildren
+@@ -2059,10 +2047,6 @@ to value C<VALUE>.  This is for complex attributes.
+ Gets the attribute C<ATTRIBUTE_NAME> from bus C<TARGET_STRING> bus number
+ C<INDEX>.
+ 
+-=item isBusAttributeDefined(C<TARGET_STRING>,C<INDEX>.C<ATTRIBUTE_NAME>)
+-
+-Looks for a specific attribute and returns if it exists or not
+-
+ =item getTargetChildren(C<TARGET_STRING>)
+ 
+ Returns an array of target strings representing all the children of target
+diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
+index 97d9901..fd6fbad 100644
+--- a/src/usr/targeting/common/processMrw.pl
++++ b/src/usr/targeting/common/processMrw.pl
+@@ -477,15 +477,6 @@ sub processProcessor
+        $targetObj->setMasterProc($target);
+     }
+ 
+-    # I2C arrays
+-    my @engine = ();
+-    my @port = ();
+-    my @slavePort = ();
+-    my @addr = ();
+-    my @speed = ();
+-    my @type = ();
+-    my @purpose = ();
+-
+     $targetObj->log($target, "Processing PROC");
+     foreach my $child (@{ $targetObj->getTargetChildren($target) })
+     {
+@@ -537,58 +528,8 @@ sub processProcessor
+         {
+             processOcc($targetObj, $child, $target);
+         }
+-        # Ideally this should be $child_type eq "I2C", but we need a change
+-        # in serverwiz and the witherspoon.xml first
+-        elsif (index($child,"i2c-master") != -1)
+-        {
+-            my ($i2cEngine, $i2cPort, $i2cSlavePort, $i2cAddr,
+-                $i2cSpeed, $i2cType, $i2cPurpose) =
+-                    processI2C($targetObj, $child, $target);
+-
+-            # Add this I2C device's information to the proc array
+-            push(@engine,@$i2cEngine);
+-            push(@port,@$i2cPort);
+-            push(@slavePort,@$i2cSlavePort);
+-            push(@addr,@$i2cAddr);
+-            push(@speed,@$i2cSpeed);
+-            push(@type,@$i2cType);
+-            push(@purpose,@$i2cPurpose);
+-
+-        }
+     }
+ 
+-    # Add final I2C arrays to processor
+-    my $size         = scalar @engine;
+-    my $engine_attr  = $engine[0];
+-    my $port_attr    = $port[0];
+-    my $slave_attr   = $slavePort[0];
+-    my $addr_attr    = $addr[0];
+-    my $speed_attr   = $speed[0];
+-    my $type_attr    = "0x".$type[0];
+-    my $purpose_attr = "0x".$purpose[0];
+-
+-    # Parse out array to print as a string
+-    foreach my $n (1..($size-1))
+-    {
+-        $engine_attr    .= ",".$engine[$n];
+-        $port_attr      .= ",".$port[$n];
+-        $slave_attr     .= ",".$slavePort[$n];
+-        $addr_attr      .= ",".$addr[$n];
+-        $speed_attr     .= ",".$speed[$n];
+-        $type_attr      .= ",0x".$type[$n];
+-        $purpose_attr   .= ",0x".$purpose[$n];
+-    }
+-
+-    # Set the arrays to the corresponding attribute on the proc
+-    $targetObj->setAttribute($target,"HDAT_I2C_ENGINE",$engine_attr);
+-    $targetObj->setAttribute($target,"HDAT_I2C_MASTER_PORT",$port_attr);
+-    $targetObj->setAttribute($target,"HDAT_I2C_SLAVE_PORT",$slave_attr);
+-    $targetObj->setAttribute($target,"HDAT_I2C_ADDR",$addr_attr);
+-    $targetObj->setAttribute($target,"HDAT_I2C_BUS_FREQ",$speed_attr);
+-    $targetObj->setAttribute($target,"HDAT_I2C_DEVICE_TYPE",$type_attr);
+-    $targetObj->setAttribute($target,"HDAT_I2C_DEVICE_PURPOSE",$purpose_attr);
+-    $targetObj->setAttribute($target,"HDAT_I2C_ELEMENTS",$size);
+-
+     ## update path for mvpd's and sbe's
+     my $path  = $targetObj->getAttribute($target, "PHYS_PATH");
+     my $model = $targetObj->getAttribute($target, "MODEL");
+@@ -1290,137 +1231,6 @@ sub getI2cMapField
+     return $hexfield;
+ }
+ 
+-#------------------------------------------------------------------------------
+-# I2C
+-#
+-sub processI2C
+-{
+-    my $targetObj    = shift; # Top Hierarchy of targeting structure
+-    my $target       = shift; # I2C targetInstance
+-    my $parentTarget = shift; # Processor target
+-
+-    # Initialize output arrays
+-    my @i2cEngine = ();
+-    my @i2cPort = ();
+-    my @i2cSlave = ();
+-    my @i2cAddr = ();
+-    my @i2cSpeed = ();
+-    my @i2cType = ();
+-    my @i2cPurpose = ();
+-
+-    # Step 1: get I2C_ENGINE and PORT from <targetInstance>
+-
+-    my $engine = $targetObj->getAttribute($target, "I2C_ENGINE");
+-    if($engine eq "") {$engine = "0xFF";}
+-
+-    my $port = $targetObj->getAttribute($target, "I2C_PORT");
+-    if($port eq "") {$port = "0xFF";}
+-
+-    # Step 2: get I2C_ADDRESS and I2C_SPEED from <bus>
+-    #         This is different for each connection.
+-
+-    my $i2cs = $targetObj->findConnections($parentTarget, "I2C","");
+-    if ($i2cs ne "")
+-    {
+-        # This gives all i2c connections
+-        foreach my $i2c (@{$i2cs->{CONN}})
+-        {
+-            # Here we are checking that the i2c source matches our target
+-            my $source = $i2c->{SOURCE};
+-            if ($source ne $target)
+-            {
+-                next;
+-            }
+-
+-            # Most I2C devices will default the slave port, it is only valid
+-            # for gpio expanders.
+-            my $slavePort = "0xFF";
+-
+-            my @source_array = split(/-/,$source);
+-            my $source_idx = scalar @source_array;
+-
+-            # If the last part of the source only includes numbers
+-            if($source_array[$source_idx-1] =~ /^[0-9,.E]+$/)
+-            {
+-                $slavePort = $source_array[$source_idx-1];
+-            }
+-
+-            my $addr;
+-            my $speed;
+-            my $type;
+-            my $purpose;
+-
+-            # For all these attributes, we need to check if they're defined,
+-            # and if not we set them to a default value.
+-            if ($targetObj->isBusAttributeDefined(
+-                     $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_ADDRESS"))
+-            {
+-                $addr = $targetObj->getBusAttribute(
+-                           $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_ADDRESS");
+-            }
+-
+-            if ($addr eq "") {$addr = "0xFF";}
+-
+-            if ($targetObj->isBusAttributeDefined(
+-                     $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_SPEED"))
+-            {
+-                $speed = $targetObj->getBusAttribute(
+-                           $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_SPEED");
+-            }
+-
+-            if ($speed eq "") {$speed = "0";}
+-
+-            if ($targetObj->isBusAttributeDefined(
+-                     $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_TYPE"))
+-            {
+-                $type = $targetObj->getBusAttribute(
+-                           $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_TYPE");
+-            }
+-
+-            if ($type eq "")
+-            {
+-                $type = "FF";
+-            }
+-            else
+-            {
+-                $type = $targetObj->getEnumValue("HDAT_I2C_DEVICE_TYPE",$type);
+-            }
+-
+-            if ($targetObj->isBusAttributeDefined(
+-                     $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_PURPOSE"))
+-            {
+-                $purpose = $targetObj->getBusAttribute(
+-                           $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_PURPOSE");
+-            }
+-
+-            if ($purpose eq "")
+-            {
+-                $purpose = "FF";
+-            }
+-            else
+-            {
+-                $purpose = $targetObj->getEnumValue("HDAT_I2C_DEVICE_PURPOSE",
+-                                                    $purpose);
+-            }
+-
+-            # Step 3: For each connection, create an instance in the array
+-            #         for the DeviceInfo_t struct.
+-            push @i2cEngine, $engine;
+-            push @i2cPort, $port;
+-            push @i2cSlave, $slavePort;
+-            push @i2cAddr, $addr;
+-            push @i2cSpeed, $speed;
+-            push @i2cType, $type;
+-            push @i2cPurpose, $purpose;
+-
+-        }
+-    }
+-
+-    # Return this i2c device's information back to the processor
+-    return (\@i2cEngine, \@i2cPort, \@i2cSlave, \@i2cAddr,
+-            \@i2cSpeed, \@i2cType, \@i2cPurpose);
+-}
+-
+ 
+ sub setEepromAttributes
+ {
+diff --git a/src/usr/targeting/common/xmltohb/attribute_types_openpower.xml b/src/usr/targeting/common/xmltohb/attribute_types_openpower.xml
+index e40f8eb..841d3d2 100644
+--- a/src/usr/targeting/common/xmltohb/attribute_types_openpower.xml
++++ b/src/usr/targeting/common/xmltohb/attribute_types_openpower.xml
+@@ -191,7 +191,7 @@
+ </attribute>
+ 
+ <attribute>
+-    <id>HDAT_I2C_DEVICE_TYPE</id>
++    <id>HDAT_I2C_DEVTYPE</id>
+     <description>
+         This attribute holds the values of the I2C device type from the i2c
+         device connections as defined in the MRW.  It is parsed into a
+@@ -255,7 +255,7 @@
+ </attribute>
+ 
+ <attribute>
+-    <id>HDAT_I2C_DEVICE_PURPOSE</id>
++    <id>HDAT_I2C_DEV_PURPOSE</id>
+     <description>
+         This attribute holds the values of the I2C device purpose from the i2c
+         device connections as defined in the MRW.  It is parsed into a
+diff --git a/src/usr/targeting/common/xmltohb/target_types_openpower.xml b/src/usr/targeting/common/xmltohb/target_types_openpower.xml
+index 6efbbd1..548c559 100644
+--- a/src/usr/targeting/common/xmltohb/target_types_openpower.xml
++++ b/src/usr/targeting/common/xmltohb/target_types_openpower.xml
+@@ -32,14 +32,14 @@
+      =====================================================================
+  -->
+ <targetTypeExtension>
+-    <id>chip-processor</id>
++    <id>base</id>
+     <attribute><id>HDAT_I2C_ENGINE</id></attribute>
+     <attribute><id>HDAT_I2C_MASTER_PORT</id></attribute>
+-    <attribute><id>HDAT_I2C_DEVICE_TYPE</id></attribute>
++    <attribute><id>HDAT_I2C_DEVTYPE</id></attribute>
+     <attribute><id>HDAT_I2C_ADDR</id></attribute>
+     <attribute><id>HDAT_I2C_SLAVE_PORT</id></attribute>
+     <attribute><id>HDAT_I2C_BUS_FREQ</id></attribute>
+-    <attribute><id>HDAT_I2C_DEVICE_PURPOSE</id></attribute>
++    <attribute><id>HDAT_I2C_DEV_PURPOSE</id></attribute>
+     <attribute><id>HDAT_I2C_ELEMENTS</id></attribute>
+     <attribute>
+         <id>IPMI_INSTANCE</id>
+-- 
+1.8.2.2
+
