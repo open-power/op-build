@@ -1,0 +1,3109 @@
+From 7db2e5916641601a6d5cca63be6562dc77ea920f Mon Sep 17 00:00:00 2001
+From: Elizabeth Liner <eliner@us.ibm.com>
+Date: Tue, 9 May 2017 15:58:52 -0500
+Subject: [PATCH] Adding the wof tables tool to the openpower chain. bluh.
+ change me
+
+Change-Id: I680c5f07ac7ac5c5dde069aedfb72d0ed85f9199
+---
+ src/build/buildpnor/wof-tables-img | 3075 ++++++++++++++++++++++++++++++++++++
+ src/build/mkrules/dist.targets.mk  |    1 +
+ 2 files changed, 3076 insertions(+)
+ create mode 100755 src/build/buildpnor/wof-tables-img
+
+diff --git a/src/build/buildpnor/wof-tables-img b/src/build/buildpnor/wof-tables-img
+new file mode 100755
+index 0000000..b049c1a
+--- /dev/null
++++ b/src/build/buildpnor/wof-tables-img
+@@ -0,0 +1,3075 @@
++#!/usr/bin/perl
++# IBM_PROLOG_BEGIN_TAG
++# This is an automatically generated prolog.
++#
++# $Source: src/build/buildpnor/wof-tables-img $
++#
++# OpenPOWER HostBoot Project
++#
++# Contributors Listed Below - COPYRIGHT 2017
++#
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied. See the License for the specific language governing
++# permissions and limitations under the License.
++#
++# IBM_PROLOG_END_TAG
++
++################################################################################
++#
++# Purpose
++# -------
++# This script creates a WOF Tables Image File based on one or more input CSV
++# files.  Each CSV file contains all the VFRTs for one "sort+mode" combination.
++#
++# The script also provides the following utility functions:
++#   * List contents of a WOF Tables Image File (top level headers)
++#   * View contents of one VFRT within a WOF Tables Image File
++#   * Extract one set of WOF Tables from an Image File
++#
++# Related Documentation
++# ---------------------
++# * "WOF Tables Image Tool":  Defines the command line interface, CSV file
++#   format, and several binary data structures such as the Image Header.
++#
++# * "POWER Energy Management Hcode/HWP Specification":  Defines the format of
++#   the VFRT as well as most of the binary data structures such as the
++#   WOF Tables Header.
++#
++# Implementation Notes
++# --------------------
++# * Object-oriented PERL features are used to simplify the implementation.
++#   Major elements of the domain, such as a CSV file or WOF Tables Image File,
++#   are represented as classes with data members and methods.
++#
++# * Class data members SHOULD NOT be directly accessed (as hash elements) by
++#   code OUTSIDE of the class implementation.  Direct access breaks
++#   encapsulation, complicates interfaces, and can lead to quality issues.
++#
++# * Class data members SHOULD be directly accessed (as hash elements) by code
++#   INSIDE the class implementation.  Performance is 5-10 times better.
++#
++# * The OO PERL convention of naming 'private' class methods with a leading
++#   underscore is used (e.g. _foo_bar).  'Private' class methods are those that
++#   should not be called outside the class implementation.
++#
++# * The OO PERL convention of combining get/set methods is used for writable
++#   data members.  The methods provide an optional parameter that, when
++#   specified, provides the new value for the data member.
++# 
++################################################################################
++
++
++################################################################################
++# Imports
++################################################################################
++
++use strict;                             # Enable strict error checking
++
++
++################################################################################
++# Util Package
++#
++# This package contains utility subroutines used by one or more classes.
++################################################################################
++
++package Util;
++
++
++sub round
++{
++  my ($value) = @_;
++
++  my $integer_value = int($value);
++  my $fraction_value = $value - $integer_value;
++  my $rounded_value = $integer_value;
++  if ($fraction_value >= 0.5)
++  {
++    $rounded_value++;
++  }
++
++  return $rounded_value;
++}
++
++
++################################################################################
++# VFRT Class
++#
++# This class represents one VFRT within a CSV file.
++################################################################################
++
++package VFRT;
++
++# Number of rows in a VFRT
++our $VFRT_ROW_COUNT = 5;
++
++# Number of columns in a VFRT
++our $VFRT_COLUMN_COUNT = 24;
++
++
++sub new
++{
++  my ($class, $nest_ceff, $core_ceff, $active_quads) = @_;
++
++  my $self =
++  {
++    'nest_ceff'    => $nest_ceff,
++    'core_ceff'    => $core_ceff,
++    'active_quads' => $active_quads,
++    'wof_freqs'    => []
++  };
++
++  # Build two-dimensional array to hold WOF frequency values.  The first
++  # dimension is rows and the second is columns.
++  for (my $row_index = 0; $row_index < $VFRT_ROW_COUNT; $row_index++)
++  {
++    $self->{'wof_freqs'}[$row_index] = [];
++    for (my $col_index = 0; $col_index < $VFRT_COLUMN_COUNT; $col_index++)
++    {
++      $self->{'wof_freqs'}[$row_index][$col_index] = undef;
++    }
++  }
++
++  bless($self);
++  return $self;
++}
++
++
++sub nest_ceff
++{
++  my ($self) = @_;
++  return $self->{'nest_ceff'};
++}
++
++
++sub core_ceff
++{
++  my ($self) = @_;
++  return $self->{'core_ceff'};
++}
++
++
++sub active_quads
++{
++  my ($self) = @_;
++  return $self->{'active_quads'};
++}
++
++
++sub wof_freq
++{
++  my ($self, $row_index, $col_index, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'wof_freqs'}[$row_index][$col_index] = $new_value;
++  }
++  return $self->{'wof_freqs'}[$row_index][$col_index];
++}
++
++
++sub is_complete
++{
++  my ($self) = @_;
++
++  # Check whether all WOF frequency values have been defined
++  for (my $row_index = 0; $row_index < $VFRT_ROW_COUNT; $row_index++)
++  {
++    for (my $col_index = 0; $col_index < $VFRT_COLUMN_COUNT; $col_index++)
++    {
++      if (!defined($self->{'wof_freqs'}[$row_index][$col_index]))
++      {
++        return 0;
++      }
++    }
++  }
++
++  return 1;
++}
++
++
++################################################################################
++# CSVFile Class
++#
++# This class represents one CSV file containing all the VFRTs for one
++# "sort+mode" combination.
++#
++# The CSV file format is described in detail by the documentation referenced at
++# the beginning of this script.
++#
++# The first row of the CSV file must contain the list of column names.  The
++# columns must appear in the specified order within the CSV file.  The column
++# names are not case-sensitive.
++# 
++# Each row following the first contains one entry (WOF frequency) in one VFRT.
++# There is no requirement on the order of the rows in the CSV file.  For
++# example, the rows representing one VFRT are not required to be adjacent.
++#
++# This class is very performance-sensitive.  Most of the execution time of this
++# script is spent within this class.  Small changes to this class can have large
++# performance impacts.  This is due to the large amount of data it parses.  One
++# CSV file contains over a 120,000 rows.
++################################################################################
++
++package CSVFile;
++
++use IO::File;
++
++# Columns in the CSV file.  Order is important, but case is not.
++our @CSV_COLUMN_NAMES =
++(
++  'mopt',
++  'yield',
++  'package',
++  'version',
++  'socket_power',
++  'rdp_capacity',
++  'core_count',
++  'pdv_sort_power_target_freq',
++  'pdv_sort_power_ultra_turbo_freq',
++  'nest_freq',
++  'vratio_start',
++  'vratio_step',
++  'fratio_start',
++  'fratio_step',
++  'core_ceff',
++  'core_ceff_index',
++  'nest_ceff',
++  'nest_ceff_index',
++  'active_quads',
++  'vratio',
++  'vratio_index',
++  'fratio',
++  'fratio_index',
++  'wof_freq'
++);
++
++# Number of columns in the CSV file
++our $CSV_COLUMN_COUNT = scalar(@CSV_COLUMN_NAMES);
++
++# Column indices
++our $CSV_MOPT_COLUMN                            = 0;
++our $CSV_YIELD_COLUMN                           = 1;
++our $CSV_PACKAGE_COLUMN                         = 2;
++our $CSV_VERSION_COLUMN                         = 3;
++our $CSV_SOCKET_POWER_COLUMN                    = 4;
++our $CSV_RDP_CAPACITY_COLUMN                    = 5;
++our $CSV_CORE_COUNT_COLUMN                      = 6;
++our $CSV_PDV_SORT_POWER_TARGET_FREQ_COLUMN      = 7;
++our $CSV_PDV_SORT_POWER_ULTRA_TURBO_FREQ_COLUMN = 8;
++our $CSV_NEST_FREQ_COLUMN                       = 9;
++our $CSV_VRATIO_START_COLUMN                    = 10;
++our $CSV_VRATIO_STEP_COLUMN                     = 11;
++our $CSV_FRATIO_START_COLUMN                    = 12;
++our $CSV_FRATIO_STEP_COLUMN                     = 13;
++our $CSV_CORE_CEFF_COLUMN                       = 14;
++our $CSV_CORE_CEFF_INDEX_COLUMN                 = 15;
++our $CSV_NEST_CEFF_COLUMN                       = 16;
++our $CSV_NEST_CEFF_INDEX_COLUMN                 = 17;
++our $CSV_ACTIVE_QUADS_COLUMN                    = 18;
++our $CSV_VRATIO_COLUMN                          = 19;
++our $CSV_VRATIO_INDEX_COLUMN                    = 20;
++our $CSV_FRATIO_COLUMN                          = 21;
++our $CSV_FRATIO_INDEX_COLUMN                    = 22;
++our $CSV_WOF_FREQ_COLUMN                        = 23;
++
++# Columns we want to store that have file scope (all rows have same value)
++our @CSV_FILE_SCOPE_COLUMNS =
++(
++  $CSV_PACKAGE_COLUMN,
++  $CSV_VERSION_COLUMN,
++  $CSV_SOCKET_POWER_COLUMN,
++  $CSV_RDP_CAPACITY_COLUMN,
++  $CSV_CORE_COUNT_COLUMN,
++  $CSV_PDV_SORT_POWER_TARGET_FREQ_COLUMN,
++  $CSV_NEST_FREQ_COLUMN,
++  $CSV_VRATIO_START_COLUMN,
++  $CSV_VRATIO_STEP_COLUMN,
++  $CSV_FRATIO_START_COLUMN,
++  $CSV_FRATIO_STEP_COLUMN
++);
++
++# Number of file scope columns we are storing
++our $CSV_FILE_SCOPE_COLUMN_COUNT = scalar(@CSV_FILE_SCOPE_COLUMNS);
++
++# Number of nest_ceff_index values
++our $CSV_NEST_CEFF_INDEX_COUNT = 8;
++
++# Valid values for the core_ceff column
++our @CSV_CORE_CEFF_VALUES = (0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35,
++                             0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75,
++                             0.80, 0.85, 0.90, 0.95, 1.00);
++
++# Number of core_ceff_index values
++our $CSV_CORE_CEFF_INDEX_COUNT = scalar(@CSV_CORE_CEFF_VALUES);
++
++# Mapping from core_ceff values to the associated core_ceff_index
++our %CSV_CORE_CEFF_INDEX_MAP;
++@CSV_CORE_CEFF_INDEX_MAP{@CSV_CORE_CEFF_VALUES} = 0..$#CSV_CORE_CEFF_VALUES;
++
++# Valid values for the active_quads column
++our @CSV_ACTIVE_QUADS_VALUES = (1, 2, 3, 4, 5, 6);
++
++# Number of active_quads_index values
++our $CSV_ACTIVE_QUADS_INDEX_COUNT = scalar(@CSV_ACTIVE_QUADS_VALUES);
++
++# Mapping from active_quads values to the associated active_quads_index
++our %CSV_ACTIVE_QUADS_INDEX_MAP;
++@CSV_ACTIVE_QUADS_INDEX_MAP{@CSV_ACTIVE_QUADS_VALUES} = 0..$#CSV_ACTIVE_QUADS_VALUES;
++
++
++sub new
++{
++  my ($class, $file_name) = @_;
++  my $self =
++  {
++    'file_name'                  => $file_name,
++    'package'                    => undef,
++    'version'                    => undef,
++    'socket_power'               => undef,
++    'rdp_capacity'               => undef,
++    'core_count'                 => undef,
++    'pdv_sort_power_target_freq' => undef,
++    'nest_freq'                  => undef,
++    'vratio_start'               => undef,
++    'vratio_step'                => undef,
++    'fratio_start'               => undef,
++    'fratio_step'                => undef,
++    'nest_ceff_values'           => [],
++    'vfrts'                      => []
++  };
++
++  # Build array to hold nest_ceff values
++  for (my $i = 0; $i < $CSV_NEST_CEFF_INDEX_COUNT; $i++)
++  {
++    $self->{'nest_ceff_values'}[$i] = undef;
++  }
++
++  # Build three-dimensional array to hold VFRTs.  The first dimension is
++  # nest_ceff_index values, the second is core_ceff_index values, and the third
++  # is active_quads_index values.
++  for (my $nest_idx = 0; $nest_idx < $CSV_NEST_CEFF_INDEX_COUNT; $nest_idx++)
++  {
++    $self->{'vfrts'}[$nest_idx] = [];
++    for (my $core_idx = 0; $core_idx < $CSV_CORE_CEFF_INDEX_COUNT; $core_idx++)
++    {
++      $self->{'vfrts'}[$nest_idx][$core_idx] = [];
++      for (my $quads_idx = 0; $quads_idx < $CSV_ACTIVE_QUADS_INDEX_COUNT; $quads_idx++)
++      {
++        $self->{'vfrts'}[$nest_idx][$core_idx][$quads_idx] = undef;
++      }
++    }
++  }
++
++  bless($self);
++  return $self;
++}
++
++
++sub file_name
++{
++  my ($self) = @_;
++  return $self->{'file_name'};
++}
++
++
++sub package
++{
++  my ($self) = @_;
++  return $self->{'package'};
++}
++
++
++sub version
++{
++  my ($self) = @_;
++  return $self->{'version'};
++}
++
++
++sub socket_power
++{
++  my ($self) = @_;
++  return $self->{'socket_power'};
++}
++
++
++sub rdp_capacity
++{
++  my ($self) = @_;
++  return $self->{'rdp_capacity'};
++}
++
++
++sub core_count
++{
++  my ($self) = @_;
++  return $self->{'core_count'};
++}
++
++
++sub pdv_sort_power_target_freq
++{
++  my ($self) = @_;
++  return $self->{'pdv_sort_power_target_freq'};
++}
++
++
++sub nest_freq
++{
++  my ($self) = @_;
++  return $self->{'nest_freq'};
++}
++
++
++sub vratio_start
++{
++  my ($self) = @_;
++  return $self->{'vratio_start'};
++}
++
++
++sub vratio_step
++{
++  my ($self) = @_;
++  return $self->{'vratio_step'};
++}
++
++
++sub fratio_start
++{
++  my ($self) = @_;
++  return $self->{'fratio_start'};
++}
++
++
++sub fratio_step
++{
++  my ($self) = @_;
++  return $self->{'fratio_step'};
++}
++
++
++sub nest_ceff
++{
++  my ($self, $nest_ceff_index) = @_;
++  return $self->{'nest_ceff_values'}[$nest_ceff_index];
++}
++
++
++sub vfrt
++{
++  my ($self, $nest_ceff_index, $core_ceff_index, $active_quads_index) = @_;
++  return $self->{'vfrts'}[$nest_ceff_index][$core_ceff_index][$active_quads_index];
++}
++
++
++sub parse
++{
++  my ($self) = @_;
++
++  # Open the CSV file
++  my $csv_file = IO::File->new();
++  if (!($csv_file->open($self->{'file_name'}, 'r')))
++  {
++    die "Error: Unable to open file " . $self->{'file_name'} . ": $!.\n";
++  }
++
++  # Parse rows in the CSV file
++  my $row;
++  my $row_number = 1;
++  my @columns;
++  while (defined($row = $csv_file->getline()))
++  {
++    # Parse the row, resulting in an array of column values
++    $self->_parse_row($row, $row_number, \@columns);
++
++    if ($row_number == 1)
++    {
++      # First row contains column names.  Verify they are valid.
++      $self->_verify_first_row_columns(\@columns);
++    }
++    else
++    {
++      # Data row.  Store the column values in our data structure.
++      $self->_store_columns($row_number, \@columns);
++    }
++
++    $row_number++;
++  }
++
++  # Verify the data we stored in our data structure
++  $self->_verify_stored_data();
++
++  # Close the CSV file
++  if (!($csv_file->close()))
++  {
++    die "Error: Unable to close file " . $self->{'file_name'} . ": $!.\n";
++  }
++}
++
++
++#------------------------------------------------------------------------------
++# Private methods
++#------------------------------------------------------------------------------
++
++sub _parse_row
++{
++  my ($self, $row, $row_number, $columns) = @_;
++
++  # Clear columns array
++  @$columns = ();
++
++  # While row has more columns
++  while ($row !~ /^\s*$/)
++  {
++    # If row starts with a simple column without double quotes
++    if ($row =~ /^(([^,"\n]*)(?:,|\n|$))/)
++    {
++      # Match #1 contains column value with comma.  Delete it from row.
++      $row = substr($row, length($1));
++
++      # Match #2 contains column value without the comma.  Add to column array.
++      push(@$columns, $2);
++    }
++    elsif ($row =~ /^("((?:[^"]|"")*)"(?:,|\n|$))/)
++    {
++      # Complex column found with double quotes.  May contain commas or nested
++      # double quotes.
++
++      # Match #1 contains column value with outer comma and outer double quotes.
++      # Delete it from row.
++      $row = substr($row, length($1));
++
++      # Match #2 has column value without outer comma or outer double quotes.
++      # However it may contain nested commas and double quotes.  Nested double
++      # quotes are represented as two consecutive double quotes.  Convert them
++      # to one double quote.  Then add column value to array.
++      my $column_value = $2;
++      $column_value =~ s/""/"/g;
++      push(@$columns, $column_value);
++    }
++    else
++    {
++      die "Error: Unable to parse row $row_number of file " .
++          $self->{'file_name'} . ".\n";
++    }
++  }
++}
++
++
++sub _verify_first_row_columns
++{
++  my ($self, $columns) = @_;
++
++  # Verify row has the correct number of columns
++  my $row_number = 1;
++  $self->_verify_column_count($row_number, $columns);
++
++  # The first row of the CSV file contains the column names in order.  Verify
++  # the column names match.  Must compare names case-insensitively.
++  my ($expected_name, $actual_name);
++  for (my $i = 0; $i < $CSV_COLUMN_COUNT; $i++)
++  {
++    $expected_name = $CSV_COLUMN_NAMES[$i];
++    $actual_name = $columns->[$i];
++    if (lc($expected_name) ne lc($actual_name))
++    {
++      die "Error: Did not find expected column name in first row of " . 
++          $self->{'file_name'} . ".\nExpected column " . ($i + 1) .
++          " to be '$expected_name' but found '$actual_name'.\n";
++    }
++  }
++}
++
++
++sub _verify_column_count
++{
++  my ($self, $row_number, $columns) = @_;
++
++  my $column_count = scalar(@$columns);
++  if ($column_count != $CSV_COLUMN_COUNT)
++  {
++    die "Error: Unexpected column count in row $row_number of " .
++        $self->{'file_name'} . ".\n" .
++        "Expected $CSV_COLUMN_COUNT columns but found $column_count.\n";
++  }
++}
++
++
++sub _verify_stored_data
++{
++  my ($self) = @_;
++
++  # Verify all nest_ceff values were found
++  for (my $i = 0; $i < $CSV_NEST_CEFF_INDEX_COUNT; $i++)
++  {
++    if (!defined($self->{'nest_ceff_values'}[$i]))
++    {
++      die "Error: No nest_ceff value found for nest_ceff_index $i in " .
++          $self->{'file_name'} . ".\n";
++    }
++  }
++
++  # Verify all VFRTs were found
++  for (my $nest_ceff_index = 0; $nest_ceff_index < $CSV_NEST_CEFF_INDEX_COUNT;
++       $nest_ceff_index++)
++  {
++    for (my $core_ceff_index = 0; $core_ceff_index < $CSV_CORE_CEFF_INDEX_COUNT;
++         $core_ceff_index++)
++    {
++      for (my $active_quads_index = 0; $active_quads_index < $CSV_ACTIVE_QUADS_INDEX_COUNT;
++           $active_quads_index++)
++      {
++        my $vfrt = $self->{'vfrts'}[$nest_ceff_index][$core_ceff_index][$active_quads_index];
++        if (!defined($vfrt))
++        {
++          die "Error: No VFRT found in " . $self->{'file_name'} . " for\n" .
++              "  nest_ceff_index    = $nest_ceff_index\n" .
++              "  core_ceff_index    = $core_ceff_index\n" .
++              "  active_quads_index = $active_quads_index\n";
++        }
++
++        # Verify VFRT is complete; all WOF frequencies were found
++        if (!($vfrt->is_complete()))
++        {
++          die "Error: Incomplete VFRT in " . $self->{'file_name'} .  " for\n" .
++              "  nest_ceff_index    = $nest_ceff_index\n" .
++              "  core_ceff_index    = $core_ceff_index\n" .
++              "  active_quads_index = $active_quads_index\n";
++        }
++      }
++    }
++  }
++
++  # Verify vratio_start and vratio_step values result in a valid vratio value in
++  # the last column of the VFRT.  Verify the following equation is true:
++  #   vratio_start + (vratio_step * (VFRT_COLUMN_COUNT - 1)) <= 1.1
++  # The last vratio value should be <= 1.0 (100%) since it is an ascending
++  # decimal percentage.  However, we use 1.1 to allow for imprecision due to
++  # floating point math, rounding during CSV data generation, etc.
++  my $last_vratio = $self->{'vratio_start'} +
++                    ($self->{'vratio_step'} * ($VFRT_COLUMN_COUNT - 1));
++  if ($last_vratio > 1.1)
++  {
++    die "Error: Invalid vratio_start and vratio_step values in " .
++        $self->{'file_name'} . "\nResults in vratio value of $last_vratio.\n";
++  }
++
++  # Verify fratio_start and fratio_step values result in a valid fratio value in
++  # the last row of the VFRT.  Verify the following equation is true:
++  #   fratio_start - (fratio_step * (VFRT_ROW_COUNT - 1)) >= 0
++  # The last fratio value should be >= 0 (0%) since it is a descending decimal
++  # percentage.
++  my $last_fratio = $self->{'fratio_start'} -
++                    ($self->{'fratio_step'} * ($VFRT_ROW_COUNT - 1));
++  if ($last_fratio < 0)
++  {
++    die "Error: Invalid fratio_start and fratio_step values in " .
++        $self->{'file_name'} . "\nResults in fratio value of $last_fratio.\n";
++  }
++}
++
++
++sub _store_columns
++{
++  my ($self, $row_number, $columns) = @_;
++
++  # Verify row has the correct number of columns
++  $self->_verify_column_count($row_number, $columns);
++
++  # Verify and store column values that have file scope
++  $self->_store_file_scope_columns($row_number, $columns);
++
++  # Verify and store column values that are scoped to a specific VFRT entry
++  $self->_store_vfrt_scope_columns($row_number, $columns);
++}
++
++
++sub _store_file_scope_columns
++{
++  my ($self, $row_number, $columns) = @_;
++
++  # Store value of all file scope columns.  Values should be same for all rows.
++  my ($column_index, $column_name, $column_value, $stored_value);
++  for (my $i = 0; $i < $CSV_FILE_SCOPE_COLUMN_COUNT; $i++)
++  {
++    $column_index = $CSV_FILE_SCOPE_COLUMNS[$i];
++    $column_name  = $CSV_COLUMN_NAMES[$column_index];
++
++    # Get column value from current row
++    $column_value = $columns->[$column_index];
++
++    # Get column value currently stored in this object from a previous row
++    $stored_value = $self->{$column_name};
++
++    if (!defined($stored_value))
++    {
++      # We do not have a stored value yet for this column; store it
++      $self->{$column_name} = $column_value;
++    }
++    elsif ($column_value ne $stored_value)
++    {
++      # Column value in current row doesn't match stored value from previous row
++      die "Error: Unexpected column value in " . $self->{'file_name'} . ".\n" .
++          "Row $row_number contains the value $column_value for column " .
++          "$column_name, but the previous row contains the value $stored_value.\n";
++    }
++  }
++}
++
++
++sub _store_vfrt_scope_columns
++{
++  my ($self, $row_number, $columns) = @_;
++
++  # Get VFRT that corresponds to column values from CSV row
++  my $vfrt = $self->_get_vfrt($row_number, $columns);
++
++  # Get fratio_index value and verify it is valid.  This is the VFRT row index.
++  my $fratio_index = $columns->[$CSV_FRATIO_INDEX_COLUMN];
++  if (($fratio_index < 0) || ($fratio_index >= $VFRT_ROW_COUNT))
++  {
++    die "Error: Invalid fratio_index value $fratio_index in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Get vratio_index value and verify it is valid.  This is the VFRT column index.
++  my $vratio_index = $columns->[$CSV_VRATIO_INDEX_COLUMN];
++  if (($vratio_index < 0) || ($vratio_index >= $VFRT_COLUMN_COUNT))
++  {
++    die "Error: Invalid vratio_index value $vratio_index in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Get wof_freq value and verify it is valid
++  my $wof_freq = $columns->[$CSV_WOF_FREQ_COLUMN];
++  if ($wof_freq < 0)
++  {
++    die "Error: Invalid wof_freq value $wof_freq in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Set wof_freq value in VFRT
++  $vfrt->wof_freq($fratio_index, $vratio_index, $wof_freq);
++}
++
++
++sub _get_vfrt
++{
++  my ($self, $row_number, $columns) = @_;
++
++  # Get nest_ceff value and verify it is valid
++  my $nest_ceff = $columns->[$CSV_NEST_CEFF_COLUMN];
++  if ($nest_ceff < 0)
++  {
++    die "Error: Invalid nest_ceff value $nest_ceff in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Get nest_ceff_index value and verify it is valid
++  my $nest_ceff_index = $columns->[$CSV_NEST_CEFF_INDEX_COLUMN];
++  if (($nest_ceff_index < 0) ||
++      ($nest_ceff_index >= $CSV_NEST_CEFF_INDEX_COUNT))
++  {
++    die "Error: Invalid nest_ceff_index value $nest_ceff_index in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Store nest_ceff value at correct index in our internal array
++  $self->{'nest_ceff_values'}[$nest_ceff_index] = $nest_ceff;
++
++  # Get core_ceff value and verify it is valid.  Add 0 to core_ceff value to
++  # ensure numerical comparison used when finding matching map key.
++  my $core_ceff = $columns->[$CSV_CORE_CEFF_COLUMN];
++  my $expected_core_ceff_index = $CSV_CORE_CEFF_INDEX_MAP{$core_ceff + 0};
++  if (!defined($expected_core_ceff_index))
++  {
++    die "Error: Invalid core_ceff value $core_ceff in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Get core_ceff_index value and verify it matches expected value
++  my $core_ceff_index = $columns->[$CSV_CORE_CEFF_INDEX_COLUMN];
++  if ($core_ceff_index != $expected_core_ceff_index)
++  {
++    die "Error: Invalid core_ceff_index value $core_ceff_index in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Get active_quads value
++  my $active_quads = $columns->[$CSV_ACTIVE_QUADS_COLUMN];
++
++  # Find active_quads_index value via map.  Add 0 to active_quads value to
++  # ensure numerical comparison used when finding matching map key.
++  my $active_quads_index = $CSV_ACTIVE_QUADS_INDEX_MAP{$active_quads + 0};
++  if (!defined($active_quads_index))
++  {
++    die "Error: Invalid active_quads value $active_quads in row " .
++        "$row_number of file " . $self->{'file_name'} . ".\n"; 
++  }
++
++  # Get VFRT at the specified nest_ceff_index, core_ceff_index, and
++  # active_quads_index in our three-dimensional array
++  my $vfrt = $self->{'vfrts'}[$nest_ceff_index][$core_ceff_index][$active_quads_index];
++
++  # If VFRT does not yet exist, create it
++  if (!defined($vfrt))
++  {
++    $vfrt = VFRT->new($nest_ceff, $core_ceff, $active_quads);
++    $self->{'vfrts'}[$nest_ceff_index][$core_ceff_index][$active_quads_index] = $vfrt;
++  }
++
++  return $vfrt;
++}
++
++
++################################################################################
++# BinaryFile Class
++#
++# This class represents a binary file.  It is a wrapper around an IO::File
++# object.  BinaryFile provides methods that make it easier to read and write
++# binary data.  The data is written in big-endian format.  This class does not
++# enforce any alignment/padding requirements.
++################################################################################
++
++package BinaryFile;
++
++use IO::File;
++use Fcntl qw(SEEK_SET SEEK_CUR);          # Import constants for seek()
++
++
++sub new
++{
++  my ($class, $file_name) = @_;
++  my $self =
++  {
++    'file_name' => $file_name,
++    'file'      => IO::File->new(),
++  };
++  bless($self);
++  return $self;
++}
++
++
++sub file_name
++{
++  my ($self) = @_;
++  return $self->{'file_name'};
++}
++
++
++sub open
++{
++  my ($self, $mode) = @_;
++
++  # Open image file
++  if (!($self->{'file'}->open($self->{'file_name'}, $mode)))
++  {
++    die "Error: Unable to open file " . $self->{'file_name'} . ": $!.\n";
++  }
++
++  # Set file to binary mode
++  if (!($self->{'file'}->binmode()))
++  {
++    die "Error: Unable to open file " . $self->{'file_name'} .
++        " in binary mode: $!.\n";
++  }
++}
++
++
++sub close
++{
++  my ($self) = @_;
++  if (!($self->{'file'}->close()))
++  {
++    die "Error: Unable to close file " . $self->{'file_name'} . ": $!.\n";
++  }
++}
++
++
++sub get_pos
++{
++  my ($self) = @_;
++  my $pos = $self->{'file'}->tell();
++  if ($pos == -1)
++  {
++    die "Error: Unable to obtain current position in file " .
++        $self->{'file_name'} . ".\n";
++  }
++  return $pos;
++}
++
++
++sub set_pos
++{
++  my ($self, $pos) = @_;
++  if (!($self->{'file'}->seek($pos, SEEK_SET)))
++  {
++    die "Error: Unable to move to byte $pos in file " .
++        $self->{'file_name'} . ".\n";
++  }
++}
++
++
++sub read
++{
++  my ($self, $length) = @_;
++
++  my $buffer;
++  if ($length > 0)
++  { 
++    my $bytes_read = $self->{'file'}->read($buffer, $length);
++    if ($bytes_read != $length)
++    {
++      my $error_description;
++      if (!defined($bytes_read))
++      {
++        $error_description = $!;
++      }
++      elsif ($bytes_read == 0)
++      {
++        $error_description = "End of file";
++      }
++      else
++      {
++        $error_description = "Only read $bytes_read bytes";
++      }
++      die "Error: Unable to read $length bytes from file " .
++          $self->{'file_name'} . ": $error_description.\n";
++    }
++  }
++
++  return $buffer;
++}
++
++
++sub write
++{
++  my ($self, $buffer) = @_;
++  if (!($self->{'file'}->print($buffer)))
++  {
++    die "Error: Unable to write to file " . $self->{'file_name'} . ": $!.\n";
++  }
++}
++
++
++sub read_uint8
++{
++  my ($self) = @_;
++  my $buffer = $self->read(1);
++  return unpack('C', $buffer); 
++}
++
++
++sub write_uint8
++{
++  my ($self, $uint8_value) = @_;
++  $self->write(pack('C', $uint8_value)); 
++}
++
++
++sub read_uint16
++{
++  my ($self) = @_;
++  my $buffer = $self->read(2);
++  return unpack('S>', $buffer); 
++}
++
++
++sub write_uint16
++{
++  my ($self, $uint16_value) = @_;
++  $self->write(pack('S>', $uint16_value)); 
++}
++
++
++sub read_uint32
++{
++  my ($self) = @_;
++  my $buffer = $self->read(4);
++  return unpack('L>', $buffer); 
++}
++
++
++sub write_uint32
++{
++  my ($self, $uint32_value) = @_;
++  $self->write(pack('L>', $uint32_value)); 
++}
++
++
++sub read_ascii_text
++{
++  my ($self, $field_length) = @_;
++  my $buffer = $self->read($field_length);
++  return unpack('A' . $field_length, $buffer); 
++}
++
++
++sub write_ascii_text
++{
++  my ($self, $ascii_text, $field_length) = @_;
++  $self->write(pack('A' . $field_length, $ascii_text));
++}
++
++
++sub skip_bytes
++{
++  my ($self, $byte_count) = @_;
++  if (!($self->{'file'}->seek($byte_count, SEEK_CUR)))
++  {
++    die "Error: Unable to move forward $byte_count bytes in file " .
++        $self->{'file_name'} . ".\n";
++  }
++}
++
++
++sub fill_bytes
++{
++  my ($self, $byte_count, $byte_value) = @_;
++  while ($byte_count > 0)
++  {
++    $self->write_uint8($byte_value);
++    $byte_count--;
++  }
++}
++
++
++################################################################################
++# ImageHeader Class
++#
++# This class represents the Image Header within a WOF Tables Image File.
++################################################################################
++
++package ImageHeader;
++
++# Constants representing expected field values
++our $IMAGE_HEADER_MAGIC_NUMBER = 'WTIH';
++our $IMAGE_HEADER_VERSION      = 1;
++
++# Header size in bytes
++our $IMAGE_HEADER_SIZE = 10;
++
++
++sub new
++{
++  my ($class) = @_;
++  my $self =
++  {
++    'magic_number'              => $IMAGE_HEADER_MAGIC_NUMBER,
++    'version'                   => $IMAGE_HEADER_VERSION,
++    'section_table_entry_count' => 0,
++    'section_table_offset'      => 0
++  };
++  bless($self);
++  return $self;
++}
++
++
++sub magic_number
++{
++  my ($self) = @_;
++  return $self->{'magic_number'};
++}
++
++
++sub version
++{
++  my ($self) = @_;
++  return $self->{'version'};
++}
++
++
++sub section_table_entry_count
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'section_table_entry_count'} = $new_value;
++  }
++  return $self->{'section_table_entry_count'};
++}
++
++
++sub section_table_offset
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'section_table_offset'} = $new_value;
++  }
++  return $self->{'section_table_offset'};
++}
++
++
++sub read
++{
++  my ($self, $file) = @_;
++
++  # Read field values from binary file
++  $self->{'magic_number'}              = $file->read_ascii_text(4); 
++  $self->{'version'}                   = $file->read_uint8(); 
++  $self->{'section_table_entry_count'} = $file->read_uint8(); 
++  $self->{'section_table_offset'}      = $file->read_uint32(); 
++
++  # Verify field values
++  if ($self->{'magic_number'} ne $IMAGE_HEADER_MAGIC_NUMBER)
++  {
++    die "Error: Unexpected value in Magic Number field of Image Header: " .
++        $self->{'magic_number'} . "\n";
++  }
++  if ($self->{'version'} != $IMAGE_HEADER_VERSION)
++  {
++    die "Error: Unexpected value in Version field of Image Header: " .
++        sprintf("0x%02X", $self->{'version'}) . "\n";
++  }
++}
++
++
++sub write
++{
++  my ($self, $file) = @_;
++
++  # Write field values to binary file
++  $file->write_ascii_text($self->{'magic_number'}, 4); 
++  $file->write_uint8     ($self->{'version'}); 
++  $file->write_uint8     ($self->{'section_table_entry_count'}); 
++  $file->write_uint32    ($self->{'section_table_offset'}); 
++}
++
++
++sub print
++{
++  my ($self) = @_;
++
++  # Print header fields to stdout
++  printf("Image Header:\n");
++  printf("  Magic Number             : %s\n",     $self->{'magic_number'}); 
++  printf("  Version                  : %u\n",     $self->{'version'}); 
++  printf("  Section Table Entry Count: %u\n",     $self->{'section_table_entry_count'}); 
++  printf("  Section Table Offset     : 0x%08X\n", $self->{'section_table_offset'}); 
++  printf("\n");
++}
++
++
++################################################################################
++# SectionTableEntry Class
++#
++# This class represents a Section Table Entry within a WOF Tables Image File.
++################################################################################
++
++package SectionTableEntry;
++
++
++sub new
++{
++  my ($class) = @_;
++  my $self =
++  {
++    'section_offset' => 0,
++    'section_size'   => 0
++  };
++  bless($self);
++  return $self;
++}
++
++
++sub section_offset
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'section_offset'} = $new_value;
++  }
++  return $self->{'section_offset'};
++}
++
++
++sub section_size
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'section_size'} = $new_value;
++  }
++  return $self->{'section_size'};
++}
++
++
++sub read
++{
++  my ($self, $file) = @_;
++
++  # Read field values from binary file
++  $self->{'section_offset'} = $file->read_uint32(); 
++  $self->{'section_size'}   = $file->read_uint32(); 
++}
++
++
++sub write
++{
++  my ($self, $file) = @_;
++
++  # Write field values to binary file
++  $file->write_uint32($self->{'section_offset'}); 
++  $file->write_uint32($self->{'section_size'}); 
++}
++
++
++################################################################################
++# SectionTable Class
++#
++# This class represents the Section Table within a WOF Tables Image File.
++################################################################################
++
++package SectionTable;
++
++
++sub new
++{
++  my ($class) = @_;
++  my $self = [];
++  bless($self);
++  return $self;
++}
++
++
++sub entry_count
++{
++  my ($self) = @_;
++  return scalar(@$self);
++}
++
++
++sub clear
++{
++  my ($self) = @_;
++  @$self = ();
++}
++
++
++sub add_entry
++{
++  my ($self, $entry) = @_;
++  push(@$self, $entry);
++}
++
++
++sub get_entry
++{
++  my ($self, $index) = @_;
++  return $self->[$index];
++}
++
++
++sub read
++{
++  my ($self, $file, $entry_count) = @_;
++
++  # Clear out any current entries in table
++  $self->clear();
++
++  # Read entries from binary file
++  for (my $i = 0; $i < $entry_count; $i++)
++  {
++    my $entry = SectionTableEntry->new();
++    $entry->read($file);
++    $self->add_entry($entry);
++  }
++}
++
++
++sub write
++{
++  my ($self, $file) = @_;
++
++  # Write entries to binary file
++  my $entry_count = $self->entry_count();
++  for (my $i = 0; $i < $entry_count; $i++)
++  {
++    my $entry = $self->get_entry($i);
++    $entry->write($file);
++  }
++}
++
++
++sub print
++{
++  my ($self) = @_;
++
++  # Print section table to stdout
++  printf("Section Table:\n");
++  printf("  Entry  Section Offset  Section Size\n");
++  printf("  -----  --------------  ------------\n");
++  my $entry_count = $self->entry_count();
++  for (my $i = 0; $i < $entry_count; $i++)
++  {
++    # Print section table entry fields to stdout
++    my $entry = $self->get_entry($i);
++    printf("     %2u      0x%08X    0x%08X\n",
++           $i, $entry->section_offset(), $entry->section_size()); 
++  }
++  printf("\n");
++}
++
++
++################################################################################
++# WOFTablesHeader Class
++#
++# This class represents a WOF Tables Header within a WOF Tables Image File.
++################################################################################
++
++package WOFTablesHeader;
++
++# Constants representing expected field values
++our $WOF_TABLES_HEADER_MAGIC_VALUE            = 'WFTH';
++our $WOF_TABLES_HEADER_VERSION                = 2;
++our $WOF_TABLES_HEADER_VFRT_BLOCK_SIZE        = 128;
++our $WOF_TABLES_HEADER_VFRT_BLOCK_HEADER_SIZE = 8;
++our $WOF_TABLES_HEADER_VFRT_DATA_SIZE         = 1;
++our $WOF_TABLES_HEADER_QUADS_ACTIVE_SIZE      = $CSV_ACTIVE_QUADS_INDEX_COUNT;
++our $WOF_TABLES_HEADER_VDN_SIZE               = $CSV_NEST_CEFF_INDEX_COUNT;
++our $WOF_TABLES_HEADER_VDD_START              = 0;
++our $WOF_TABLES_HEADER_VDD_STEP               = 500;
++our $WOF_TABLES_HEADER_VDD_SIZE               = $CSV_CORE_CEFF_INDEX_COUNT;
++our $WOF_TABLES_HEADER_VRATIO_SIZE            = $VFRT_COLUMN_COUNT;
++our $WOF_TABLES_HEADER_FRATIO_SIZE            = $VFRT_ROW_COUNT;
++
++
++sub new
++{
++  my ($class) = @_;
++  my $self =
++  {
++    'magic_value'            => $WOF_TABLES_HEADER_MAGIC_VALUE,
++    'version'                => $WOF_TABLES_HEADER_VERSION,
++    'vfrt_block_size'        => $WOF_TABLES_HEADER_VFRT_BLOCK_SIZE,
++    'vfrt_block_header_size' => $WOF_TABLES_HEADER_VFRT_BLOCK_HEADER_SIZE,
++    'vfrt_data_size'         => $WOF_TABLES_HEADER_VFRT_DATA_SIZE,
++    'quads_active_size'      => $WOF_TABLES_HEADER_QUADS_ACTIVE_SIZE,
++    'core_count'             => undef,
++    'vdn_start'              => undef,
++    'vdn_step'               => undef,
++    'vdn_size'               => $WOF_TABLES_HEADER_VDN_SIZE,
++    'vdd_start'              => $WOF_TABLES_HEADER_VDD_START,
++    'vdd_step'               => $WOF_TABLES_HEADER_VDD_STEP,
++    'vdd_size'               => $WOF_TABLES_HEADER_VDD_SIZE,
++    'vratio_start'           => undef,
++    'vratio_step'            => undef,
++    'vratio_size'            => $WOF_TABLES_HEADER_VRATIO_SIZE,
++    'fratio_start'           => undef,
++    'fratio_step'            => undef,
++    'fratio_size'            => $WOF_TABLES_HEADER_FRATIO_SIZE,
++    'vdn_percent'            => [],
++    'socket_power_w'         => undef,
++    'nest_frequency_mhz'     => undef,
++    'sort_pwr_tgt_freq_mhz'  => undef,
++    'rdp_capacity'           => undef,
++    'wof_tables_source_tag'  => undef,
++    'package_name'           => undef
++  };
++
++  # Initialize array of vdn_percent values
++  for (my $i = 0; $i < $WOF_TABLES_HEADER_VDN_SIZE; $i++)
++  {
++    $self->{'vdn_percent'}[$i] = undef;
++  }
++
++  bless($self);
++  return $self;
++}
++
++
++sub magic_value
++{
++  my ($self) = @_;
++  return $self->{'magic_value'};
++}
++
++
++sub version
++{
++  my ($self) = @_;
++  return $self->{'version'};
++}
++
++
++sub vfrt_block_size
++{
++  my ($self) = @_;
++  return $self->{'vfrt_block_size'};
++}
++
++
++sub vfrt_block_header_size
++{
++  my ($self) = @_;
++  return $self->{'vfrt_block_header_size'};
++}
++
++
++sub vfrt_data_size
++{
++  my ($self) = @_;
++  return $self->{'vfrt_data_size'};
++}
++
++
++sub quads_active_size
++{
++  my ($self) = @_;
++  return $self->{'quads_active_size'};
++}
++
++
++sub core_count
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'core_count'} = $new_value;
++  }
++  return $self->{'core_count'};
++}
++
++
++sub vdn_start
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'vdn_start'} = $new_value;
++  }
++  return $self->{'vdn_start'};
++}
++
++
++sub vdn_step
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'vdn_step'} = $new_value;
++  }
++  return $self->{'vdn_step'};
++}
++
++
++sub vdn_size
++{
++  my ($self) = @_;
++  return $self->{'vdn_size'};
++}
++
++
++sub vdd_start
++{
++  my ($self) = @_;
++  return $self->{'vdd_start'};
++}
++
++
++sub vdd_step
++{
++  my ($self) = @_;
++  return $self->{'vdd_step'};
++}
++
++
++sub vdd_size
++{
++  my ($self) = @_;
++  return $self->{'vdd_size'};
++}
++
++
++sub vratio_start
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'vratio_start'} = $new_value;
++  }
++  return $self->{'vratio_start'};
++}
++
++
++sub vratio_step
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'vratio_step'} = $new_value;
++  }
++  return $self->{'vratio_step'};
++}
++
++
++sub vratio_size
++{
++  my ($self) = @_;
++  return $self->{'vratio_size'};
++}
++
++
++sub fratio_start
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'fratio_start'} = $new_value;
++  }
++  return $self->{'fratio_start'};
++}
++
++
++sub fratio_step
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'fratio_step'} = $new_value;
++  }
++  return $self->{'fratio_step'};
++}
++
++
++sub fratio_size
++{
++  my ($self) = @_;
++  return $self->{'fratio_size'};
++}
++
++
++sub vdn_percent
++{
++  my ($self, $index, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'vdn_percent'}[$index] = $new_value;
++  }
++  return $self->{'vdn_percent'}[$index];
++}
++
++
++sub socket_power_w
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'socket_power_w'} = $new_value;
++  }
++  return $self->{'socket_power_w'};
++}
++
++
++sub nest_frequency_mhz
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'nest_frequency_mhz'} = $new_value;
++  }
++  return $self->{'nest_frequency_mhz'};
++}
++
++
++sub sort_pwr_tgt_freq_mhz
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'sort_pwr_tgt_freq_mhz'} = $new_value;
++  }
++  return $self->{'sort_pwr_tgt_freq_mhz'};
++}
++
++
++sub rdp_capacity
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'rdp_capacity'} = $new_value;
++  }
++  return $self->{'rdp_capacity'};
++}
++
++
++sub wof_tables_source_tag
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'wof_tables_source_tag'} = $new_value;
++  }
++  return $self->{'wof_tables_source_tag'};
++}
++
++
++sub package_name
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'package_name'} = $new_value;
++  }
++  return $self->{'package_name'};
++}
++
++
++sub read
++{
++  my ($self, $file) = @_;
++
++  # Read field values from binary file
++  $self->{'magic_value'}            = $file->read_ascii_text(4); 
++  $file->skip_bytes(3);             # Reserved
++  $self->{'version'}                = $file->read_uint8();
++  $self->{'vfrt_block_size'}        = $file->read_uint16();
++  $self->{'vfrt_block_header_size'} = $file->read_uint16();
++  $self->{'vfrt_data_size'}         = $file->read_uint16();
++  $self->{'quads_active_size'}      = $file->read_uint8();
++  $self->{'core_count'}             = $file->read_uint8();
++  $self->{'vdn_start'}              = $file->read_uint16();
++  $self->{'vdn_step'}               = $file->read_uint16();
++  $self->{'vdn_size'}               = $file->read_uint16();
++  $self->{'vdd_start'}              = $file->read_uint16();
++  $self->{'vdd_step'}               = $file->read_uint16();
++  $self->{'vdd_size'}               = $file->read_uint16();
++  $self->{'vratio_start'}           = $file->read_uint16();
++  $self->{'vratio_step'}            = $file->read_uint16();
++  $self->{'vratio_size'}            = $file->read_uint16();
++  $self->{'fratio_start'}           = $file->read_uint16();
++  $self->{'fratio_step'}            = $file->read_uint16();
++  $self->{'fratio_size'}            = $file->read_uint16();
++  for (my $i = 0; $i < $WOF_TABLES_HEADER_VDN_SIZE; $i++)
++  {
++    $self->{'vdn_percent'}[$i]      = $file->read_uint16();
++  }
++  $self->{'socket_power_w'}         = $file->read_uint16();
++  $self->{'nest_frequency_mhz'}     = $file->read_uint16();
++  $self->{'sort_pwr_tgt_freq_mhz'}  = $file->read_uint16();
++  $self->{'rdp_capacity'}           = $file->read_uint16();
++  $self->{'wof_tables_source_tag'}  = $file->read_ascii_text(8);
++  $self->{'package_name'}           = $file->read_ascii_text(16);
++  $file->skip_bytes(40);            # Reserved
++
++  # Verify field values
++  if ($self->{'magic_value'} ne $WOF_TABLES_HEADER_MAGIC_VALUE)
++  {
++    die "Error: Unexpected value in Magic Value field of WOF Tables Header: " .
++        $self->{'magic_value'} . "\n";
++  }
++  if ($self->{'version'} != $WOF_TABLES_HEADER_VERSION)
++  {
++    die "Error: Unexpected value in Version field of WOF Tables Header: " .
++        sprintf("0x%02X", $self->{'version'}) . "\n";
++  }
++}
++
++
++sub write
++{
++  my ($self, $file) = @_;
++
++  # Write field values to binary file
++  $file->write_ascii_text($self->{'magic_value'}, 4);
++  $file->fill_bytes      (3, 0x00);  # Reserved
++  $file->write_uint8     ($self->{'version'});
++  $file->write_uint16    ($self->{'vfrt_block_size'});
++  $file->write_uint16    ($self->{'vfrt_block_header_size'});
++  $file->write_uint16    ($self->{'vfrt_data_size'});
++  $file->write_uint8     ($self->{'quads_active_size'});
++  $file->write_uint8     ($self->{'core_count'});
++  $file->write_uint16    ($self->{'vdn_start'});
++  $file->write_uint16    ($self->{'vdn_step'});
++  $file->write_uint16    ($self->{'vdn_size'});
++  $file->write_uint16    ($self->{'vdd_start'});
++  $file->write_uint16    ($self->{'vdd_step'});
++  $file->write_uint16    ($self->{'vdd_size'});
++  $file->write_uint16    ($self->{'vratio_start'});
++  $file->write_uint16    ($self->{'vratio_step'});
++  $file->write_uint16    ($self->{'vratio_size'});
++  $file->write_uint16    ($self->{'fratio_start'});
++  $file->write_uint16    ($self->{'fratio_step'});
++  $file->write_uint16    ($self->{'fratio_size'});
++  for (my $i = 0; $i < $WOF_TABLES_HEADER_VDN_SIZE; $i++)
++  {
++    $file->write_uint16  ($self->{'vdn_percent'}[$i]);
++  }
++  $file->write_uint16    ($self->{'socket_power_w'});
++  $file->write_uint16    ($self->{'nest_frequency_mhz'});
++  $file->write_uint16    ($self->{'sort_pwr_tgt_freq_mhz'});
++  $file->write_uint16    ($self->{'rdp_capacity'});
++  $file->write_ascii_text($self->{'wof_tables_source_tag'}, 8);
++  $file->write_ascii_text($self->{'package_name'}, 16);
++  $file->fill_bytes      (40, 0x00);  # Reserved
++}
++
++
++sub print
++{
++  my ($self) = @_;
++
++  # Print header fields to stdout
++  printf("WOF Tables Header:\n");
++  printf("  Magic Value                    : %s\n", $self->{'magic_value'});
++  printf("  Version                        : %u\n", $self->{'version'});
++  printf("  VFRT Block Size                : %u\n", $self->{'vfrt_block_size'});
++  printf("  VFRT Block Header Size         : %u\n", $self->{'vfrt_block_header_size'});
++  printf("  VFRT Data Size                 : %u\n", $self->{'vfrt_data_size'});
++  printf("  Quads Active Size              : %u\n", $self->{'quads_active_size'});
++  printf("  Core Count                     : %u\n", $self->{'core_count'});
++  printf("  Vdn Start                      : %u\n", $self->{'vdn_start'});
++  printf("  Vdn Step                       : %u\n", $self->{'vdn_step'});
++  printf("  Vdn Size                       : %u\n", $self->{'vdn_size'});
++  printf("  Vdd Start                      : %u\n", $self->{'vdd_start'});
++  printf("  Vdd Step                       : %u\n", $self->{'vdd_step'});
++  printf("  Vdd Size                       : %u\n", $self->{'vdd_size'});
++  printf("  Vratio Start                   : %u\n", $self->{'vratio_start'});
++  printf("  Vratio Step                    : %u\n", $self->{'vratio_step'});
++  printf("  Vratio Size                    : %u\n", $self->{'vratio_size'});
++  printf("  Fratio Start                   : %u\n", $self->{'fratio_start'});
++  printf("  Fratio Step                    : %u\n", $self->{'fratio_step'});
++  printf("  Fratio Size                    : %u\n", $self->{'fratio_size'});
++  for (my $i = 0; $i < $WOF_TABLES_HEADER_VDN_SIZE; $i++)
++  {
++    printf("  Vdn Percent[$i]                 : %u\n", $self->{'vdn_percent'}[$i]);
++  }
++  printf("  Socket Power W                 : %u\n", $self->{'socket_power_w'});
++  printf("  Nest Frequency MHz             : %u\n", $self->{'nest_frequency_mhz'});
++  printf("  Sort Power Target Frequency MHz: %u\n", $self->{'sort_pwr_tgt_freq_mhz'});
++  printf("  RDP Capacity                   : %u\n", $self->{'rdp_capacity'});
++  printf("  WOF Tables Source Tag          : %s\n", $self->{'wof_tables_source_tag'});
++  printf("  Package Name                   : %s\n", $self->{'package_name'});
++  printf("\n");
++}
++
++
++################################################################################
++# VFRTHeader Class
++#
++# This class represents a VFRT Header within a WOF Tables Image File.
++################################################################################
++
++package VFRTHeader;
++
++# Constants representing expected field values
++our $VFRT_HEADER_MAGIC_VALUE = 'VT';
++our $VFRT_HEADER_TYPE        = 0;
++our $VFRT_HEADER_VERSION     = 2;
++
++
++sub new
++{
++  my ($class) = @_;
++  my $self =
++  {
++    'magic_value' => $VFRT_HEADER_MAGIC_VALUE,
++    'type'        => $VFRT_HEADER_TYPE,
++    'version'     => $VFRT_HEADER_VERSION,
++    'vdn_percent' => 0,
++    'vdd_percent' => 0,
++    'qa_id'       => 0
++  };
++  bless($self);
++  return $self;
++}
++
++
++sub magic_value
++{
++  my ($self) = @_;
++  return $self->{'magic_value'};
++}
++
++
++sub type
++{
++  my ($self) = @_;
++  return $self->{'type'};
++}
++
++
++sub version
++{
++  my ($self) = @_;
++  return $self->{'version'};
++}
++
++
++sub vdn_percent
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'vdn_percent'} = $new_value;
++  }
++  return $self->{'vdn_percent'};
++}
++
++
++sub vdd_percent
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'vdd_percent'} = $new_value;
++  }
++  return $self->{'vdd_percent'};
++}
++
++
++sub qa_id
++{
++  my ($self, $new_value) = @_;
++  if (defined($new_value))
++  {
++    $self->{'qa_id'} = $new_value;
++  }
++  return $self->{'qa_id'};
++}
++
++
++sub read
++{
++  my ($self, $file) = @_;
++
++  # Read field values from binary file
++  $self->{'magic_value'} = $file->read_ascii_text(2); 
++  $file->skip_bytes(2);  # Reserved
++  my $uint8_val          = $file->read_uint8();
++  $self->{'type'}        = $uint8_val >> 4;
++  $self->{'version'}     = $uint8_val & 0x0F;
++  $self->{'vdn_percent'} = $file->read_uint8();
++  $self->{'vdd_percent'} = $file->read_uint8();
++  $self->{'qa_id'}       = $file->read_uint8() & 0x07;
++
++  # Verify field values
++  if ($self->{'magic_value'} ne $VFRT_HEADER_MAGIC_VALUE)
++  {
++    die "Error: Unexpected value in Magic Value field of VFRT Header: " .
++        $self->{'magic_value'} . "\n";
++  }
++  if ($self->{'type'} != $VFRT_HEADER_TYPE)
++  {
++    die "Error: Unexpected value in Type field of VFRT Header: " .
++        sprintf("0x%X", $self->{'type'}) . "\n";
++  }
++  if ($self->{'version'} != $VFRT_HEADER_VERSION)
++  {
++    die "Error: Unexpected value in Version field of VFRT Header: " .
++        sprintf("0x%X", $self->{'version'}) . "\n";
++  }
++}
++
++
++sub write
++{
++  my ($self, $file) = @_;
++
++  # Write field values to binary file
++  $file->write_ascii_text($self->{'magic_value'}, 2);
++  $file->fill_bytes      (2, 0x00);  # Reserved
++  $file->write_uint8    (($self->{'type'} << 4) |
++                         ($self->{'version'} & 0x0F));
++  $file->write_uint8     ($self->{'vdn_percent'});
++  $file->write_uint8     ($self->{'vdd_percent'});
++  $file->write_uint8     ($self->{'qa_id'} & 0x07);
++}
++
++
++sub print
++{
++  my ($self) = @_;
++
++  # Print header fields to stdout
++  printf("VFRT Header:\n");
++  printf("  Magic Value: %s\n", $self->{'magic_value'});
++  printf("  Type       : %u\n", $self->{'type'});
++  printf("  Version    : %u\n", $self->{'version'});
++  printf("  Vdn percent: %u\n", $self->{'vdn_percent'});
++  printf("  Vdd percent: %u\n", $self->{'vdd_percent'});
++  printf("  QA_id      : %u\n", $self->{'qa_id'});
++  printf("\n");
++}
++
++
++################################################################################
++# ImageFile Class
++#
++# This class represents a WOF Tables Image File.
++#
++# The file format is described in detail by the documents referenced at the
++# beginning of this script.
++#
++# A WOF Tables Image File is a binary file in big-endian format.  Major data
++# structures are aligned on 8 byte boundaries.  The file begins with an Image
++# File Header, followed by a Section Table, followed by one or more sections.
++# Each section contains a WOF Tables Header followed by all of the VFRTs for one
++# "sort+mode" combination.
++################################################################################
++
++package ImageFile;
++
++our $IMAGE_FILE_BYTE_ALIGNMENT = 8;
++
++
++sub new
++{
++  my ($class, $file_name) = @_;
++  my $self =
++  {
++    'file'          => BinaryFile->new($file_name),
++    'image_header'  => ImageHeader->new(),
++    'section_table' => SectionTable->new()
++  };
++  bless($self);
++  return $self;
++}
++
++
++sub create
++{
++  my ($self, @csv_file_names) = @_;
++
++  # Open image file for writing
++  $self->{'file'}->open('w');
++
++  # Write image file contents
++  $self->_write(@csv_file_names);
++
++  # Close image file
++  $self->{'file'}->close();
++}
++
++
++sub list
++{
++  my ($self) = @_;
++
++  # Open image file for reading
++  $self->{'file'}->open('r');
++
++  # Read and print image header
++  $self->_read_image_header();
++  $self->{'image_header'}->print();
++
++  # Read and print section table
++  $self->_read_section_table();
++  $self->{'section_table'}->print();
++
++  # Loop through section table entries
++  for (my $i = 0; $i < $self->{'section_table'}->entry_count(); $i++)
++  {
++    my $entry = $self->{'section_table'}->get_entry($i);
++
++    # Set file offset to the start of the section
++    $self->{'file'}->set_pos($entry->section_offset());
++
++    # Read and print the WOF Tables Header at the start of the section
++    my $wof_tables_header = $self->_read_wof_tables_header();
++    $wof_tables_header->print();
++  }
++
++  # Close image file
++  $self->{'file'}->close();
++}
++
++
++sub view
++{
++  my ($self, $core_count, $socket_power, $nest_freq,
++      $pdv_sort_power_target_freq, $nest_ceff_index, $core_ceff_index,
++      $active_quads, $convert_to_mhz) = @_;
++
++  # Open image file for reading
++  $self->{'file'}->open('r');
++
++  # Read image header and section table
++  $self->_read_image_header();
++  $self->_read_section_table();
++
++  # Find WOF Tables section that matches input parameters
++  my $section_number = $self->_find_section($core_count, $socket_power, $nest_freq,
++                                            $pdv_sort_power_target_freq);
++
++  # Read and print the matching VFRT within this WOF Tables section
++  $self->_view_vfrt($section_number, $nest_ceff_index, $core_ceff_index,
++                    $active_quads, $convert_to_mhz);
++
++  # Close image file
++  $self->{'file'}->close();
++}
++
++
++sub extract
++{
++  my ($self, $core_count, $socket_power, $nest_freq,
++      $pdv_sort_power_target_freq, $output_file_name) = @_;
++
++  # Open image file for reading
++  $self->{'file'}->open('r');
++
++  # Read image header and section table
++  $self->_read_image_header();
++  $self->_read_section_table();
++
++  # Find WOF Tables section that matches input parameters
++  my $section_number = $self->_find_section($core_count, $socket_power, $nest_freq,
++                                            $pdv_sort_power_target_freq);
++
++  # Extract section to the specified output file
++  $self->_extract_section($section_number, $output_file_name);
++
++  # Close image file
++  $self->{'file'}->close();
++}
++
++
++#------------------------------------------------------------------------------
++# Private methods
++#------------------------------------------------------------------------------
++
++sub _write
++{
++  my ($self, @csv_file_names) = @_;
++
++  # Write image header to image file.  Pass in number of sections that will
++  # exist in file.  There will be one section for each CSV file.
++  my $section_count = scalar(@csv_file_names);
++  $self->_write_image_header($section_count);
++
++  # Write section table to image file with default section offsets/sizes
++  $self->_write_section_table();
++
++  # Loop through CSV files
++  for (my $i = 0; $i < $section_count; $i++)
++  {
++    # Write section to image file containing the CSV file data
++    $self->_write_section($csv_file_names[$i], $i);
++  }
++
++  # Update section table in image file with actual section offsets/sizes
++  $self->_update_section_table();
++}
++
++
++sub _read_image_header
++{
++  my ($self) = @_;
++
++  # Read image header from image file
++  $self->{'image_header'}->read($self->{'file'});
++
++  # Read past any padding
++  $self->_read_padding();
++}
++
++
++sub _write_image_header
++{
++  my ($self, $section_count) = @_;
++
++  # Set the Section Table Entry Count field
++  $self->{'image_header'}->section_table_entry_count($section_count);
++
++  # Set the Section Table Offset field.  The image header is at the start of the
++  # file (offset 0), and the section table follows the image header.  Offset
++  # must take into account any padding added after the image header.
++  my $section_table_offset = $IMAGE_HEADER_SIZE;
++  $section_table_offset += $self->_get_padding($section_table_offset);
++  $self->{'image_header'}->section_table_offset($section_table_offset);
++
++  # Write image header to image file
++  $self->{'image_header'}->write($self->{'file'});
++
++  # Write any necessary padding so header ends on proper byte boundary
++  $self->_write_padding();
++}
++
++
++sub _read_section_table
++{
++  my ($self) = @_;
++
++  # Get number of section table entries from image header
++  my $entry_count = $self->{'image_header'}->section_table_entry_count();
++
++  # Read section table from image file
++  $self->{'section_table'}->read($self->{'file'}, $entry_count);
++
++  # Read past any padding following the section table
++  $self->_read_padding();
++}
++
++
++sub _write_section_table
++{
++  my ($self) = @_;
++
++  # Clear current contents of section table
++  $self->{'section_table'}->clear();
++
++  # Get number of section table entries from image header
++  my $entry_count = $self->{'image_header'}->section_table_entry_count();
++
++  # Add section table entries with default section offsets/sizes
++  for (my $i = 0; $i < $entry_count; $i++)
++  {
++    my $entry = SectionTableEntry->new();
++    $self->{'section_table'}->add_entry($entry);
++  }
++
++  # Write section table to image file
++  $self->{'section_table'}->write($self->{'file'});
++
++  # Write any necessary padding so table ends on proper byte boundary
++  $self->_write_padding();
++}
++
++
++sub _update_section_table
++{
++  my ($self) = @_;
++
++  # Get offset to the section table from the image header
++  my $section_table_offset = $self->{'image_header'}->section_table_offset(); 
++
++  # Move to section table offset within image file
++  $self->{'file'}->set_pos($section_table_offset);
++
++  # Update section table in image file.  Write actual section offsets/sizes.
++  $self->{'section_table'}->write($self->{'file'});
++}
++
++
++sub _find_section
++{
++  my ($self, $core_count, $socket_power, $nest_freq, $pdv_sort_power_target_freq) = @_;
++
++  # Loop through section table entries looking for a matching WOF Tables section
++  my $section_number = undef;
++  for (my $i = 0; $i < $self->{'section_table'}->entry_count(); $i++)
++  {
++    my $entry = $self->{'section_table'}->get_entry($i);
++
++    # Set file offset to the start of the section
++    $self->{'file'}->set_pos($entry->section_offset());
++
++    # Read the WOF Tables Header at the start of the section
++    my $wof_tables_header = $self->_read_wof_tables_header();
++
++    # Check if header matches input parameters
++    if (($wof_tables_header->core_count()            == $core_count  ) &&
++        ($wof_tables_header->socket_power_w()        == $socket_power) &&
++        ($wof_tables_header->nest_frequency_mhz()    == $nest_freq   ) &&
++        ($wof_tables_header->sort_pwr_tgt_freq_mhz() == $pdv_sort_power_target_freq))
++    {
++      $section_number = $i;
++      last;
++    }
++  }
++
++  if (!defined($section_number))
++  {
++    die "Error: Unable to find WOF Tables section matching input parameters.\n";
++  }
++
++  # Return the section number of the matching section
++  return $section_number;
++}
++
++
++sub _write_section
++{
++  my ($self, $csv_file_name, $section_number) = @_;
++
++  # Get current file offset.  This is the offset to the start of the section.
++  my $section_offset = $self->{'file'}->get_pos();
++
++  # Create CSVFile object and parse the CSV data
++  my $csv_file = CSVFile->new($csv_file_name);
++  $csv_file->parse();
++
++  # Write WOF Tables Header to the image file
++  $self->_write_wof_tables_header($csv_file);
++
++  # Write all the VFRTs to the image file
++  $self->_write_vfrts($csv_file);
++
++  # Get current file offset.  This is one byte past the end of the section.
++  # Calculate section size based on offsets.
++  my $current_offset = $self->{'file'}->get_pos();
++  my $section_size = $current_offset - $section_offset;
++
++  # Store section offset and size in section table entry
++  my $entry = $self->{'section_table'}->get_entry($section_number);
++  $entry->section_offset($section_offset);
++  $entry->section_size($section_size);
++
++  # Write any necessary padding so section ends on proper byte boundary
++  $self->_write_padding();
++}
++
++
++sub _extract_section
++{
++  my ($self, $section_number, $output_file_name) = @_;
++
++  # Get section table entry
++  my $entry = $self->{'section_table'}->get_entry($section_number);
++
++  # Set image file offset to the start of the section
++  $self->{'file'}->set_pos($entry->section_offset());
++
++  # Open output file for writing
++  my $output_file = BinaryFile->new($output_file_name);
++  $output_file->open('w');
++
++  # Copy section bytes from image file to output file
++  my $max_read_size = 4096;
++  my $bytes_left = $entry->section_size();
++  while ($bytes_left > 0)
++  {
++    my $read_size = ($bytes_left < $max_read_size) ? $bytes_left : $max_read_size;
++    my $buffer = $self->{'file'}->read($read_size);
++    $output_file->write($buffer);
++    $bytes_left -= $read_size;
++  }
++
++  # Close output file
++  $output_file->close();
++}
++
++
++sub _read_wof_tables_header
++{
++  my ($self) = @_;
++
++  # Create WOF Tables header
++  my $wof_tables_header = WOFTablesHeader->new();
++
++  # Read header from image file
++  $wof_tables_header->read($self->{'file'});
++
++  return $wof_tables_header;
++}
++
++
++sub _write_wof_tables_header
++{
++  my ($self, $csv_file) = @_;
++
++  # Create WOF Tables header
++  my $wof_tables_header = WOFTablesHeader->new();
++
++  # Set header field values based on columns from CSV file.  CSV columns that
++  # contain percentages are expressed as a decimal.  For example, 4.7% is 0.047.
++  # Header fields that contain percentages are expressed as integer hundredths
++  # of a percent.  For example, 4.7% is 470.  Thus, we need to multiply the CSV
++  # percentage values by 10000 to convert to hundredths of a percent.
++  $wof_tables_header->core_count           ($csv_file->core_count());
++  $wof_tables_header->vdn_start            (int($csv_file->nest_ceff(0)   * 10000));
++  $wof_tables_header->vdn_step             (int($csv_file->nest_ceff(1)   * 10000) -
++                                            int($csv_file->nest_ceff(0)   * 10000));
++  $wof_tables_header->vratio_start         (int($csv_file->vratio_start() * 10000));
++  $wof_tables_header->vratio_step          (int($csv_file->vratio_step()  * 10000));
++  $wof_tables_header->fratio_start         (int($csv_file->fratio_start() * 10000));
++  $wof_tables_header->fratio_step          (int($csv_file->fratio_step()  * 10000));
++  for (my $i = 0; $i < $WOF_TABLES_HEADER_VDN_SIZE; $i++)
++  {
++    $wof_tables_header->vdn_percent        ($i, int($csv_file->nest_ceff($i) * 10000));
++  }                                                  
++  $wof_tables_header->socket_power_w       ($csv_file->socket_power());
++  $wof_tables_header->nest_frequency_mhz   ($csv_file->nest_freq());
++  $wof_tables_header->sort_pwr_tgt_freq_mhz($csv_file->pdv_sort_power_target_freq());
++  $wof_tables_header->rdp_capacity         ($csv_file->rdp_capacity());
++  $wof_tables_header->wof_tables_source_tag($csv_file->version());
++  $wof_tables_header->package_name         ($csv_file->package());
++
++  # Write header to image file
++  $wof_tables_header->write($self->{'file'});
++}
++
++
++sub _write_vfrts
++{
++  my ($self, $csv_file) = @_;
++
++  # Iterate over all the valid values for nest_ceff_index
++  for (my $nest_ceff_index = 0; $nest_ceff_index < $CSV_NEST_CEFF_INDEX_COUNT;
++       $nest_ceff_index++)
++  {
++    # Iterate over all the valid values for core_ceff_index
++    for (my $core_ceff_index = 0; $core_ceff_index < $CSV_CORE_CEFF_INDEX_COUNT;
++         $core_ceff_index++)
++    {
++      # Iterate over all the valid values for active_quads_index
++      for (my $active_quads_index = 0; $active_quads_index < $CSV_ACTIVE_QUADS_INDEX_COUNT;
++           $active_quads_index++)
++      {
++        # Get VFRT for current index values
++        my $vfrt = $csv_file->vfrt($nest_ceff_index, $core_ceff_index, $active_quads_index);
++
++        # Write VFRT to image file
++        $self->_write_vfrt($vfrt, $csv_file);
++      }
++    }
++  }
++}
++
++
++sub _write_vfrt
++{
++  my ($self, $vfrt, $csv_file) = @_;
++
++  # Write VFRT header to image file
++  $self->_write_vfrt_header($vfrt);
++
++  # Write VFRT to image file.  First iterate over VFRT rows.
++  for (my $row_index = 0; $row_index < $VFRT_ROW_COUNT; $row_index++)
++  {
++    # Iterate over VFRT columns
++    for (my $column_index = 0; $column_index < $VFRT_COLUMN_COUNT; $column_index++)
++    {
++      # Get WOF frequency value in MHz.  Verify it is >= 1000.
++      my $wof_freq_mhz = $vfrt->wof_freq($row_index, $column_index);
++      if ($wof_freq_mhz < 1000)
++      {
++        die "Error: Invalid WOF frequency $wof_freq_mhz in " .
++            $csv_file->file_name() . ".\nFrequency must be >= 1000.\n";
++      }
++
++      # Convert frequency from MHz to one-byte System VFRT format using equation
++      #   System VFRT Value = (Frequency - 1000) / 16.667
++      my $wof_freq_sys = Util::round(($wof_freq_mhz - 1000) / 16.667);
++
++      # Make sure converted value fits in one byte
++      if ($wof_freq_sys > 255)
++      {
++        die "Error: Invalid WOF frequency $wof_freq_mhz in " .
++            $csv_file->file_name() . ".\nDoes not fit in System VFRT format.\n";
++      }
++
++      # Write one-byte System VFRT frequency value to image file
++      $self->{'file'}->write_uint8($wof_freq_sys);
++    }
++  }
++}
++
++
++sub _view_vfrt
++{
++  my ($self, $section_number, $nest_ceff_index, $core_ceff_index,
++      $active_quads, $convert_to_mhz) = @_;
++
++  # Go to offset of specified VFRT within image file
++  my $offset = $self->_get_vfrt_offset($section_number, $nest_ceff_index,
++                                       $core_ceff_index, $active_quads);
++  $self->{'file'}->set_pos($offset);
++
++  # Read and print VFRT header
++  my $vfrt_header = $self->_read_vfrt_header();
++  $vfrt_header->print();
++
++  # Print VFRT column headings
++  my $column_width = $convert_to_mhz ? 4 : 2;
++  printf("VFRT:\n    ");
++  for (my $column_index = 0; $column_index < $VFRT_COLUMN_COUNT; $column_index++)
++  {
++    printf("%*u ", $column_width, $column_index);
++  }
++  printf("\n");
++
++  # Read and print VFRT.  First iterate over VFRT rows.
++  for (my $row_index = 0; $row_index < $VFRT_ROW_COUNT; $row_index++)
++  {
++    # Print row heading
++    printf("  %u ", $row_index);
++
++    # Iterate over VFRT columns
++    for (my $column_index = 0; $column_index < $VFRT_COLUMN_COUNT; $column_index++)
++    {
++      # Read WOF frequency value in one-byte System VFRT format from image file
++      my $wof_freq_sys = $self->{'file'}->read_uint8();
++
++      # Print frequency
++      if ($convert_to_mhz)
++      {
++        # Convert frequency from System VFRT format to MHz format using equation
++        #   Frequency in MHz = 1000 + (16.667 * System VFRT Value)
++        my $wof_freq_mhz = Util::round(1000 + (16.667 * $wof_freq_sys));
++        printf("%4u ", $wof_freq_mhz);
++      }
++      else
++      {
++        printf("%02X ", $wof_freq_sys);
++      }
++    }
++    printf("\n");
++  }
++  printf("\n");
++
++  if ($convert_to_mhz)
++  {
++    printf("Note: Frequency values are obtained by converting from the " .
++           "one-byte 'System\nVFRT' format back into a two-byte frequency in " .
++           "MHz.  The frequency values may\nnot exactly match the values in " .
++           "the CSV file due to integer math and rounding.\n");
++  }
++}
++
++
++sub _get_vfrt_offset
++{
++  my ($self, $section_number, $nest_ceff_index, $core_ceff_index,
++      $active_quads) = @_;
++
++  # Get section table entry
++  my $entry = $self->{'section_table'}->get_entry($section_number);
++
++  # Set image file offset to the start of the section
++  $self->{'file'}->set_pos($entry->section_offset());
++
++  # Read the WOF Tables Header at the start of the section
++  my $wof_tables_header = $self->_read_wof_tables_header();
++
++  # Get sizes from WOF Header fields used to calculate offset
++  my $vfrt_block_size   = $wof_tables_header->vfrt_block_size();
++  my $quads_active_size = $wof_tables_header->quads_active_size();
++  my $vdd_size          = $wof_tables_header->vdd_size();
++
++  # Get active quads index that is associated with the active quads value
++  my $active_quads_index = $CSV_ACTIVE_QUADS_INDEX_MAP{$active_quads};
++
++  # Calculate absolute offset to VFRT within image file.  We just read the WOF
++  # Tables Header, so the current file offset is at the first VFRT.  The VFRTs
++  # are stored in a three-dimensional array within the file, where the first
++  # dimension is nest_ceff_index, the second is core_ceff_index, and the third
++  # is active_quads_index.
++  my $offset =
++    $self->{'file'}->get_pos() + 
++    ($nest_ceff_index    * ($vdd_size * $quads_active_size * $vfrt_block_size)) +
++    ($core_ceff_index    * ($quads_active_size * $vfrt_block_size)) +
++    ($active_quads_index * ($vfrt_block_size));
++
++  return $offset;
++}
++
++
++sub _read_vfrt_header
++{
++  my ($self) = @_;
++
++  # Create VFRT header
++  my $vfrt_header = VFRTHeader->new();
++
++  # Read header from image file
++  $vfrt_header->read($self->{'file'});
++
++  return $vfrt_header;
++}
++
++
++sub _write_vfrt_header
++{
++  my ($self, $vfrt) = @_;
++
++  # Create VFRT header
++  my $vfrt_header = VFRTHeader->new();
++
++  # Set header fields based on columns from CSV file.  CSV columns that contain
++  # percentages are expressed as a decimal.  For example, 25% is 0.25.  Header
++  # fields that contain percentages are expressed as integer percents.  For
++  # example, 25% is 25.  Thus, we need to multiply the CSV percentage values by
++  # 100 to convert to integer percents.
++  $vfrt_header->vdn_percent($vfrt->nest_ceff() * 100);
++  $vfrt_header->vdd_percent($vfrt->core_ceff() * 100);
++  $vfrt_header->qa_id      ($vfrt->active_quads());
++
++  # Write header to image file
++  $vfrt_header->write($self->{'file'});
++}
++
++
++sub _get_padding
++{
++  my ($self, $file_offset) = @_;
++
++  # If a file offset was not specified, get the current file offset
++  if (!defined($file_offset))
++  {
++    $file_offset = $self->{'file'}->get_pos();
++  }
++
++  # Return the padding needed to reach the correct alignment boundary
++  my $remainder = $file_offset % $IMAGE_FILE_BYTE_ALIGNMENT;
++  return ($remainder == 0) ? 0 : ($IMAGE_FILE_BYTE_ALIGNMENT - $remainder);
++}
++
++
++sub _read_padding
++{
++  my ($self) = @_;
++
++  my $padding_byte_count = $self->_get_padding();
++  if ($padding_byte_count > 0)
++  {
++    # Skip forward past the padding bytes
++    $self->{'file'}->skip_bytes($padding_byte_count);
++  }
++}
++
++
++sub _write_padding
++{
++  my ($self) = @_;
++
++  my $padding_byte_count = $self->_get_padding();
++  if ($padding_byte_count > 0)
++  {
++    # Write 0x00 in the padding bytes
++    $self->{'file'}->fill_bytes($padding_byte_count, 0x00);
++  }
++}
++
++
++################################################################################
++# Options Class
++#
++# This class represents the command line options for this script.
++################################################################################
++
++package Options;
++
++use Getopt::Long;
++
++# Possible return values from the action() method
++our $OPTIONS_ACTION_CREATE  = 'create';
++our $OPTIONS_ACTION_LIST    = 'list';
++our $OPTIONS_ACTION_VIEW    = 'view';
++our $OPTIONS_ACTION_EXTRACT = 'extract';
++our $OPTIONS_ACTION_HELP    = 'help';
++
++# Possible return values from the freq_format() method
++our $OPTIONS_FREQ_FORMAT_MHZ    = 'mhz';
++our $OPTIONS_FREQ_FORMAT_SYSTEM = 'system';
++
++
++sub new
++{
++  my ($class) = @_;
++  my $self =
++  {
++    'create'                     => undef,
++    'list'                       => undef,
++    'view'                       => undef,
++    'extract'                    => undef,
++    'help'                       => undef,
++    'core_count'                 => undef,
++    'socket_power'               => undef,
++    'nest_freq'                  => undef,
++    'pdv_sort_power_target_freq' => undef,
++    'nest_ceff_index'            => undef,
++    'core_ceff_index'            => undef,
++    'active_quads'               => undef,
++    'freq_format'                => undef,
++    'csv_files'                  => [],
++    'output_file'                => undef
++  };
++  bless($self);
++  return $self;
++}
++
++
++sub action
++{
++  my ($self) = @_;
++
++  # Return the action that was specified (if any)
++  my $action = undef;
++  foreach my $option ('create', 'list', 'view', 'extract', 'help')
++  {
++    if (defined($self->{$option}))
++    {
++      $action = $option;
++      last;
++    }
++  }
++  return $action;
++}
++
++
++sub image_file
++{
++  my ($self) = @_;
++
++  # Return the image file for the currently specified action (if any)
++  my $image_file = undef;
++  my $action = $self->action();
++  if (defined($action) && ($action ne 'help'))
++  {
++    $image_file = $self->{$action};
++  }
++  return $image_file;
++}
++
++
++sub core_count
++{
++  my ($self) = @_;
++  return $self->{'core_count'};
++}
++
++
++sub socket_power
++{
++  my ($self) = @_;
++  return $self->{'socket_power'};
++}
++
++
++sub nest_freq
++{
++  my ($self) = @_;
++  return $self->{'nest_freq'};
++}
++
++
++sub pdv_sort_power_target_freq
++{
++  my ($self) = @_;
++  return $self->{'pdv_sort_power_target_freq'};
++}
++
++
++sub nest_ceff_index
++{
++  my ($self) = @_;
++  return $self->{'nest_ceff_index'};
++}
++
++
++sub core_ceff_index
++{
++  my ($self) = @_;
++  return $self->{'core_ceff_index'};
++}
++
++
++sub active_quads
++{
++  my ($self) = @_;
++  return $self->{'active_quads'};
++}
++
++
++sub freq_format
++{
++  my ($self) = @_;
++  return $self->{'freq_format'};
++}
++
++
++sub csv_files
++{
++  my ($self) = @_;
++  return @{$self->{'csv_files'}};
++}
++
++
++sub output_file
++{
++  my ($self) = @_;
++  return $self->{'output_file'};
++}
++
++
++sub parse
++{
++  my ($self) = @_;
++
++  # If no options were specified, default to --help action
++  if (scalar(@ARGV) == 0)
++  {
++    push(@ARGV, '--help');
++  }
++
++  # Parse command line options and store results within this object
++  if (!GetOptions($self, 'create=s', 'list=s', 'view=s', 'extract=s', 'help',
++                         'core_count=i', 'socket_power=i',
++                         'nest_freq=i', 'pdv_sort_power_target_freq=i',
++                         'nest_ceff_index=i', 'core_ceff_index=i',
++                         'active_quads=i', 'freq_format=s'))
++  {
++    die "Error: Invalid command line options specified.\n";
++  }
++
++  # Verify options specified with action
++  my $action = $self->action();
++  if ($action eq 'create')
++  {
++    $self->_verify_create_options();
++  }
++  elsif ($action eq 'list')
++  {
++    $self->_verify_list_options();
++  }
++  elsif ($action eq 'view')
++  {
++    $self->_verify_view_options();
++  }
++  elsif ($action eq 'extract')
++  {
++    $self->_verify_extract_options();
++  }
++  elsif ($action eq 'help')
++  {
++    $self->_verify_help_options();
++  }
++  else
++  {
++    die "Error: Action required: --create, --list, --view, --extract, or --help.\n";
++  }
++}
++
++
++sub print_usage
++{
++  my ($self) = @_;
++
++  print STDERR
++    "Usage:\n" .
++    "  wof-tables-img --create <image_file> <csv_file> [<csv_file> ...]\n" .
++    "  wof-tables-img --list <image_file>\n" .
++    "  wof-tables-img --view <image_file> --core_count <number>\n" .
++    "                   --socket_power <number> --nest_freq <number>\n" .
++    "                   --pdv_sort_power_target_freq <number>\n" .
++    "                   --nest_ceff_index <number> --core_ceff_index <number>\n" .
++    "                   --active_quads <number> [--freq_format mhz|system]\n" .
++    "  wof-tables-img --extract <image_file> --core_count <number>\n" .
++    "                   --socket_power <number> --nest_freq <number>\n" .
++    "                   --pdv_sort_power_target_freq <number> <output_file>\n" .
++    "  wof-tables-img --help\n" .
++    "Actions:\n" .
++    "  --create   Create a WOF Tables image file based on input CSV files.\n" .
++    "  --list     List the contents of a WOF Tables image file.\n" .
++    "  --view     View one VFRT within a WOF Tables image file.\n" .
++    "  --extract  Extract one set of WOF Tables from an image file.\n" .
++    "  --help     Show brief description of command syntax.\n" .
++    "Options:\n" .
++    "  --core_count                  WOF Tables core_count value.\n" .
++    "  --socket_power                WOF Tables socket_power value.\n" .
++    "  --nest_freq                   WOF Tables nest_freq value.\n" .
++    "  --pdv_sort_power_target_freq  WOF Tables pdv_sort_power_target_freq value.\n" .
++    "  --nest_ceff_index             VFRT nest_ceff_index value.\n" .
++    "  --core_ceff_index             VFRT core_ceff_index value.\n" .
++    "  --active_quads                VFRT active_quads value.\n" .
++    "  --freq_format                 Frequency display format.  Specify 'mhz' for\n" .
++    "                                megahertz format or 'system' for System VFRT\n" .
++    "                                format.  Default is 'mhz'.\n";
++}
++
++
++#------------------------------------------------------------------------------
++# Private methods
++#------------------------------------------------------------------------------
++
++sub _verify_create_options
++{
++  my ($self) = @_;
++
++  # Verify no invalid options were specified
++  foreach my $option ('list', 'view', 'extract', 'help', 'core_count',
++                      'socket_power', 'nest_freq', 'pdv_sort_power_target_freq',
++                      'nest_ceff_index', 'core_ceff_index', 'active_quads',
++                      'freq_format')
++  {
++    if (defined($self->{$option}))
++    {
++      die "Error: --$option is not valid with --create.\n";
++    }
++  }
++
++  # Treat any remaining (unparsed) command line arguments as CSV files.
++  # Verify that at least one was specified.
++  if (scalar(@ARGV) == 0)
++  {
++    die "Error: --create requires one or more CSV files.\n";
++  }
++  $self->{'csv_files'} = [ @ARGV ];
++}
++
++
++sub _verify_list_options
++{
++  my ($self) = @_;
++
++  # Verify no invalid options were specified
++  foreach my $option ('create', 'view', 'extract', 'help', 'core_count',
++                      'socket_power', 'nest_freq', 'pdv_sort_power_target_freq',
++                      'nest_ceff_index', 'core_ceff_index', 'active_quads',
++                      'freq_format')
++  {
++    if (defined($self->{$option}))
++    {
++      die "Error: --$option is not valid with --list.\n";
++    }
++  }
++
++  # Verify there are no remaining (unparsed) command line arguments
++  if (scalar(@ARGV) > 0)
++  {
++    die "Error: Unexpected options specified with --list: @ARGV\n";
++  }
++}
++
++
++sub _verify_view_options
++{
++  my ($self) = @_;
++
++  # Verify no invalid options were specified
++  foreach my $option ('create', 'list', 'extract', 'help')
++  {
++    if (defined($self->{$option}))
++    {
++      die "Error: --$option is not valid with --view.\n";
++    }
++  }
++
++  # Verify all required options were specified
++  foreach my $option ('core_count', 'socket_power', 'nest_freq',
++                      'pdv_sort_power_target_freq', 'nest_ceff_index',
++                      'core_ceff_index', 'active_quads')
++  {
++    if (!defined($self->{$option}))
++    {
++      die "Error: --$option is required with --view.\n";
++    }
++  }
++
++  # If optional --freq_format was not specified, set it to the default value
++  if (!defined($self->{'freq_format'}))
++  {
++    $self->{'freq_format'} = $OPTIONS_FREQ_FORMAT_MHZ;
++  }
++
++  # Verify there are no remaining (unparsed) command line arguments
++  if (scalar(@ARGV) > 0)
++  {
++    die "Error: Unexpected options specified with --view: @ARGV\n";
++  }
++
++  # Verify --nest_ceff_index value is valid
++  if (($self->{'nest_ceff_index'} < 0) ||
++      ($self->{'nest_ceff_index'} >= $CSV_NEST_CEFF_INDEX_COUNT))
++  {
++    die "Error: Invalid --nest_ceff_index value: Must be between 0 and " .
++        ($CSV_NEST_CEFF_INDEX_COUNT - 1) . ".\n";
++  }
++
++  # Verify --core_ceff_index value is valid
++  if (($self->{'core_ceff_index'} < 0) ||
++      ($self->{'core_ceff_index'} >= $CSV_CORE_CEFF_INDEX_COUNT))
++  {
++    die "Error: Invalid --core_ceff_index value: Must be between 0 and " .
++        ($CSV_CORE_CEFF_INDEX_COUNT - 1) . ".\n";
++  }
++
++  # Verify --active_quads value is valid
++  if (!exists($CSV_ACTIVE_QUADS_INDEX_MAP{$self->{'active_quads'}}))
++  {
++    die "Error: Invalid --active_quads value: Must be one of the following: " .
++        "@CSV_ACTIVE_QUADS_VALUES\n";
++  }
++
++  # Verify --freq_format value is valid
++  if (($self->{'freq_format'} ne $OPTIONS_FREQ_FORMAT_MHZ) &&
++      ($self->{'freq_format'} ne $OPTIONS_FREQ_FORMAT_SYSTEM))
++  {
++    die "Error: Invalid --freq_format value: Must be one of the following: " .
++        "$OPTIONS_FREQ_FORMAT_MHZ $OPTIONS_FREQ_FORMAT_SYSTEM\n";
++  }
++}
++
++
++sub _verify_extract_options
++{
++  my ($self) = @_;
++
++  # Verify no invalid options were specified
++  foreach my $option ('create', 'list', 'view', 'help', 'nest_ceff_index',
++                      'core_ceff_index', 'active_quads', 'freq_format')
++  {
++    if (defined($self->{$option}))
++    {
++      die "Error: --$option is not valid with --extract.\n";
++    }
++  }
++
++  # Verify all required options were specified
++  foreach my $option ('core_count', 'socket_power', 'nest_freq',
++                      'pdv_sort_power_target_freq')
++  {
++    if (!defined($self->{$option}))
++    {
++      die "Error: --$option is required with --extract.\n";
++    }
++  }
++
++  # Treat any remaining (unparsed) command line arguments as output files.
++  # Verify that at exactly one was specified.
++  if (scalar(@ARGV) != 1)
++  {
++    die "Error: --extract requires one output file name.\n";
++  }
++  $self->{'output_file'} = $ARGV[0];
++}
++
++
++sub _verify_help_options
++{
++  my ($self) = @_;
++
++  # Verify no invalid options were specified
++  foreach my $option ('create', 'list', 'view', 'extract', 'core_count',
++                      'socket_power', 'nest_freq', 'pdv_sort_power_target_freq',
++                      'nest_ceff_index', 'core_ceff_index', 'active_quads',
++                      'freq_format')
++  {
++    if (defined($self->{$option}))
++    {
++      die "Error: --$option is not valid with --help.\n";
++    }
++  }
++
++  # Verify there are no remaining (unparsed) command line arguments
++  if (scalar(@ARGV) > 0)
++  {
++    die "Error: Unexpected options specified with --help: @ARGV\n";
++  }
++}
++
++
++################################################################################
++# Main Package
++#
++# This package contains the code that runs when the script starts.
++################################################################################
++
++package main;
++
++
++sub create_image_file
++{
++  my ($options) = @_;
++
++  # Get relevant command line options
++  my $image_file_name = $options->image_file();
++  my @csv_file_names = $options->csv_files();
++
++  # Create image file
++  my $image_file = ImageFile->new($image_file_name);
++  $image_file->create(@csv_file_names);
++}
++
++
++sub list_image_file_contents
++{
++  my ($options) = @_;
++
++  # Get relevant command line options
++  my $image_file_name = $options->image_file();
++
++  # List contents of specified image file
++  my $image_file = ImageFile->new($image_file_name);
++  $image_file->list();
++}
++
++
++sub view_vfrt_in_image_file
++{
++  my ($options) = @_;
++
++  # Get relevant command line options
++  my $image_file_name = $options->image_file();
++  my $core_count = $options->core_count();
++  my $socket_power = $options->socket_power();
++  my $nest_freq = $options->nest_freq();
++  my $pdv_sort_power_target_freq = $options->pdv_sort_power_target_freq();
++  my $nest_ceff_index = $options->nest_ceff_index();
++  my $core_ceff_index = $options->core_ceff_index();
++  my $active_quads = $options->active_quads();
++  my $freq_format = $options->freq_format();
++
++  # View one VFRT within specified image file
++  my $image_file = ImageFile->new($image_file_name);
++  my $convert_to_mhz = ($freq_format eq $OPTIONS_FREQ_FORMAT_MHZ) ? 1 : 0;
++  $image_file->view($core_count, $socket_power, $nest_freq,
++                    $pdv_sort_power_target_freq, $nest_ceff_index,
++                    $core_ceff_index, $active_quads, $convert_to_mhz);
++}
++
++
++sub extract_from_image_file
++{
++  my ($options) = @_;
++
++  # Get relevant command line options
++  my $image_file_name = $options->image_file();
++  my $core_count = $options->core_count();
++  my $socket_power = $options->socket_power();
++  my $nest_freq = $options->nest_freq();
++  my $pdv_sort_power_target_freq = $options->pdv_sort_power_target_freq();
++  my $output_file_name = $options->output_file();
++
++  # Extract one set of WOF Tables from the specified image file
++  my $image_file = ImageFile->new($image_file_name);
++  $image_file->extract($core_count, $socket_power, $nest_freq,
++                       $pdv_sort_power_target_freq, $output_file_name);
++}
++
++
++################################################################################
++# Main
++################################################################################
++
++# Parse the command line options
++my $options = Options->new();
++$options->parse();
++
++# Perform the requested action
++my $action = $options->action();
++if ($action eq $OPTIONS_ACTION_CREATE)
++{
++  create_image_file($options);
++}
++elsif ($action eq $OPTIONS_ACTION_LIST)
++{
++  list_image_file_contents($options);
++}
++elsif ($action eq $OPTIONS_ACTION_VIEW)
++{
++  view_vfrt_in_image_file($options);
++}
++elsif ($action eq $OPTIONS_ACTION_EXTRACT)
++{
++  extract_from_image_file($options);
++}
++elsif ($action eq $OPTIONS_ACTION_HELP)
++{
++  $options->print_usage();
++}
++
++exit(0);
+diff --git a/src/build/mkrules/dist.targets.mk b/src/build/mkrules/dist.targets.mk
+index 2f047bc..fdacdcc 100644
+--- a/src/build/mkrules/dist.targets.mk
++++ b/src/build/mkrules/dist.targets.mk
+@@ -79,6 +79,7 @@ COPY_FILES = \
+     src/build/buildpnor/genPnorImages.pl:openpower \
+     src/build/buildpnor/PnorUtils.pm:openpower \
+     src/build/buildpnor/imprintHwKeyHash:openpower \
++	src/build/buildpnor/wof-tables-img:openpower \
+     src/usr/targeting/common/processMrw.pl:openpower \
+     src/usr/targeting/common/Targets.pm:openpower \
+     src/usr/targeting/common/filter_out_unwanted_attributes.pl:openpower \
+-- 
+1.8.2.2
+

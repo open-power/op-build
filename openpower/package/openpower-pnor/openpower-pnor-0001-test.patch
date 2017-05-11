@@ -1,0 +1,84 @@
+From 6621d407ec06f756e6b477b998aba03183010d93 Mon Sep 17 00:00:00 2001
+From: Elizabeth Liner <eliner@us.ibm.com>
+Date: Thu, 11 May 2017 14:34:44 -0500
+Subject: [PATCH] Eliner testing
+
+---
+ create_pnor_image.pl |  9 ++++++++-
+ update_image.pl      | 11 ++++++++---
+ 2 files changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/create_pnor_image.pl b/create_pnor_image.pl
+index c35e454..d3cab4f 100755
+--- a/create_pnor_image.pl
++++ b/create_pnor_image.pl
+@@ -19,6 +19,7 @@ my $sbe_binary_filename = "";
+ my $wink_binary_filename = "";
+ my $occ_binary_filename = "";
+ my $openpower_version_filename = "";
++my $wofdata_binary_filename = "";
+ 
+ while (@ARGV > 0){
+     $_ = $ARGV[0];
+@@ -89,6 +90,12 @@ while (@ARGV > 0){
+         $openpower_version_filename = $ARGV[1] or die "Bad command line arg given: expecting openpower version filename.\n";
+         shift;
+     }
++    elsif (/^-wofdata_binary_filename/i){
++        $wofdata_binary_filename = $ARGV[1] or die "Bad command line arg given: expecting a wofdata binary filename.\n";
++        shift;
++    }
++
++
+     else {
+         print "Unrecognized command line arg: $_ \n";
+         print "To view all the options and help text run \'$program_name -h\' \n";
+@@ -132,7 +139,7 @@ $build_pnor_command .= " --binFile_SECBOOT $scratch_dir/secboot.bin.ecc";
+ $build_pnor_command .= " --binFile_VERSION $openpower_version_filename";
+ $build_pnor_command .= " --binFile_IMA_CATALOG $scratch_dir/ima_catalog.bin.ecc";
+ if ($release eq "p9"){
+-    $build_pnor_command .= " --binFile_WOFDATA $scratch_dir/wofdata.bin.ecc";
++    $build_pnor_command .= " --binFile_WOFDATA $wofdata_binary_filename";
+ }
+ if ($release eq "p8"){
+     $build_pnor_command .= " --binFile_SBEC $scratch_dir/$sbec_binary_filename";
+diff --git a/update_image.pl b/update_image.pl
+index 3bf3671..825ef64 100755
+--- a/update_image.pl
++++ b/update_image.pl
+@@ -22,6 +22,7 @@ my $ima_catalog_binary_filename = "";
+ my $openpower_version_filename = "";
+ my $payload = "";
+ my $xz_compression = 0;
++my $wof_binary_filename = "";
+ 
+ while (@ARGV > 0){
+     $_ = $ARGV[0];
+@@ -98,6 +99,10 @@ while (@ARGV > 0){
+     elsif (/^-xz_compression/i){
+         $xz_compression = 1;
+     }
++    elsif (/^-wof_binary_filename/i){
++        $wof_binary_filename = $ARGV[1] or die "Bad command line arg give: expecting a config type.\n";
++        shift;
++    }
+     else {
+         print "Unrecognized command line arg: $_ \n";
+         #print "To view all the options and help text run \'$program_name -h\' \n";
+@@ -264,10 +269,10 @@ else
+ 
+ run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/ima_catalog.bin.ecc --p8");
+ 
+-#Create blank binary file for WOF/VFRT (WOFDATA) Partition  (for now)
++#Encode ECC into WOF/VFRT (WOFDATA) Partition
+ if ($release eq "p9") {
+-    run_command("dd if=/dev/zero bs=2730K count=1 | tr \"\\000\" \"\\377\" >    $scratch_dir/hostboot.temp.bin");
+-    run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/wofdata.bin.ecc --p8");
++    run_command("dd if=$wof_binary_filename > $scratch_dir/hostboot.temp.bin");
++    run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/wofdata.bin.ecc");
+ }
+ 
+ 
+-- 
+1.8.2.2
+

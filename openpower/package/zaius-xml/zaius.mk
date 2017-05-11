@@ -76,6 +76,11 @@ define ZAIUS_XML_BUILD_CMDS
             $(PETITBOOT_BIOS_XML_METADATA_FILE) \
             $(PETITBOOT_XSLT_FILE) \
             $(BIOS_XML_METADATA_FILE)
+
+        # Create the wofdata
+        chmod +x $(MRW_HB_TOOLS)/wof-tables-img
+        $(MRW_HB_TOOLS)/wof-tables-img --create $(MRW_SCRATCH)/wof_output $(MRW_SCRATCH)/wof_v4_dd1_export.csv
+
 endef
 
 define ZAIUS_XML_INSTALL_IMAGES_CMDS
