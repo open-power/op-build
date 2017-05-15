@@ -1,0 +1,63 @@
+config BR2_PACKAGE_MACHINE_XML
+        bool "machine_xml"
+        default y if (BR2_OPENPOWER_PLATFORM)
+        select BR2_PACKAGE_COMMON_P8_XML
+        help
+
+choice
+	prompt "Machine XML location"
+
+config BR2_OPENPOWER_MACHINE_XML_GITHUB_PROJECT
+       bool "OpenPOWER Github project name"
+
+config BR2_OPENPOWER_MACHINE_XML_CUSTOM_GIT
+       bool "Custom URL of machine xml repository"
+
+endchoice
+
+config BR2_OPENPOWER_MACHINE_XML_FILTER_UNWANTED_ATTRIBUTES
+       bool "Filter Unwanted Attributes"
+       default y if (BR2_OPENPOWER_POWER9)
+       default n
+
+config BR2_OPENPOWER_MACHINE_XML_OPPOWERVM_ATTRIBUTES
+       bool "OPPOWERVM Attributes/Target"
+       default y if (BR2_OPENPOWER_POWER9)
+       default n
+
+config BR2_OPENPOWER_MACHINE_XML_TARGET_TYPES_OPENPOWER_XML
+       bool "Include target_types_openpower.xml"
+       default y if (BR2_OPENPOWER_POWER9)
+       default n
+
+config BR2_OPENPOWER_MACHINE_XML_CUSTOM_GIT_VALUE
+	string "URL of machine xml repository"
+	depends on BR2_OPENPOWER_MACHINE_XML_CUSTOM_GIT
+
+config BR2_OPENPOWER_MACHINE_XML_GITHUB_PROJECT_VALUE
+       string "The Github project name (e.g. palmetto-xml)"
+       depends on BR2_OPENPOWER_MACHINE_XML_GITHUB_PROJECT
+
+config BR2_OPENPOWER_MACHINE_XML_VERSION
+       string "Version of Machine XML"
+
+config BR2_OPENPOWER_MACHINE_XML_FILENAME
+       string "Machine XML filename (e.g. habanero.xml)"
+
+config BR2_OPENPOWER_SYSTEM_XML_FILENAME
+        string "Targeting system xml filename"
+        default ""
+        help
+            Defines the name of the system XML filename to be used when creating targeting binary image
+
+config BR2_OPENPOWER_MRW_XML_FILENAME
+        string "Targeting mrw xml filename"
+        default ""
+        help
+            Defines the name of the mrw XML filename to be used when creating targeting binary image
+
+config BR2_OPENPOWER_BIOS_XML_FILENAME
+        string "BIOS metadata XML filename"
+        default ""
+        help
+            Defines the name of the BIOS XML filename to parse when generating BIOS metadata
