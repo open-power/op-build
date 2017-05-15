@@ -4,16 +4,12 @@
 #
 ################################################################################
 
-# remove the quotes from the XML/Targeting package as
-# make doesn't care for quotes in the dependencies.
-XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
-
 OPENPOWER_PNOR_VERSION ?= 86474de814334341cc6146174b6aee9afe0e5547
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot host-openpower-ffs occ capp-ucode
+OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries machine-xml skiboot host-openpower-ffs occ capp-ucode
 
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_DEPENDENCIES += ima-catalog
@@ -50,7 +46,7 @@ OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 OPENPOWER_VERSION_DIR = $(STAGING_DIR)/openpower_version
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
-OPENPOWER_VERSIONED_SUBPACKAGES = skiboot hostboot linux petitboot $(XML_PACKAGE) occ hostboot-binaries capp-ucode
+OPENPOWER_VERSIONED_SUBPACKAGES = skiboot hostboot linux petitboot machine-xml occ hostboot-binaries capp-ucode
 OPENPOWER_PNOR = openpower-pnor
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
