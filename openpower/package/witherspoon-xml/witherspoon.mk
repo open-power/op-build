@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WITHERSPOON_XML_VERSION ?= cee25d28dfe368a1838a0ef9295d6652da851635
+WITHERSPOON_XML_VERSION ?= 9f27890d189eb79f1365e53d3350881060a75448
 WITHERSPOON_XML_SITE ?= $(call github,open-power,witherspoon-xml,$(WITHERSPOON_XML_VERSION))
 
 WITHERSPOON_XML_LICENSE = Apache-2.0
@@ -74,6 +74,13 @@ define WITHERSPOON_XML_BUILD_CMDS
             $(PETITBOOT_BIOS_XML_METADATA_FILE) \
             $(PETITBOOT_XSLT_FILE) \
             $(BIOS_XML_METADATA_FILE)
+
+        # Create the wofdata
+        if [ -e $(MRW_HB_TOOLS)/wof_v4_dd1_export.csv ]; then \
+            chmod +x $(MRW_HB_TOOLS)/wof-tables-img; \
+            $(MRW_HB_TOOLS)/wof-tables-img --create $(MRW_SCRATCH)/wof_output $(MRW_SCRATCH)/wof_v4_dd1_export.csv; \
+        fi
+
 endef
 
 define WITHERSPOON_XML_INSTALL_IMAGES_CMDS
