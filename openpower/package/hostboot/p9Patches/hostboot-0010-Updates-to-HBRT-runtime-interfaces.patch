@@ -1,0 +1,419 @@
+From 826657215c64a6fba1f8141769af5a93994b4a5d Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Fri, 12 May 2017 15:40:46 -0500
+Subject: [PATCH] Updates to HBRT runtime interfaces
+
+Reconciling P9 function table with P8 table to make opal-prd
+work.
+
+Added new entries for:
+- firmware_request
+- get_ipoll_events
+- firmware_notify
+
+Added in entries for P8 functions:
+- get_interface_capabilities
+
+Added deprecated placeholders for P8 functions:
+- occ_load
+- occ_start
+- occ_stop
+
+Moved entries for:
+- load_pm_complex
+- start_pm_complex
+- reset_pm_complex
+
+Change-Id: I1892b4465a6e5901aa9eaa6a49e139a4bc4c5b56
+---
+ src/include/runtime/interface.h | 230 +++++++++++++++++++++++++++-------------
+ src/runtime/rt_main.C           |  26 ++++-
+ 2 files changed, 182 insertions(+), 74 deletions(-)
+
+diff --git a/src/include/runtime/interface.h b/src/include/runtime/interface.h
+index aafbbf9..363e50c 100644
+--- a/src/include/runtime/interface.h
++++ b/src/include/runtime/interface.h
+@@ -37,9 +37,9 @@
+  */
+ 
+ /** Current interface version.
+- *  0x9001:  9=P9, 001=Version 1
++ *  0x9001:  9=P9, 002=Version 2
+  */
+-#define HOSTBOOT_RUNTIME_INTERFACE_VERSION 0x9001
++#define HOSTBOOT_RUNTIME_INTERFACE_VERSION 0x9002
+ 
+ #ifndef __HOSTBOOT_RUNTIME_INTERFACE_VERSION_ONLY
+ 
+@@ -53,7 +53,7 @@ enum MemoryError_t
+      *  continues to report errors on subsequent reads. A second CE on that
+      *  cache line will result in memory UE. Therefore, it is advised to
+      *  migrate off of the address range as soon as possible. */
+-    MEMORY_ERROR_CE,
++    MEMORY_ERROR_CE = 0,
+ 
+     /** Hardware has reported an uncorrectable error in memory (memory UE,
+      *  channel failure, etc). The hypervisor should migrate any partitions
+@@ -63,13 +63,13 @@ enum MemoryError_t
+      *  partition failures to handle the hardware attentions so that the
+      *  hypervisor will know all areas of memory that are impacted by the
+      *  failure. */
+-    MEMORY_ERROR_UE,
++    MEMORY_ERROR_UE = 1,
+ 
+     /** Firmware has predictively requested service on a part in the memory
+      *  subsystem. The partitions may not have been affected, but it is
+      *  advised to migrate off of the address range as soon as possible to
+      *  avoid potential partition outages. */
+-    MEMORY_ERROR_PREDICTIVE,
++    MEMORY_ERROR_PREDICTIVE = 2,
+ };
+ 
+ /**
+@@ -130,6 +130,21 @@ enum MemoryError_t
+ #define HBRT_RSVD_MEM__SBE_FFDC           "ibm,sbe-ffdc"
+ 
+ 
++/**
++ * Specifiers for get_interface_capabilities
++ */
++
++/* Common Features */
++#define HBRT_CAPS_SET0_COMMON  0
++
++/* OPAL fixes */
++#define HBRT_CAPS_SET1_OPAL    1
++#define HBRT_CAPS_OPAL_HAS_XSCOM_RC     (1ul << 0)
++
++/* PHYP fixes */
++#define HBRT_CAPS_SET2_PHYP    2
++
++
+ /** @typedef hostInterfaces_t
+  *  @brief Interfaces provided by the underlying environment (ex. Sapphire).
+  *
+@@ -412,6 +427,40 @@ typedef struct hostInterfaces
+                          enum MemoryError_t i_errorType );
+ 
+     /**
++     * @brief Query the HBRT host for a list of fixes/features
++     *
++     * There are times when workarounds need to be put into place to handle
++     * issues with the hosting layer (e.g. opal-prd) while fixes are not yet
++     * released.  This is especially true because of the disconnected release
++     * streams for the firmware and the hosting environment.
++     *
++     * @param  i_set Indicates which set of fixes/features we're checking
++     *               see HBRT_CAPS_SET...
++     *
++     * @return a bitmask containing the relevant flags for the current
++     *         implementation, see HBRT_CAPS_FLAGS_...
++     */
++    uint64_t (*get_interface_capabilities)( uint64_t i_set );
++
++    /**
++     *  @brief Map a physical address space into usable memory
++     *  @note Repeated calls to map the same memory should not return an error
++     *  @param[in]  i_physMem  Physical address
++     *  @param[in]  i_bytes    Number of bytes to map in
++     *  @return NULL on error, else pointer to usable memory
++     *  @platform FSP, OpenPOWER
++     */
++    void* (*map_phys_mem)(uint64_t i_physMem, size_t i_bytes);
++
++    /**
++     *  @brief Unmap a physical address space from usable memory
++     *  @param[in]  i_ptr  Previously mapped pointer
++     *  @return 0 on success, else RC
++     *  @platform FSP, OpenPOWER
++     */
++    int (*unmap_phys_mem)(void* i_ptr);
++
++    /**
+      *  @brief Modify the SCOM restore section of the HCODE image with the
+      *         given register data
+      *
+@@ -441,22 +490,27 @@ typedef struct hostInterfaces
+                               uint64_t i_scomData );
+ 
+     /**
+-     *  @brief Map a physical address space into usable memory
+-     *  @note Repeated calls to map the same memory should not return an error
+-     *  @param[in]  i_physMem  Physical address
+-     *  @param[in]  i_bytes    Number of bytes to map in
+-     *  @return NULL on error, else pointer to usable memory
+-     *  @platform FSP, OpenPOWER
+-     */
+-    void* (*map_phys_mem)(uint64_t i_physMem, size_t i_bytes);
+-
+-    /**
+-     *  @brief Unmap a physical address space from usable memory
+-     *  @param[in]  i_ptr  Previously mapped pointer
+-     *  @return 0 on success, else RC
+-     *  @platform FSP, OpenPOWER
++     * @brief Send a request to firmware, and receive a response
++     * @details
++     *   req_len bytes are sent to runtime firmware, and resp_len
++     *   bytes received in response.
++     *
++     *   Both req and resp are allocated by the caller. If resp_len
++     *   is not large enough to contain the full response, an error
++     *   is returned.
++     *
++     * @param[in]  i_reqLen       length of request data
++     * @param[in]  i_req          request data
++     * @param[inout] o_respLen    in: size of request data buffer
++     *                            out: length of request data
++     * @param[in]  o_resp         response data
++     * @return 0 on success, else RC
++     * @platform FSP, OpenPOWER
+      */
+-    int (*unmap_phys_mem)(void* i_ptr);
++    int (*firmware_request)( uint64_t i_reqLen,
++                             void *i_req,
++                             uint64_t* o_respLen,
++                             void *o_resp );
+ 
+     // Reserve some space for future growth.
+     // do NOT ever change this number, even if you add functions.
+@@ -475,7 +529,7 @@ typedef struct hostInterfaces
+     // allocated with sufficient space and populated with NULL function
+     // pointers.  32 is big enough that we should not likely add that many
+     // functions from either direction in between any two levels of support.
+-    void (*reserved[32])(void);
++    void (*reserved[27])(void);
+ 
+ } hostInterfaces_t;
+ 
+@@ -502,44 +556,11 @@ typedef struct runtimeInterfaces
+     const uint32_t * (*get_lid_list)(size_t * o_num);
+ 
+     /**
+-     *  @brief Load OCC/HCODE images into mainstore
+-     *
+-     *  @param[in] i_chip            the HW chip id (XSCOM chip ID)
+-     *  @param[in] i_homer_addr      the physical mainstore address of the
+-     *                               start of the HOMER image,
+-     *  @param[in] i_occ_common_addr the physical mainstore address of the
+-     *                               OCC common area, 8MB, used for
+-     *                               OCC-OCC communication (1 per node)
+-     *  @param[in] i_mode            selects initial load vs concurrent reloads
+-     *                               HBRT_PM_LOAD:
+-     *                                  load all lids/sections from scratch,
+-     *                                  preserve nothing
+-     *                               HBRT_PM_RELOAD:
+-     *                                  reload all lids/sections,
+-     *                                  but preserve runtime updates
+-     *  @return 0 on success else return code
+-     *  @platform FSP, OpenPOWER
+-     */
+-    int (*load_pm_complex)( uint64_t i_chip,
+-                            uint64_t i_homer_addr,
+-                            uint64_t i_occ_common_addr,
+-                            uint32_t i_mode );
+-
+-    /**
+-     *  @brief Start OCC/HCODE on the specified chip
+-     *  @param[in] i_chip the HW chip id
+-     *  @return 0 on success else return code
+-     *  @platform FSP, OpenPOWER
+-     */
+-    int (*start_pm_complex)( uint64_t i_chip );
+-
+-    /**
+-     *  @brief Reset OCC/HCODE on the specified chip
+-     *  @param[in] i_chip the HW chip id
+-     *  @return 0 on success else return code
+-     *  @platform FSP, OpenPOWER
++     * Space allocated for deprecated P8 interfaces
+      */
+-    int (*reset_pm_complex)( uint64_t i_chip );
++    const uint32_t * (*occ_load__deprecated)(size_t * o_num);
++    const uint32_t * (*occ_start__deprecated)(size_t * o_num);
++    const uint32_t * (*occ_stop__deprecated)(size_t * o_num);
+ 
+     /**
+      *  @brief Notify HTMGT that an OCC has an error to report
+@@ -629,20 +650,20 @@ typedef struct runtimeInterfaces
+     /**
+      *  @brief Send a pass-through command to HTMGT
+      *
+-     *  @details  This is a blocking call that will send a command
+-     *            to HTMGT.
+-     *  @note     If o_rspLength is returned with a non-zero value,
+-     *            the data at the o_rspData should be dumped to
+-     *            stdout in a hex dump format.
+-     *  @note     The maximum response data returned will be 4096 bytes
++     *  @details This is a blocking call that will send a command
++     *           to HTMGT.
++     *  @note   If o_rspLength is returned with a non-zero value,
++     *          the data at the o_rspData should be dumped to
++     *          stdout in a hex dump format.
++     *  @note   The maximum response data returned will be 4096 bytes
+      *
+      *  @param[in]      i_cmdLength  number of bytes in pass-thru command data
+-     *  @param[in]     *i_cmdData    pointer to pass-thru command data
++     *  @param[in]   *i_cmdData   pointer to pass-thru command data
+      *  @param[out]    *o_rspLength  pointer to number of bytes returned
+      *                               in o_rspData
+-     *  @param[out]    *o_rspData    pointer to a 4096 byte buffer that will
++     *  @param[out]    *o_rspData   pointer to a 4096 byte buffer that will
+      *                               contain the response data from the command
+-     *  @returns  0 on success, or return code if the command failed
++     *  @returns 0 on success, or return code if the command failed
+      *  @platform OpenPOWER
+      */
+     int (*mfg_htmgt_pass_thru)( uint16_t   i_cmdLength,
+@@ -691,20 +712,83 @@ typedef struct runtimeInterfaces
+               size_t i_hwKeyHashSize);
+ 
+     /**
+-     *  @brief SBE message passing
++     *  @brief SBE message passing notification
+      *
+-     *  @details  This is a blocking call that will pass an SBE message
+-     *            with a pass-through command through HBRT to code that
+-     *            will process the command and provide a response.
++     *  @details
++     *      This is a blocking call that is used to notify HBRT there is
++     *      a SBE message available.  This should be called when the Host
++     *      detects the appropriate PSU interrupt from the SBE.
+      *
+      *  @param[in] i_procChipId Chip ID of the processor whose SBE is passing
+      *                          the message and sent the interrupt
+      *
+-     *  @returns  0 on success, or return code if the command failed
++     *  @return 0 on success, or return code if the command failed
+      *  @platform FSP, OpenPOWER
+      */
+     int (*sbe_message_passing)(uint32_t i_procChipId);
+ 
++    /**
++     *  @brief Load OCC/HCODE images into mainstore
++     *
++     *  @param[in] i_chip            the HW chip id (XSCOM chip ID)
++     *  @param[in] i_homer_addr      the physical mainstore address of the
++     *                               start of the HOMER image,
++     *  @param[in] i_occ_common_addr the physical mainstore address of the
++     *                               OCC common area, 8MB, used for
++     *                               OCC-OCC communication (1 per node)
++     *  @param[in] i_mode            selects initial load vs concurrent reloads
++     *                               HBRT_PM_LOAD:
++     *                                  load all lids/sections from scratch,
++     *                                  preserve nothing
++     *                               HBRT_PM_RELOAD:
++     *                                  reload all lids/sections,
++     *                                  but preserve runtime updates
++     *  @return 0 on success else return code
++     *  @platform FSP, OpenPOWER
++     */
++    int (*load_pm_complex)( uint64_t i_chip,
++                            uint64_t i_homer_addr,
++                            uint64_t i_occ_common_addr,
++                            uint32_t i_mode );
++
++    /**
++     *  @brief Start OCC/HCODE on the specified chip
++     *  @param[in] i_chip the HW chip id
++     *  @return 0 on success else return code
++     *  @platform FSP, OpenPOWER
++     */
++    int (*start_pm_complex)( uint64_t i_chip );
++
++    /**
++     *  @brief Reset OCC/HCODE on the specified chip
++     *  @param[in] i_chip the HW chip id
++     *  @return 0 on success else return code
++     *  @platform FSP, OpenPOWER
++     */
++    int (*reset_pm_complex)( uint64_t i_chip );
++
++    /**
++     * @brief Query the IPOLL event mask supported by HBRT
++     *
++     * @details  This call allows the wrapper application to query
++     * the ipoll event mask to set when the HBRT instance is running. Bits
++     * that are *set* in this bitmask represent events that will be
++     * forwarded to the handle_attn() callback.
++     *
++     * @return        The IPOLL event bits to enable during HBRT execution
++     * @platform FSP, OpenPOWER
++     */
++    uint64_t (*get_ipoll_events)( void );
++
++    /**
++     * @brief Receive an async notification from firmware
++     * @param[in] i_len   length of notification data
++     * @param[in] i_data  notification data
++     * @platform FSP, OpenPOWER
++     */
++    void (*firmware_notify)( uint64_t len,
++                             void *data );
++
+     // Reserve some space for future growth.
+     // do NOT ever change this number, even if you add functions.
+     //
+@@ -722,7 +806,7 @@ typedef struct runtimeInterfaces
+     // allocated with sufficient space and populated with NULL function
+     // pointers.  32 is big enough that we should not likely add that many
+     // functions from either direction in between any two levels of support.
+-    void (*reserved[32])(void);
++    void (*reserved[22])(void);
+ 
+ } runtimeInterfaces_t;
+ 
+diff --git a/src/runtime/rt_main.C b/src/runtime/rt_main.C
+index d9a21c9..d539018 100644
+--- a/src/runtime/rt_main.C
++++ b/src/runtime/rt_main.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2013,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2017                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -70,6 +70,27 @@ extern "C"
+  */
+ runtimeInterfaces_t* rt_start(hostInterfaces_t*) NEVER_INLINE;
+ 
++
++/** @fn rt_version_fixup
++ *
++ *  @brief Make any adjustments needed to handle old versions
++ */
++void rt_version_fixup( void )
++{
++    uint64_t hostver = g_hostInterfaces->interfaceVersion;
++    if( HOSTBOOT_RUNTIME_INTERFACE_VERSION == hostver )
++    {
++        return; //nothing to do, we match
++    }
++
++    char verstring[100];
++    sprintf( verstring,
++             "HRBT Ver=%X, HostVer=%X\n",
++             HOSTBOOT_RUNTIME_INTERFACE_VERSION,
++             hostver );
++    (g_hostInterfaces->puts)(verstring);
++}
++
+ /** Call C++ constructors present in this image. */
+ void rt_cppBootstrap();
+ 
+@@ -111,6 +132,9 @@ runtimeInterfaces_t* rt_start(hostInterfaces_t* intf)
+     postInitCalls_t* rtPost = getPostInitCalls();
+     rtPost->callApplyTempOverrides();
+ 
++    // do any version mismatch fixups
++    rt_version_fixup();
++
+     // Return our interface pointer structure.
+     return rtInterfaces;
+ }
+-- 
+1.8.2.2
+
