@@ -1,0 +1,240 @@
+From 569a650085d4ea7cf87c88ec5542ff31477e8c6d Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Fri, 2 Jun 2017 10:32:27 -0500
+Subject: [PATCH] Revert "Handling of functional NX chiplet"
+
+This reverts commit 392272c0247878a832473157e7d2e6023496ca99.
+---
+ src/include/usr/hwas/common/hwas_reasoncodes.H |  1 -
+ src/usr/hwas/common/hwas.C                     | 51 ------------------------
+ src/usr/isteps/istep10/call_host_rng_bist.C    | 53 ++++++-------------------
+ src/usr/isteps/istep16/call_host_secure_rng.C  | 55 +++++++-------------------
+ 4 files changed, 28 insertions(+), 132 deletions(-)
+
+diff --git a/src/include/usr/hwas/common/hwas_reasoncodes.H b/src/include/usr/hwas/common/hwas_reasoncodes.H
+index 1c3a789..667ac6c 100644
+--- a/src/include/usr/hwas/common/hwas_reasoncodes.H
++++ b/src/include/usr/hwas/common/hwas_reasoncodes.H
+@@ -55,7 +55,6 @@ namespace HWAS
+         RC_SYSAVAIL_MISSING_CRITICAL_RESOURCE   = HWAS_COMP_ID | 0x0B,
+         RC_SYSAVAIL_NO_MCAS_FUNC                = HWAS_COMP_ID | 0x0C,
+         RC_SYSAVAIL_NO_MEMORY_FUNC_MASTER       = HWAS_COMP_ID | 0x0D,
+-        RC_SYSAVAIL_NO_NX_FUNC                  = HWAS_COMP_ID | 0x0E,
+     };
+ };
+ 
+diff --git a/src/usr/hwas/common/hwas.C b/src/usr/hwas/common/hwas.C
+index 9908ef8..79d541b 100644
+--- a/src/usr/hwas/common/hwas.C
++++ b/src/usr/hwas/common/hwas.C
+@@ -1881,57 +1881,6 @@ errlHndl_t checkMinimumHardware(const TARGETING::ConstTargetHandle_t i_nodeOrSys
+                 // errl is now NULL
+             }
+         }
+-
+-        // check for functional NX chiplets
+-        TargetHandleList l_functionalNXChiplets;
+-        getChildChiplets(l_functionalNXChiplets, pTop, TYPE_NX, true);
+-        HWAS_DBG( "checkMinimumHardware: %d NX chiplets",
+-                  l_functionalNXChiplets.size());
+-
+-        if (l_functionalNXChiplets.empty())
+-        {
+-            HWAS_ERR( "Insufficient hardware to continue IPL (NX chiplets)");
+-
+-            if(o_bootable)
+-            {
+-                *o_bootable = false;
+-                break;
+-            }
+-            TargetHandleList l_presentNXChiplets;
+-            getChildChiplets(l_presentNXChiplets, pTop, TYPE_NX, false);
+-            uint32_t nx_present = l_presentNXChiplets.size();
+-
+-            /*@
+-             * @errortype
+-             * @severity           ERRL_SEV_UNRECOVERABLE
+-             * @moduleid           MOD_CHECK_MIN_HW
+-             * @reasoncode         RC_SYSAVAIL_NO_NX_FUNC
+-             * @devdesc            checkMinimumHardware found no
+-             *                     functional NX chiplets
+-             * @custdesc           Insufficient hardware to continue IPL
+-             * @userdata1[00:31]   HUID of node
+-             * @userdata2[00:31]   number of present nonfunctional NX chiplets
+-             */
+-            const uint64_t userdata1 =
+-                (static_cast<uint64_t>(get_huid(pTop)) << 32);
+-            const uint64_t userdata2 =
+-                (static_cast<uint64_t>(nx_present) << 32);
+-            l_errl = hwasError(ERRL_SEV_UNRECOVERABLE,
+-                         MOD_CHECK_MIN_HW,
+-                         RC_SYSAVAIL_NO_NX_FUNC,
+-                         userdata1, userdata2);
+-
+-            //  call out the procedure to find the deconfigured part.
+-            hwasErrorAddProcedureCallout( l_errl,
+-                         EPUB_PRC_FIND_DECONFIGURED_PART,
+-                         SRCI_PRIORITY_HIGH );
+-
+-            //  if we already have an error, link this one to the earlier;
+-            //  if not, set the common plid
+-            hwasErrorUpdatePlid( l_errl, l_commonPlid );
+-            errlCommit(l_errl, HWAS_COMP_ID);
+-        }
+-
+         //  ------------------------------------------------------------
+         //  Check for Mirrored memory -
+         //  If the user requests mirrored memory and we do not have it,
+diff --git a/src/usr/isteps/istep10/call_host_rng_bist.C b/src/usr/isteps/istep10/call_host_rng_bist.C
+index 68d2435..b1ccc51 100644
+--- a/src/usr/isteps/istep10/call_host_rng_bist.C
++++ b/src/usr/isteps/istep10/call_host_rng_bist.C
+@@ -42,7 +42,6 @@
+ 
+ #include    <isteps/hwpisteperror.H>
+ #include    <errl/errludtarget.H>
+-#include    <errl/errlreasoncodes.H>
+ 
+ #include    <initservice/isteps_trace.H>
+ #include    <initservice/initserviceif.H>
+@@ -87,49 +86,23 @@ void* call_host_rng_bist( void *io_pArgs )
+     // Loop through all processors including master
+     for (const auto & l_cpu_target: l_cpuTargetList)
+     {
+-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>l_fapi2_proc_target(
++      const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>l_fapi2_proc_target(
+                 l_cpu_target);
+-        // Check for functional NX
+-        TARGETING::TargetHandleList l_nxTargetList;
+-        getChildChiplets(l_nxTargetList, l_cpu_target, TYPE_NX, true);
+-        if (l_nxTargetList.empty())
+-        {
+-            TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
+-              "p9_rng_init_phase1: no functional NX found for proc %.8X",
+-              TARGETING::get_huid(l_cpu_target));
+-            continue;
+-        }
+-        TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
++
++      TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
+           "Running p9_rng_init_phase1 HWP on processor target %.8X",
+           TARGETING::get_huid(l_cpu_target) );
+ 
+-        FAPI_INVOKE_HWP(l_err, p9_rng_init_phase1, l_fapi2_proc_target);
+-        if(l_err)
+-        {
+-            TRACFCOMP(ISTEPS_TRACE::g_trac_isteps_trace,
+-                "ERROR: call p9_rng_init_phase1, PLID=0x%x, rc=0x%.4X",
+-                l_err->plid(), l_err->reasonCode());
+-
+-            for (const auto l_callout : l_err->getUDSections(
+-                    HWPF_COMP_ID,
+-                    ERRORLOG::ERRL_UDT_CALLOUT))
+-            {
+-                if(reinterpret_cast<HWAS::callout_ud_t*>
+-                    (l_callout)->type == HWAS::HW_CALLOUT)
+-                {
+-                    for (const auto & l_nxTarget: l_nxTargetList)
+-                    {
+-                        l_err->addHwCallout( l_nxTarget,
+-                            HWAS::SRCI_PRIORITY_HIGH,
+-                            HWAS::DECONFIG,
+-                            HWAS::GARD_NULL );
+-                    }
+-                 }
+-            }
+-
+-            l_StepError.addErrorDetails(l_err);
+-            errlCommit(l_err, HWPF_COMP_ID);
+-        }
++      FAPI_INVOKE_HWP(l_err, p9_rng_init_phase1, l_fapi2_proc_target);
++      if(l_err)
++      {
++          TRACFCOMP(ISTEPS_TRACE::g_trac_isteps_trace,
++                    "ERROR: call p9_rng_init_phase1, PLID=0x%x",
++                    l_err->plid());
++          l_StepError.addErrorDetails(l_err);
++          errlCommit(l_err, HWPF_COMP_ID);
++      }
++
+     } // end of going through all processors
+ 
+     TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
+diff --git a/src/usr/isteps/istep16/call_host_secure_rng.C b/src/usr/isteps/istep16/call_host_secure_rng.C
+index 9ca7e0f..5a51504 100644
+--- a/src/usr/isteps/istep16/call_host_secure_rng.C
++++ b/src/usr/isteps/istep16/call_host_secure_rng.C
+@@ -45,7 +45,6 @@
+ 
+ #include    <isteps/hwpisteperror.H>
+ #include    <errl/errludtarget.H>
+-#include    <errl/errlreasoncodes.H>
+ 
+ #include    <initservice/isteps_trace.H>
+ #include    <initservice/initserviceif.H>
+@@ -90,47 +89,23 @@ void* call_host_secure_rng( void *io_pArgs )
+     // Loop through all processors including master
+     for (const auto & l_cpu_target: l_cpuTargetList)
+     {
+-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>l_fapi2_proc_target(
++      const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>l_fapi2_proc_target(
+                 l_cpu_target);
+ 
+-        // Check for functional NX
+-        TARGETING::TargetHandleList l_nxTargetList;
+-        getChildChiplets(l_nxTargetList, l_cpu_target, TYPE_NX, true);
+-        if (l_nxTargetList.empty())
+-        {
+-            TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
+-              "Running host_secure_rng; no functional NX found for proc %.8X",
+-              TARGETING::get_huid(l_cpu_target));
+-            continue;
+-        }
+-
+-        FAPI_INVOKE_HWP(l_err, p9_rng_init_phase2, l_fapi2_proc_target);
+-        if(l_err)
+-        {
+-            TRACFCOMP(ISTEPS_TRACE::g_trac_isteps_trace,
+-                "ERROR: call p9_rng_init_phase2, PLID=0x%x, rc=0x%.4X",
+-                l_err->plid(), l_err->reasonCode());
+-
+-            for (const auto l_callout : l_err->getUDSections(
+-                    HWPF_COMP_ID,
+-                    ERRORLOG::ERRL_UDT_CALLOUT))
+-            {
+-                if(reinterpret_cast<HWAS::callout_ud_t*>
+-                    (l_callout)->type == HWAS::HW_CALLOUT)
+-                {
+-                    for (const auto & l_nxTarget: l_nxTargetList)
+-                    {
+-                        l_err->addHwCallout( l_nxTarget,
+-                            HWAS::SRCI_PRIORITY_HIGH,
+-                            HWAS::DECONFIG,
+-                            HWAS::GARD_NULL );
+-                    }
+-                 }
+-            }
+-
+-            l_StepError.addErrorDetails(l_err);
+-            errlCommit(l_err, HWPF_COMP_ID);
+-        }
++      TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
++          "Running host_secure_rng HWP on processor target %.8X",
++          TARGETING::get_huid(l_cpu_target) );
++
++      FAPI_INVOKE_HWP(l_err, p9_rng_init_phase2, l_fapi2_proc_target);
++      if(l_err)
++      {
++          TRACFCOMP(ISTEPS_TRACE::g_trac_isteps_trace,
++                    "ERROR: call p9_rng_init_phase2, PLID=0x%x",
++                    l_err->plid());
++          l_StepError.addErrorDetails(l_err);
++          errlCommit(l_err, HWPF_COMP_ID);
++      }
++
+     } // end of going through all processors
+ 
+     TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
+-- 
+1.8.2.2
+
