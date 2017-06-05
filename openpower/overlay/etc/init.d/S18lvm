@@ -1,0 +1,17 @@
+#!/bin/sh
+
+case "$1" in
+	start)
+		logger "Scanning for LVM volumes"
+		/usr/sbin/vgscan
+		/usr/sbin/vgchange -ay
+		;;
+	stop)
+		logger "Stopping LVM volumes"
+		/usr/sbin/vgchange -an
+		;;
+	restart|force-reload)
+		;;
+esac
+
+exit 0
