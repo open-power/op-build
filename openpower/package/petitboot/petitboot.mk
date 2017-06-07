@@ -44,8 +44,6 @@ define PETITBOOT_POST_INSTALL
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc/petitboot/boot.d
 	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/01-create-default-dtb \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
-	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/30-dtb-updates \
-		$(TARGET_DIR)/etc/petitboot/boot.d/
 	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/90-sort-dtb \
 		$(TARGET_DIR)/etc/petitboot/boot.d/
 
@@ -63,6 +61,8 @@ define PETITBOOT_POST_INSTALL
 		$(TARGET_DIR)/etc/udev/rules.d/
 	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/petitboot/65-md-incremental.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL)/package/petitboot/66-add-sg-module.rules \
+		$(TARGET_DIR)/etc/udev/rules.d/
 
 	ln -sf /usr/sbin/pb-udhcpc \
 		$(TARGET_DIR)/usr/share/udhcpc/default.script.d/
@@ -72,6 +72,15 @@ define PETITBOOT_POST_INSTALL
 	$(MAKE) -C $(@D)/po DESTDIR=$(TARGET_DIR) install
 endef
 
+define PETITBOOT_POST_INSTALL_DTB
+	$(INSTALL) -D -m 0755 $(@D)/utils/hooks/30-dtb-updates \
+		$(TARGET_DIR)/etc/petitboot/boot.d/
+endef
+
 PETITBOOT_POST_INSTALL_TARGET_HOOKS += PETITBOOT_POST_INSTALL
+
+ifeq ($(BR2_PACKAGE_DTC),y)
+	PETITBOOT_POST_INSTALL_TARGET_HOOKS += PETITBOOT_POST_INSTALL_DTB
+endif
 
 $(eval $(autotools-package))

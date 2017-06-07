@@ -1,0 +1,101 @@
+From 88a9eed95a72e6cbc8956585308599bf07aec70a Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Mon, 20 Mar 2017 13:31:35 +1100
+Subject: [PATCH] Only build attributeOverride if compiler supports
+ -std=gnu++11
+
+GCC prior to 4.8 doesn't support -std=gnu++11, which the attributeOverride
+tool requires to build.
+
+Since this is only a host side utility, we can not build it if we're
+building hostboot with ancient host compilers (e.g. on RHEL6.x)
+
+Change-Id: I53ad31b56dd90c2cd77f5ca1f91b46e519cdfe48
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ src/build/mkrules/cc.rules.mk           | 10 +++++++++-
+ src/build/mkrules/dist.targets.mk       |  7 ++++++-
+ src/usr/targeting/attroverride/makefile |  8 +++++++-
+ 3 files changed, 22 insertions(+), 3 deletions(-)
+
+diff --git a/src/build/mkrules/cc.rules.mk b/src/build/mkrules/cc.rules.mk
+index cb00ea001072..c89995f825df 100644
+--- a/src/build/mkrules/cc.rules.mk
++++ b/src/build/mkrules/cc.rules.mk
+@@ -5,7 +5,9 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# COPYRIGHT International Business Machines Corp. 2013,2014
++# Contributors Listed Below - COPYRIGHT 2013,2017
++# [+] International Business Machines Corp.
++#
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+ # you may not use this file except in compliance with the License.
+@@ -74,3 +76,9 @@ $(IMGDIR)/lib$(MODULE).so : $(OBJECTS) $(ROOTPATH)/src/module.ld $(MODULE_INIT)
+ 		   $(OBJECTS) $(MODULE_INIT) \
+ 	           -T $(ROOTPATH)/src/module.ld -o $@
+ endif
++
++try = $(shell set -e; if ($(1)) >/dev/null 2>&1; \
++        then echo "$(2)"; \
++        else echo "$(3)"; fi )
++
++try-cflag = $(call try,$(1) $(2) -x c -c /dev/null -o /dev/null,$(2))
+diff --git a/src/build/mkrules/dist.targets.mk b/src/build/mkrules/dist.targets.mk
+index 2f047bcda0b7..ba6114db9aae 100644
+--- a/src/build/mkrules/dist.targets.mk
++++ b/src/build/mkrules/dist.targets.mk
+@@ -71,7 +71,6 @@ COPY_FILES = \
+     obj/genfiles/targAttrInfo.csv:vpo \
+     obj/genfiles/target_types_merged.xml:openpower \
+     obj/genfiles/fapiattrs.xml:openpower \
+-    obj/genfiles/attributeOverride:tools,openpower \
+     src/usr/targeting/attroverride/README.attr_override:tools,openpower \
+     src/build/hwpf/prcd_compile.tcl:tools \
+     src/build/buildpnor/buildSbePart.pl:openpower \
+@@ -94,6 +93,12 @@ COPY_FILES = \
+     src/usr/targeting/common/xmltohb/bios_metadata_petitboot.xslt:openpower \
+     $(foreach file, $(call ROOTPATH_WILDCARD,releaseNotes.html), $(file):fsp)\
+ 
++ifeq ($(call try-cflag,$(CCACHE) $(HOST_PREFIX)g++,-std=gnu++11),-std=gnu++11)
++COPY_FILES += obj/genfiles/attributeOverride:tools,openpower
++else
++COPY_FILES += obj/genfiles/attributeOverride:tools
++endif
++
+ include ${ROOTPATH}/config.mk
+ COPY_FILES += $(if $(CONFIG_INCLUDE_XML_OPPOWERVM),src/usr/targeting/common/xmltohb/target_types_oppowervm.xml:openpower) \
+     $(if $(CONFIG_INCLUDE_XML_OPPOWERVM),src/usr/targeting/common/xmltohb/attribute_types_oppowervm.xml:openpower) \
+diff --git a/src/usr/targeting/attroverride/makefile b/src/usr/targeting/attroverride/makefile
+index 8ab26fd5009b..d9f0e85b324c 100644
+--- a/src/usr/targeting/attroverride/makefile
++++ b/src/usr/targeting/attroverride/makefile
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2014,2016
++# Contributors Listed Below - COPYRIGHT 2014,2017
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -49,8 +49,14 @@ include $(ROOTPATH)/config.mk
+ vpath %.C $(GENDIR)
+ vpath %.H $(GENDIR)
+ 
++ifeq ($(call try-cflag,$(CCACHE) $(HOST_PREFIX)g++,-std=gnu++11),-std=gnu++11)
+ $(OUT_FILE): $(C_FILES) $(H_FILES)
+ 	$(C2) "    CC         $(notdir $@)"
+ 	$(C1)$(CCACHE) $(HOST_PREFIX)g++ -std=gnu++11 -O3 -g -o $(OUT_FILE)\
+ 			$(foreach dir,$(INC_DIRS), -I $(dir)) -iquote.\
+ 			$(foreach file,$^,$(if $(findstring .H,$(file)),,$(file)))
++else
++$(OUT_FILE): $(C_FILES) $(H_FILES)
++	$(C2) "    GEN-NULL   $(notdir $@)"
++	@(echo '#!/bin/sh'; echo 'exit -1';) > $(OUT_FILE)
++endif
+-- 
+2.9.3
+

@@ -4,16 +4,12 @@
 #
 ################################################################################
 
-# remove the quotes from the XML/Targeting package as
-# make doesn't care for quotes in the dependencies.
-XML_PACKAGE=$(subst $\",,$(BR2_OPENPOWER_XML_PACKAGE))
-
-OPENPOWER_PNOR_VERSION ?= 52b1b91ea5ea7651688802f72d168139c29c4780
+OPENPOWER_PNOR_VERSION ?= 3ab2d5d3f0c030bd68a4b431ac128004d54f7511
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries $(XML_PACKAGE) skiboot host-openpower-ffs occ capp-ucode
+OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries machine-xml skiboot host-openpower-ffs occ capp-ucode
 
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_DEPENDENCIES += ima-catalog
@@ -45,12 +41,18 @@ OPENPOWER_PNOR_INSTALL_TARGET = NO
 
 HOSTBOOT_IMAGE_DIR=$(STAGING_DIR)/hostboot_build_images/
 HOSTBOOT_BINARY_DIR = $(STAGING_DIR)/hostboot_binaries/
+SBE_BINARY_DIR = $(STAGING_DIR)/sbe_binaries/
 OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 OPENPOWER_VERSION_DIR = $(STAGING_DIR)/openpower_version
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
-OPENPOWER_VERSIONED_SUBPACKAGES = skiboot hostboot linux petitboot $(XML_PACKAGE) occ hostboot-binaries capp-ucode
+OPENPOWER_VERSIONED_SUBPACKAGES = skiboot hostboot linux petitboot machine-xml occ hostboot-binaries capp-ucode
 OPENPOWER_PNOR = openpower-pnor
+
+ifeq ($(BR2_OPENPOWER_POWER9),y)
+    OPENPOWER_PNOR_DEPENDENCIES += sbe
+    OPENPOWER_VERSIONED_SUBPACKAGES += sbe
+endif
 
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         mkdir -p $(OPENPOWER_PNOR_SCRATCH_DIR)
@@ -64,6 +66,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -targeting_binary_source $(BR2_OPENPOWER_TARGETING_BIN_FILENAME) \
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
+            -sbe_binary_dir $(SBE_BINARY_DIR) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
