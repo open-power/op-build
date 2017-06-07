@@ -32,6 +32,8 @@ PETITBOOT_BIOS_XML_METADATA_FILE = \
 PETITBOOT_BIOS_XML_METADATA_INITRAMFS_FILE = \
     $(TARGET_DIR)/usr/share/bios_metadata.xml
 
+WOFDATA_FILE = `ls $(MRW_SCRATCH)/wofdata`
+
 ifeq ($(BR2_OPENPOWER_MACHINE_XML_OPPOWERVM_ATTRIBUTES),y)
 MACHINE_XML_OPPOWERVM_ATTR_XML = $(MRW_HB_TOOLS)/attribute_types_oppowervm.xml
 MACHINE_XML_OPPOWERVM_TARGET_XML = $(MRW_HB_TOOLS)/target_types_oppowervm.xml
@@ -91,6 +93,18 @@ define MACHINE_XML_BUILD_CMDS
             $(PETITBOOT_BIOS_XML_METADATA_FILE) \
             $(PETITBOOT_XSLT_FILE) \
             $(BIOS_XML_METADATA_FILE)
+
+        # Create the wofdata
+        if [ -e $(MRW_HB_TOOLS)/wof-tables-img ]; then \
+            chmod +x $(MRW_HB_TOOLS)/wof-tables-img; \
+        fi
+        
+		if [ -d $(MRW_SCRATCH)/wofdata ]; then \
+			$(MRW_HB_TOOLS)/wof-tables-img --create $(MRW_SCRATCH)/wof_output $(MRW_SCRATCH)/wofdata; \
+        fi
+
+
+
 endef
 
 define MACHINE_XML_INSTALL_IMAGES_CMDS
