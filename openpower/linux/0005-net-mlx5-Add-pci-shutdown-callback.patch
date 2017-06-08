@@ -1,7 +1,7 @@
-From f00bd9648a50f06e77c04a36c4506e36ea0a27e0 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Carol L Soto <clsoto@linux.vnet.ibm.com>
 Date: Tue, 12 Jul 2016 17:04:07 -0500
-Subject: [PATCH 5/9] net/mlx5: Add pci shutdown callback
+Subject: [PATCH 05/11] net/mlx5: Add pci shutdown callback
 
 Backport of commit 5fc7197d3a256 ("net/mlx5: Add pci shutdown callback")
 so we can use for the OpenPower kernel.
@@ -63,10 +63,10 @@ index 90e876ecc720..984668ec8a0b 100644
  
  static void *mlx5e_get_netdev(void *vpriv)
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 6cf6d93d8831..8a371bdb823e 100644
+index 1e611980cf99..1351eecd6bde 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -914,7 +914,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -920,7 +920,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	int err;
  
  	mutex_lock(&dev->intf_state_mutex);
@@ -75,7 +75,7 @@ index 6cf6d93d8831..8a371bdb823e 100644
  		dev_warn(&dev->pdev->dev, "%s: interface is up, NOP\n",
  			 __func__);
  		goto out;
-@@ -1063,7 +1063,8 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -1069,7 +1069,8 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	if (err)
  		pr_info("failed request module on %s\n", MLX5_IB_MOD);
  
@@ -85,7 +85,7 @@ index 6cf6d93d8831..8a371bdb823e 100644
  out:
  	mutex_unlock(&dev->intf_state_mutex);
  
-@@ -1125,7 +1126,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -1131,7 +1132,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	int err = 0;
  
  	mutex_lock(&dev->intf_state_mutex);
@@ -94,7 +94,7 @@ index 6cf6d93d8831..8a371bdb823e 100644
  		dev_warn(&dev->pdev->dev, "%s: interface is down, NOP\n",
  			 __func__);
  		goto out;
-@@ -1155,7 +1156,8 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -1161,7 +1162,8 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	mlx5_cmd_cleanup(dev);
  
  out:
@@ -104,7 +104,7 @@ index 6cf6d93d8831..8a371bdb823e 100644
  	mutex_unlock(&dev->intf_state_mutex);
  	return err;
  }
-@@ -1365,6 +1367,18 @@ static const struct pci_error_handlers mlx5_err_handler = {
+@@ -1371,6 +1373,18 @@ static const struct pci_error_handlers mlx5_err_handler = {
  	.resume		= mlx5_pci_resume
  };
  
@@ -123,7 +123,7 @@ index 6cf6d93d8831..8a371bdb823e 100644
  static const struct pci_device_id mlx5_core_pci_table[] = {
  	{ PCI_VDEVICE(MELLANOX, 0x1011) }, /* Connect-IB */
  	{ PCI_VDEVICE(MELLANOX, 0x1012) }, /* Connect-IB VF */
-@@ -1382,6 +1396,7 @@ static struct pci_driver mlx5_core_driver = {
+@@ -1388,6 +1402,7 @@ static struct pci_driver mlx5_core_driver = {
  	.id_table       = mlx5_core_pci_table,
  	.probe          = init_one,
  	.remove         = remove_one,
@@ -157,5 +157,5 @@ index 412aa988c6ad..dc26d9942120 100644
  					  enum mlx5_dev_event event,
  					  unsigned long param);
 -- 
-2.9.3
+2.11.0
 

@@ -1,7 +1,7 @@
-From 8f4e6ea8812cfc7dfbdfaaf6f9ad264664856b78 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Huy Nguyen <huyn@mellanox.com>
 Date: Wed, 17 Feb 2016 17:24:26 +0200
-Subject: [PATCH 3/9] net/mlx4_core: Set UAR page size to 4KB regardless of
+Subject: [PATCH 03/11] net/mlx4_core: Set UAR page size to 4KB regardless of
  system page size
 
 problem description:
@@ -57,10 +57,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  8 files changed, 84 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index f350f2d61c15..d1a9858566eb 100644
+index 1c8b7c22c822..cf296d7e0403 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1593,9 +1593,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+@@ -1594,9 +1594,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
  	}
  
  	if (qp->ibqp.uobject)
@@ -76,10 +76,10 @@ index f350f2d61c15..d1a9858566eb 100644
  	if (attr_mask & IB_QP_DEST_QPN)
  		context->remote_qpn = cpu_to_be32(attr->dest_qp_num);
 diff --git a/drivers/net/ethernet/mellanox/mlx4/cq.c b/drivers/net/ethernet/mellanox/mlx4/cq.c
-index 3348e646db70..a849da92f857 100644
+index 6eba58044456..6b8635378f1f 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/cq.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/cq.c
-@@ -318,7 +318,9 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
+@@ -320,7 +320,9 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
  	if (timestamp_en)
  		cq_context->flags  |= cpu_to_be32(1 << 19);
  
@@ -295,5 +295,5 @@ index d3133be12d92..8bab38f8872a 100644
 +}
  #endif /* MLX4_DEVICE_H */
 -- 
-2.9.3
+2.11.0
 
