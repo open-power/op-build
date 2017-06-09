@@ -25,8 +25,6 @@ BR2_TARGET_GENERIC_HOSTNAME="skiroot"
 # skiboot will be built but we don't need embedded payload
 BR2_PACKAGE_SKIBOOT=y
 BR2_PACKAGE_SKIBOOT_EMBED_PAYLOAD=n
-BR2_SKIBOOT_CUSTOM_VERSION=y
-BR2_SKIBOOT_CUSTOM_VERSION_VALUE="skiboot-5.4.4"
 
 # petitboot requirements
 BR2_ENABLE_LOCALE_PURGE=y
