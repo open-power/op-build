@@ -67,11 +67,13 @@ config BR2_HOSTBOOT_BINARY_WINK_FILENAME
 
 config BR2_WOFDATA_FILENAME
         string "Name of wofdata original file"
+        default "wof_output"
         help
             String used to define name of wofdata original file
 
 config BR2_WOFDATA_BINARY_FILENAME
         string "Name of wofdata binary file"
+        default "wofdata.bin.ecc"
         help
             String used to define name of wofdata binary ecc'd file
 
