@@ -1,0 +1,234 @@
+From 7abdc8fec08c12bff5d52f4ee0f4a30c8e4c7137 Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Mon, 12 Jun 2017 08:22:27 -0500
+Subject: [PATCH] Revert "increase I2C_BUS_SPEED_ARRAY to be 4x13 array"
+
+This reverts commit cfc04f8b5bb5453603d2e683502fd5c47fa7fc58.
+---
+ src/usr/targeting/common/genHwsvMrwXml.pl          | 38 ++++++++-------
+ src/usr/targeting/common/processMrw.pl             | 55 +++++++++++++---------
+ .../targeting/common/xmltohb/attribute_types.xml   | 10 ++--
+ .../common/xmltohb/simics_NIMBUS.system.xml        | 16 +++----
+ .../targeting/common/xmltohb/vbu_NIMBUS.system.xml |  8 ++--
+ 5 files changed, 67 insertions(+), 60 deletions(-)
+
+diff --git a/src/usr/targeting/common/genHwsvMrwXml.pl b/src/usr/targeting/common/genHwsvMrwXml.pl
+index 18b8399..5cf4ad9 100755
+--- a/src/usr/targeting/common/genHwsvMrwXml.pl
++++ b/src/usr/targeting/common/genHwsvMrwXml.pl
+@@ -7043,11 +7043,9 @@ sub addI2cBusSpeedArray
+     my $tmp_offset = 0x0;
+     my $tmp_ct eq "";
+ 
+-    # bus_speed_array[engine][port] is 4x13 array
+-    my @speed_array =  (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
++    # bus_speed_array[engine][port] is 4x4 array
++    my @speed_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
++
+     # Loop through all i2c devices
+     for my $i ( 0 .. $#I2Cdevices )
+     {
+@@ -7135,7 +7133,7 @@ sub addI2cBusSpeedArray
+         $tmp_speed  = $I2Cdevices[$i]{i2c_speed};
+         $tmp_engine = $I2Cdevices[$i]{i2c_engine};
+         $tmp_port   = $I2Cdevices[$i]{i2c_port};
+-        $tmp_offset = ($tmp_engine * 13) + $tmp_port;
++        $tmp_offset = ($tmp_engine * 4) + $tmp_port;
+ 
+         # use the slower speed if there is a previous entry
+         if ( ($speed_array[$tmp_offset] == 0) ||
+@@ -7149,18 +7147,22 @@ sub addI2cBusSpeedArray
+     print "     <attribute>\n";
+     print "        <id>I2C_BUS_SPEED_ARRAY</id>\n";
+     print "        <default>\n";
+-
+-    my $speed_array_len = scalar(@speed_array);
+-    my $speed_array_str = "";
+-    for my $i (0 .. $speed_array_len)
+-    {
+-        $speed_array_str .= "            $speed_array[$i],\n";
+-    }
+-
+-    #remove last ","
+-    $speed_array_str =~ s/,\n$/\n/;
+-    print $speed_array_str;
+-
++    print "            $speed_array[0],\n";
++    print "            $speed_array[1],\n";
++    print "            $speed_array[2],\n";
++    print "            $speed_array[3],\n";
++    print "            $speed_array[4],\n";
++    print "            $speed_array[5],\n";
++    print "            $speed_array[6],\n";
++    print "            $speed_array[7],\n";
++    print "            $speed_array[8],\n";
++    print "            $speed_array[9],\n";
++    print "            $speed_array[10],\n";
++    print "            $speed_array[11],\n";
++    print "            $speed_array[12],\n";
++    print "            $speed_array[13],\n";
++    print "            $speed_array[14],\n";
++    print "            $speed_array[15],\n";
+     print "        </default>\n";
+     print "    </attribute>\n";
+ 
+diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
+index e907bcf..7b558de 100644
+--- a/src/usr/targeting/common/processMrw.pl
++++ b/src/usr/targeting/common/processMrw.pl
+@@ -666,17 +666,22 @@ sub processI2cSpeeds
+     my @bus_speeds;
+     my $bus_speed_attr=$targetObj->getAttribute($target,"I2C_BUS_SPEED_ARRAY");
+     my @bus_speeds2 = split(/,/,$bus_speed_attr);
+-
+-    #need to create a 4X13 array
+-    my $i = 0;
+-    for my $engineIdx (0 .. 3)
+-    {
+-        for my $portIdx (0 .. 12)
+-        {
+-            $bus_speeds[$engineIdx][$portIdx] = $bus_speeds2[$i];
+-            $i++;
+-        }
+-    }
++    $bus_speeds[0][0] = $bus_speeds2[0];
++    $bus_speeds[0][1] = $bus_speeds2[1];
++    $bus_speeds[0][2] = $bus_speeds2[2];
++    $bus_speeds[0][3] = $bus_speeds2[3];
++    $bus_speeds[1][0] = $bus_speeds2[4];
++    $bus_speeds[1][1] = $bus_speeds2[5];
++    $bus_speeds[1][2] = $bus_speeds2[6];
++    $bus_speeds[1][3] = $bus_speeds2[7];
++    $bus_speeds[2][0] = $bus_speeds2[8];
++    $bus_speeds[2][1] = $bus_speeds2[9];
++    $bus_speeds[2][2] = $bus_speeds2[10];
++    $bus_speeds[2][3] = $bus_speeds2[11];
++    $bus_speeds[3][0] = $bus_speeds2[12];
++    $bus_speeds[3][1] = $bus_speeds2[13];
++    $bus_speeds[3][2] = $bus_speeds2[14];
++    $bus_speeds[3][3] = $bus_speeds2[15];
+ 
+     my $i2cs=$targetObj->findConnections($target,"I2C","");
+     if ($i2cs ne "") {
+@@ -710,18 +715,22 @@ sub processI2cSpeeds
+             }
+         }
+     }
+-
+-    #need to flatten 4x13 array
+-    $bus_speed_attr = "";
+-    for my $engineIdx (0 .. 3)
+-    {
+-        for my $portIdx (0 .. 12)
+-        {
+-            $bus_speed_attr .= $bus_speeds[$engineIdx][$portIdx] . ",";
+-        }
+-    }
+-    #remove last ,
+-    $bus_speed_attr =~ s/,$//;
++    $bus_speed_attr = $bus_speeds[0][0].",".
++                      $bus_speeds[0][1].",".
++                      $bus_speeds[0][2].",".
++                      $bus_speeds[0][3].",".
++                      $bus_speeds[1][0].",".
++                      $bus_speeds[1][1].",".
++                      $bus_speeds[1][2].",".
++                      $bus_speeds[1][3].",".
++                      $bus_speeds[2][0].",".
++                      $bus_speeds[2][1].",".
++                      $bus_speeds[2][2].",".
++                      $bus_speeds[2][3].",".
++                      $bus_speeds[3][0].",".
++                      $bus_speeds[3][1].",".
++                      $bus_speeds[3][2].",".
++                      $bus_speeds[3][3];
+ 
+     $targetObj->setAttribute($target,"I2C_BUS_SPEED_ARRAY",$bus_speed_attr);
+ }
+diff --git a/src/usr/targeting/common/xmltohb/attribute_types.xml b/src/usr/targeting/common/xmltohb/attribute_types.xml
+index 1bbf23f..77465d2 100644
+--- a/src/usr/targeting/common/xmltohb/attribute_types.xml
++++ b/src/usr/targeting/common/xmltohb/attribute_types.xml
+@@ -17209,20 +17209,16 @@ Measured in GB</description>
+         Creator: MRW
+         Purpose: Used by FW to know the fastest possible bus speed that all of
+             the devices on a given bus are able to use.
+-        Data Format: 4x13 array of uint16_t values.  The first index indicates
++        Data Format: 4x4 array of uint16_t values.  The first index indicates
+             the engine number of the bus.  The second index indicates the port
+             number of the bus.  The value in the array is the I2C bus speed
+             used for that engine/port combination in KHz.
+     </description>
+     <simpleType>
+         <uint16_t>
+-            <default>
+-            0,0,0,0,0,0,0,0,0,0,0,0,0,
+-            0,0,0,0,0,0,0,0,0,0,0,0,0,
+-            0,0,0,0,0,0,0,0,0,0,0,0,0,
+-            0,0,0,0,0,0,0,0,0,0,0,0,0</default>
++            <default>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</default>
+         </uint16_t>
+-        <array>4,13</array>
++        <array>4,4</array>
+     </simpleType>
+     <persistency>non-volatile</persistency>
+     <readable/>
+diff --git a/src/usr/targeting/common/xmltohb/simics_NIMBUS.system.xml b/src/usr/targeting/common/xmltohb/simics_NIMBUS.system.xml
+index fd630d5..485881f 100644
+--- a/src/usr/targeting/common/xmltohb/simics_NIMBUS.system.xml
++++ b/src/usr/targeting/common/xmltohb/simics_NIMBUS.system.xml
+@@ -458,10 +458,10 @@
+     <attribute>
+         <id>I2C_BUS_SPEED_ARRAY</id>
+         <default>
+-            400,400,0,0,0,0,0,0,0,0,0,0,0,
+-            400,400,400,400,0,0,0,0,0,0,0,0,0,
+-            400,0,0,0,0,0,0,0,0,0,0,0,0,
+-            0,0,0,0,0,0,0,0,0,0,0,0,0
++            0, 0, 0, 0,
++            400, 400, 400, 400,
++            400, 0, 0, 0,
++            0, 0, 0, 0
+         </default>
+     </attribute>
+     <attribute>
+@@ -5440,10 +5440,10 @@
+     <attribute>
+         <id>I2C_BUS_SPEED_ARRAY</id>
+         <default>
+-            400,400,0,0,0,0,0,0,0,0,0,0,0,
+-            400,400,400,400,0,0,0,0,0,0,0,0,0,
+-            400,0,0,0,0,0,0,0,0,0,0,0,0,
+-            0,0,0,0,0,0,0,0,0,0,0,0,0
++            0, 0, 0, 0,
++            400, 400, 400, 400,
++            0, 0, 0, 0,
++            0, 0, 0, 0
+         </default>
+     </attribute>
+     <!-- FSI connections -->
+diff --git a/src/usr/targeting/common/xmltohb/vbu_NIMBUS.system.xml b/src/usr/targeting/common/xmltohb/vbu_NIMBUS.system.xml
+index ffe2503..ac19f28 100644
+--- a/src/usr/targeting/common/xmltohb/vbu_NIMBUS.system.xml
++++ b/src/usr/targeting/common/xmltohb/vbu_NIMBUS.system.xml
+@@ -428,10 +428,10 @@
+     <attribute>
+         <id>I2C_BUS_SPEED_ARRAY</id>
+         <default>
+-            400,400,0,0,0,0,0,0,0,0,0,0,0,
+-            400,400,400,400,0,0,0,0,0,0,0,0,0,
+-            400,0,0,0,0,0,0,0,0,0,0,0,0,
+-            0,0,0,0,0,0,0,0,0,0,0,0,0
++            400, 0, 0, 0,
++            0, 400, 0, 400,
++            400, 0, 0, 0,
++            0, 0, 0, 0
+         </default>
+     </attribute>
+     <attribute>
+-- 
+1.8.2.2
+
