@@ -3,9 +3,9 @@ menu "Skiboot"
 config BR2_PACKAGE_SKIBOOT
 	bool "skiboot"
 	depends on BR2_powerpc64 || BR2_powerpc64le
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_powerpc_power8)
+        default y if (BR2_OPENPOWER_PLATFORM)
 	help
-	  Build skiboot POWER8 firmware
+	  Build skiboot POWER firmware
 
 if BR2_PACKAGE_SKIBOOT
 
@@ -31,7 +31,7 @@ config BR2_SKIBOOT_CUSTOM_VERSION_VALUE
 
 config BR2_SKIBOOT_VERSION
 	string
-	default "skiboot-5.2.2" if BR2_SKIBOOT_LATEST_VERSION
+	default "skiboot-5.6.0-87-ge835c2fb7ce1" if BR2_SKIBOOT_LATEST_VERSION
 	default BR2_SKIBOOT_CUSTOM_VERSION_VALUE \
 		if BR2_SKIBOOT_CUSTOM_VERSION
 

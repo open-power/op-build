@@ -1,15 +1,15 @@
 menu "OpenPower"
 
-source "$BR2_EXTERNAL/platform/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/platform/Config.in"
 
 menu "OpenPower Packages"
 if BR2_OPENPOWER_PLATFORM
-source "$BR2_EXTERNAL/package/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/Config.in"
 endif
 endmenu
 
 menu "Custom Packages"
-source "$BR2_EXTERNAL/custom/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/custom/Config.in"
 endmenu
 
 endmenu

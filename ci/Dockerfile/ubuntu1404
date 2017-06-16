@@ -7,4 +7,4 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yy cscope ctags \
   python language-pack-en texinfo \
   build-essential g++ git bison flex unzip \
   libxml-simple-perl libxml-sax-perl libxml2-dev libxml2-utils xsltproc
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -yy wget bc
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -yy wget bc libssl-dev

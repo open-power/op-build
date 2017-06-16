@@ -4,10 +4,10 @@
 #
 ################################################################################
 
-P8_PORE_BINUTILS_VERSION ?= 1d6a41d5a5104ce9bc8b6ad59f8e58c3a50824a4
+P8_PORE_BINUTILS_VERSION ?= 91069b732e4c253055cd94fff6ad179116563df9
 P8_PORE_BINUTILS_SITE ?= $(call github,open-power,p8-pore-binutils,$(P8_PORE_BINUTILS_VERSION))
 P8_PORE_BINUTILS_LICENSE = GPLv3+
-
+P8_PORE_BINUTILS_LICENSE_FILES = COPYING3 COPYING.LIB
 HOST_P8_PORE_BINUTILS_DEPENDENCIES = host-binutils
 
 P8_PORE_BINUTILS_DIR = $(STAGING_DIR)/p8-pore-binutils

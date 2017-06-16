@@ -1,0 +1,10 @@
+#!/bin/sh
+case "$1" in
+    start)
+        udevadm settle --timeout=30 || echo "udevadm settle failed"
+	;;
+    *)
+        exit 1;;
+esac
+
+exit 0
