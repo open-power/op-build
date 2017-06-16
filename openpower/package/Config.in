@@ -16,4 +16,5 @@ source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ppe42-binutils/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ppe42-gcc/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ima-catalog/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/sbe/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/sb-signing-utils/Config.in"
 

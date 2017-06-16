@@ -1,0 +1,47 @@
+################################################################################
+#
+#  sb-signing-utils
+#
+################################################################################
+
+SB_SIGNING_UTILS_SITE = ssh://git@github.com/hellerda/sb-signing-utils.git
+SB_SIGNING_UTILS_SITE_METHOD = git
+SB_SIGNING_UTILS_SITE_VERSION = master
+
+SB_SIGNING_UTILS_LICENSE = Apache-2.0
+SB_SIGNING_UTILS_LICENSE_FILES = LICENSE
+SB_SIGNING_UTILS_VERSION ?= master
+
+HOST_SB_SIGNING_UTILS_DEPENDENCIES = host-openssl
+
+define HOST_SB_SIGNING_UTILS_PRE_CONFIGURE_CMDS
+	touch $(@D)/{NEWS,README,AUTHORS,ChangeLog}
+	mkdir -p $(@D)/m4/
+endef
+
+HOST_SB_SIGNING_UTILS_PRE_CONFIGURE_HOOKS += HOST_SB_SIGNING_UTILS_PRE_CONFIGURE_CMDS
+
+HOST_SB_SIGNING_UTILS_AUTORECONF = YES
+HOST_SB_SIGNING_UTILS_AUTORECONF_OPTS = -i
+
+ifdef ALT_HOST_TOOLCHAIN_CXX
+HOST_SB_SIGNING_UTILS_CONF_ENV=CXX=$(ALT_HOST_TOOLCHAIN_CXX)
+endif
+
+define COPY_FILES_TO_DESTINATION
+	$(INSTALL) -m 0755 $(@D)/crtSignedContainer.sh $(HOST_DIR)/usr/bin/
+endef
+
+SB_SIGNING_UTILS_KEY_SRC_PATH=$(BR2_EXTERNAL)/package/sb-signing-utils/keys
+SB_SIGNING_UTILS_KEY_DST_PATH=$(HOST_DIR)/etc/keys
+
+define COPY_KEYS_TO_DESTINATION
+	$(INSTALL) -d -m 0755 $(SB_SIGNING_UTILS_KEY_DST_PATH)
+	$(INSTALL) -m 0755 $(SB_SIGNING_UTILS_KEY_SRC_PATH)/* \
+		$(SB_SIGNING_UTILS_KEY_DST_PATH)
+endef
+
+HOST_SB_SIGNING_UTILS_POST_INSTALL_HOOKS += COPY_FILES_TO_DESTINATION
+HOST_SB_SIGNING_UTILS_POST_INSTALL_HOOKS += COPY_KEYS_TO_DESTINATION
+
+$(eval $(host-autotools-package))
