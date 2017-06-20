@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBFLASH_VERSION = b2649b822ab57ab06f0028d8343320ae6e11cc50
+LIBFLASH_VERSION = 73e1e8a727a9e7179719eb7844bd4248d9890114
 
 LIBFLASH_SITE = $(call github,open-power,skiboot,$(LIBFLASH_VERSION))
 LIBFLASH_INSTALL_STAGING = YES
