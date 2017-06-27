@@ -1,0 +1,70 @@
+From a74562d710c07c1dd2e510fd2c9c259f1f72e4ce Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel.stanley@au1.ibm.com>
+Date: Tue, 27 Jun 2017 18:00:09 +0930
+Subject: [PATCH] kernel: Update assembly for modern binutils
+
+From Linux 80f23935cadb ("powerpc: Convert cmp to cmpd in idle enter sequence"):
+
+  PowerPC's "cmp" instruction has four operands. Normally people write
+  "cmpw" or "cmpd" for the second cmp operand 0 or 1. But, frequently
+  people forget, and write "cmp" with just three operands.
+
+  With older binutils this is silently accepted as if this was "cmpw",
+  while often "cmpd" is wanted. With newer binutils GAS will complain
+  about this for 64-bit code. For 32-bit code it still silently assumes
+  "cmpw" is what is meant.
+
+The first two instances are dealing with SPRs, which are 32-bit, so cmpw is correct.
+
+It is not clear what to do in the third use of cmp, but given old toolchains
+have generated cmpw lets assume that we should maintain the behaviour.
+
+Change-Id: Iee5dd5903dcd7ac4028bab0176e08ce3db23b2d5
+Signed-off-by: Joel Stanley <joel.stanley@au1.ibm.com>
+---
+ src/kernel/shutdown.S | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/kernel/shutdown.S b/src/kernel/shutdown.S
+index b3c47725ae79..0c42a19cfbfe 100644
+--- a/src/kernel/shutdown.S
++++ b/src/kernel/shutdown.S
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2012,2016
++# Contributors Listed Below - COPYRIGHT 2012,2017
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -94,7 +94,7 @@ kernel_shutdown_ea0_1_mode:
+         ;// as it was the one that updated the cpu_count & lowest_pir
+         ;// barrier - 1 wait for all nodes to report
+     mfspr  r10, PIR
+-    cmp    cr0, r10, r7
++    cmpw    cr0, r10, r7
+     bne+ 2f       ;// inside KERNEL_BARRIER below
+ 
+         ;// Perform barrier - 1
+@@ -132,7 +132,7 @@ kernel_shutdown_ea0_1_mode:
+     addi r8, r8, 8
+             ;// Check for PIR == r7.
+     mfspr r10, PIR
+-    cmp cr0, r10, r7
++    cmpw cr0, r10, r7
+     beq 3f
+         ;// Increment thread count.
+ 1:
+@@ -165,7 +165,7 @@ kernel_shutdown_ea0_1_mode:
+ 1:
+     or 1,1,1
+     ld r11, 0(r8)
+-    cmp cr0, r3, r11
++    cmpw cr0, r3, r11
+     bne+ 1b
+     isync
+         ;// All other threads have left, so wait a little bit...
+-- 
+2.13.1
+
