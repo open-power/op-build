@@ -103,12 +103,15 @@ define MACHINE_XML_BUILD_CMDS
 			$(MRW_HB_TOOLS)/wof-tables-img --create $(MRW_SCRATCH)/wof_output $(MRW_SCRATCH)/wofdata; \
         fi
 
-
-
 endef
 
 define MACHINE_XML_INSTALL_IMAGES_CMDS
         mv $(MRW_HB_TOOLS)/targeting.bin $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME)
+		if     [ -n "$(BR2_OPENPOWER_SECUREBOOT_ENABLED)" ] \
+			&& [ "$(BR2_OPENPOWER_SECUREBOOT_ENABLED)" == 'y' ]; then \
+            mv -v $(MRW_HB_TOOLS)/targeting.bin.protected $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME).protected; \
+            mv -v $(MRW_HB_TOOLS)/targeting.bin.unprotected $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME).unprotected; \
+		fi
 endef
 
 define MACHINE_XML_INSTALL_TARGET_CMDS
