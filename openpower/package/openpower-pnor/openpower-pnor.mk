@@ -27,6 +27,21 @@ endif
 
 ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
 OPENPOWER_PNOR_DEPENDENCIES += host-xz
+XZ_ARG=-xz_compression
+endif
+
+OPENPOWER_PNOR_DEPENDENCIES += host-sb-signing-utils
+
+ifeq ($(BR2_OPENPOWER_SECUREBOOT_ENABLED),y)
+SECUREBOOT_ARG =-secureboot
+endif
+
+ifneq ($(BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION),"")
+KEY_TRANSITION_ARG=-key_transition $(BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION)
+endif
+
+ifneq ($(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE),"")
+SIGN_MODE_ARG=-sign_mode $(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE)
 endif
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
@@ -76,7 +91,11 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
             -wof_binary_filename $(OPENPOWER_MRW_SCRATCH_DIR)/$(BR2_WOFDATA_FILENAME) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
-            $(if ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y),-xz_compression)
+            -payload_filename $(BR2_SKIBOOT_LID_XZ_NAME) \
+            -binary_dir $(BINARIES_DIR) \
+            -bootkernel_filename $(LINUX_IMAGE_NAME) \
+            -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
+            $(XZ_ARG) $(SECUREBOOT_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) \
 
         mkdir -p $(STAGING_DIR)/pnor/
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
@@ -86,8 +105,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
             -outdir $(STAGING_DIR)/pnor/ \
-            -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_XZ_NAME) \
-            -bootkernel $(BINARIES_DIR)/$(LINUX_IMAGE_NAME) \
+            -payload $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_SKIBOOT_LID_XZ_NAME) \
+            -bootkernel $(OPENPOWER_PNOR_SCRATCH_DIR)/$(LINUX_IMAGE_NAME) \
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
