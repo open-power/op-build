@@ -1,0 +1,61 @@
+From 2faa749caac2745be6beb8e41d6265a3ff24ab15 Mon Sep 17 00:00:00 2001
+From: Dean Sanner <dsanner@us.ibm.com>
+Date: Wed, 5 Jul 2017 11:03:44 -0500
+Subject: [PATCH v1 1002/1003] Revert "Fix i2c GPIO expander port parsing in
+ MRW tooling"
+
+This reverts commit f70e2531c2b0bafc08151294d904991f0e376493.
+---
+ src/usr/targeting/common/processMrw.pl | 34 ++++++----------------------------
+ 1 file changed, 6 insertions(+), 28 deletions(-)
+
+diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
+index 71cc82b..fee956c 100755
+--- a/src/usr/targeting/common/processMrw.pl
++++ b/src/usr/targeting/common/processMrw.pl
+@@ -1644,36 +1644,14 @@ sub processI2C
+             # Most I2C devices will default the slave port, it is only valid
+             # for gpio expanders.
+             my $slavePort = "0xFF";
+-            my $purpose = undef;
+-            if ($targetObj->isBusAttributeDefined(
+-                    $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_PURPOSE"))
+-            {
+-                $purpose = $targetObj->getBusAttribute(
+-                               $i2c->{SOURCE},$i2c->{BUS_NUM},"I2C_PURPOSE");
+-            }
+ 
+-            if(   defined $purpose
+-               && $purpose ne "")
+-            {
+-                my $parent = $targetObj->getTargetParent($i2c->{DEST});
+-                foreach my $aTarget ( sort keys %{ $targetObj->getAllTargets()})
+-                {
+-                    if($aTarget =~ m/$parent/)
+-                    {
+-                        if ($targetObj->isBadAttribute($aTarget,"PIN_NAME"))
+-                        {
+-                            next;
+-                        }
++            my @source_array = split(/-/,$source);
++            my $source_idx = scalar @source_array;
+ 
+-                        my $pin = $targetObj->getAttribute($aTarget,
+-                                                           "PIN_NAME");
+-                        if($pin eq $purpose)
+-                        {
+-                            ($slavePort) = $aTarget =~ m/\-([0-9]+)$/g;
+-                            last;
+-                        }
+-                    }
+-                }
++            # If the last part of the source only includes numbers
++            if($source_array[$source_idx-1] =~ /^[0-9,.E]+$/)
++            {
++                $slavePort = $source_array[$source_idx-1];
+             }
+ 
+             my $addr;
+-- 
+1.8.2.2
+
