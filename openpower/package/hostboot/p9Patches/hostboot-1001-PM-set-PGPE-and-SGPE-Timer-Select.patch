@@ -1,7 +1,7 @@
-From 72976d2d7f3a303830a41cf282260be09260bcfc Mon Sep 17 00:00:00 2001
+From a59b11a11688d5244ff7a79d9fed2a4cfcde6ccf Mon Sep 17 00:00:00 2001
 From: Greg Still <stillgs@us.ibm.com>
 Date: Tue, 27 Jun 2017 09:26:41 -0500
-Subject: [PATCH v1 1002/1002] PM: set PGPE and SGPE Timer Select
+Subject: [PATCH v1 1001/1003] PM: set PGPE and SGPE Timer Select
 
 - Writes fixed values for FIT and watchdog timers on both engines
 - Needed for DD2 as DD1 was done with initfile settings
@@ -14,35 +14,31 @@ Tested-by: Jenkins Server <pfd-jenkins+hostboot@us.ibm.com>
 Reviewed-by: Michael S. Floyd <mfloyd@us.ibm.com>
 Tested-by: Hostboot CI <hostboot-ci+hostboot@us.ibm.com>
 Reviewed-by: Jennifer A Stofer <stofer@us.ibm.com>
-
-Conflicts:
-	src/import/chips/p9/procedures/hwp/pm/p9_pm_pstate_gpe_init.C
 ---
- src/import/chips/p9/procedures/hwp/pm/p9_pm_pstate_gpe_init.C | 10 ++++++++++
- src/import/chips/p9/procedures/hwp/pm/p9_pm_stop_gpe_init.C   |  8 ++++++++
- 2 files changed, 18 insertions(+)
+ src/import/chips/p9/procedures/hwp/pm/p9_pm_pstate_gpe_init.C | 9 +++++++++
+ src/import/chips/p9/procedures/hwp/pm/p9_pm_stop_gpe_init.C   | 8 ++++++++
+ 2 files changed, 17 insertions(+)
 
 diff --git a/src/import/chips/p9/procedures/hwp/pm/p9_pm_pstate_gpe_init.C b/src/import/chips/p9/procedures/hwp/pm/p9_pm_pstate_gpe_init.C
-index bdf8f74..1ca2772 100644
+index f307d4b..c601f64 100644
 --- a/src/import/chips/p9/procedures/hwp/pm/p9_pm_pstate_gpe_init.C
 +++ b/src/import/chips/p9/procedures/hwp/pm/p9_pm_pstate_gpe_init.C
-@@ -113,6 +113,16 @@ fapi2::ReturnCode pstate_gpe_init(
+@@ -134,6 +134,15 @@ fapi2::ReturnCode pstate_gpe_init(
+             FAPI_TRY(putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, BIT(p9hcd::PGPE_PSTATE_PROTOCOL_AUTO_ACTIVATE)));
+         }
  
-     FAPI_TRY(putScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occ_scratch2));
- 
-+    // Setup the PGPE Timer Selects
-+    // These hardcoded values are assumed by the PGPE Hcode for setting up
-+    // the FIT and Watchdog values a based on the nest frequency that is
-+    // passed to it via the PGPE header.
-+    l_data64.flush<0>()
-+      .insertFromRight<0, 4>(0x1)    // Watchdog
-+    .insertFromRight<4, 4>(0xA);   // FIT
-+    FAPI_TRY(fapi2::putScom(i_target, PU_GPE2_GPETSEL_SCOM, l_data64));
++        // Setup the PGPE Timer Selects
++        // These hardcoded values are assumed by the PGPE Hcode for setting up
++        // the FIT and Watchdog values a based on the nest frequency that is
++        // passed to it via the PGPE header.
++        l_data64.flush<0>()
++        .insertFromRight<0, 4>(0x1)    // Watchdog
++        .insertFromRight<4, 4>(0xA);   // FIT
++        FAPI_TRY(fapi2::putScom(i_target, PU_GPE2_GPETSEL_SCOM, l_data64));
 +
-+
-     // Program XCR to ACTIVATE PGPE
-     // @todo RTC 146665 Operations to PPEs should use a p9ppe namespace
-     FAPI_INF("   Starting the PGPE...");
+         // Program XCR to ACTIVATE PGPE
+         // @todo RTC 146665 Operations to PPEs should use a p9ppe namespace
+         FAPI_INF("   Starting the PGPE...");
 diff --git a/src/import/chips/p9/procedures/hwp/pm/p9_pm_stop_gpe_init.C b/src/import/chips/p9/procedures/hwp/pm/p9_pm_stop_gpe_init.C
 index 5e05fcb..0829556 100644
 --- a/src/import/chips/p9/procedures/hwp/pm/p9_pm_stop_gpe_init.C
