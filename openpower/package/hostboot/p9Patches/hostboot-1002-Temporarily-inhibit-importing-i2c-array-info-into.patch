@@ -1,0 +1,29 @@
+From 573961cfe0eb570d7e0e99616318d39fa04495f0 Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Thu, 6 Jul 2017 08:11:40 -0500
+Subject: [PATCH v1 1002/1002] Temporarily inhibit importing i2c array info
+ into HDAT
+
+Change-Id: Ibf80dcce5244e6a84c994c06cf78876cbecce962
+---
+ src/usr/i2c/i2c.C | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/usr/i2c/i2c.C b/src/usr/i2c/i2c.C
+index e969bae..682fd89 100755
+--- a/src/usr/i2c/i2c.C
++++ b/src/usr/i2c/i2c.C
+@@ -3916,7 +3916,9 @@ void getDeviceInfo( TARGETING::Target* i_i2cMaster,
+ 
+     } //end of i2cm
+ 
+-#if CONFIG_INCLUDE_XML_OPENPOWER
++// @TODO RTC 173541: Re-enable
++// #if CONFIG_INCLUDE_XML_OPENPOWER
++#if 0
+     TARGETING::Target * sys = NULL;
+     TARGETING::targetService().getTopLevelTarget(sys);
+ 
+-- 
+1.8.2.2
+
