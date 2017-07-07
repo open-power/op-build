@@ -1,7 +1,7 @@
-From 42d09998528d8175867eccb7ed58d91b990a5b13 Mon Sep 17 00:00:00 2001
+From 6707528059ba2b13b6ab78c1ed12d99ecd3fa69c Mon Sep 17 00:00:00 2001
 From: Prem Shanker Jha <premjha2@in.ibm.com>
 Date: Fri, 23 Jun 2017 10:42:53 -0500
-Subject: [PATCH v1 1000/1002] PM: HOMER Header Magic word change.
+Subject: [PATCH v1 1001/1002] PM: HOMER Header Magic word change.
 
 Commit restores the magic words of CPMR, QPMR and PPMR region to
 CPMR_1.0, QPMR_1.0 and PPMR_1.0 respectively. It dissociates it
@@ -19,7 +19,7 @@ Reviewed-by: Jennifer A Stofer <stofer@us.ibm.com>
  1 file changed, 14 insertions(+), 18 deletions(-)
 
 diff --git a/src/import/chips/p9/procedures/hwp/pm/p9_hcode_image_build.C b/src/import/chips/p9/procedures/hwp/pm/p9_hcode_image_build.C
-index c930d48..e38fed0 100644
+index 8957295..4ddb140 100644
 --- a/src/import/chips/p9/procedures/hwp/pm/p9_hcode_image_build.C
 +++ b/src/import/chips/p9/procedures/hwp/pm/p9_hcode_image_build.C
 @@ -134,6 +134,7 @@ enum
@@ -30,7 +30,7 @@ index c930d48..e38fed0 100644
  };
  
  /**
-@@ -3790,34 +3791,29 @@ void customizeMagicWord( Homerlayout_t*     i_pHomer, uint8_t i_ecLevel )
+@@ -3789,34 +3790,29 @@ void customizeMagicWord( Homerlayout_t*     i_pHomer, uint8_t i_ecLevel )
      uint64_t magicWordCustom[MAX_HOMER_HEADER];
      uint64_t * pMagicWord[MAX_HOMER_HEADER];
      pMagicWord[0]   =   &pQpmrHdr->magic_number;
