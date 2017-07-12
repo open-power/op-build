@@ -111,6 +111,7 @@ foreach my $p (@common_platforms) {
     next if $p =~ /firenze/;
     next if $p =~ /^zz$/;
     next if $p =~ /mambo/;
+    next if $p =~ /redbud/;
     $repos->{"$p-xml"} = { REPO => "http://github.com/open-power/$p-xml" ,
 			   DIR => "openpower/package/$p-xml" };
 }
