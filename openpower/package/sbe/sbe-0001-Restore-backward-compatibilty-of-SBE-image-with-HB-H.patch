@@ -1,0 +1,55 @@
+From bee7283419489e911b3e2f44ca96bf1ac12264e5 Mon Sep 17 00:00:00 2001
+From: Sachin Gupta <sgupta2m@in.ibm.com>
+Date: Thu, 6 Jul 2017 12:33:32 -0500
+Subject: [PATCH] Restore backward compatibilty of SBE image with HB/HWSV
+
+Change-Id: I2eba38a5d5a254c9595ee49e56f65b6c7ded67a6
+Reviewed-on: http://ralgit01.raleigh.ibm.com/gerrit1/42819
+Reviewed-by: Dean Sanner <dsanner@us.ibm.com>
+Tested-by: Jenkins Server <pfd-jenkins+hostboot@us.ibm.com>
+Tested-by: PPE CI <ppe-ci+hostboot@us.ibm.com>
+Reviewed-by: Joseph J. McGill <jmcgill@us.ibm.com>
+Reviewed-on: http://ralgit01.raleigh.ibm.com/gerrit1/42822
+Reviewed-by: Sachin Gupta <sgupta2m@in.ibm.com>
+---
+ .../p9/procedures/hwp/perv/p9_sbe_attr_setup.C     | 24 ++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/src/import/chips/p9/procedures/hwp/perv/p9_sbe_attr_setup.C b/src/import/chips/p9/procedures/hwp/perv/p9_sbe_attr_setup.C
+index 03f1530..bf7b129 100644
+--- a/src/import/chips/p9/procedures/hwp/perv/p9_sbe_attr_setup.C
++++ b/src/import/chips/p9/procedures/hwp/perv/p9_sbe_attr_setup.C
+@@ -233,6 +233,30 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
+             l_read_scratch_reg.extractToRight<ATTR_OB2_PLL_BUCKET_STARTBIT, ATTR_OB2_PLL_BUCKET_LENGTH>(l_ob2_pll_bucket);
+             l_read_scratch_reg.extractToRight<ATTR_OB3_PLL_BUCKET_STARTBIT, ATTR_OB3_PLL_BUCKET_LENGTH>(l_ob3_pll_bucket);
+ 
++            // Workaround to handle backward compatibilty
++            // Old drivers will keep MBX OBUS PLL bucket value as zero. So
++            // change it to 1 to make old drivers compatible with new SBE
++            // image
++            if( 0 == l_ob0_pll_bucket )
++            {
++                l_ob0_pll_bucket = 1;
++            }
++
++            if( 0 == l_ob1_pll_bucket )
++            {
++                l_ob1_pll_bucket = 1;
++            }
++
++            if( 0 == l_ob2_pll_bucket )
++            {
++                l_ob2_pll_bucket = 1;
++            }
++
++            if( 0 == l_ob3_pll_bucket )
++            {
++                l_ob3_pll_bucket = 1;
++            }
++
+             FAPI_DBG("Setting up ATTR_I2C_BUS_DIV_REF");
+             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_I2C_BUS_DIV_REF, i_target_chip, l_read_4));
+ 
+-- 
+1.8.2.2
+
