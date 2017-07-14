@@ -72,10 +72,13 @@ closedir $dh;
 s/_defconfig// foreach (@begin_platforms);
 s/_defconfig// foreach (@end_platforms);
 
+my $witherspoon_insanity;
+
 if (($platform && $platform eq 'witherspoon')
     && -f "$end_worktree/openpower/configs/witherspoon-sequoia_defconfig") {
     @begin_platforms = ('witherspoon');
     @end_platforms = ('witherspoon-sequoia', 'witherspoon-redbud');
+    $witherspoon_insanity = 1;
 } elsif ($platform) {
     @begin_platforms = ($platform);
     @end_platforms = ($platform);
@@ -141,6 +144,13 @@ foreach my $p (@end_platforms) {
     print "# loading manifest\n";
     system("sqlite3 release-notes.sqlite \".mode csv\" \".import $end_worktree/output/legal-info/manifest.csv i\"");
     $dbh->do("ALTER TABLE i RENAME to 'end_".$p."_manifest'") or die $!;
+}
+
+if ($witherspoon_insanity) {
+    $dbh->do("ALTER TABLE 'end_witherspoon-sequoia_manifest' RENAME to end_witherspoon_manifest");
+    @end_platforms = grep { $_ != 'witherspoon-sequoia' } @end_platforms;
+    push @end_platforms, 'witherspoon';
+    push @common_platforms, 'witherspoon';
 }
 
 $dbh->do(<<'SQL') or die "$!";
