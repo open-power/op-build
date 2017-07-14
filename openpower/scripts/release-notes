@@ -130,14 +130,17 @@ foreach my $p (@begin_platforms) {
     # Work-around bug in op-build v1.17, fixed 2 commits later
     system('sed -e \'s/,""\([^",]\)/,"\1/; s/\([^,]\)"",/\1",/; s/machine-xml-"\(.*\)".tar/machine-xml-\1.tar/\' -i '. $begin_worktree .'/output/legal-info/manifest.csv');
     # Forgive me for this....
-    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $begin_worktree/output/legal-info/manifest.csv 'begin_".$p."_manifest'\"");
+    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $begin_worktree/output/legal-info/manifest.csv i\"");
+    $dbh->do("ALTER TABLE i RENAME to 'begin_".$p."_manifest'") or die $!;
 }
 
 foreach my $p (@end_platforms) {
     print "# END PLATFORMS LEGAL-INFO $p\n";
     system("bash -c '(cd $end_worktree && . op-build-env && op-build ".$p."_defconfig && op-build legal-info)'");
     # Forgive me for this....
-    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $end_worktree/output/legal-info/manifest.csv 'end_".$p."_manifest'\"");
+    print "# loading manifest\n";
+    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $end_worktree/output/legal-info/manifest.csv i\"");
+    $dbh->do("ALTER TABLE i RENAME to 'end_".$p."_manifest'") or die $!;
 }
 
 $dbh->do(<<'SQL') or die "$!";
