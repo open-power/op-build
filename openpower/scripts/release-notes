@@ -72,7 +72,11 @@ closedir $dh;
 s/_defconfig// foreach (@begin_platforms);
 s/_defconfig// foreach (@end_platforms);
 
-if ($platform) {
+if (($platform && $platform eq 'witherspoon')
+    && -f "$end_worktree/openpower/configs/witherspoon-sequoia_defconfig") {
+    @begin_platforms = ('witherspoon');
+    @end_platforms = ('witherspoon-sequoia', 'witherspoon-redbud');
+} elsif ($platform) {
     @begin_platforms = ($platform);
     @end_platforms = ($platform);
 }
@@ -86,26 +90,31 @@ $dbh->do("CREATE TABLE platforms (platform TEXT, version TEXT);") or die "$!";
 }
 
 {
-    my $q = "SELECT platform FROM platforms WHERE version is ? AND platform NOT IN (SELECT platform FROM platforms WHERE version is ?)";
+    my $q = "SELECT platform as p FROM platforms WHERE version is ? AND platform NOT IN (SELECT platform FROM platforms WHERE version is ? and platform=p)";
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute($begin_release, $end_release);
     my $r;
-    print OUTPUT "## Removed platforms\n\n- ".$r->{platform}."\n" if $r = $sth->fetchrow_hashref;
-    print OUTPUT "- ".$_->{platform}."\n" while ($r = $sth->fetchrow_hashref);
+    print OUTPUT "## Removed platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "- ".$r->{p}."\n" while ($r = $sth->fetchrow_hashref);
 
     $sth->execute($end_release, $begin_release);
-    print OUTPUT "## New platforms\n\n- ".$r->{platform}."\n" if $r = $sth->fetchrow_hashref;
-    print OUTPUT "- ".$_->{platform}."\n" while($r = $sth->fetchrow_hashref);
+    print OUTPUT "## New platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "- ".$r->{p}."\n" while($r = $sth->fetchrow_hashref);
 }
 
 my @common_platforms;
 {
-    my $q = "SELECT platform FROM platforms WHERE version is ? AND EXISTS (select platform from platforms where version is ?)";
+    my $q = "SELECT platform as p FROM platforms WHERE version is ? AND EXISTS (select platform from platforms where version is ? and platform=p)";
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute($begin_release, $end_release);
     my $r;
-    push @common_platforms, $r->{platform} while ($r = $sth->fetchrow_hashref);
+    push @common_platforms, $r->{p} while ($r = $sth->fetchrow_hashref);
 }
+
+use Data::Dumper;
+
+print "# COMMON PLATFORMS\n";
+print Dumper(\@common_platforms);
 
 foreach my $p (@common_platforms) {
     next if $p =~ /firenze/;
@@ -118,14 +127,17 @@ foreach my $p (@common_platforms) {
 
 foreach my $p (@begin_platforms) {
     system("bash -c '(cd $begin_worktree && . op-build-env && op-build ".$p."_defconfig && op-build legal-info)'");
+    # Work-around bug in op-build v1.17, fixed 2 commits later
+    system('sed -e \'s/,""\([^",]\)/,"\1/; s/\([^,]\)"",/\1",/; s/machine-xml-"\(.*\)".tar/machine-xml-\1.tar/\' -i '. $begin_worktree .'/output/legal-info/manifest.csv');
     # Forgive me for this....
-    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $begin_worktree/output/legal-info/manifest.csv begin_".$p."_manifest\"");
+    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $begin_worktree/output/legal-info/manifest.csv 'begin_".$p."_manifest'\"");
 }
 
 foreach my $p (@end_platforms) {
+    print "# END PLATFORMS LEGAL-INFO $p\n";
     system("bash -c '(cd $end_worktree && . op-build-env && op-build ".$p."_defconfig && op-build legal-info)'");
     # Forgive me for this....
-    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $end_worktree/output/legal-info/manifest.csv end_".$p."_manifest\"");
+    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $end_worktree/output/legal-info/manifest.csv 'end_".$p."_manifest'\"");
 }
 
 $dbh->do(<<'SQL') or die "$!";
@@ -138,7 +150,7 @@ CREATE TABLE package_upgrades (
 SQL
 
 foreach my $p (@common_platforms) {
-    $dbh->do("INSERT INTO package_upgrades select b.package,b.version,e.version,'$p' from begin_".$p."_manifest as b LEFT JOIN end_".$p."_manifest AS e ON b.package=e.package WHERE b.version != e.version") or die $!;
+    $dbh->do("INSERT INTO package_upgrades select b.package,b.version,e.version,'$p' from 'begin_".$p."_manifest' as b LEFT JOIN 'end_".$p."_manifest' AS e ON b.package=e.package WHERE b.version != e.version") or die $!;
 }
 
 $dbh->do(<<'SQL') or die "$!";
@@ -150,7 +162,7 @@ CREATE TABLE new_package (
 SQL
 
 foreach my $p (@common_platforms) {
-    $dbh->do("INSERT INTO new_package select b.package,b.version,'$p' from end_".$p."_manifest as b WHERE NOT EXISTS(SELECT package FROM begin_".$p."_manifest AS e WHERE b.package=e.package)") or die $!;
+    $dbh->do("INSERT INTO new_package select b.package,b.version,'$p' from 'end_".$p."_manifest' as b WHERE NOT EXISTS(SELECT package FROM 'begin_".$p."_manifest' AS e WHERE b.package=e.package)") or die $!;
 }
 
 $dbh->do(<<'SQL') or die "$!";
@@ -162,7 +174,7 @@ CREATE TABLE removed_package (
 SQL
 
 foreach my $p (@common_platforms) {
-    $dbh->do("INSERT INTO removed_package select b.package,b.version,'$p' from begin_".$p."_manifest as b WHERE NOT EXISTS(SELECT package FROM end_".$p."_manifest AS e WHERE b.package=e.package)") or die $!;
+    $dbh->do("INSERT INTO removed_package select b.package,b.version,'$p' from 'begin_".$p."_manifest' as b WHERE NOT EXISTS(SELECT package FROM 'end_".$p."_manifest' AS e WHERE b.package=e.package)") or die $!;
 }
 
 my $old_level = {};
