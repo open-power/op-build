@@ -4,8 +4,10 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= 7dd93556bcefdb96483e413bbd650e3929db2769
-OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
+#OPENPOWER_PNOR_VERSION ?= e9e092f5ebf6baa7170b9bb6c5ec681a9f6174e3
+#OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
+OPENPOWER_PNOR_VERSION ?= 39061f83bbade468fcd31daf7811978972e9c7f3
+OPENPOWER_PNOR_SITE ?= $(call github,bofferdn,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
