@@ -104,6 +104,11 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             dd if=$(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) of=$(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_UPDATE_FILENAME) bs=32M count=1; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_UPDATE_FILENAME) $(BINARIES_DIR); \
         fi
+
+	# if this config has a BASE_FILENAME defined, create that file as well
+	if [ "$(BR2_OPENPOWER_BASE_FILENAME)" != "" ]; then \
+	    cp $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)/$(BR2_OPENPOWER_BASE_FILENAME); \
+	fi
 endef
 
 $(eval $(generic-package))
