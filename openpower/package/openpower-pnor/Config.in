@@ -27,6 +27,11 @@ config BR2_OPENPOWER_PNOR_FILENAME
         help
             String used to define pnor filename to be created
 
+config BR2_OPENPOWER_BASE_FILENAME
+        string "Name of base/alternate pnor file to be created"
+        help
+            String used to define base/alternate pnor filename to be created
+
 config BR2_OPENPOWER_PNOR_UPDATE_FILENAME
         string "Name of pnor file to be created for updates, if needed"
         help
