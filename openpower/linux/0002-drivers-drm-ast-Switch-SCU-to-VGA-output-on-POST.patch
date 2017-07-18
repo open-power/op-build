@@ -10,11 +10,11 @@ VGA mode.
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
- drivers/gpu/drm/ast/ast_post.c | 32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ drivers/gpu/drm/ast/ast_post.c | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
 diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
-index 30672a3df8a9..bf6c4bfff2dc 100644
+index c7c58becb25d..a31158ed5928 100644
 --- a/drivers/gpu/drm/ast/ast_post.c
 +++ b/drivers/gpu/drm/ast/ast_post.c
 @@ -32,6 +32,7 @@
@@ -25,17 +25,18 @@ index 30672a3df8a9..bf6c4bfff2dc 100644
  
  void ast_enable_vga(struct drm_device *dev)
  {
-@@ -380,6 +381,9 @@ void ast_post_gpu(struct drm_device *dev)
- 	else
- 		ast_init_dram_reg(dev);
+@@ -381,6 +382,10 @@ void ast_post_gpu(struct drm_device *dev)
+ 		else
+ 			ast_init_dram_reg(dev);
  
-+	if (ast->chip == AST2400)
-+		ast_init_output_control(dev);
++		/* HACK: this is to support AMI P8 VGA support */
++		if (ast->chip == AST2400)
++			ast_init_output_control(dev);
 +
- 	ast_init_3rdtx(dev);
- }
- 
-@@ -1683,3 +1687,31 @@ static void ast_init_dram_2300(struct drm_device *dev)
+ 		ast_init_3rdtx(dev);
+ 	} else {
+ 		if (ast->tx_chip_type != AST_TX_NONE)
+@@ -1688,3 +1693,31 @@ static void ast_init_dram_2300(struct drm_device *dev)
  	} while ((reg & 0x40) == 0);
  }
  
@@ -67,6 +68,3 @@ index 30672a3df8a9..bf6c4bfff2dc 100644
 +
 +	ast_moutdwm(ast, scu_addr | 0x2c, val);
 +}
--- 
-2.11.0
-

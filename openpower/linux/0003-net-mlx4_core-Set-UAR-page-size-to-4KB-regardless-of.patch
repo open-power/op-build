@@ -120,10 +120,10 @@ index e4019a803a9c..0debb611da8b 100644
  	err = mlx4_qp_to_ready(mdev->dev, &ring->wqres.mtt, &ring->context,
  			       &ring->qp, &ring->qp_state);
 diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
-index 603d1c3d3b2e..ad6240e45441 100644
+index ff77b8b608bd..d527c5fa5c59 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/eq.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
-@@ -924,9 +924,10 @@ static void __iomem *mlx4_get_eq_uar(struct mlx4_dev *dev, struct mlx4_eq *eq)
+@@ -929,9 +929,10 @@ static void __iomem *mlx4_get_eq_uar(struct mlx4_dev *dev, struct mlx4_eq *eq)
  
  	if (!priv->eq_table.uar_map[index]) {
  		priv->eq_table.uar_map[index] =
@@ -294,6 +294,3 @@ index d3133be12d92..8bab38f8872a 100644
 +	return (128 >> (PAGE_SHIFT - dev->uar_page_shift));
 +}
  #endif /* MLX4_DEVICE_H */
--- 
-2.11.0
-

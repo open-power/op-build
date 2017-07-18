@@ -83,6 +83,3 @@ index 276b796b24e4..510799311099 100644
  	dev_set_drvdata(&dev->dev, hp);
  
  	return 0;
--- 
-2.11.0
-
