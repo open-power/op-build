@@ -1,9 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Wed, 7 Jun 2017 14:46:38 +0930
-Subject: [PATCH 11/11] Release v4.4.70-openpower1
-
- - Move to latest upstream stable release 4.4.70
+Subject: [PATCH 11/11] Release v4.4.77-openpower1
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
@@ -11,18 +9,15 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index a5ecb29c6ed3..376cd912aa5c 100644
+index bf49a61d02e2..0bcf47141d7c 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 4
- SUBLEVEL = 70
+ SUBLEVEL = 77
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Blurry Fish Butt
  
  # *DOCUMENTATION*
--- 
-2.11.0
-

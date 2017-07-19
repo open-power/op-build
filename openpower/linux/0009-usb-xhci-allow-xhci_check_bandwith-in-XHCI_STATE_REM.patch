@@ -58,6 +58,3 @@ index 28fad2949308..c808e2e1f499 100644
  		return -ENODEV;
  
  	xhci_dbg(xhci, "%s called for udev %p\n", __func__, udev);
--- 
-2.11.0
-

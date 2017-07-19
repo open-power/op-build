@@ -25,8 +25,6 @@ Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
 (cherry picked from commit ff45000fcb56b5b0f1a14a865d3541746d838a0a)
 Signed-off-by: Joel Stanley <joel@jms.id.au>
-
-Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
  arch/powerpc/boot/wrapper | 25 ++++++++++++++++++++++++-
  1 file changed, 24 insertions(+), 1 deletion(-)
@@ -74,6 +72,3 @@ index ceaa75d5a684..8c8394e4e164 100755
  	$platformo $tmp $object/wrapper.a
      rm $tmp
  fi
--- 
-2.11.0
-

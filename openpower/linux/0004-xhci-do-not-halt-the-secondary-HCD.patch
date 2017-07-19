@@ -51,6 +51,3 @@ index f2e9f59c90d6..28fad2949308 100644
  	xhci_cleanup_msix(xhci);
  
  	/* Deleting Compliance Mode Recovery Timer */
--- 
-2.11.0
-
