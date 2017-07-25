@@ -22,6 +22,3 @@ index 0965bae95a7b..0124e353cc0d 100644
  #ifdef CONFIG_PM
  	.driver = {
  		.pm = &usb_hcd_pci_pm_ops
--- 
-2.13.2
-
