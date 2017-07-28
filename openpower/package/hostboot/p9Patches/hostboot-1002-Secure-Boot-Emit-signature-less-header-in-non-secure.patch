@@ -1,4 +1,4 @@
-From 0737b26266f78d3acdb651c7a993d7f73c0110a5 Mon Sep 17 00:00:00 2001
+From fce5d1ab387d97f5188f565397485656809f0548 Mon Sep 17 00:00:00 2001
 From: Nick Bofferding <bofferdn@us.ibm.com>
 Date: Fri, 28 Jul 2017 01:45:20 -0500
 Subject: [PATCH] Secure Boot: Emit signature-less header in non-secure compile
@@ -8,11 +8,11 @@ Subject: [PATCH] Secure Boot: Emit signature-less header in non-secure compile
 RTC: 174017
 Change-Id: I6c16f2c06785debaae3006ef66e54fa7102f27da
 ---
- src/build/buildpnor/genPnorImages.pl | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ src/build/buildpnor/genPnorImages.pl | 49 ++++++++++++++++++++++++++++--------
+ 1 file changed, 38 insertions(+), 11 deletions(-)
 
 diff --git a/src/build/buildpnor/genPnorImages.pl b/src/build/buildpnor/genPnorImages.pl
-index 2b7b8c7..f1f09ec 100755
+index 2b7b8c7..cec025e 100755
 --- a/src/build/buildpnor/genPnorImages.pl
 +++ b/src/build/buildpnor/genPnorImages.pl
 @@ -284,11 +284,17 @@ my $OPEN_SIGN_KEY_TRANS_REQUEST = $OPEN_SIGN_REQUEST;
@@ -35,6 +35,63 @@ index 2b7b8c7..f1f09ec 100755
  
  # Handle key transition and production signing logic
  # If in production mode, key transition is not supported yet
+@@ -754,13 +760,23 @@ sub manipulateImages
+                             . "$bin_file $SIGN_BUILD_PARAMS");
+                     }
+                 }
+-                # Add simple version header
++                # Add non-secure version header
+                 else
+                 {
+-                    run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
+-                    run_command("sha512sum $bin_file | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
+-                    run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{HDR_PHASE} ibs=4k conv=sync");
+-                    run_command("cat $bin_file >> $tempImages{HDR_PHASE}");
++                    # Attach signature-less secure header for OpenPOWER builds
++                    if($openSigningTool)
++                    {
++                        run_command("$CUR_OPEN_SIGN_REQUEST "
++                            . "--protectedPayload $bin_file "
++                            . "--out $tempImages{HDR_PHASE}");
++                    }
++                    else # attach the legacy header
++                    {
++                        run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
++                        run_command("sha512sum $bin_file | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
++                        run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{HDR_PHASE} ibs=4k conv=sync");
++                        run_command("cat $bin_file >> $tempImages{HDR_PHASE}");
++                    }
+                 }
+             }
+             else
+@@ -858,12 +874,23 @@ sub manipulateImages
+                         setCallerHwHdrFields(\%callerHwHdrFields,
+                                              $tempImages{PAD_PHASE});
+                     }
++                    # Add non-secure version header
+                     else
+                     {
+-                        run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
+-                        run_command("sha512sum $tempImages{TEMP_BIN} | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
+-                        run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{PAD_PHASE} ibs=4k conv=sync");
+-                        run_command("cat $tempImages{TEMP_BIN} >> $tempImages{PAD_PHASE}");
++                        # Attach signature-less secure header for OpenPOWER builds
++                        if($openSigningTool)
++                        {
++                            run_command("$CUR_OPEN_SIGN_REQUEST "
++                                . "--protectedPayload $tempImages{TEMP_BIN} "
++                                . "--out $tempImages{PAD_PHASE}");
++                        }
++                        else # Attach legacy header
++                        {
++                            run_command("env echo -en VERSION\\\\0 > $tempImages{TEMP_SHA_IMG}");
++                            run_command("sha512sum $tempImages{TEMP_BIN} | awk \'{print \$1}\' | xxd -pr -r >> $tempImages{TEMP_SHA_IMG}");
++                            run_command("dd if=$tempImages{TEMP_SHA_IMG} of=$tempImages{PAD_PHASE} ibs=4k conv=sync");
++                            run_command("cat $tempImages{TEMP_BIN} >> $tempImages{PAD_PHASE}");
++                        }
+                     }
+                 }
+             }
 -- 
 1.8.2.2
 
