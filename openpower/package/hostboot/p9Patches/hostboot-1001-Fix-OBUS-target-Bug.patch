@@ -1,0 +1,49 @@
+From 0c22735aa4b5c094803edb47fb6655605dcf4de1 Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Thu, 27 Jul 2017 10:52:05 -0500
+Subject: [PATCH] joe fix
+
+Change-Id: I4325b5aec5ca1324828aeaf8014178c9d8eb3996
+---
+ .../chips/p9/procedures/hwp/io/p9_io_obus_scominit.C   | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/src/import/chips/p9/procedures/hwp/io/p9_io_obus_scominit.C b/src/import/chips/p9/procedures/hwp/io/p9_io_obus_scominit.C
+index 57d1965..dcaedad 100644
+--- a/src/import/chips/p9/procedures/hwp/io/p9_io_obus_scominit.C
++++ b/src/import/chips/p9/procedures/hwp/io/p9_io_obus_scominit.C
+@@ -94,27 +94,17 @@ fapi2::ReturnCode p9_io_obus_scominit( const fapi2::Target<fapi2::TARGET_TYPE_OB
+     FAPI_INF("Invoke FAPI procedure core: input_target");
+     FAPI_EXEC_HWP(rc, p9_obus_scom, i_target, l_system_target, l_proc_target);
+ 
+-    // configure FIR, use OBUS unit number to form fully qualified SCOM address
++    // configure FIR
+     {
+-        uint8_t l_unit_pos;
+-        uint64_t l_addr_offset;
+-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+-                               i_target,
+-                               l_unit_pos),
+-                 "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
+-
+-        l_addr_offset = l_unit_pos;
+-        l_addr_offset = l_addr_offset << 24;
+-
+-        FAPI_TRY(fapi2::putScom(l_proc_target,
++        FAPI_TRY(fapi2::putScom(i_target,
+                                 OBUS_FIR_ACTION0_REG,
+                                 FIR_ACTION0),
+                  "Error from putScom (OBUS_FIR_ACTION0_REG)");
+-        FAPI_TRY(fapi2::putScom(l_proc_target,
++        FAPI_TRY(fapi2::putScom(i_target,
+                                 OBUS_FIR_ACTION1_REG,
+                                 FIR_ACTION1),
+                  "Error from putScom (OBUS_FIR_ACTION1_REG)");
+-        FAPI_TRY(fapi2::putScom(l_proc_target,
++        FAPI_TRY(fapi2::putScom(i_target,
+                                 OBUS_FIR_MASK_REG,
+                                 FIR_MASK),
+                  "Error from putScom (OBUS_FIR_MASK_REG)");
+-- 
+1.8.2.2
+
