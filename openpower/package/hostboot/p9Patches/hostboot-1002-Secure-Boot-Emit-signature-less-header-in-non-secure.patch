@@ -1,0 +1,40 @@
+From 0737b26266f78d3acdb651c7a993d7f73c0110a5 Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Fri, 28 Jul 2017 01:45:20 -0500
+Subject: [PATCH] Secure Boot: Emit signature-less header in non-secure compile
+
+- Relevant for open signing only at this time
+
+RTC: 174017
+Change-Id: I6c16f2c06785debaae3006ef66e54fa7102f27da
+---
+ src/build/buildpnor/genPnorImages.pl | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/build/buildpnor/genPnorImages.pl b/src/build/buildpnor/genPnorImages.pl
+index 2b7b8c7..f1f09ec 100755
+--- a/src/build/buildpnor/genPnorImages.pl
++++ b/src/build/buildpnor/genPnorImages.pl
+@@ -284,11 +284,17 @@ my $OPEN_SIGN_KEY_TRANS_REQUEST = $OPEN_SIGN_REQUEST;
+ # Production signing parameters
+ my $OPEN_PRD_SIGN_PARAMS = "--mode production "
+     . " --sign-project-config $sb_signing_config_file";
+-# Imprint key signing parameters
+-my $OPEN_DEV_SIGN_PARAMS = " --hwPrivKeyA $DEV_KEY_DIR/hw_key_a.key "
++
++# Imprint key signing parameters.  In a non-secure compile, omit the keys to
++# generate a secure header without signatures
++my $OPEN_DEV_SIGN_PARAMS = "";
++if($secureboot)
++{
++    $OPEN_DEV_SIGN_PARAMS = " --hwPrivKeyA $DEV_KEY_DIR/hw_key_a.key "
+     . "--hwPrivKeyB $DEV_KEY_DIR/hw_key_b.key "
+     . "--hwPrivKeyC $DEV_KEY_DIR/hw_key_c.key "
+     . "--swPrivKeyP $DEV_KEY_DIR/sw_key_a.key";
++}
+ 
+ # Handle key transition and production signing logic
+ # If in production mode, key transition is not supported yet
+-- 
+1.8.2.2
+
