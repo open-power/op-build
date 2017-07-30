@@ -107,11 +107,12 @@ endef
 
 define MACHINE_XML_INSTALL_IMAGES_CMDS
         mv $(MRW_HB_TOOLS)/targeting.bin $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME)
-		if     [ -n "$(BR2_OPENPOWER_SECUREBOOT_ENABLED)" ] \
-			&& [ "$(BR2_OPENPOWER_SECUREBOOT_ENABLED)" == 'y' ]; then \
+        if [ -e $(MRW_HB_TOOLS)/targeting.bin.protected ]; then \
             mv -v $(MRW_HB_TOOLS)/targeting.bin.protected $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME).protected; \
+        fi
+        if [ -e $(MRW_HB_TOOLS)/targeting.bin.unprotected ]; then \
             mv -v $(MRW_HB_TOOLS)/targeting.bin.unprotected $(MRW_HB_TOOLS)/$(BR2_OPENPOWER_TARGETING_BIN_FILENAME).unprotected; \
-		fi
+        fi
 endef
 
 define MACHINE_XML_INSTALL_TARGET_CMDS
