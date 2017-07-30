@@ -1,0 +1,42 @@
+From 0c117b132e7399a0a8772e183fae146a8318fe2d Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Sat, 29 Jul 2017 23:04:08 -0500
+Subject: [PATCH] Secure Boot: Move genPnorImage dependency hash into sort
+ function
+
+- Some platforms/perl versions don't work unless hash is inside sort function
+
+Change-Id: If2c7d9f32a9f500272107acd188a317816be9516
+RTC: 174017
+---
+ src/build/buildpnor/genPnorImages.pl | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/src/build/buildpnor/genPnorImages.pl b/src/build/buildpnor/genPnorImages.pl
+index cec025e..d946756 100755
+--- a/src/build/buildpnor/genPnorImages.pl
++++ b/src/build/buildpnor/genPnorImages.pl
+@@ -461,12 +461,16 @@ foreach my $header (keys %sb_hdrs)
+ # Custom sort to ensure images are handled in the correct dependency order.
+ # If a dependency is not specified in the hash used, use default behavior.
+ ################################################################################
+-# Hardcoded defined order that binfiles should be handled.
+-my %partitionDeps = ( HBBL => 0,
+-                      HBB => 1,
+-                      HBI => 2);
++
+ sub partitionDepSort
+ {
++    # Hardcoded defined order that binfiles should be handled. Fails to work
++    # properly unless declared inside the sort routine under some platforms/perl
++    # versions
++    my %partitionDeps = ( HBBL => 0,
++                          HBB => 1,
++                          HBI => 2);
++
+     # If $a exists but $b does not, set $a < $b
+     if (exists $partitionDeps{$a} && !exists $partitionDeps{$b})
+     {
+-- 
+1.8.2.2
+
