@@ -1,0 +1,26 @@
+From 61e16630b456ba530156adaaa4c3b70bb7d9ba91 Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Fri, 28 Jul 2017 22:51:27 -0500
+Subject: [PATCH] Secure Boot: Distribute hostboot's config.h
+
+RTC: 174017
+Change-Id: I5fc93873758e20270c5b1d79cbb06420c690f94b
+---
+ src/build/mkrules/dist.targets.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/build/mkrules/dist.targets.mk b/src/build/mkrules/dist.targets.mk
+index e30c9bf..6ab21b0 100755
+--- a/src/build/mkrules/dist.targets.mk
++++ b/src/build/mkrules/dist.targets.mk
+@@ -71,6 +71,7 @@ COPY_FILES = \
+     obj/genfiles/targAttrInfo.csv:vpo \
+     obj/genfiles/target_types_merged.xml:openpower \
+     obj/genfiles/fapiattrs.xml:openpower \
++    obj/genfiles/config.h:openpower \
+     src/usr/targeting/attroverride/README.attr_override:tools,openpower \
+     src/build/hwpf/prcd_compile.tcl:tools \
+     src/build/buildpnor/buildSbePart.pl:openpower \
+-- 
+1.8.2.2
+
