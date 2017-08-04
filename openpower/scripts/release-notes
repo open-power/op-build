@@ -124,6 +124,12 @@ foreach my $p (@common_platforms) {
     next if $p =~ /^zz$/;
     next if $p =~ /mambo/;
     next if $p =~ /redbud/;
+    next if $p =~ /pseries/;
+    next if $p =~ /witherspoon-redbud/;
+    if ($p =~ /witherspoon-sequoia/) {
+	    $p = "witherspoon";
+	    $witherspoon_insanity = 1;
+    }
     $repos->{"$p-xml"} = { REPO => "http://github.com/open-power/$p-xml" ,
 			   DIR => "openpower/package/$p-xml" };
 }
@@ -148,8 +154,11 @@ foreach my $p (@end_platforms) {
 
 if ($witherspoon_insanity) {
     $dbh->do("ALTER TABLE 'end_witherspoon-sequoia_manifest' RENAME to end_witherspoon_manifest");
+    $dbh->do("ALTER TABLE 'begin_witherspoon-sequoia_manifest' RENAME to begin_witherspoon_manifest");
     @end_platforms = grep { $_ != 'witherspoon-sequoia' } @end_platforms;
+    @begin_platforms = grep { $_ != 'witherspoon-sequoia' } @begin_platforms;
     push @end_platforms, 'witherspoon';
+    push @begin_platforms, 'witherspoon';
     push @common_platforms, 'witherspoon';
 }
 
