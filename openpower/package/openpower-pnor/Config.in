@@ -77,6 +77,18 @@ config BR2_WOFDATA_BINARY_FILENAME
         help
             String used to define name of wofdata binary ecc'd file
 
+config BR2_MEMDDATA_FILENAME
+        string "Name of memd original file"
+        default "memd_extra"
+        help
+            String used to define name of memd original file
+
+config BR2_MEMDDATA_BINARY_FILENAME
+        string "Name of memd binary file"
+        default "memd_extra_data.bin.ecc"
+        help
+            String used to define the name of the memd binary ecc'd file
+
 config BR2_IMA_CATALOG_FILENAME
         string "Name of IMA catalog binary"
         help
