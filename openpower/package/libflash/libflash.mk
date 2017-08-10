@@ -5,8 +5,8 @@
 ################################################################################
 
 LIBFLASH_VERSION = v5.7-76-g830fc9a0ed0a
-
 LIBFLASH_SITE = $(call github,open-power,skiboot,$(LIBFLASH_VERSION))
+
 LIBFLASH_INSTALL_STAGING = YES
 LIBFLASH_INSTALL_TARGET = YES
 
@@ -29,6 +29,10 @@ define LIBFLASH_BUILD_CMDS
 		       -C $(@D)/external/pflash)
 endef
 
+define HOST_LIBFLASH_BUILD_CMDS
+    $(HOST_MAKE_ENV) $(MAKE) -C $(@D)/external/pflash
+endef
+
 define LIBFLASH_INSTALL_STAGING_CMDS
 	PREFIX=$(STAGING_DIR)/usr $(LIBFLASH_MAKE_ENV) -C $(@D)/external/shared \
 	       install
@@ -42,4 +46,9 @@ define LIBFLASH_INSTALL_TARGET_CMDS
 		       -C $(@D)/external/pflash install)
 endef
 
+define HOST_LIBFLASH_INSTALL_CMDS
+    $(INSTALL) $(@D)/external/pflash/pflash $(HOST_DIR)/usr/bin/pflash
+endef
+
 $(eval $(generic-package))
+$(eval $(host-generic-package))
