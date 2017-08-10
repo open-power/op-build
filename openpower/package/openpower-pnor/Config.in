@@ -8,6 +8,8 @@ config BR2_PACKAGE_OPENPOWER_PNOR
         select BR2_PACKAGE_OCC
         select BR2_PACKAGE_CAPP_UCODE
         select BR2_PACKAGE_IMA_CATALOG
+        select BR2_PACKAGE_HOST_OPENPOWER_VPNOR
+        select BR2_PACKAGE_HOST_LIBFLASH
 	select BR2_PACKAGE_MACHINE_XML
         help
             Utilites for building a targeting binary image
@@ -112,3 +114,11 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
 config BR2_OPENPOWER_PNOR_XZ_ENABLED
         bool "Enable xz compression in PNOR payloads"
         default n
+
+config BR2_OPENBMC_SYSTEM
+        bool "Build for systems using OpenBMC"
+        default n
+
+config BR2_BUILD_VPNOR
+        bool "Create a virtual PNOR image along with the standard image"
+        default y if (BR2_OPENBMC_SYSTEM)
