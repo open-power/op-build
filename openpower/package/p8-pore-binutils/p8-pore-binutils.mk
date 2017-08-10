@@ -19,7 +19,7 @@ define HOST_P8_PORE_BINUTILS_BUILD_CMDS
                     --exec-prefix=$(P8_PORE_BINUTILS_BIN) \
                     --target=pore-elf64 && \
         make configure-host && \
-        make LDFLAGS=-all-static
+        make CFLAGS=-Wno-error LDFLAGS=-all-static
 endef
 
 define HOST_P8_PORE_BINUTILS_INSTALL_CMDS

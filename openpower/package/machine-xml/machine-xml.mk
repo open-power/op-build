@@ -81,7 +81,7 @@ define MACHINE_XML_BUILD_CMDS
         $(MRW_HB_TOOLS)/xmltohb.pl  \
             --hb-xml-file=$(MRW_HB_TOOLS)/temporary_hb.hb.xml \
             --fapi-attributes-xml-file=$(MRW_HB_TOOLS)/fapiattrs.xml \
-            --src-output-dir=none \
+            --src-output-dir=$(MRW_HB_TOOLS)/ \
             --img-output-dir=$(MRW_HB_TOOLS)/ \
             --vmm-consts-file=$(MRW_HB_TOOLS)/vmmconst.h --noshort-enums \
             --bios-xml-file=$(OPENPOWER_BIOS_XML_CONFIG_FILE) \
