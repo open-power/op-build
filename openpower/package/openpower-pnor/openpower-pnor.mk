@@ -35,8 +35,8 @@ else
     OPENPOWER_RELEASE=p8
 endif
 
-ifeq ($(BR2_BUILD_VPNOR),y)
-    OPENPOWER_PNOR_DEPENDENCIES += host-openpower-vpnor
+ifeq ($(BR2_BUILD_PNOR_SQUASHFS),y)
+    OPENPOWER_PNOR_DEPENDENCIES += host-libflash host-openpower-vpnor
 endif
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
@@ -112,7 +112,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
 
         # If this is a VPNOR system, run the generate-squashfs command and
         # create a tarball
-        if [ "$(BR2_BUILD_VPNOR)" == "y" ]; then \
+        if [ "$(BR2_BUILD_PNOR_SQUASHFS)" == "y" ]; then \
             PATH=$(PATH):$(HOST_DIR)/usr/bin $(HOST_DIR)/usr/bin/generate-squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME); \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
         fi
