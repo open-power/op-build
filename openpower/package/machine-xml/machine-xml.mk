@@ -98,12 +98,19 @@ define MACHINE_XML_BUILD_CMDS
         if [ -e $(MRW_HB_TOOLS)/wof-tables-img ]; then \
             chmod +x $(MRW_HB_TOOLS)/wof-tables-img; \
         fi
-        
-		if [ -d $(MRW_SCRATCH)/wofdata ]; then \
-			$(MRW_HB_TOOLS)/wof-tables-img --create $(MRW_SCRATCH)/wof_output $(MRW_SCRATCH)/wofdata; \
+
+        if [ -d $(MRW_SCRATCH)/wofdata ]; then \
+            $(MRW_HB_TOOLS)/wof-tables-img --create $(MRW_SCRATCH)/wof_output $(MRW_SCRATCH)/wofdata; \
         fi
 
+        # Create the MEMD binary
+        if [ -e $(MRW_HB_TOOLS)/memd_creation.pl ]; then \
+            chmod +x $(MRW_HB_TOOLS)/memd_creation.pl; \
+        fi
 
+        if [ -d $(MRW_SCRATCH)/memd_binaries ]; then \
+            $(MRW_HB_TOOLS)/memd_creation.pl -memd_dir $(MRW_SCRATCH)/memd_binaries -memd_output $(MRW_SCRATCH)/memd_output.dat; \
+        fi
 
 endef
 

@@ -79,7 +79,7 @@ config BR2_WOFDATA_BINARY_FILENAME
 
 config BR2_MEMDDATA_FILENAME
         string "Name of memd original file"
-        default "memd_extra"
+        default "memd_output.dat"
         help
             String used to define name of memd original file
 
