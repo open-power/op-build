@@ -17,22 +17,29 @@ LIBFLASH_MAKE_OPTS += CC="$(TARGET_CC)" LD="$(TARGET_LD)" \
 		     OBJCOPY="$(TARGET_OBJCOPY)" OBJDUMP="$(TARGET_OBJDUMP)" \
 		     SIZE="$(TARGET_CROSS)size"
 
+LIBFLASH_MAKE_ENV = \
+	SKIBOOT_VERSION=$(LIBFLASH_VERSION) \
+	       $(MAKE1) $(LIBFLASH_MAKE_OPTS) CROSS_COMPILE=$(TARGET_CROSS)
+
+
 define LIBFLASH_BUILD_CMDS
-	PREFIX=$(STAGING_DIR)/usr SKIBOOT_VERSION=$(LIBFLASH_VERSION) \
-	       $(MAKE1) $(LIBFLASH_MAKE_OPTS) CROSS_COMPILE=$(TARGET_CROSS) \
-	       -C $(@D)/external/shared
+	PREFIX=$(STAGING_DIR)/usr $(LIBFLASH_MAKE_ENV) -C $(@D)/external/shared
+	$(if $(BR2_PACKAGE_PFLASH),
+		PREFIX=$(STAGING_DIR)/usr $(LIBFLASH_MAKE_ENV) \
+		       -C $(@D)/external/pflash)
 endef
 
 define LIBFLASH_INSTALL_STAGING_CMDS
-	PREFIX=$(STAGING_DIR)/usr SKIBOOT_VERSION=$(LIBFLASH_VERSION) \
-	       $(MAKE1) $(LIBFLASH_MAKE_OPTS) CROSS_COMPILE=$(TARGET_CROSS) \
-	       -C $(@D)/external/shared install
+	PREFIX=$(STAGING_DIR)/usr $(LIBFLASH_MAKE_ENV) -C $(@D)/external/shared \
+	       install
 endef
 
 define LIBFLASH_INSTALL_TARGET_CMDS
-	PREFIX=$(TARGET_DIR)/usr SKIBOOT_VERSION=$(LIBFLASH_VERSION) \
-	       $(MAKE1) $(LIBFLASH_MAKE_OPTS) CROSS_COMPILE=$(TARGET_CROSS) \
-	       -C $(@D)/external/shared install-lib
+	PREFIX=$(TARGET_DIR)/usr $(LIBFLASH_MAKE_ENV) -C $(@D)/external/shared \
+	       install-lib
+	$(if $(BR2_PACKAGE_PFLASH),
+		DESTDIR=$(TARGET_DIR) $(LIBFLASH_MAKE_ENV) \
+		       -C $(@D)/external/pflash install)
 endef
 
 $(eval $(generic-package))
