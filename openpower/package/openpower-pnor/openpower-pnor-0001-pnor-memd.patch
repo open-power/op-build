@@ -1,0 +1,104 @@
+From eaa934f5dcae468e58a2642644a516b711f820b7 Mon Sep 17 00:00:00 2001
+From: Elizabeth Liner <eliner@us.ibm.com>
+Date: Tue, 13 Jun 2017 15:43:30 -0500
+Subject: [PATCH 1/2] eliner save state. pnor memd
+
+---
+ create_pnor_image.pl                | 1 +
+ p9Layouts/defaultPnorLayout_128.xml | 8 ++++++++
+ p9Layouts/defaultPnorLayout_32.xml  | 8 ++++++++
+ p9Layouts/defaultPnorLayout_64.xml  | 8 ++++++++
+ update_image.pl                     | 7 +++++++
+ 5 files changed, 32 insertions(+)
+
+diff --git a/create_pnor_image.pl b/create_pnor_image.pl
+index 9622e40..dd2f840 100755
+--- a/create_pnor_image.pl
++++ b/create_pnor_image.pl
+@@ -139,6 +139,7 @@ $build_pnor_command .= " --binFile_IMA_CATALOG $scratch_dir/ima_catalog.bin.ecc"
+ 
+ if ($release eq "p9"){
+     $build_pnor_command .= " --binFile_WOFDATA $wofdata_binary_filename" if -e $wofdata_binary_filename;
++    $build_pnor_command .= " --binFile_MEMD $scratch_dir/memd_data.bin.ecc";
+ }
+ if ($release eq "p8"){
+     $build_pnor_command .= " --binFile_SBEC $scratch_dir/$sbec_binary_filename";
+diff --git a/p9Layouts/defaultPnorLayout_128.xml b/p9Layouts/defaultPnorLayout_128.xml
+index f086fdd..2fde053 100644
+--- a/p9Layouts/defaultPnorLayout_128.xml
++++ b/p9Layouts/defaultPnorLayout_128.xml
+@@ -310,4 +310,12 @@ Layout Description
+         <ecc/>
+         <volatile/>
+     </section>
++    <section>
++        <description>MEMD extra data</description>
++        <eyeCatch>MEMD</eyeCatch>
++        <physicalOffset>0x2B03000</physicalOffset>
++        <physicalRegionSize>0x6000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++    </section>
+ </pnor>
+diff --git a/p9Layouts/defaultPnorLayout_32.xml b/p9Layouts/defaultPnorLayout_32.xml
+index 5d2ce2d..4af8855 100644
+--- a/p9Layouts/defaultPnorLayout_32.xml
++++ b/p9Layouts/defaultPnorLayout_32.xml
+@@ -310,4 +310,12 @@ Layout Description
+         <ecc/>
+         <volatile/>
+     </section>
++    <section>
++        <description>MEMD extra data</description>
++        <eyeCatch>MEMD</eyeCatch>
++        <physicalOffset>0x2B03000</physicalOffset>
++        <physicalRegionSize>0x6000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++    </section>
+ </pnor>
+diff --git a/p9Layouts/defaultPnorLayout_64.xml b/p9Layouts/defaultPnorLayout_64.xml
+index 0a10d84..aadf756 100644
+--- a/p9Layouts/defaultPnorLayout_64.xml
++++ b/p9Layouts/defaultPnorLayout_64.xml
+@@ -310,4 +310,12 @@ Layout Description
+         <ecc/>
+         <volatile/>
+     </section>
++    <section>
++        <description>MEMD extra data</description>
++        <eyeCatch>MEMD</eyeCatch>
++        <physicalOffset>0x2B95000</physicalOffset>
++        <physicalRegionSize>0x6000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++    </section>
+ </pnor>
+diff --git a/update_image.pl b/update_image.pl
+index ef9e5d1..143b354 100755
+--- a/update_image.pl
++++ b/update_image.pl
+@@ -278,6 +278,7 @@ if ($release eq "p9" && -e $wof_binary_filename) {
+     run_command("dd if=$wof_binary_filename > $scratch_dir/hostboot.temp.bin");
+     run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/wofdata.bin.ecc");
+ }
++
+ #Print error and blank binary if wof file does not exist
+ elsif ($release eq "p9")
+ {
+@@ -286,6 +287,12 @@ elsif ($release eq "p9")
+     run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/wofdata.bin.ecc --p8");
+ }
+ 
++#Create blank binary file for MEMD Partition (for now)
++if ($release eq "p9") {
++    run_command("dd if=/dev/zero bs=20K count=1 | tr \"\\000\" \"\\377\" > $scratch_dir/hostboot.temp.bin");
++    run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/memd_data.bin.ecc --p8");
++}
++
+ 
+ #END MAIN
+ #-------------------------------------------------------------------------
+-- 
+1.8.2.2
+

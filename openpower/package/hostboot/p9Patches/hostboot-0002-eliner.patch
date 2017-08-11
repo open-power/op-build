@@ -1,0 +1,1015 @@
+From deee5764e9528f8b415d33e99f599b1efe48f408 Mon Sep 17 00:00:00 2001
+From: Elizabeth Liner <eliner@us.ibm.com>
+Date: Thu, 15 Jun 2017 13:41:04 -0500
+Subject: [PATCH 1/3] Add MEMD to PNOR
+
+The MEMD partition will contain extra memory VPD data.
+In a later commit, We will have a way to use this section
+instead of the original VPD data.
+
+Change-Id: I199b67d7fce240ba0a5a6c9441259762f27d301e
+RTC:175158
+---
+ src/build/buildpnor/defaultPnorLayout.xml | 8 ++++++++
+ src/build/buildpnor/pnorLayoutFSP.xml     | 8 ++++++++
+ src/build/mkrules/hbfw/img/makefile       | 7 ++++---
+ src/include/usr/pnor/pnor_const.H         | 1 +
+ src/usr/pnor/pnor_utils.C                 | 1 +
+ src/usr/pnor/test/pnorrptest.H            | 1 +
+ 6 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/src/build/buildpnor/defaultPnorLayout.xml b/src/build/buildpnor/defaultPnorLayout.xml
+index de66aa8..4c58da6 100644
+--- a/src/build/buildpnor/defaultPnorLayout.xml
++++ b/src/build/buildpnor/defaultPnorLayout.xml
+@@ -279,4 +279,12 @@ Layout Description
+         <side>sideless</side>
+         <ecc/>
+     </section>
++    <section>
++        <description>MEMD (24K)</description>
++        <eyeCatch>MEMD</eyeCatch>
++        <physicalOffset>0x2EF7000</physicalOffset>
++        <physicalRegionSize>0x6000</physicalRegionSize>
++        <side>sideless</side>
++        <ecc/>
++    </section>
+ </pnor>
+diff --git a/src/build/buildpnor/pnorLayoutFSP.xml b/src/build/buildpnor/pnorLayoutFSP.xml
+index 037e0fa..c03371a 100644
+--- a/src/build/buildpnor/pnorLayoutFSP.xml
++++ b/src/build/buildpnor/pnorLayoutFSP.xml
+@@ -267,4 +267,12 @@ Layout Description - Used when building an FSP driver
+         <side>sideless</side>
+         <ecc/>
+     </section>
++    <section>
++        <description>MEMD (24K)</description>
++        <eyeCatch>MEMD</eyeCatch>
++        <physicalOffset>0x2EF7000</physicalOffset>
++        <physicalRegionSize>0x6000</physicalRegionSize>
++        <side>sideless</side>
++        <ecc/>
++    </section>
+ </pnor>
+diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
+index 4375a14..fe4d7ae 100755
+--- a/src/build/mkrules/hbfw/img/makefile
++++ b/src/build/mkrules/hbfw/img/makefile
+@@ -92,12 +92,13 @@ RINGOVD_FINAL_IMG = RINGOVD.bin
+ SBKT_FINAL_IMG = SBKT.bin
+ WOFDATA_FINAL_IMG = WOFDATA.bin
+ FIRDATA_FINAL_IMG = FIRDATA.bin
++MEMD_FINAL_IMG = MEMD.bin
+ FINAL_OUTPUT_IMAGES = ${HBBL_FINAL_IMG} ${HBB_FINAL_IMG} ${HBI_FINAL_IMG} \
+ 			  ${HBRT_FINAL_IMG} ${TEST_FINAL_IMG} ${TESTRO_FINAL_IMG} \
+ 			  ${HBEL_FINAL_IMG} ${GUARD_FINAL_IMG} ${GLOBAL_FINAL_IMG} \
+ 			  ${DJVPD_FINAL_IMG} ${MVPD_FINAL_IMG} ${CVPD_FINAL_IMG} \
+ 			  ${PAYLOAD_FINAL_IMG} ${RINGOVD_FINAL_IMG} ${SBKT_FINAL_IMG} \
+-			  ${WOFDATA_FINAL_IMG} ${FIRDATA_FINAL_IMG}
++			  ${WOFDATA_FINAL_IMG} ${FIRDATA_FINAL_IMG} ${MEMD_FINAL_IMG}
+ 
+ # Aggregate
+ ALL_DEFAULT_IMAGES = ${DEFAULT_INPUT_IMAGES} ${FINAL_OUTPUT_IMAGES}
+@@ -123,7 +124,7 @@ PNOR_LAYOUT = ${pnorLayoutFSP.xml:P}
+ # Decide which PNOR to build
+ .if(${FAKEPNOR} == "")
+     # Parameters passed into GEN_PNOR_IMAGE_SCRIPT.
+-    GEN_DEFAULT_BIN_FILES = HBBL=${HBBL_IMG},HBB=${HBB_IMG},HBI=${HBI_IMG},HBRT=${HBRT_IMG},TEST=EMPTY,TESTRO=EMPTY,HBEL=EMPTY,GUARD=EMPTY,GLOBAL=EMPTY,PAYLOAD=EMPTY,CVPD=EMPTY,MVPD=EMPTY,DJVPD=EMPTY,RINGOVD=EMPTY,SBKT=EMPTY,WOFDATA=${WOFDATA_IMG},FIRDATA=EMPTY
++    GEN_DEFAULT_BIN_FILES = HBBL=${HBBL_IMG},HBB=${HBB_IMG},HBI=${HBI_IMG},HBRT=${HBRT_IMG},TEST=EMPTY,TESTRO=EMPTY,HBEL=EMPTY,GUARD=EMPTY,GLOBAL=EMPTY,PAYLOAD=EMPTY,CVPD=EMPTY,MVPD=EMPTY,DJVPD=EMPTY,RINGOVD=EMPTY,SBKT=EMPTY,WOFDATA=${WOFDATA_IMG},FIRDATA=EMPTY,MEMD=EMPTY
+     DEFAULT_PARAMS = --build-all --emit-eccless ${TARGET_TEST:b--test} ${HB_STANDALONE:b--hb-standalone} \
+                      ${CONFIG_SECUREBOOT:b--secureboot} --systemBinFiles ${GEN_DEFAULT_BIN_FILES} \
+                      --pnorLayout ${PNOR_LAYOUT} ${KEY_TRANSITION_PARAMS} ${CORRUPT_PARAMS} \
+@@ -285,7 +286,7 @@ gen_system_specific_images_bypass_cache :
+ gen_system_specific_images: build_sbe_partitions .PMAKE
+ 	@${MAKE:T:R} gen_system_specific_images_bypass_cache
+ 
+-HOSTBOOT_DEFAULT_SECTIONS = HBBL=${HBBL_FINAL_IMG},HBB=${HBB_FINAL_IMG},HBI=${HBI_FINAL_IMG},HBRT=${HBRT_FINAL_IMG},TEST=${TEST_FINAL_IMG},TESTRO=${TESTRO_FINAL_IMG},HBEL=${HBEL_FINAL_IMG},GUARD=${GUARD_FINAL_IMG},GLOBAL=${GLOBAL_FINAL_IMG},PAYLOAD=${PAYLOAD_FINAL_IMG},CVPD=${CVPD_FINAL_IMG},MVPD=${MVPD_FINAL_IMG},DJVPD=${DJVPD_FINAL_IMG},RINGOVD=${RINGOVD_FINAL_IMG},SBKT=${SBKT_FINAL_IMG},WOFDATA=${WOFDATA_FINAL_IMG},FIRDATA=${FIRDATA_FINAL_IMG}
++HOSTBOOT_DEFAULT_SECTIONS = HBBL=${HBBL_FINAL_IMG},HBB=${HBB_FINAL_IMG},HBI=${HBI_FINAL_IMG},HBRT=${HBRT_FINAL_IMG},TEST=${TEST_FINAL_IMG},TESTRO=${TESTRO_FINAL_IMG},HBEL=${HBEL_FINAL_IMG},GUARD=${GUARD_FINAL_IMG},GLOBAL=${GLOBAL_FINAL_IMG},PAYLOAD=${PAYLOAD_FINAL_IMG},CVPD=${CVPD_FINAL_IMG},MVPD=${MVPD_FINAL_IMG},DJVPD=${DJVPD_FINAL_IMG},RINGOVD=${RINGOVD_FINAL_IMG},SBKT=${SBKT_FINAL_IMG},WOFDATA=${WOFDATA_FINAL_IMG},FIRDATA=${FIRDATA_FINAL_IMG},MEMD=${MEMD_FINAL_IMG}
+ #@TODO RTC:163810 - Put SBEC back "SBEC=${SBEC_FINAL_IMG},"
+ .if(${DEFAULT_PNOR} == 1)
+     NIMBUS_SECT = HBD=${NIMBUS_HBD_FINAL_IMG},SBE=${NIMBUS_SBE_FINAL_IMG},HCODE=${NIMBUS_HCODE_FINAL_IMG},OCC=${NIMBUS_OCC_FINAL_IMG}
+diff --git a/src/include/usr/pnor/pnor_const.H b/src/include/usr/pnor/pnor_const.H
+index e65faff..4bb607d 100644
+--- a/src/include/usr/pnor/pnor_const.H
++++ b/src/include/usr/pnor/pnor_const.H
+@@ -72,6 +72,7 @@ enum SectionId
+     WOFDATA,        /**< VFRT data tables for WOF */
+     SBKT,           /**< SecureBoot Key Transition */
+     HB_VOLATILE,    /**< Semi volatile partition for reconfig */
++    MEMD,           /**< Additional Memory VPD data */
+ #endif
+     NUM_SECTIONS,   /**< Number of defined sections */
+ 
+diff --git a/src/usr/pnor/pnor_utils.C b/src/usr/pnor/pnor_utils.C
+index 2ba31c8..7c2f2e1 100644
+--- a/src/usr/pnor/pnor_utils.C
++++ b/src/usr/pnor/pnor_utils.C
+@@ -462,6 +462,7 @@ const char * PNOR::SectionIdToString( uint32_t i_secIdIndex )
+         "WOFDATA",     /**< PNOR::WOFDATA        : VFRT data tables for WOF */
+         "SBKT",        /**< PNOR::SBKT           : SecureBoot Key Transition */
+         "HB_VOLATILE", /**< PNOR::HB_VOLATILE    : Semi volatile partition */
++        "MEMD",        /**< PNOR::MEMD           : Additional memory VPD data */
+ #endif
+     };
+ 
+diff --git a/src/usr/pnor/test/pnorrptest.H b/src/usr/pnor/test/pnorrptest.H
+index d42ce93..908dfc5 100644
+--- a/src/usr/pnor/test/pnorrptest.H
++++ b/src/usr/pnor/test/pnorrptest.H
+@@ -74,6 +74,7 @@ class PnorRpTest : public CxxTest::TestSuite
+             PNOR::MODULE_VPD,     /**< Module VPD */
+             PNOR::RINGOVD,        /**< Ring override data */
+             PNOR::WOFDATA,        /**< WOF data */
++            PNOR::MEMD,           /**< Extra Memory data */
+         };
+         uint64_t numSections = sizeof(testSections)/sizeof(testSections[0]);
+ 
+-- 
+1.8.2.2
+
+
+From 153092b0cae4fbbb1036c7b22b952a1346c35fab Mon Sep 17 00:00:00 2001
+From: Dan Crowell <dcrowell@us.ibm.com>
+Date: Sun, 25 Jun 2017 21:31:26 -0500
+Subject: [PATCH 2/3] Support for MEMD PNOR based VPD accessor - NO MERGE
+
+Change-Id: If3abb54eae2510f4a26aa2b0e92543d4ed36e963
+---
+ src/include/usr/devicefw/userif.H   |  26 +++++
+ src/include/usr/vpd/memd_vpdenums.H | 179 +++++++++++++++++++++++++++++
+ src/usr/fapi2/plat_vpd_access.C     |   7 +-
+ src/usr/vpd/ipvpd.H                 |   4 +-
+ src/usr/vpd/memd_vpd.C              | 222 ++++++++++++++++++++++++++++++++++++
+ src/usr/vpd/memd_vpd.H              | 219 +++++++++++++++++++++++++++++++++++
+ src/usr/vpd/vpd.H                   |   3 +-
+ src/usr/vpd/vpd.mk                  |   3 +-
+ 8 files changed, 656 insertions(+), 7 deletions(-)
+ create mode 100644 src/include/usr/vpd/memd_vpdenums.H
+ create mode 100644 src/usr/vpd/memd_vpd.C
+ create mode 100644 src/usr/vpd/memd_vpd.H
+
+diff --git a/src/include/usr/devicefw/userif.H b/src/include/usr/devicefw/userif.H
+index 5f42ff8..c325957 100644
+--- a/src/include/usr/devicefw/userif.H
++++ b/src/include/usr/devicefw/userif.H
+@@ -67,6 +67,7 @@ namespace DeviceFW
+         SIO,
+         AHB_SIO,
+         DVPD,      // Direct access memory VPD
++        MEMD_VPD,
+ 
+         LAST_ACCESS_TYPE,
+     };
+@@ -252,6 +253,31 @@ namespace DeviceFW
+         DeviceFW::DVPD, static_cast<uint64_t>(( i_record )),\
+             static_cast<uint64_t>(( i_keyword )),\
+             static_cast<uint64_t>(( i_location ))
++
++    /**
++     * Construct the device addressing parameters for the DVPD (Direct access
++     * memory VPD) device ops.
++     * @param[in] i_record - The enumeration of the DVPD record to access.
++     * @param[in] i_keyword - The enumeration of the DVPD keyword, located
++     *      within the i_record Record to access.
++     */
++    #define DEVICE_MEMD_VPD_ADDRESS( i_record, i_keyword )\
++        DEVICE_MEMD_VPD_FORCE_ADDRESS( i_record, i_keyword, VPD::AUTOSELECT )
++
++    /**
++     * Construct the device addressing parameters for the DVPD device ops.
++     * @param[in] i_record - The enumeration of the DVPD record to access.
++     * @param[in] i_keyword - The enumeration of the DVPD keyword, located
++     *      within the i_record Record to access.
++     * @param[in] i_location - The location of the data (PNOR/SEEPROM)
++            see vpd_if.H
++     */
++    #define DEVICE_MEMD_VPD_FORCE_ADDRESS( i_record, i_keyword, i_location )\
++        DeviceFW::MEMD_VPD, static_cast<uint64_t>(( i_record )),\
++            static_cast<uint64_t>(( i_keyword )),\
++            static_cast<uint64_t>(( i_location ))
++
++
+     /**
+      * Construct the device addressing parameters for the SCAN device ops.
+      * @param[in] i_ring - The ring address to scan
+diff --git a/src/include/usr/vpd/memd_vpdenums.H b/src/include/usr/vpd/memd_vpdenums.H
+new file mode 100644
+index 0000000..13b165a
+--- /dev/null
++++ b/src/include/usr/vpd/memd_vpdenums.H
+@@ -0,0 +1,179 @@
++/* IBM_PROLOG_BEGIN_TAG                                                   */
++/* This is an automatically generated prolog.                             */
++/*                                                                        */
++/* $Source: src/include/usr/vpd/memd_vpdenums.H $                         */
++/*                                                                        */
++/* OpenPOWER HostBoot Project                                             */
++/*                                                                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2017                        */
++/*                                                                        */
++/*                                                                        */
++/* Licensed under the Apache License, Version 2.0 (the "License");        */
++/* you may not use this file except in compliance with the License.       */
++/* You may obtain a copy of the License at                                */
++/*                                                                        */
++/*     http://www.apache.org/licenses/LICENSE-2.0                         */
++/*                                                                        */
++/* Unless required by applicable law or agreed to in writing, software    */
++/* distributed under the License is distributed on an "AS IS" BASIS,      */
++/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
++/* implied. See the License for the specific language governing           */
++/* permissions and limitations under the License.                         */
++/*                                                                        */
++/* IBM_PROLOG_END_TAG                                                     */
++#ifndef __MEMD_VPDENUMS_H
++#define __MEMD_VPDENUMS_H
++
++#include <vpd/ipvpdenums.H>
++
++namespace MEMD_VPD
++{
++
++    /**
++     * @brief Enumeration for the MEMD_VPD Records that contain
++     *       the keyword enumerations below.
++     */
++    enum MEMD_VPDRecord
++    {
++        MEMD_VPD_FIRST_RECORD   = 0x00,
++        VINI        = MEMD_VPD_FIRST_RECORD,
++        MEMD        = 0x01,
++
++        // Last Record
++        MEMD_VPD_LAST_RECORD,
++        MEMD_VPD_TEST_RECORD,   // Test purposes ONLY!
++
++        //Start common IPVPD enums
++        MEMD_VPD_INVALID_RECORD = IPVPD::INVALID_RECORD,
++    };
++
++    /**
++     * @brief Enumerations for MEMD_VPD keywords that can be
++     *       accessed in the MEMD_VPD.
++     */
++    enum MEMD_VPDKeyword
++    {
++        MEMD_VPD_FIRST_KEYWORD      = 0x00,
++        B3      = MEMD_VPD_FIRST_KEYWORD,
++        B4      = 0x01,
++        B7      = 0x02,
++        CC      = 0x03,
++        CE      = 0x04,
++        CT      = 0x05,
++        DR      = 0x06,
++        FC      = 0x07,
++        FN      = 0x08,
++        HE      = 0x09,
++        HW      = 0x0a,
++        I2      = 0x0b,
++        IN      = 0x0c,
++        J0      = 0x0d,
++        J1      = 0x0e,
++        J2      = 0x0f,
++        J3      = 0x10,
++        J4      = 0x11,
++        J5      = 0x12,
++        J6      = 0x13,
++        J7      = 0x14,
++        J8      = 0x15,
++        J9      = 0x16,
++        JA      = 0x17,
++        JB      = 0x18,
++        JC      = 0x19,
++        JD      = 0x1a,
++        JE      = 0x1b,
++        JF      = 0x1c,
++        JG      = 0x1d,
++        JH      = 0x1e,
++        JI      = 0x1f,
++        JJ      = 0x20,
++        JK      = 0x21,
++        JL      = 0x22,
++        JM      = 0x23,
++        JN      = 0x24,
++        JO      = 0x25,
++        JP      = 0x26,
++        JQ      = 0x27,
++        JR      = 0x28,
++        JS      = 0x29,
++        JT      = 0x2a,
++        JU      = 0x2b,
++        JV      = 0x2c,
++        JW      = 0x2d,
++        JX      = 0x2e,
++        JY      = 0x2f,
++        JZ      = 0x30,
++        LX      = 0x31,
++        MR      = 0x32,
++        MT      = 0x33,
++        PF      = 0x34,
++        PN      = 0x35,
++        PR      = 0x36,
++        RB      = 0x37,
++        RG      = 0x38,
++        RT      = 0x39,
++        SE      = 0x3a,
++        SN      = 0x3b,
++        SO      = 0x3c,
++        TM      = 0x3d,
++        VM      = 0x3e,
++        VZ      = 0x3f,
++        X0      = 0x40,
++        X1      = 0x41,
++        X2      = 0x42,
++        X3      = 0x43,
++        X4      = 0x44,
++        X5      = 0x45,
++        X6      = 0x46,
++        X7      = 0x47,
++        X8      = 0x48,
++        X9      = 0x49,
++        XA      = 0x4a,
++        XB      = 0x4b,
++        XC      = 0x4c,
++        XD      = 0x4d,
++        XE      = 0x4e,
++        XF      = 0x4f,
++        XG      = 0x50,
++        XH      = 0x51,
++        XI      = 0x52,
++        XJ      = 0x53,
++        XK      = 0x54,
++        XL      = 0x55,
++        XM      = 0x56,
++        XN      = 0x57,
++        XO      = 0x58,
++        XP      = 0x59,
++        XQ      = 0x5a,
++        XR      = 0x5b,
++        XS      = 0x5c,
++        XT      = 0x5d,
++        XU      = 0x5e,
++        XV      = 0x5f,
++        XW      = 0x60,
++        XX      = 0x61,
++        XY      = 0x62,
++        XZ      = 0x63,
++        Q0      = 0x64,
++        Q1      = 0x65,
++        Q2      = 0x66,
++        Q3      = 0x67,
++        Q4      = 0x68,
++        Q5      = 0x69,
++        Q6      = 0x6A,
++        Q7      = 0x6B,
++        Q8      = 0x6C,
++        CK      = 0X6D,
++
++        // Last Keyword
++        MEMD_VPD_LAST_KEYWORD,
++        MEMD_VPD_TEST_KEYWORD,  // Test purposes ONLY!
++
++        //Start common IPVPD enums
++        FULL_RECORD = IPVPD::FULL_RECORD,
++        MEMD_VPD_INVALID_KEYWORD    = IPVPD::INVALID_KEYWORD,
++    };
++
++};  // end MEMD_VPD
++
++#endif
+diff --git a/src/usr/fapi2/plat_vpd_access.C b/src/usr/fapi2/plat_vpd_access.C
+index 8784418..2f6a3c5 100644
+--- a/src/usr/fapi2/plat_vpd_access.C
++++ b/src/usr/fapi2/plat_vpd_access.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -35,6 +35,7 @@
+ #include <p9_get_mem_vpd_keyword.H>
+ #include <attribute_service.H>
+ #include <vpd/dvpdenums.H>
++#include <vpd/memd_vpdenums.H>
+ 
+ 
+ //The following can be uncommented for unit testing
+@@ -211,7 +212,7 @@ fapi2::ReturnCode platGetVPD(
+         l_errl = deviceRead((TARGETING::Target *)l_pMcsTarget,
+                             l_pMapping,
+                             l_buffSize,
+-                            DEVICE_DVPD_ADDRESS(DVPD::MEMD,
++                            DEVICE_MEMD_VPD_ADDRESS(MEMD_VPD::MEMD,
+                                                 l_mapKeyword));
+         if (l_errl)
+         {
+@@ -283,7 +284,7 @@ fapi2::ReturnCode platGetVPD(
+             l_errl = deviceRead((TARGETING::Target *)l_pMcsTarget,
+                                 o_blob,
+                                 l_buffSize,
+-                                DEVICE_DVPD_ADDRESS(DVPD::MEMD,
++                                DEVICE_MEMD_VPD_ADDRESS(MEMD_VPD::MEMD,
+                                                     l_keywordEnum));
+             if (l_errl)
+             {
+diff --git a/src/usr/vpd/ipvpd.H b/src/usr/vpd/ipvpd.H
+index e4c4162..7e7f9da 100644
+--- a/src/usr/vpd/ipvpd.H
++++ b/src/usr/vpd/ipvpd.H
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2013,2015                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2017                        */
+ /* [+] Google Inc.                                                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+@@ -378,7 +378,7 @@ class IpVpdFacade
+      *
+      * @return bool - True if the record is found, False otherwise.
+      */
+-    bool recordPresent( const char * i_record,
++    virtual bool recordPresent( const char * i_record,
+                         uint16_t & offset,
+                         TARGETING::Target * i_target,
+                         VPD::vpdCmdTarget i_location );
+diff --git a/src/usr/vpd/memd_vpd.C b/src/usr/vpd/memd_vpd.C
+new file mode 100644
+index 0000000..cb6cafc
+--- /dev/null
++++ b/src/usr/vpd/memd_vpd.C
+@@ -0,0 +1,222 @@
++/* IBM_PROLOG_BEGIN_TAG                                                   */
++/* This is an automatically generated prolog.                             */
++/*                                                                        */
++/* $Source: src/usr/vpd/memd_vpd.C $                                      */
++/*                                                                        */
++/* OpenPOWER HostBoot Project                                             */
++/*                                                                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2017                        */
++/*                                                                        */
++/*                                                                        */
++/* Licensed under the Apache License, Version 2.0 (the "License");        */
++/* you may not use this file except in compliance with the License.       */
++/* You may obtain a copy of the License at                                */
++/*                                                                        */
++/*     http://www.apache.org/licenses/LICENSE-2.0                         */
++/*                                                                        */
++/* Unless required by applicable law or agreed to in writing, software    */
++/* distributed under the License is distributed on an "AS IS" BASIS,      */
++/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
++/* implied. See the License for the specific language governing           */
++/* permissions and limitations under the License.                         */
++/*                                                                        */
++/* IBM_PROLOG_END_TAG                                                     */
++// ----------------------------------------------
++// Includes
++// ----------------------------------------------
++#include <string.h>
++#include <endian.h>
++#include <trace/interface.H>
++#include <errl/errlentry.H>
++#include <errl/errlmanager.H>
++#include <targeting/common/targetservice.H>
++#include <targeting/common/util.H>
++#include <targeting/common/utilFilter.H>
++#include <devicefw/driverif.H>
++#include <vfs/vfs.H>
++#include <vpd/vpdreasoncodes.H>
++#include <vpd/memd_vpdenums.H>
++#include <vpd/vpd_if.H>
++#include <i2c/eepromif.H>
++#include <config.h>
++#include "memd_vpd.H"
++#include "cvpd.H"
++#include "vpd.H"
++#include "pvpd.H"
++#include <initservice/initserviceif.H>
++
++// ----------------------------------------------
++// Trace definitions
++// ----------------------------------------------
++extern trace_desc_t* g_trac_vpd;
++
++
++// ------------------------
++// Macros for unit testing
++//#define TRACUCOMP(args...)  TRACFCOMP(args)
++#define TRACUCOMP(args...)
++//#define TRACSSCOMP(args...)  TRACFCOMP(args)
++#define TRACSSCOMP(args...)
++
++namespace MEMD_VPD
++{
++    // ----------------------------------------------
++    // Globals
++    // ----------------------------------------------
++    mutex_t g_mutex = MUTEX_INITIALIZER;
++
++
++    /**
++     * @brief This function will perform the steps required to do a read from
++     *      the Hostboot MEMD_VPD data.
++     *
++     * @param[in] i_opType - Operation Type - See DeviceFW::OperationType in
++     *       driververif.H
++     *
++     * @param[in] i_target - Processor Target device
++     *
++     * @param [in/out] io_buffer - Pointer to the data that was read from
++     *       the target device.  This parameter, when set to NULL, will return
++     *       the keyword size value in io_buflen.
++     *
++     * @param [in/out] io_buflen - Length of the buffer to be read or written
++     *       to/from the target.  This value should indicate the size of the
++     *       io_buffer parameter that has been allocated.  Being returned it
++     *       will indicate the number of valid bytes in the buffer being
++     *       returned. This parameter will contain the size of a keyword when
++     *       the io_buffer parameter is passed in NULL.
++     *
++     * @param [in] i_accessType - Access Type - See DeviceFW::AccessType in
++     *       usrif.H
++     *
++     * @param [in] i_args - This is an argument list for the device driver
++     *       framework.
++     *
++     * @return errlHndl_t - NULL if successful, otherwise a pointer to the
++     *       error log.
++     */
++    errlHndl_t MEMD_VPDRead ( DeviceFW::OperationType i_opType,
++                          TARGETING::Target * i_target,
++                          void * io_buffer,
++                          size_t & io_buflen,
++                          int64_t i_accessType,
++                          va_list i_args )
++    {
++        errlHndl_t err = NULL;
++        IpVpdFacade::input_args_t args;
++        args.record = ((MEMD_VPDRecord)va_arg( i_args, uint64_t ));
++        args.keyword = ((MEMD_VPDKeyword)va_arg( i_args, uint64_t ));
++        args.location = ((VPD::vpdCmdTarget)va_arg( i_args, uint64_t ));
++
++        TRACSSCOMP( g_trac_vpd,
++                    ENTER_MRK"MEMD_VPDRead()" );
++
++        err = Singleton<MEMD_VpdFacade>::instance().read(i_target,
++                                                     io_buffer,
++                                                     io_buflen,
++                                                     args);
++
++        return err;
++    }
++
++
++    /**
++     * @brief This function will perform the steps required to do a write to
++     *      the Hostboot MEMD_VPD data.
++     *
++     * @param[in] i_opType - Operation Type - See DeviceFW::OperationType in
++     *       driververif.H
++     *
++     * @param[in] i_target - Processor Target device
++     *
++     * @param [in/out] io_buffer - Pointer to the data that was read from
++     *       the target device.  It will also be used to contain data to
++     *       be written to the device.
++     *
++     * @param [in/out] io_buflen - Length of the buffer to be read or written
++     *       to/from the target.  This value should indicate the size of the
++     *       io_buffer parameter that has been allocated.  Being returned it
++     *       will indicate the number of valid bytes in the buffer being
++     *       returned.
++     *
++     * @param [in] i_accessType - Access Type - See DeviceFW::AccessType in
++     *       usrif.H
++     *
++     * @param [in] i_args - This is an argument list for the device driver
++     *       framework.
++     *
++     * @return errlHndl_t - NULL if successful, otherwise a pointer to the
++     *       error log.
++     */
++    errlHndl_t MEMD_VPDWrite ( DeviceFW::OperationType i_opType,
++                           TARGETING::Target * i_target,
++                           void * io_buffer,
++                           size_t & io_buflen,
++                           int64_t i_accessType,
++                           va_list i_args )
++    {
++        errlHndl_t err = NULL;
++        IpVpdFacade::input_args_t args;
++        args.record = ((MEMD_VPDRecord)va_arg( i_args, uint64_t ));
++        args.keyword = ((MEMD_VPDKeyword)va_arg( i_args, uint64_t ));
++        args.location = ((VPD::vpdCmdTarget)va_arg( i_args, uint64_t ));
++
++        TRACSSCOMP( g_trac_vpd,
++                    ENTER_MRK"MEMD_VPDWrite()" );
++
++
++        err = Singleton<MEMD_VpdFacade>::instance().write(i_target,
++                                                      io_buffer,
++                                                      io_buflen,
++                                                      args);
++
++        return err;
++    }
++
++    // Register with the routing code
++    DEVICE_REGISTER_ROUTE( DeviceFW::READ,
++                           DeviceFW::MEMD_VPD,
++                           TARGETING::TYPE_MCS,
++                           MEMD_VPDRead );
++    DEVICE_REGISTER_ROUTE( DeviceFW::WRITE,
++                           DeviceFW::MEMD_VPD,
++                           TARGETING::TYPE_MCS,
++                           MEMD_VPDWrite );
++
++}; // end namespace MEMD_VPD
++
++
++//MEMD_VpdFacade Class Functions
++/**
++ * @brief  Constructor
++ * Planar VPD is included in the Centaur PNOR section.
++ * Including with Centaur vpd minimizes the number of PNOR sections.
++ */
++MEMD_VpdFacade::MEMD_VpdFacade() :
++IpVpdFacade(0x6000, //@fixme
++            1, //@fixme
++            MEMD_VPD::MEMD_VPDRecords,
++            (sizeof(MEMD_VPD::MEMD_VPDRecords)/sizeof(MEMD_VPD::MEMD_VPDRecords[0])),
++            MEMD_VPD::MEMD_VPDKeywords,
++            (sizeof(MEMD_VPD::MEMD_VPDKeywords)/sizeof(MEMD_VPD::MEMD_VPDKeywords[0])),
++            PNOR::MEMD,  // note use of CVPD
++            MEMD_VPD::g_mutex,
++            VPD::VPD_INVALID) // Direct access memory
++{
++    TRACUCOMP(g_trac_vpd, "MEMD_VpdFacade::MEMD_VpdFacade> " );
++
++    iv_configInfo.vpdReadPNOR = true;
++    iv_configInfo.vpdReadHW = false;
++    iv_configInfo.vpdWritePNOR = false;
++    iv_configInfo.vpdWriteHW = false;
++}
++
++
++bool MEMD_VpdFacade::recordPresent( const char * i_record,
++                                    uint16_t & offset,
++                                    TARGETING::Target * i_target,
++                                    VPD::vpdCmdTarget i_location )
++{
++    offset = 0;
++    return true;
++}
+diff --git a/src/usr/vpd/memd_vpd.H b/src/usr/vpd/memd_vpd.H
+new file mode 100644
+index 0000000..7db9c76
+--- /dev/null
++++ b/src/usr/vpd/memd_vpd.H
+@@ -0,0 +1,219 @@
++/* IBM_PROLOG_BEGIN_TAG                                                   */
++/* This is an automatically generated prolog.                             */
++/*                                                                        */
++/* $Source: src/usr/vpd/memd_vpd.H $                                      */
++/*                                                                        */
++/* OpenPOWER HostBoot Project                                             */
++/*                                                                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2017                        */
++/*                                                                        */
++/*                                                                        */
++/* Licensed under the Apache License, Version 2.0 (the "License");        */
++/* you may not use this file except in compliance with the License.       */
++/* You may obtain a copy of the License at                                */
++/*                                                                        */
++/*     http://www.apache.org/licenses/LICENSE-2.0                         */
++/*                                                                        */
++/* Unless required by applicable law or agreed to in writing, software    */
++/* distributed under the License is distributed on an "AS IS" BASIS,      */
++/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
++/* implied. See the License for the specific language governing           */
++/* permissions and limitations under the License.                         */
++/*                                                                        */
++/* IBM_PROLOG_END_TAG                                                     */
++#ifndef __MEMD_VPD_H
++#define __MEMD_VPD_H
++
++
++/**
++ * @file MEMD_VPD.H
++ *
++ * @brief Provides the interfaces for the MEMD_VPD device driver
++ *
++ */
++
++// ----------------------------------------------
++// Includes
++// ----------------------------------------------
++#include <errl/errlentry.H>
++#include <vpd/memd_vpdenums.H>
++
++#include "ipvpd.H"
++#include <config.h>
++
++namespace MEMD_VPD
++{
++
++    /**
++     * @brief Conversion of MEMD_VPD Records to corresponding character
++     *        representation.
++     */
++    const IpVpdFacade::recordInfo MEMD_VPDRecords[] =
++    {
++        // -------------------------------------------------------------------
++        // NOTE: This list must remain an ordered list!  There is a
++        //      testcase that checks this.  When adding new entries to the
++        //      list, be sure that the keyword in each entry (value 0)
++        //      are in ascending order.
++        // -------------------------------------------------------------------
++        { MEMD, "MEMD" },
++
++        // -------------------------------------------------------------------
++        // DO NOT USE!!  This is for test purposes ONLY!
++        { MEMD_VPD_TEST_RECORD, "TEST" },
++        // -------------------------------------------------------------------
++    };
++
++    /**
++     * @brief Conversion of MEMD_VPD Keywords to corresponding character
++     *        representation.
++     */
++    const IpVpdFacade::keywordInfo MEMD_VPDKeywords[] =
++    {
++        // -------------------------------------------------------------------
++        // NOTE: This list must remain an ordered list!  There is a
++        //      testcase that checks this.  When adding new entries to
++        //      the list, be sure that the keyword in each entry (value 0)
++        //      are in ascending order.
++        // -------------------------------------------------------------------
++        { B3,   "B3" },
++        { B4,   "B4" },
++        { B7,   "B7" },
++        { CC,   "CC" },
++        { CE,   "CE" },
++        { CT,   "CT" },
++        { DR,   "DR" },
++        { FC,   "FC" },
++        { FN,   "FN" },
++        { HE,   "HE" },
++        { HW,   "HW" },
++        { I2,   "I2" },
++        { IN,   "IN" },
++        { J0,   "J0" },
++        { J1,   "J1" },
++        { J2,   "J2" },
++        { J3,   "J3" },
++        { J4,   "J4" },
++        { J5,   "J5" },
++        { J6,   "J6" },
++        { J7,   "J7" },
++        { J8,   "J8" },
++        { J9,   "J9" },
++        { JA,   "JA" },
++        { JB,   "JB" },
++        { JC,   "JC" },
++        { JD,   "JD" },
++        { JE,   "JE" },
++        { JF,   "JF" },
++        { JG,   "JG" },
++        { JH,   "JH" },
++        { JI,   "JI" },
++        { JJ,   "JJ" },
++        { JK,   "JK" },
++        { JL,   "JL" },
++        { JM,   "JM" },
++        { JN,   "JN" },
++        { JO,   "JO" },
++        { JP,   "JP" },
++        { JQ,   "JQ" },
++        { JR,   "JR" },
++        { JS,   "JS" },
++        { JT,   "JT" },
++        { JU,   "JU" },
++        { JV,   "JV" },
++        { JW,   "JW" },
++        { JX,   "JX" },
++        { JY,   "JY" },
++        { JZ,   "JZ" },
++        { LX,   "LX" },
++        { MR,   "MR" },
++        { MT,   "MT" },
++        { PF,   "PF" },
++        { PN,   "PN" },
++        { PR,   "PR" },
++        { RB,   "RB" },
++        { RG,   "RG" },
++        { RT,   "RT" },
++        { SE,   "SE" },
++        { SN,   "SN" },
++        { SO,   "SO" },
++        { TM,   "TM" },
++        { VM,   "VM" },
++        { VZ,   "VZ" },
++        { X0,   "X0" },
++        { X1,   "X1" },
++        { X2,   "X2" },
++        { X3,   "X3" },
++        { X4,   "X4" },
++        { X5,   "X5" },
++        { X6,   "X6" },
++        { X7,   "X7" },
++        { X8,   "X8" },
++        { X9,   "X9" },
++        { XA,   "XA" },
++        { XB,   "XB" },
++        { XC,   "XC" },
++        { XD,   "XD" },
++        { XE,   "XE" },
++        { XF,   "XF" },
++        { XG,   "XG" },
++        { XH,   "XH" },
++        { XI,   "XI" },
++        { XJ,   "XJ" },
++        { XK,   "XK" },
++        { XL,   "XL" },
++        { XM,   "XM" },
++        { XN,   "XN" },
++        { XO,   "XO" },
++        { XP,   "XP" },
++        { XQ,   "XQ" },
++        { XR,   "XR" },
++        { XS,   "XS" },
++        { XT,   "XT" },
++        { XU,   "XU" },
++        { XV,   "XV" },
++        { XW,   "XW" },
++        { XX,   "XX" },
++        { XY,   "XY" },
++        { XZ,   "XZ" },
++        { Q0,   "Q0" },
++        { Q1,   "Q1" },
++        { Q2,   "Q2" },
++        { Q3,   "Q3" },
++        { Q4,   "Q4" },
++        { Q5,   "Q5" },
++        { Q6,   "Q6" },
++        { Q7,   "Q7" },
++        { Q8,   "Q8" },
++        { CK,   "CK" },
++
++        // -------------------------------------------------------------------
++        // DO NOT USE!!  This is for test purposes ONLY!
++        { MEMD_VPD_TEST_KEYWORD, "ZZ" },
++        // -------------------------------------------------------------------
++
++        //Common ipvpd
++        { FULL_RECORD, "FL"},
++    };
++
++}; // end MEMD_VPD namespace
++
++class MEMD_VpdFacade: public IpVpdFacade
++{
++  public:
++
++    /**
++     * @brief Constructor
++     */
++    MEMD_VpdFacade( );
++
++
++  protected:
++    virtual bool recordPresent( const char * i_record,
++                        uint16_t & offset,
++                        TARGETING::Target * i_target,
++                        VPD::vpdCmdTarget i_location );
++
++
++};
++#endif  // __MEMD_VPD_H
+diff --git a/src/usr/vpd/vpd.H b/src/usr/vpd/vpd.H
+index 99340c0..a33afcc 100644
+--- a/src/usr/vpd/vpd.H
++++ b/src/usr/vpd/vpd.H
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2013,2016                        */
++/* Contributors Listed Below - COPYRIGHT 2013,2017                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -47,6 +47,7 @@ struct pnorInformation
+  */
+ enum VPD_MSG_TYPE
+ {
++    VPD_INVALID       = 0x0000, 
+     VPD_WRITE_DIMM    = 0x00C1, //< DIMM SPD
+     VPD_WRITE_PROC    = 0x00C2, //< Processor MVPD
+     VPD_WRITE_MEMBUF  = 0x00C3, //< Centaur FRU VPD
+diff --git a/src/usr/vpd/vpd.mk b/src/usr/vpd/vpd.mk
+index 5870212..d07a2bb 100644
+--- a/src/usr/vpd/vpd.mk
++++ b/src/usr/vpd/vpd.mk
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2013,2016
++# Contributors Listed Below - COPYRIGHT 2013,2017
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -29,5 +29,6 @@ OBJS += mvpd.o
+ OBJS += cvpd.o
+ OBJS += pvpd.o
+ OBJS += dvpd.o
++OBJS += memd_vpd.o
+ OBJS += spd.o
+ OBJS += errlud_vpd.o
+-- 
+1.8.2.2
+
+
+From da0f953bcd5e9866dd59c7fd125725802152382d Mon Sep 17 00:00:00 2001
+From: Elizabeth Liner <eliner@us.ibm.com>
+Date: Thu, 29 Jun 2017 14:10:25 -0500
+Subject: [PATCH 3/3] eliner adding traces
+
+Change-Id: Ie029090a5fcbbe8dd963fad700e8149d818b0fe5
+---
+ src/usr/pnor/pnor_utils.C | 19 +++++++++++++++++++
+ src/usr/vpd/memd_vpd.C    |  7 +++++++
+ 2 files changed, 26 insertions(+)
+
+diff --git a/src/usr/pnor/pnor_utils.C b/src/usr/pnor/pnor_utils.C
+index 7c2f2e1..d7f0b37 100644
+--- a/src/usr/pnor/pnor_utils.C
++++ b/src/usr/pnor/pnor_utils.C
+@@ -341,6 +341,25 @@ PNOR::parseEntries (ffs_hdr* i_ffs_hdr,
+                 io_TOC[secId].version &= ~FFS_VERS_SHA512;
+             }
+         }
++
++        TRACFCOMP(g_trac_pnor, "eliner test test 1");
++        // eliner start
++        if(secId == PNOR::MEMD)
++        {
++            TRACFCOMP(g_trac_pnor, "eliner test test");
++            uint8_t buf[25] = {0};
++            errlHndl_t l_errl = PNOR::readHeaderMagic(secId,io_TOC[secId],25,buf);
++            if(l_errl)
++            {
++                TRACFCOMP(g_trac_pnor,"eliner we fucked up");
++            }
++
++            for(i=0;i<25;i++)
++            {
++                TRACFCOMP(g_trac_pnor,"eliner buf %d: %llx",i,buf[i]);
++            }
++        }
++        // eliner end
+ #endif
+ 
+ #ifdef BOOTLOADER
+diff --git a/src/usr/vpd/memd_vpd.C b/src/usr/vpd/memd_vpd.C
+index cb6cafc..8b13c40 100644
+--- a/src/usr/vpd/memd_vpd.C
++++ b/src/usr/vpd/memd_vpd.C
+@@ -6,6 +6,7 @@
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+ /* Contributors Listed Below - COPYRIGHT 2013,2017                        */
++/* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+@@ -103,6 +104,9 @@ namespace MEMD_VPD
+                           va_list i_args )
+     {
+         errlHndl_t err = NULL;
++
++        TRACFCOMP(g_trac_vpd,"eliner test test. MEMD_VPDread");
++
+         IpVpdFacade::input_args_t args;
+         args.record = ((MEMD_VPDRecord)va_arg( i_args, uint64_t ));
+         args.keyword = ((MEMD_VPDKeyword)va_arg( i_args, uint64_t ));
+@@ -115,6 +119,9 @@ namespace MEMD_VPD
+                                                      io_buffer,
+                                                      io_buflen,
+                                                      args);
++        uint64_t * first_bytes = reinterpret_cast<uint64_t*>((io_buffer));
++
++        TRACFCOMP(g_trac_vpd,"eliner vpd: 0x%llx,0x%llx,0x%llx,0x%llx,0x%llx,",(first_bytes)[-1],(first_bytes)[0],(first_bytes)[1],(first_bytes)[2],(first_bytes)[3]);
+ 
+         return err;
+     }
+-- 
+1.8.2.2
+

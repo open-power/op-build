@@ -1,0 +1,71 @@
+From 2c6307ba10b674518f1c3eb128ef08a23981bdcc Mon Sep 17 00:00:00 2001
+From: Elizabeth Liner <eliner@us.ibm.com>
+Date: Tue, 27 Jun 2017 21:43:43 -0500
+Subject: [PATCH] add memd header
+
+---
+ update_image.pl | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/update_image.pl b/update_image.pl
+index 393c95b..ec97069 100755
+--- a/update_image.pl
++++ b/update_image.pl
+@@ -295,6 +295,8 @@ elsif ($release eq "p9")
+ 
+ #Encode ECC into the MEMD Partition
+ if ($release eq "p9" && -e $memd_binary_filename) {
++    # add header here. create new function
++    create_memd_header($memd_binary_filename);
+     run_command("dd if=$memd_binary_filename > $scratch_dir/hostboot.temp.bin");
+     run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/memd_extra.bin.ecc --p8");
+ }
+@@ -303,6 +305,7 @@ if ($release eq "p9" && -e $memd_binary_filename) {
+ elsif ($release eq "p9") {
+     print "ERROR: MEMD partition is not found, including blank binary instead\n";
+     run_command("dd if=/dev/zero bs=20K count=1 | tr \"\\000\" \"\\377\" > $scratch_dir/hostboot.temp.bin");
++    create_memd_header("$scratch_dir/hostboot.temp.bin");
+     run_command("ecc --inject $scratch_dir/hostboot.temp.bin --output $scratch_dir/memd_extra_data.bin.ecc --p8");
+ }
+ 
+@@ -334,3 +337,37 @@ sub trim_string {
+     $str =~ s/\s+$//;
+     return $str;
+ }
++
++sub create_memd_header {
++    my $memd_file = shift;
++
++    my $header = "OKOK";   # shows that memd partition is valid
++    $header .= "01.0";     # current metadata header version
++    $header .= "01.0";     # current memd version
++    $header .= "0020";     # expected size of each memd blob (in KB's)
++    $header .= "06";       # expected number of memd instances
++    $header .= "01";       # which memd instance we're using
++    $header .= "00000000"; # padding for future
++    $header .= "0000";     # rounding up to 16 bytes
++
++    print "eklekl\n\n\n\n\n\n\n\n\nadding header. $header";
++
++    open my $in, '<', $memd_file or die "Can't read old file: $!";
++    open my $out, '>',"$memd_file.new" or die "Can't write new file: $!";
++
++    print $out $header;
++
++    while( <$in> ){
++        print $out $_;
++    }
++
++    close $out;
++
++    unlink $memd_file;
++    rename "$memd_file.new", $memd_file;
++
++    return $header;
++}
++
++
++
+-- 
+1.8.2.2
+
