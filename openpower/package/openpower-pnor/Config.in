@@ -12,6 +12,29 @@ config BR2_PACKAGE_OPENPOWER_PNOR
         help
             Utilites for building a targeting binary image
 
+config BR2_OPENPOWER_SECUREBOOT_ENABLED
+        bool "Securely sign code images"
+        default n
+        help
+            Securely sign code images; Hostboot config must 'set SECUREBOOT'
+
+config BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION
+        string "Type of Transition HW key hash"
+        help
+            Available options [imprint | production]
+            Indicates the type of key transition to attempt to take place using the SBKT PNOR section
+
+config BR2_OPENPOWER_SECUREBOOT_SIGN_MODE
+        string "Secureboot signing mode"
+        help
+            Available options [development | production]
+            Indicates the signing mode when generating the PNOR image
+
+config BR2_SB_SIGNING_UTILS_CONFIG_FILE
+        string "Path to sb-signing-util config file"
+        help
+            Full path to sb-signing-util config file for production signing
+
 config BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME
         string "Name of Openpower pnor xml layout file"
         help
