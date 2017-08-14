@@ -36,7 +36,7 @@ else
 endif
 
 ifeq ($(BR2_BUILD_PNOR_SQUASHFS),y)
-    OPENPOWER_PNOR_DEPENDENCIES += host-libflash host-openpower-vpnor
+    OPENPOWER_PNOR_DEPENDENCIES += host-openpower-vpnor
 endif
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
