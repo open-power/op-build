@@ -114,10 +114,6 @@ config BR2_OPENPOWER_PNOR_XZ_ENABLED
         bool "Enable xz compression in PNOR payloads"
         default n
 
-config BR2_OPENBMC_SYSTEM
-        bool "Build for systems using OpenBMC"
-        default n
-
 config BR2_BUILD_PNOR_SQUASHFS
         bool "Create a virtual PNOR image along with the standard image"
-        default y if (BR2_OPENBMC_SYSTEM)
+        default y
