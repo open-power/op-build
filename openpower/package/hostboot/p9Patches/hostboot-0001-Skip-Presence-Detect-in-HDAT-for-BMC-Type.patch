@@ -1,0 +1,27 @@
+From d9da41e3a912a916c4063d0e3995ce71b260e288 Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Tue, 8 Aug 2017 14:18:41 -0500
+Subject: [PATCH] Skip Presence Detect in HDAT for BMC Type
+
+Change-Id: Iba981eef5e6535458085b1750d25a8d11aa37200
+---
+ src/usr/hdat/hdathostslcadata.C | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/usr/hdat/hdathostslcadata.C b/src/usr/hdat/hdathostslcadata.C
+index d112659..4599eb7 100755
+--- a/src/usr/hdat/hdathostslcadata.C
++++ b/src/usr/hdat/hdathostslcadata.C
+@@ -94,7 +94,8 @@ bool getVPDCollectedStatus(TARGETING::Target *i_Target)
+ //@TODO: RTC 149382: Method to get VPD collected status for Targets
+ 
+     if((i_Target->getAttr<ATTR_TYPE>() != TYPE_PCI) &&
+-                   (i_Target->getAttr<ATTR_TYPE>() != TYPE_SYS))
++              (i_Target->getAttr<ATTR_TYPE>() != TYPE_SYS) &&
++              (i_Target->getAttr<ATTR_TYPE>() != TYPE_BMC))
+     {
+         l_vpdCollectedStatus = pvpdPresent(i_Target);
+     }
+-- 
+1.8.2.2
+
