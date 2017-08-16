@@ -33,6 +33,10 @@ define HOST_LIBFLASH_BUILD_CMDS
     $(HOST_MAKE_ENV) $(MAKE) -C $(@D)/external/pflash
 endef
 
+define HOST_LIBFLASH_BUILD_CMDS
+    $(HOST_MAKE_ENV) $(MAKE) -C $(@D)/external/pflash
+endef
+
 define LIBFLASH_INSTALL_STAGING_CMDS
 	PREFIX=$(STAGING_DIR)/usr $(LIBFLASH_MAKE_ENV) -C $(@D)/external/shared \
 	       install
@@ -44,6 +48,10 @@ define LIBFLASH_INSTALL_TARGET_CMDS
 	$(if $(BR2_PACKAGE_PFLASH),
 		DESTDIR=$(TARGET_DIR) $(LIBFLASH_MAKE_ENV) \
 		       -C $(@D)/external/pflash install)
+endef
+
+define HOST_LIBFLASH_INSTALL_CMDS
+    $(INSTALL) $(@D)/external/pflash/pflash $(HOST_DIR)/usr/bin/pflash
 endef
 
 define HOST_LIBFLASH_INSTALL_CMDS
