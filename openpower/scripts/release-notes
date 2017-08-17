@@ -13,7 +13,8 @@ my $dbh = DBI->connect($db,undef,undef, {AutoCommit => 1, RaiseError=>1});
 
 my $repos =
 {
-    'op-build' => { REPO => "http://github.com/open-power/op-build" },
+    'op-build' => { REPO => "http://github.com/open-power/op-build",
+		    DIR => "op-build" },
     'hostboot' => { REPO => "http://github.com/open-power/hostboot" ,
                     DIR => "openpower/package/hostboot" },
     'sbe'      => { REPO => "http://github.com/open-power/sbe" ,
@@ -97,11 +98,11 @@ $dbh->do("CREATE TABLE platforms (platform TEXT, version TEXT);") or die "$!";
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute($begin_release, $end_release);
     my $r;
-    print OUTPUT "## Removed platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "\n## Removed platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
     print OUTPUT "- ".$r->{p}."\n" while ($r = $sth->fetchrow_hashref);
 
     $sth->execute($end_release, $begin_release);
-    print OUTPUT "## New platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "\n## New platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
     print OUTPUT "- ".$r->{p}."\n" while($r = $sth->fetchrow_hashref);
 }
 
@@ -204,7 +205,7 @@ my $new_level = {};
 
 {
     my $q = <<'SQL';
-select package as pk ,oldversion as o ,newversion as n, 
+select package as pk ,oldversion as o ,newversion as n,
 	GROUP_CONCAT(platform) as ps
 FROM package_upgrades 
 	GROUP BY package,oldversion,newversion
@@ -213,7 +214,7 @@ SQL
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute();
 
-    print OUTPUT "## Updated Packages\n\n";
+    print OUTPUT "\n## Updated Packages\n\n";
     print OUTPUT "Package | Old Version | New Version | Platforms\n";
     print OUTPUT "--- | --- | --- | ---\n";
     while (my $r = $sth->fetchrow_hashref) {
@@ -297,7 +298,7 @@ foreach my $repo (sort keys %{$repos})
     my $url = $repos->{$repo}->{REPO};
     my $dir = $repos->{$repo}->{DIR};
 
-    print OUTPUT "## Package: $repo\n";
+    print OUTPUT "\n## Package: $repo\n";
     print OUTPUT "[Repository]($url)\n";
     print OUTPUT "\n";
 
@@ -337,7 +338,7 @@ foreach my $repo (sort keys %{$repos})
         print "Changes in $repo...\n";
         open(GITLOG, "cd $repo; git shortlog $old_level->{$package}...".
                      "$new_level->{$package} --no-merges --format=".
-                     "\"* [%h]($url/commit/%h) %s\" |");
+                     "\"- [%h]($url/commit/%h) %s\" |");
 
         while (my $logline = <GITLOG>)
         {
