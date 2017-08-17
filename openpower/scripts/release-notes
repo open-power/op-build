@@ -13,18 +13,18 @@ my $dbh = DBI->connect($db,undef,undef, {AutoCommit => 1, RaiseError=>1});
 
 my $repos =
 {
-    'op-build' => { REPO => "http://github.com/open-power/op-build" },
-    'hostboot' => { REPO => "http://github.com/open-power/hostboot" ,
+    'op-build' => { REPO => "https://github.com/open-power/op-build" },
+    'hostboot' => { REPO => "https://github.com/open-power/hostboot" ,
                     DIR => "openpower/package/hostboot" },
-    'sbe'      => { REPO => "http://github.com/open-power/sbe" ,
+    'sbe'      => { REPO => "https://github.com/open-power/sbe" ,
                     DIR => "openpower/package/sbe"},
-    'skiboot'  => { REPO => "http://github.com/open-power/skiboot" ,
+    'skiboot'  => { REPO => "https://github.com/open-power/skiboot" ,
                     DIR => "openpower/package/skiboot"},
-    'occ'      => { REPO => "http://github.com/open-power/occ" ,
+    'occ'      => { REPO => "https://github.com/open-power/occ" ,
                     DIR => "openpower/package/occ"},
-    'pnor'     => { REPO => "http://github.com/open-power/pnor" ,
+    'pnor'     => { REPO => "https://github.com/open-power/pnor" ,
                     DIR => "openpower/package/openpower-pnor"},
-    'petitboot'     => { REPO => "http://github.com/open-power/petitboot" ,
+    'petitboot'     => { REPO => "https://github.com/open-power/petitboot" ,
 			 DIR => "openpower/package/petitboot"},
 };
 
@@ -130,7 +130,7 @@ foreach my $p (@common_platforms) {
 	    $p = "witherspoon";
 	    $witherspoon_insanity = 1;
     }
-    $repos->{"$p-xml"} = { REPO => "http://github.com/open-power/$p-xml" ,
+    $repos->{"$p-xml"} = { REPO => "https://github.com/open-power/$p-xml" ,
 			   DIR => "openpower/package/$p-xml" };
 }
 
