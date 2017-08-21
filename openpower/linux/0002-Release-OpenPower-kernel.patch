@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 382e967b0792..832de374937a 100644
+index 6da481d08441..b864af3df096 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 12
- SUBLEVEL = 5
+ SUBLEVEL = 8
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Fearless Coyote
