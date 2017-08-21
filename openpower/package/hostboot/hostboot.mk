@@ -3,6 +3,9 @@
 # hostboot
 #
 ################################################################################
+
+# Added a comment which should not be merged
+
 HOSTBOOT_VERSION_BRANCH_MASTER_P8 ?= 695bd891343faf1f0ef85fe53148590e58239efd
 HOSTBOOT_VERSION_BRANCH_MASTER ?= bb97f80565ac3074de838e2773d1d08e91040775
 
