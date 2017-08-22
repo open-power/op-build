@@ -130,7 +130,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         # If this is a VPNOR system, run the generate-squashfs command and
         # create a tarball
         if [ "$(BR2_BUILD_PNOR_SQUASHFS)" == "y" ]; then \
-            PATH=$(PATH):$(HOST_DIR)/usr/bin $(HOST_DIR)/usr/bin/generate-squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME); \
+            PATH=$(HOST_DIR):$(PATH)/usr/bin $(HOST_DIR)/usr/bin/generate-squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME); \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
         fi
 endef
