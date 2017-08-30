@@ -45,6 +45,59 @@ config BR2_OPENPOWER_SECUREBOOT_SIGN_MODE
             applicable when hostboot is compiled with SECUREBOOT compile flag.
             Default mode is development.
 
+config BR2_OPENPOWER_SECUREBOOT_ENABLED
+        bool "Securely sign code images"
+        default n
+        help
+            Securely sign code images; Hostboot config must 'set SECUREBOOT'
+
+config BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION
+        string "Type of Transition HW key hash"
+        help
+            Available options [imprint | production]
+            Indicates the type of key transition to attempt to take place using the SBKT PNOR section
+
+config BR2_OPENPOWER_SECUREBOOT_SIGN_MODE
+        string "Secureboot signing mode"
+        help
+            Available options [development | production]
+            Indicates the signing mode when generating the PNOR image
+
+config BR2_SB_SIGNING_UTILS_CONFIG_FILE
+        string "Path to sb-signing-util config file"
+        help
+            Full path to sb-signing-util config file for production signing
+
+config BR2_OPENPOWER_SECUREBOOT_CONTAINER_VALIDATE
+        bool "Validate signed containers"
+        help
+          If true, validate each signed container immediately after it is built.
+          Validation here means that the secure container metadata is complete,
+          consistent and valid, for this container individually.  It does not
+          ensure the container will boot on a given machine.  For that test,
+          use BR2_OPENPOWER_SECUREBOOT_CONTAINER_VERIFY.
+
+config BR2_OPENPOWER_SECUREBOOT_CONTAINER_VERIFY
+        string "Verify signed containers"
+        help
+          If set, verify each signed container immediately after it is built.
+          Verification here means that the secure hash of the three HW keys in
+          the container header matches the value provided with this variable,
+          emulating the check done a boot time to compare with the machine-
+          installed hash.  If the container passes this check (and validation
+          check), it should secure boot on a machine with this hash installed.
+          Value is a hexascii string containing the hash value, or the path to
+          a file containing this data.
+
+config BR2_OPENPOWER_SECUREBOOT_PASS_ON_VALIDATION_ERROR
+        bool "Pass on container verify or validate error"
+        default n
+        help
+          If true, and either BR2_OPENPOWER_SECUREBOOT_CONTAINER_VALIDATE
+          or BR2_OPENPOWER_SECUREBOOT_CONTAINER_VERIFY is set, and an error
+          is encountered on either (or both) operation(s), ignore the error
+          and allow the build to continue.  Should be set for testing only.
+
 config BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME
         string "Name of Openpower pnor xml layout file"
         help
