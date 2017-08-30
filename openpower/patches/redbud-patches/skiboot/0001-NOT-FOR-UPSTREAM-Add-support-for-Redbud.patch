@@ -1,0 +1,172 @@
+From 399620b8282f89728ab94fd0c273882063bf32b1 Mon Sep 17 00:00:00 2001
+From: Alistair Popple <alistair@popple.id.au>
+Date: Thu, 22 Jun 2017 13:26:01 +1000
+Subject: [PATCH] NOT FOR UPSTREAM: Add support for Redbud
+
+Add support for Redbud. This is mutually exclusive with support for Sequoia so
+anything built with this patch will not work on Sequoia.
+
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ platforms/astbmc/Makefile.inc                |  2 +-
+ platforms/astbmc/{witherspoon.c => redbud.c} | 68 +++++++---------------------
+ 2 files changed, 18 insertions(+), 52 deletions(-)
+ rename platforms/astbmc/{witherspoon.c => redbud.c} (91%)
+
+diff --git a/platforms/astbmc/Makefile.inc b/platforms/astbmc/Makefile.inc
+index 49292c10601c..797a03c323ad 100644
+--- a/platforms/astbmc/Makefile.inc
++++ b/platforms/astbmc/Makefile.inc
+@@ -4,7 +4,7 @@ ASTBMC_OBJS = pnor.o common.o slots.o \
+ 	      palmetto.o habanero.o firestone.o \
+ 	      p8dtu.o p8dnu.o \
+ 	      garrison.o barreleye.o \
+-	      witherspoon.o zaius.o romulus.o p9dsu.o
++	      redbud.o zaius.o romulus.o p9dsu.o
+ 
+ ASTBMC = $(PLATDIR)/astbmc/built-in.o
+ $(ASTBMC): $(ASTBMC_OBJS:%=$(PLATDIR)/astbmc/%)
+diff --git a/platforms/astbmc/witherspoon.c b/platforms/astbmc/redbud.c
+similarity index 91%
+rename from platforms/astbmc/witherspoon.c
+rename to platforms/astbmc/redbud.c
+index 6a773061db74..90373f66961f 100644
+--- a/platforms/astbmc/witherspoon.c
++++ b/platforms/astbmc/redbud.c
+@@ -51,7 +51,7 @@ static const struct slot_table_entry witherspoon_gpu1[] = {
+ static const struct slot_table_entry witherspoon_gpu2[] = {
+ 	{
+ 		.etype = st_pluggable_slot,
+-		.location = ST_LOC_DEVFN(0xc0,0),
++		.location = ST_LOC_DEVFN(0x60,0),
+ 		.name = "GPU2",
+ 	},
+ 	{ .etype = st_end },
+@@ -60,26 +60,8 @@ static const struct slot_table_entry witherspoon_gpu2[] = {
+ static const struct slot_table_entry witherspoon_gpu3[] = {
+ 	{
+ 		.etype = st_pluggable_slot,
+-		.location = ST_LOC_DEVFN(0x60,0),
+-		.name = "GPU3",
+-	},
+-	{ .etype = st_end },
+-};
+-
+-static const struct slot_table_entry witherspoon_gpu4[] = {
+-	{
+-		.etype = st_pluggable_slot,
+ 		.location = ST_LOC_DEVFN(0x80,0),
+-		.name = "GPU4",
+-	},
+-	{ .etype = st_end },
+-};
+-
+-static const struct slot_table_entry witherspoon_gpu5[] = {
+-	{
+-		.etype = st_pluggable_slot,
+-		.location = ST_LOC_DEVFN(0xa0,0),
+-		.name = "GPU5",
++		.name = "GPU3",
+ 	},
+ 	{ .etype = st_end },
+ };
+@@ -97,12 +79,6 @@ static const struct slot_table_entry witherspoon_plx0_down[] = {
+ 		.children = witherspoon_gpu1,
+ 		.name = "GPU1 down",
+ 	},
+-	{
+-		.etype = st_builtin_dev,
+-		.location = ST_LOC_DEVFN(0x4c,0),
+-		.children = witherspoon_gpu2,
+-		.name = "GPU2 down",
+-	},
+ 	{ .etype = st_end },
+ };
+ 
+@@ -110,20 +86,14 @@ static const struct slot_table_entry witherspoon_plx1_down[] = {
+ 	{
+ 		.etype = st_builtin_dev,
+ 		.location = ST_LOC_DEVFN(0x44,0),
+-		.children = witherspoon_gpu3,
+-		.name = "GPU3 down",
++		.children = witherspoon_gpu2,
++		.name = "GPU2 down",
+ 	},
+ 	{
+ 		.etype = st_builtin_dev,
+ 		.location = ST_LOC_DEVFN(0x45,0),
+-		.children = witherspoon_gpu4,
+-		.name = "GPU4 down",
+-	},
+-	{
+-		.etype = st_builtin_dev,
+-		.location = ST_LOC_DEVFN(0x4d,0),
+-		.children = witherspoon_gpu5,
+-		.name = "GPU5 down",
++		.children = witherspoon_gpu3,
++		.name = "GPU3 down",
+ 	},
+ 	{ .etype = st_end },
+ };
+@@ -175,11 +145,6 @@ static const struct slot_table_entry witherspoon_npu0_slots[] = {
+ 		.location = ST_LOC_NPU_GROUP(1),
+ 		.name = "GPU1",
+ 	},
+-	{
+-		.etype = st_npu_slot,
+-		.location = ST_LOC_NPU_GROUP(2),
+-		.name = "GPU2",
+-	},
+ 	{ .etype = st_end },
+ };
+ 
+@@ -187,17 +152,12 @@ static const struct slot_table_entry witherspoon_npu8_slots[] = {
+ 	{
+ 		.etype = st_npu_slot,
+ 		.location = ST_LOC_NPU_GROUP(0),
+-		.name = "GPU3",
++		.name = "GPU2",
+ 	},
+ 	{
+ 		.etype = st_npu_slot,
+ 		.location = ST_LOC_NPU_GROUP(1),
+-		.name = "GPU4",
+-	},
+-	{
+-		.etype = st_npu_slot,
+-		.location = ST_LOC_NPU_GROUP(2),
+-		.name = "GPU5",
++		.name = "GPU3",
+ 	},
+ 	{ .etype = st_end },
+ };
+@@ -290,10 +250,10 @@ static void dt_create_npu2(void)
+ 
+ 		create_link(npu, 0, 0);
+ 		create_link(npu, 0, 1);
+-		create_link(npu, 1, 2);
++		create_link(npu, 0, 2);
+ 		create_link(npu, 1, 3);
+-		create_link(npu, 2, 4);
+-		create_link(npu, 2, 5);
++		create_link(npu, 1, 4);
++		create_link(npu, 1, 5);
+ 	}
+ }
+ 
+@@ -304,6 +264,12 @@ static bool witherspoon_probe(void)
+ 	if (!dt_node_is_compatible(dt_root, "ibm,witherspoon"))
+ 		return false;
+ 
++	prerror("********************************************************************************\n");
++	prerror("*     README: THIS BUILD IS ONLY FOR SYSTEMS SUPPORTING A MAXIMUM OF 4 GPUS    *\n");
++	prerror("*                                                                              *\n");
++	prerror("*       !!! THIS BUILD WILL NOT WORK ON SYSTEMS WHICH SUPPORT 6 GPUS !!!       *\n");
++	prerror("********************************************************************************\n");
++
+ 	/* Lot of common early inits here */
+ 	astbmc_early_init();
+ 
+-- 
+2.9.4
+

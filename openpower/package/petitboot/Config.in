@@ -27,6 +27,7 @@ config BR2_PACKAGE_PETITBOOT_MTD
 	bool "petitboot-mtd"
 	depends on BR2_PACKAGE_PETITBOOT
 	select BR2_PACKAGE_LIBFLASH
+	select BR2_PACKAGE_PFLASH
 	help
 	  Adds Petitboot support for MTD devices
 
