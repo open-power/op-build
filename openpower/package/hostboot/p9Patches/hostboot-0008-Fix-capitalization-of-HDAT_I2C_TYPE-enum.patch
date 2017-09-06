@@ -1,0 +1,30 @@
+From bcca1e33e8462b15c0bdf1447643170bea31e080 Mon Sep 17 00:00:00 2001
+From: Christian Geddes <crgeddes@us.ibm.com>
+Date: Tue, 5 Sep 2017 16:46:59 -0500
+Subject: [PATCH 1/2] Fix capitalization of HDAT_I2C_TYPE enum
+
+For some reason the capitalization got lost on this enum during the
+transition to generated XML. I am pretty sure this isnt used anymore
+but it was causing processMRW to choke during the xml part of op-build
+
+Change-Id: Ie5376f066166475fcb288f2e61f50f881063e4f6
+---
+ src/usr/targeting/common/xmltohb/attribute_types.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/usr/targeting/common/xmltohb/attribute_types.xml b/src/usr/targeting/common/xmltohb/attribute_types.xml
+index b9bb4f2..d78bf31 100755
+--- a/src/usr/targeting/common/xmltohb/attribute_types.xml
++++ b/src/usr/targeting/common/xmltohb/attribute_types.xml
+@@ -5725,7 +5725,7 @@
+         <value>0x1</value>
+     </enumerator>
+     <enumerator>
+-        <name>955x</name> <!-- deprecated -->
++        <name>955X</name> <!-- deprecated -->
+         <value>0x1</value>
+     </enumerator>
+     <enumerator>
+-- 
+1.8.2.2
+
