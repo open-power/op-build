@@ -92,6 +92,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
             -wof_binary_filename $(OPENPOWER_MRW_SCRATCH_DIR)/$(BR2_WOFDATA_FILENAME) \
             -memd_binary_filename $(OPENPOWER_MRW_SCRATCH_DIR)/$(BR2_MEMDDATA_FILENAME) \
+			-hdat_binary_filename $(BR2_OPENPOWER_HDAT_BIN_FILENAME) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
             -payload_filename $(BR2_SKIBOOT_LID_XZ_NAME) \
             -binary_dir $(BINARIES_DIR) \
@@ -116,6 +117,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -wofdata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_WOFDATA_BINARY_FILENAME) \
             -memddata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_MEMDDATA_BINARY_FILENAME) \
+			-hdat_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OPENPOWER_HDAT_ECC_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE)
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
