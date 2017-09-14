@@ -30,7 +30,8 @@ define LIBFLASH_BUILD_CMDS
 endef
 
 define HOST_LIBFLASH_BUILD_CMDS
-    $(HOST_MAKE_ENV) $(MAKE) -C $(@D)/external/pflash
+    $(HOST_MAKE_ENV) SKIBOOT_VERSION=$(LIBFLASH_VERSION) \
+	    $(MAKE) -C $(@D)/external/pflash
 endef
 
 define LIBFLASH_INSTALL_STAGING_CMDS
