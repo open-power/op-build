@@ -61,6 +61,24 @@ SBE_BINARY_DIR = $(STAGING_DIR)/sbe_binaries/
 OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 OPENPOWER_VERSION_DIR = $(STAGING_DIR)/openpower_version
 OPENPOWER_MRW_SCRATCH_DIR = $(STAGING_DIR)/openpower_mrw_scratch
+OUTPUT_BUILD_DIR = $(STAGING_DIR)/../../../build/
+OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
+
+FILES_TO_TAR = $(OUTPUT_BUILD_DIR)/hostboot-*/img/hbicore.bin.modinfo \
+               $(OUTPUT_BUILD_DIR)/hostboot-*/img/hbicore.list.bz2 \
+               $(OUTPUT_BUILD_DIR)/hostboot-*/img/hbicore.syms \
+               $(OUTPUT_BUILD_DIR)/hostboot-*/img/hbirt.bin.modinfo \
+               $(OUTPUT_BUILD_DIR)/hostboot-*/img/hbirt.list.bz2 \
+               $(OUTPUT_BUILD_DIR)/hostboot-*/img/hbirt.syms \
+               $(OUTPUT_BUILD_DIR)/hostboot-*/img/hbotStringFile \
+               $(OUTPUT_BUILD_DIR)/hostboot-*/src/build/debug/ecmd-debug-framework.pl \
+               $(OUTPUT_BUILD_DIR)/skiboot-*/skiboot.elf \
+               $(OUTPUT_BUILD_DIR)/skiboot-*/skiboot.map \
+               $(OUTPUT_BUILD_DIR)/linux-*/.config \
+               $(OUTPUT_BUILD_DIR)/linux-*/vmlinux \
+               $(OUTPUT_BUILD_DIR)/linux-*/System.map \
+               $(OUTPUT_IMAGES_DIR)/zImage.epapr
+
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
 OPENPOWER_VERSIONED_SUBPACKAGES = skiboot hostboot linux petitboot machine-xml occ hostboot-binaries capp-ucode
@@ -133,6 +151,9 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             PATH=$(PATH):$(HOST_DIR)/usr/bin $(HOST_DIR)/usr/bin/generate-squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME); \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
         fi
+
+	    tar --transform 's/.*\///g' -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar $(FILES_TO_TAR)
+
 endef
 
 $(eval $(generic-package))
