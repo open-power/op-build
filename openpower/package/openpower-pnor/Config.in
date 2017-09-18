@@ -8,9 +8,42 @@ config BR2_PACKAGE_OPENPOWER_PNOR
         select BR2_PACKAGE_OCC
         select BR2_PACKAGE_CAPP_UCODE
         select BR2_PACKAGE_IMA_CATALOG
+        select BR2_PACKAGE_HOST_OPENPOWER_VPNOR
 	select BR2_PACKAGE_MACHINE_XML
         help
             Utilites for building a targeting binary image
+
+choice
+    prompt "Secure Boot key transition type"
+    default BR2_OPENPOWER_SECUREBOOT_NO_KEY_TRANSITION
+
+config BR2_OPENPOWER_SECUREBOOT_NO_KEY_TRANSITION
+    bool "None"
+    help
+      Builds a driver that does not transition Secure Boot keys
+
+config BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION_TO_DEV
+    bool "Transition existing keys to development keys"
+    help
+      Builds a driver that transitions Secure Boot keys to development keys and
+      powers off the system.  Only usable when system security has been
+      disabled.
+
+config BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION_TO_PROD
+    bool "Transition development keys to production keys"
+    help
+      Builds a driver that transitions Secure Boot development keys to
+      vendor supplied production keys and powers off the system.
+
+endchoice
+
+config BR2_OPENPOWER_SECUREBOOT_SIGN_MODE
+        string "Secureboot signing mode"
+        help
+            Available options [development | production]
+            Indicates the signing mode when generating the PNOR image.  Only
+            applicable when hostboot is compiled with SECUREBOOT compile flag.
+            Default mode is development.
 
 config BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME
         string "Name of Openpower pnor xml layout file"
@@ -77,6 +110,18 @@ config BR2_WOFDATA_BINARY_FILENAME
         help
             String used to define name of wofdata binary ecc'd file
 
+config BR2_MEMDDATA_FILENAME
+        string "Name of memd original file"
+        default "memd_output.dat"
+        help
+            String used to define name of memd original file
+
+config BR2_MEMDDATA_BINARY_FILENAME
+        string "Name of memd binary file"
+        default "memd_extra_data.bin.ecc"
+        help
+            String used to define the name of the memd binary ecc'd file
+
 config BR2_IMA_CATALOG_FILENAME
         string "Name of IMA catalog binary"
         help
@@ -100,3 +145,7 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
 config BR2_OPENPOWER_PNOR_XZ_ENABLED
         bool "Enable xz compression in PNOR payloads"
         default n
+
+config BR2_BUILD_PNOR_SQUASHFS
+        bool "Create a virtual PNOR image along with the standard image"
+        default y
