@@ -2,3 +2,8 @@ config BR2_PACKAGE_LIBFLASH
 	bool "libflash"
 	help
 	  Build libflash shared library
+
+config BR2_PACKAGE_PFLASH
+	bool "pflash"
+	help
+	  Install pflash utility to target
