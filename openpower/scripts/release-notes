@@ -74,6 +74,23 @@ s/_defconfig// foreach (@end_platforms);
 
 my $witherspoon_insanity;
 
+# If both witherspoon and witherspoon-sequoia exist we've switched back
+# to a single witherspoon platform and the -sequoia platform is just to
+# keep Jenkins happy - ignore it.
+if ("witherspoon" ~~ @begin_platforms
+	&& "witherspoon-sequoia" ~~ @begin_platforms) {
+	my $index = 0;
+	$index++ until @begin_platforms[$index] eq "witherspoon-sequoia";
+	splice(@begin_platforms, $index, 1);
+}
+
+if ("witherspoon" ~~ @end_platforms
+	&& "witherspoon-sequoia" ~~ @end_platforms) {
+	my $index = 0;
+	$index++ until @end_platforms[$index] eq "witherspoon-sequoia";
+	splice(@end_platforms, $index, 1);
+}
+
 if (($platform && $platform eq 'witherspoon')
     && -f "$end_worktree/openpower/configs/witherspoon-sequoia_defconfig") {
     @begin_platforms = ('witherspoon');
