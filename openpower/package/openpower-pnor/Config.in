@@ -39,6 +39,7 @@ endchoice
 
 config BR2_OPENPOWER_SECUREBOOT_SIGN_MODE
         string "Secureboot signing mode"
+        default "development"
         help
             Available options [development | production]
             Indicates the signing mode when generating the PNOR image.  Only
