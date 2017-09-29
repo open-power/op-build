@@ -1,0 +1,42 @@
+From ee3453b841550cb15d4d6b1b7f2358ce91617a73 Mon Sep 17 00:00:00 2001
+From: Christian Geddes <crgeddes@us.ibm.com>
+Date: Tue, 5 Sep 2017 15:47:34 -0500
+Subject: [PATCH 2/2] Fix persistency of XSCOM and LPC bar attributes to be
+ 'volatile'
+
+While working on fixing common-mrw-xml export path I noticed that
+these attributes had moved persitency from volatile to non-volatile
+I think this happened when I integrated the attr generation commit.
+The commit must have overwritten Dan's prior commit which initially
+set these attributes as 'volatile'
+
+Change-Id: I895b443f72682112a5f9fb58bb37c7a9166a9be4
+---
+ src/usr/targeting/common/xmltohb/attribute_types.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/usr/targeting/common/xmltohb/attribute_types.xml b/src/usr/targeting/common/xmltohb/attribute_types.xml
+index d78bf31..ae5e1f8 100755
+--- a/src/usr/targeting/common/xmltohb/attribute_types.xml
++++ b/src/usr/targeting/common/xmltohb/attribute_types.xml
+@@ -1537,7 +1537,7 @@
+   <attribute>
+     <description>System XSCOM base address</description>
+     <id>XSCOM_BASE_ADDRESS</id>
+-    <persistency>non-volatile</persistency>
++    <persistency>volatile</persistency>
+     <readable></readable>
+     <writeable></writeable>
+     <simpleType>
+@@ -3850,7 +3850,7 @@
+   <attribute>
+     <description>LPC Bus address - MMIO consumed by PHYP</description>
+     <id>LPC_BUS_ADDR</id>
+-    <persistency>non-volatile</persistency>
++    <persistency>volatile</persistency>
+     <readable></readable>
+     <writeable></writeable>
+     <simpleType>
+-- 
+1.8.2.2
+
