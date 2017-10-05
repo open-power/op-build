@@ -23,7 +23,7 @@ OCC_STAGING_DIR = $(STAGING_DIR)/occ
 OCC_IMAGE_BIN_PATH = $(if $(BR2_OPENPOWER_POWER9),obj/image.bin,src/image.bin)
 
 OCC_DEPENDENCIES_P8 = host-binutils host-p8-pore-binutils
-OCC_DEPENDENCIES_P9 = host-binutils host-ppe42-gcc
+OCC_DEPENDENCIES_P9 = host-binutils host-ppe42-gcc hostboot-binaries
 OCC_DEPENDENCIES ?= $(if $(BR2_OPENPOWER_POWER9),$(OCC_DEPENDENCIES_P9),$(OCC_DEPENDENCIES_P8))
 
 define OCC_APPLY_PATCHES
@@ -50,8 +50,13 @@ define OCC_BUILD_CMDS_P8
         make combineImage
 endef
 define OCC_BUILD_CMDS_P9
-        cd $(@D)/src && \
-        make PPE_TOOL_PATH=$(PPE42_GCC_BIN) OCC_OP_BUILD=1 CROSS_PREFIX=$(TARGET_CROSS) LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib all 
+	if ["$(BR2_OCC_GPU_BIN_BUILD)" == "y"  ]; then \
+	    cd $(@D)/src && \
+            make PPE_TOOL_PATH=$(PPE42_GCC_BIN) OCC_OP_BUILD=1 CROSS_PREFIX=$(TARGET_CROSS) LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib GPE1_BIN_IMAGE_PATH=$(STAGING_DIR)/hostboot_build_images/ OPOCC_GPU_SUPPORT=1 all; \
+	else \
+            cd $(@D)/src && \
+            make PPE_TOOL_PATH=$(PPE42_GCC_BIN) OCC_OP_BUILD=1 CROSS_PREFIX=$(TARGET_CROSS) LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib all; \
+	fi;
 endef
 OCC_BUILD_CMDS ?= $(if $(BR2_OPENPOWER_POWER9),$(OCC_BUILD_CMDS_P9),$(OCC_BUILD_CMDS_P8))
 
