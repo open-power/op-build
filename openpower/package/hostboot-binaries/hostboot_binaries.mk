@@ -4,6 +4,7 @@
 #
 ################################################################################
 
+
 HOSTBOOT_BINARIES_VERSION ?= ed06137f062d6a716d2a89d852aac984036db256
 HOSTBOOT_BINARIES_SITE ?= $(call github,open-power,hostboot-binaries,$(HOSTBOOT_BINARIES_VERSION))
 

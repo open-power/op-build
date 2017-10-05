@@ -134,7 +134,7 @@ define OPENPOWER_VERSION
 
 UPPER_CASE_PKG = $(call UPPERCASE,$(1))
 $$(UPPER_CASE_PKG)_VERSION_FILE = $$(OPENPOWER_VERSION_DIR)/$(1).version.txt
-
+UPPER_CASE_SIGN_MODE = $(call UPPERCASE,$$(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE))
 
 $$(eval $$(foreach pkg,$$(OPENPOWER_VERSIONED_SUBPACKAGES), \
 		$$(call OPENPOWER_SUBPACKAGE_VERSION,$$(pkg),$$(call UPPERCASE,$$(pkg)))))
@@ -166,6 +166,11 @@ else \
 cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; (git describe --always --dirty || echo "unknown") \
 	| xargs echo -n \
 	>> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
+fi
+
+# Flag whether op-build is production signed
+if [ "$$(UPPER_CASE_SIGN_MODE)" == 'PRODUCTION' ]; then \
+	echo -n "-prod" >> $$($$(UPPER_CASE_PKG)_VERSION_FILE); \
 fi
 
 # Add new line to $$($$(UPPER_CASE_PKG)_VERSION_FILE)
