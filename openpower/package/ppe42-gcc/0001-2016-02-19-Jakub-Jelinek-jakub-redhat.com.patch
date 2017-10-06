@@ -52,7 +52,7 @@ index 2784edc..8d7f015 100644
 -#endif
 -static unsigned int hash (const char *, unsigned int);
 -#ifdef __GNUC__
--__inline
+-//__inline
 -#endif
 -const char * libc_name_p (const char *, unsigned int);
  %}
@@ -88,7 +88,7 @@ index d8e02c9..9a37249 100644
 -#endif
 -static unsigned int hash (const char *, unsigned int);
 -#ifdef __GNUC__
--__inline
+-//__inline
 -#endif
 -const char * libc_name_p (const char *, unsigned int);
  /* maximum key range = 391, duplicates = 0 */
