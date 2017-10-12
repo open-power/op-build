@@ -1,6 +1,6 @@
 #!/bin/bash
 __PWD=`pwd`
-
+# steve
 if [ -e ./customrc ]; then
     source ./customrc
 fi
