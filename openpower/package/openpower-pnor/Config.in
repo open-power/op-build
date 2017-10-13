@@ -9,7 +9,8 @@ config BR2_PACKAGE_OPENPOWER_PNOR
         select BR2_PACKAGE_CAPP_UCODE
         select BR2_PACKAGE_IMA_CATALOG
         select BR2_PACKAGE_HOST_OPENPOWER_VPNOR
-	select BR2_PACKAGE_MACHINE_XML
+        select BR2_PACKAGE_MACHINE_XML
+        select BR2_PACKAGE_HCODE if BR2_OPENPOWER_POWER9
         help
             Utilites for building a targeting binary image
 
@@ -93,6 +94,12 @@ config BR2_HOSTBOOT_BINARY_SBEC_FILENAME
         string "Name of sbec hostboot binary"
         help
             String used to define name of sbec hostboot binary file
+
+config BR2_HOSTBOOT_BINARY_IONV_FILENAME
+        string "Name of IONV binary"
+        default "ionv.bin"
+        help
+            String used to define name of ionv binary file
 
 config BR2_HOSTBOOT_BINARY_WINK_FILENAME
         string "Name of winkle hostboot binary"

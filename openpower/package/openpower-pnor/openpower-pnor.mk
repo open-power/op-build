@@ -11,6 +11,10 @@ OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
 OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries machine-xml skiboot host-openpower-ffs occ capp-ucode
 
+ifeq ($(BR2_OPENPOWER_POWER9),y)
+OPENPOWER_PNOR_DEPENDENCIES += hcode
+endif
+
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_DEPENDENCIES += ima-catalog
 endif
@@ -56,7 +60,10 @@ OPENPOWER_PNOR_INSTALL_IMAGES = YES
 OPENPOWER_PNOR_INSTALL_TARGET = NO
 
 HOSTBOOT_IMAGE_DIR=$(STAGING_DIR)/hostboot_build_images/
-HOSTBOOT_BINARY_DIR = $(STAGING_DIR)/hostboot_binaries/
+HOSTBOOT_BINARY_DIR = $(STAGING_DIR)/hostboot_binaries
+
+HCODE_STAGING_DIR = $(STAGING_DIR)/hcode
+
 SBE_BINARY_DIR = $(STAGING_DIR)/sbe_binaries/
 OPENPOWER_PNOR_SCRATCH_DIR = $(STAGING_DIR)/openpower_pnor_scratch/
 OPENPOWER_VERSION_DIR = $(STAGING_DIR)/openpower_version
@@ -92,6 +99,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -hb_image_dir $(HOSTBOOT_IMAGE_DIR) \
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
             -hb_binary_dir $(HOSTBOOT_BINARY_DIR) \
+            -hcode_dir $(HCODE_STAGING_DIR) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -targeting_binary_source $(BR2_OPENPOWER_TARGETING_BIN_FILENAME) \
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
