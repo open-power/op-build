@@ -5,6 +5,7 @@ Subject: [PATCH 01/11] xhci: Use xhci_pci_remove for xhci device shutdown
 
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 ---
  drivers/usb/host/xhci-pci.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

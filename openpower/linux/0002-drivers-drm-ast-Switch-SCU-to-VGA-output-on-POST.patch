@@ -9,6 +9,7 @@ VGA mode.
 
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 ---
  drivers/gpu/drm/ast/ast_post.c | 33 +++++++++++++++++++++++++++++++++
  1 file changed, 33 insertions(+)
