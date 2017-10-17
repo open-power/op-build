@@ -98,10 +98,10 @@ index 9c0e60ca1666..e34f15e727d9 100644
  	__asm__ __volatile__(				\
  		"1:	"op" %1,0(%2)	# get_user\n"	\
 diff --git a/arch/powerpc/kernel/exceptions-64s.S b/arch/powerpc/kernel/exceptions-64s.S
-index f14f3c04ec7e..1a976aa1a7e9 100644
+index d9dfdf7ede45..0256286d7153 100644
 --- a/arch/powerpc/kernel/exceptions-64s.S
 +++ b/arch/powerpc/kernel/exceptions-64s.S
-@@ -1010,6 +1010,8 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
+@@ -1032,6 +1032,8 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
  	EXCEPTION_PROLOG_COMMON_3(0xe60)
  	addi	r3,r1,STACK_FRAME_OVERHEAD
  	BRANCH_LINK_TO_FAR(hmi_exception_realmode) /* Function call ABI */
@@ -110,7 +110,7 @@ index f14f3c04ec7e..1a976aa1a7e9 100644
  	/* Windup the stack. */
  	/* Move original HSRR0 and HSRR1 into the respective regs */
  	ld	r9,_MSR(r1)
-@@ -1026,10 +1028,15 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
+@@ -1048,10 +1050,15 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
  	REST_8GPRS(2, r1)
  	REST_GPR(10, r1)
  	ld	r11,_CCR(r1)
@@ -128,7 +128,7 @@ index f14f3c04ec7e..1a976aa1a7e9 100644
  	ld	r1,GPR1(r1)
  
  	/*
-@@ -1042,8 +1049,9 @@ hmi_exception_after_realmode:
+@@ -1064,8 +1071,9 @@ hmi_exception_after_realmode:
  	EXCEPTION_PROLOG_0(PACA_EXGEN)
  	b	tramp_real_hmi_exception
  
