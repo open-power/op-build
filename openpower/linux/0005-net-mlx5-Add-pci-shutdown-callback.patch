@@ -23,6 +23,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Carol L Soto <clsoto@linux.vnet.ibm.com>
 (cherry picked from commit 5fc7197d3a256d9c5de3134870304b24892a4908)
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 ---
  drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 15 +++++++++++++--
  drivers/net/ethernet/mellanox/mlx5/core/main.c    | 23 +++++++++++++++++++----

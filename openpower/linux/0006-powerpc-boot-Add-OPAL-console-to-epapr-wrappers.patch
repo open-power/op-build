@@ -19,6 +19,7 @@ Actually-written-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 ---
  arch/powerpc/boot/Makefile     |  4 +-
  arch/powerpc/boot/opal-calls.S | 58 +++++++++++++++++++++++++

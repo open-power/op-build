@@ -40,6 +40,7 @@ From Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>:
 
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 ---
  drivers/usb/host/xhci.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)

@@ -45,6 +45,7 @@ Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 (cherry picked from commit 85743f1eb34548ba4b056d2f184a3d107a3b8917)
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 ---
  drivers/infiniband/hw/mlx4/qp.c                   |  7 ++-
  drivers/net/ethernet/mellanox/mlx4/cq.c           |  4 +-
