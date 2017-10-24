@@ -1,26 +1,23 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Joel Stanley <joel@jms.id.au>
-Date: Wed, 3 May 2017 13:25:26 +0930
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Tue, 17 Oct 2017 13:32:56 +1100
 Subject: [PATCH 4/4] Release OpenPower kernel
 
-Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 ---
  Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index d7b64830a7b7..e77804c0405d 100644
+index 0d4f1b19869d..ad0f7fd78596 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
- PATCHLEVEL = 11
- SUBLEVEL = 2
+ PATCHLEVEL = 13
+ SUBLEVEL = 7
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Fearless Coyote
  
  # *DOCUMENTATION*
--- 
-2.11.0
-

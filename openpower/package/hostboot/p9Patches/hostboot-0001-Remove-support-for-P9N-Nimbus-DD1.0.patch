@@ -1,0 +1,100 @@
+From 3fc13542a298284b7a45ee6fbf2152aec659c733 Mon Sep 17 00:00:00 2001
+From: Dean Sanner <dsanner@us.ibm.com>
+Date: Mon, 18 Sep 2017 13:49:09 -0500
+Subject: [PATCH] Remove support for P9N (Nimbus) DD1.0
+
+  - Will error out during IPL
+  - Gracefully handle removal of DD1.0 inits,
+    tied to hw091517b.910 HCODE image
+
+Change-Id: I7b4c53b38863a8251a8c02d7df83a3ff713f52d7
+---
+ src/include/usr/isteps/istep_reasoncodes.H  |  2 ++
+ src/usr/isteps/istep06/host_set_ipl_parms.C | 44 ++++++++++++++++++++++++++++-
+ 2 files changed, 45 insertions(+), 1 deletion(-)
+
+diff --git a/src/include/usr/isteps/istep_reasoncodes.H b/src/include/usr/isteps/istep_reasoncodes.H
+index bdf4c93..d76eceb 100644
+--- a/src/include/usr/isteps/istep_reasoncodes.H
++++ b/src/include/usr/isteps/istep_reasoncodes.H
+@@ -62,6 +62,7 @@ namespace ISTEP
+         MOD_SBE_PERFORM_UPDATE_CHECK                      = 0x1A,
+         MOD_MSS_ATTR_UPDATE = 0x1B, /* @TODO-RTC:149250-Remove */
+         MOD_SBE_GET_FFDC_HANDLER                          = 0x1C,
++        MOD_SET_IPL_PARMS                                 = 0x1D,
+     };
+ 
+     /**
+@@ -122,6 +123,7 @@ namespace ISTEP
+         RC_SBE_UPDATE_IN_MPIPL                   = ISTEP_COMP_ID | 0x32,
+         RC_NO_FFDC_RETURNED                      = ISTEP_COMP_ID | 0x33,
+         RC_RETURNED_FFDC                         = ISTEP_COMP_ID | 0x34,
++        RC_P9N_DD1_NOT_SUPPORTED                 = ISTEP_COMP_ID | 0x35,
+     };
+ 
+ };
+diff --git a/src/usr/isteps/istep06/host_set_ipl_parms.C b/src/usr/isteps/istep06/host_set_ipl_parms.C
+index 8fe9f12..c42f909 100644
+--- a/src/usr/isteps/istep06/host_set_ipl_parms.C
++++ b/src/usr/isteps/istep06/host_set_ipl_parms.C
+@@ -31,7 +31,9 @@
+ #include <initservice/isteps_trace.H>
+ #include <util/utilsemipersist.H>
+ #include <hwas/common/deconfigGard.H>
+-
++#include <arch/pvrformat.H>
++#include <sys/mmio.h>
++#include <console/consoleif.H>
+ 
+ namespace ISTEP_06
+ {
+@@ -77,6 +79,46 @@ void* host_set_ipl_parms( void *io_pArgs )
+     Util::writeSemiPersistData(l_semiData);
+ 
+ 
++    // Add a check to indicate that Nimbus DD1.0 is NOT supported
++    // and prevent a boot
++    PVR_t l_pvr( mmio_pvr_read() & 0xFFFFFFFF );
++    if( l_pvr.isNimbusDD1() )
++    {
++#ifdef CONFIG_CONSOLE
++        CONSOLE::displayf(ISTEP_COMP_NAME,
++                          "P9N (Nimbus) DD1.0 is not supported in this driver");
++        CONSOLE::displayf(ISTEP_COMP_NAME,
++                          "Please update the system's processor modules");
++#endif
++
++
++        TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace,
++                   "DD1.0 is NOT SUPPORTED anymore. "
++                   "Please upgrade proc modules");
++        /*@
++         * @errortype
++         * @moduleid     ISTEP::MOD_SET_IPL_PARMS
++         * @reasoncode   ISTEP::RC_P9N_DD1_NOT_SUPPORTED
++         * @userdata1    PVR of master proc
++         * @devdesc      P9N (Nimbus) DD1.x is not supported
++         *               in this firmware driver.  Please update
++         *               your module or use a different driver
++         * @custdesc     A problem occurred during the IPL
++         *               of the system.
++         */
++        uint64_t l_dummy = 0x0;
++        l_err = new ERRORLOG::ErrlEntry(
++                                        ERRORLOG::ERRL_SEV_UNRECOVERABLE,
++                                        ISTEP::MOD_SET_IPL_PARMS,
++                                        ISTEP::RC_P9N_DD1_NOT_SUPPORTED,
++                                        l_pvr.word,
++                                        l_dummy);
++        // Create IStep error log and cross ref error that occurred
++        l_stepError.addErrorDetails( l_err );
++        errlCommit( l_err, ISTEP_COMP_ID );
++    }
++
++
+     TRACFCOMP( ISTEPS_TRACE::g_trac_isteps_trace, "host_set_ipl_parms exit" );
+ 
+     return l_stepError.getErrorHandle();
+-- 
+1.8.2.2
+

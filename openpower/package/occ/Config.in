@@ -9,3 +9,15 @@ config BR2_OCC_BIN_FILENAME
         string "Name of OCC image file"
         help
             String used to define name of the OCC binary image file
+
+config BR2_OCC_GPU_BIN_BUILD
+        bool "Enables Compilation of GPU Binary Image"
+        default n
+        help
+            Boolean used to flag whether to compile OCC GPU binary
+
+config BR2_OCC_GPU_GPE_BIN_FILENAME
+        string "Name of OCC GPU GPE Binary file"
+        help
+            String used to define name of the OCC GPUE GPE binary image file
+

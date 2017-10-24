@@ -13,18 +13,18 @@ my $dbh = DBI->connect($db,undef,undef, {AutoCommit => 1, RaiseError=>1});
 
 my $repos =
 {
-    'op-build' => { REPO => "http://github.com/open-power/op-build" },
-    'hostboot' => { REPO => "http://github.com/open-power/hostboot" ,
+    'op-build' => { REPO => "https://github.com/open-power/op-build" },
+    'hostboot' => { REPO => "https://github.com/open-power/hostboot" ,
                     DIR => "openpower/package/hostboot" },
-    'sbe'      => { REPO => "http://github.com/open-power/sbe" ,
+    'sbe'      => { REPO => "https://github.com/open-power/sbe" ,
                     DIR => "openpower/package/sbe"},
-    'skiboot'  => { REPO => "http://github.com/open-power/skiboot" ,
+    'skiboot'  => { REPO => "https://github.com/open-power/skiboot" ,
                     DIR => "openpower/package/skiboot"},
-    'occ'      => { REPO => "http://github.com/open-power/occ" ,
+    'occ'      => { REPO => "https://github.com/open-power/occ" ,
                     DIR => "openpower/package/occ"},
-    'pnor'     => { REPO => "http://github.com/open-power/pnor" ,
+    'pnor'     => { REPO => "https://github.com/open-power/pnor" ,
                     DIR => "openpower/package/openpower-pnor"},
-    'petitboot'     => { REPO => "http://github.com/open-power/petitboot" ,
+    'petitboot'     => { REPO => "https://github.com/open-power/petitboot" ,
 			 DIR => "openpower/package/petitboot"},
 };
 
@@ -72,7 +72,31 @@ closedir $dh;
 s/_defconfig// foreach (@begin_platforms);
 s/_defconfig// foreach (@end_platforms);
 
-if ($platform) {
+my $witherspoon_insanity;
+
+# If both witherspoon and witherspoon-sequoia exist we've switched back
+# to a single witherspoon platform and the -sequoia platform is just to
+# keep Jenkins happy - ignore it.
+if ("witherspoon" ~~ @begin_platforms
+	&& "witherspoon-sequoia" ~~ @begin_platforms) {
+	my $index = 0;
+	$index++ until @begin_platforms[$index] eq "witherspoon-sequoia";
+	splice(@begin_platforms, $index, 1);
+}
+
+if ("witherspoon" ~~ @end_platforms
+	&& "witherspoon-sequoia" ~~ @end_platforms) {
+	my $index = 0;
+	$index++ until @end_platforms[$index] eq "witherspoon-sequoia";
+	splice(@end_platforms, $index, 1);
+}
+
+if (($platform && $platform eq 'witherspoon')
+    && -f "$end_worktree/openpower/configs/witherspoon-sequoia_defconfig") {
+    @begin_platforms = ('witherspoon');
+    @end_platforms = ('witherspoon-sequoia', 'witherspoon-redbud');
+    $witherspoon_insanity = 1;
+} elsif ($platform) {
     @begin_platforms = ($platform);
     @end_platforms = ($platform);
 }
@@ -86,45 +110,73 @@ $dbh->do("CREATE TABLE platforms (platform TEXT, version TEXT);") or die "$!";
 }
 
 {
-    my $q = "SELECT platform FROM platforms WHERE version is ? AND platform NOT IN (SELECT platform FROM platforms WHERE version is ?)";
+    my $q = "SELECT platform as p FROM platforms WHERE version is ? AND platform NOT IN (SELECT platform FROM platforms WHERE version is ? and platform=p)";
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute($begin_release, $end_release);
     my $r;
-    print OUTPUT "## Removed platforms\n\n- ".$r->{platform}."\n" if $r = $sth->fetchrow_hashref;
-    print OUTPUT "- ".$_->{platform}."\n" while ($r = $sth->fetchrow_hashref);
+    print OUTPUT "## Removed platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "- ".$r->{p}."\n" while ($r = $sth->fetchrow_hashref);
 
     $sth->execute($end_release, $begin_release);
-    print OUTPUT "## New platforms\n\n- ".$r->{platform}."\n" if $r = $sth->fetchrow_hashref;
-    print OUTPUT "- ".$_->{platform}."\n" while($r = $sth->fetchrow_hashref);
+    print OUTPUT "## New platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "- ".$r->{p}."\n" while($r = $sth->fetchrow_hashref);
 }
 
 my @common_platforms;
 {
-    my $q = "SELECT platform FROM platforms WHERE version is ? AND EXISTS (select platform from platforms where version is ?)";
+    my $q = "SELECT platform as p FROM platforms WHERE version is ? AND EXISTS (select platform from platforms where version is ? and platform=p)";
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute($begin_release, $end_release);
     my $r;
-    push @common_platforms, $r->{platform} while ($r = $sth->fetchrow_hashref);
+    push @common_platforms, $r->{p} while ($r = $sth->fetchrow_hashref);
 }
+
+use Data::Dumper;
+
+print "# COMMON PLATFORMS\n";
+print Dumper(\@common_platforms);
 
 foreach my $p (@common_platforms) {
     next if $p =~ /firenze/;
     next if $p =~ /^zz$/;
     next if $p =~ /mambo/;
-    $repos->{"$p-xml"} = { REPO => "http://github.com/open-power/$p-xml" ,
+    next if $p =~ /redbud/;
+    next if $p =~ /pseries/;
+    next if $p =~ /witherspoon-redbud/;
+    if ($p =~ /witherspoon-sequoia/) {
+	    $p = "witherspoon";
+	    $witherspoon_insanity = 1;
+    }
+    $repos->{"$p-xml"} = { REPO => "https://github.com/open-power/$p-xml" ,
 			   DIR => "openpower/package/$p-xml" };
 }
 
 foreach my $p (@begin_platforms) {
     system("bash -c '(cd $begin_worktree && . op-build-env && op-build ".$p."_defconfig && op-build legal-info)'");
+    # Work-around bug in op-build v1.17, fixed 2 commits later
+    system('sed -e \'s/,""\([^",]\)/,"\1/; s/\([^,]\)"",/\1",/; s/machine-xml-"\(.*\)".tar/machine-xml-\1.tar/\' -i '. $begin_worktree .'/output/legal-info/manifest.csv');
     # Forgive me for this....
-    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $begin_worktree/output/legal-info/manifest.csv begin_".$p."_manifest\"");
+    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $begin_worktree/output/legal-info/manifest.csv i\"");
+    $dbh->do("ALTER TABLE i RENAME to 'begin_".$p."_manifest'") or die $!;
 }
 
 foreach my $p (@end_platforms) {
+    print "# END PLATFORMS LEGAL-INFO $p\n";
     system("bash -c '(cd $end_worktree && . op-build-env && op-build ".$p."_defconfig && op-build legal-info)'");
     # Forgive me for this....
-    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $end_worktree/output/legal-info/manifest.csv end_".$p."_manifest\"");
+    print "# loading manifest\n";
+    system("sqlite3 release-notes.sqlite \".mode csv\" \".import $end_worktree/output/legal-info/manifest.csv i\"");
+    $dbh->do("ALTER TABLE i RENAME to 'end_".$p."_manifest'") or die $!;
+}
+
+if ($witherspoon_insanity) {
+    $dbh->do("ALTER TABLE 'end_witherspoon-sequoia_manifest' RENAME to end_witherspoon_manifest");
+    $dbh->do("ALTER TABLE 'begin_witherspoon-sequoia_manifest' RENAME to begin_witherspoon_manifest");
+    @end_platforms = grep { $_ != 'witherspoon-sequoia' } @end_platforms;
+    @begin_platforms = grep { $_ != 'witherspoon-sequoia' } @begin_platforms;
+    push @end_platforms, 'witherspoon';
+    push @begin_platforms, 'witherspoon';
+    push @common_platforms, 'witherspoon';
 }
 
 $dbh->do(<<'SQL') or die "$!";
@@ -137,7 +189,7 @@ CREATE TABLE package_upgrades (
 SQL
 
 foreach my $p (@common_platforms) {
-    $dbh->do("INSERT INTO package_upgrades select b.package,b.version,e.version,'$p' from begin_".$p."_manifest as b LEFT JOIN end_".$p."_manifest AS e ON b.package=e.package WHERE b.version != e.version") or die $!;
+    $dbh->do("INSERT INTO package_upgrades select b.package,b.version,e.version,'$p' from 'begin_".$p."_manifest' as b LEFT JOIN 'end_".$p."_manifest' AS e ON b.package=e.package WHERE b.version != e.version") or die $!;
 }
 
 $dbh->do(<<'SQL') or die "$!";
@@ -149,7 +201,7 @@ CREATE TABLE new_package (
 SQL
 
 foreach my $p (@common_platforms) {
-    $dbh->do("INSERT INTO new_package select b.package,b.version,'$p' from end_".$p."_manifest as b WHERE NOT EXISTS(SELECT package FROM begin_".$p."_manifest AS e WHERE b.package=e.package)") or die $!;
+    $dbh->do("INSERT INTO new_package select b.package,b.version,'$p' from 'end_".$p."_manifest' as b WHERE NOT EXISTS(SELECT package FROM 'begin_".$p."_manifest' AS e WHERE b.package=e.package)") or die $!;
 }
 
 $dbh->do(<<'SQL') or die "$!";
@@ -161,7 +213,7 @@ CREATE TABLE removed_package (
 SQL
 
 foreach my $p (@common_platforms) {
-    $dbh->do("INSERT INTO removed_package select b.package,b.version,'$p' from begin_".$p."_manifest as b WHERE NOT EXISTS(SELECT package FROM end_".$p."_manifest AS e WHERE b.package=e.package)") or die $!;
+    $dbh->do("INSERT INTO removed_package select b.package,b.version,'$p' from 'begin_".$p."_manifest' as b WHERE NOT EXISTS(SELECT package FROM 'end_".$p."_manifest' AS e WHERE b.package=e.package)") or die $!;
 }
 
 my $old_level = {};
