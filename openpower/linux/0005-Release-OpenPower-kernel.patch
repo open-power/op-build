@@ -9,7 +9,7 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 66ec023da822..41f1e259ce85 100644
+index 66ec023da822..4b8c4cb589ac 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
@@ -17,7 +17,7 @@ index 66ec023da822..41f1e259ce85 100644
  PATCHLEVEL = 13
  SUBLEVEL = 8
 -EXTRAVERSION =
-+EXTRAVERSION = -openpower1
++EXTRAVERSION = -openpower2
  NAME = Fearless Coyote
  
  # *DOCUMENTATION*
