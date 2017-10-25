@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Brian King <brking@linux.vnet.ibm.com>
+Date: Wed, 25 Oct 2017 10:42:59 +1100
+Subject: [PATCH 1/5] xhci: Reset controller on xhci shutdown
+
+Fixes kexec boot. Without a hard reset, some USB chips will fail to
+initialize in a kexec booted kernel.
+
+Signed-off-by: Brian King <brking@linux.vnet.ibm.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+---
+ drivers/usb/host/xhci.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index ee198ea47f49..0e362e5c8b49 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -729,6 +729,7 @@ static void xhci_shutdown(struct usb_hcd *hcd)
+ 	/* Yet another workaround for spurious wakeups at shutdown with HSW */
+ 	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
+ 		pci_set_power_state(to_pci_dev(hcd->self.sysdev), PCI_D3hot);
++	pci_reset_function_locked(to_pci_dev(hcd->self.sysdev));
+ }
+ 
+ #ifdef CONFIG_PM
