@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Michael Neuling <mikey@neuling.org>
-Date: Wed, 4 Oct 2017 13:42:52 +1100
-Subject: [PATCH 3/4] powerpc/64s: Add workaround for P9 vector CI load issue
+Date: Fri, 15 Sep 2017 15:25:48 +1000
+Subject: [PATCH 2/3] powerpc/64s: Add workaround for P9 vector CI load issue
 
 POWER9 DD2.1 and earlier has an issue where some cache inhibited
 vector load will return bad data. The workaround is two part, one
@@ -30,7 +30,6 @@ Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 [mpe: Switch CONFIG_PPC_BOOK3S_64 to CONFIG_VSX to unbreak the build]
 Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
 (cherry picked from commit 5080332c2c893118dbc18755f35c8b0131cf0fc4)
-Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
  arch/powerpc/include/asm/emulated_ops.h |   4 +
@@ -58,10 +57,10 @@ index f00e10e2a335..651e1354498e 100644
  } ppc_emulated;
  
 diff --git a/arch/powerpc/include/asm/paca.h b/arch/powerpc/include/asm/paca.h
-index dc88a31cc79a..21061773149b 100644
+index 04b60af027ae..1e06310ccc09 100644
 --- a/arch/powerpc/include/asm/paca.h
 +++ b/arch/powerpc/include/asm/paca.h
-@@ -203,6 +203,7 @@ struct paca_struct {
+@@ -210,6 +210,7 @@ struct paca_struct {
  	 */
  	u16 in_mce;
  	u8 hmi_event_available;		/* HMI event is available */
@@ -70,10 +69,10 @@ index dc88a31cc79a..21061773149b 100644
  
  	/* Stuff for accurate time accounting */
 diff --git a/arch/powerpc/include/asm/uaccess.h b/arch/powerpc/include/asm/uaccess.h
-index 9c0e60ca1666..e34f15e727d9 100644
+index 11f4bd07cce0..1e6ead577459 100644
 --- a/arch/powerpc/include/asm/uaccess.h
 +++ b/arch/powerpc/include/asm/uaccess.h
-@@ -173,6 +173,23 @@ do {								\
+@@ -174,6 +174,23 @@ do {								\
  
  extern long __get_user_bad(void);
  
@@ -98,10 +97,10 @@ index 9c0e60ca1666..e34f15e727d9 100644
  	__asm__ __volatile__(				\
  		"1:	"op" %1,0(%2)	# get_user\n"	\
 diff --git a/arch/powerpc/kernel/exceptions-64s.S b/arch/powerpc/kernel/exceptions-64s.S
-index d9dfdf7ede45..0256286d7153 100644
+index 1c80bd292e48..302bc61dead3 100644
 --- a/arch/powerpc/kernel/exceptions-64s.S
 +++ b/arch/powerpc/kernel/exceptions-64s.S
-@@ -1032,6 +1032,8 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
+@@ -1033,6 +1033,8 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
  	EXCEPTION_PROLOG_COMMON_3(0xe60)
  	addi	r3,r1,STACK_FRAME_OVERHEAD
  	BRANCH_LINK_TO_FAR(hmi_exception_realmode) /* Function call ABI */
@@ -110,7 +109,7 @@ index d9dfdf7ede45..0256286d7153 100644
  	/* Windup the stack. */
  	/* Move original HSRR0 and HSRR1 into the respective regs */
  	ld	r9,_MSR(r1)
-@@ -1048,10 +1050,15 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
+@@ -1049,10 +1051,15 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
  	REST_8GPRS(2, r1)
  	REST_GPR(10, r1)
  	ld	r11,_CCR(r1)
@@ -128,7 +127,7 @@ index d9dfdf7ede45..0256286d7153 100644
  	ld	r1,GPR1(r1)
  
  	/*
-@@ -1064,8 +1071,9 @@ hmi_exception_after_realmode:
+@@ -1065,8 +1072,9 @@ hmi_exception_after_realmode:
  	EXCEPTION_PROLOG_0(PACA_EXGEN)
  	b	tramp_real_hmi_exception
  
@@ -187,7 +186,7 @@ index 9b2ea7e71c06..f588951b171d 100644
 +	return 1;
  }
 diff --git a/arch/powerpc/kernel/traps.c b/arch/powerpc/kernel/traps.c
-index 559664e75fb5..5fbe81d4e648 100644
+index 13c9dcdcba69..9ae1924c7d1a 100644
 --- a/arch/powerpc/kernel/traps.c
 +++ b/arch/powerpc/kernel/traps.c
 @@ -37,6 +37,7 @@
@@ -198,7 +197,7 @@ index 559664e75fb5..5fbe81d4e648 100644
  
  #include <asm/emulated_ops.h>
  #include <asm/pgtable.h>
-@@ -761,6 +762,187 @@ void SMIException(struct pt_regs *regs)
+@@ -699,6 +700,187 @@ void SMIException(struct pt_regs *regs)
  	die("System Management Interrupt", regs, SIGABRT);
  }
  
@@ -386,7 +385,7 @@ index 559664e75fb5..5fbe81d4e648 100644
  void handle_hmi_exception(struct pt_regs *regs)
  {
  	struct pt_regs *old_regs;
-@@ -768,6 +950,21 @@ void handle_hmi_exception(struct pt_regs *regs)
+@@ -706,6 +888,21 @@ void handle_hmi_exception(struct pt_regs *regs)
  	old_regs = set_irq_regs(regs);
  	irq_enter();
  
@@ -408,7 +407,7 @@ index 559664e75fb5..5fbe81d4e648 100644
  	if (ppc_md.handle_hmi_exception)
  		ppc_md.handle_hmi_exception(regs);
  
-@@ -2004,6 +2201,10 @@ struct ppc_emulated ppc_emulated = {
+@@ -1924,6 +2121,10 @@ struct ppc_emulated ppc_emulated = {
  	WARN_EMULATED_SETUP(mfdscr),
  	WARN_EMULATED_SETUP(mtdscr),
  	WARN_EMULATED_SETUP(lq_stq),
@@ -420,7 +419,7 @@ index 559664e75fb5..5fbe81d4e648 100644
  };
  
 diff --git a/arch/powerpc/platforms/powernv/smp.c b/arch/powerpc/platforms/powernv/smp.c
-index 40dae96f7e20..b9dd3cc1d217 100644
+index c17f81e433f7..355d3f99cafb 100644
 --- a/arch/powerpc/platforms/powernv/smp.c
 +++ b/arch/powerpc/platforms/powernv/smp.c
 @@ -49,6 +49,13 @@
