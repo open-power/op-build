@@ -9,15 +9,15 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index ccd981892ef2..c845ed98df5b 100644
+index 01f9df1af256..00ace3672300 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 14
- SUBLEVEL = 0
+ SUBLEVEL = 1
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
- NAME = Fearless Coyote
+ NAME = Petit Gorille
  
  # *DOCUMENTATION*
