@@ -1,0 +1,29 @@
+config BR2_PACKAGE_OCC_P9
+        bool "OCC for P9"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
+        select BR2_CPP
+        help
+            Project to build OCC
+
+config BR2_OCC_P9_BIN_FILENAME
+        string "Name of OCC P9 image file"
+	default "occ.bin"
+        help
+            String used to define name of the OCC binary image file
+
+config BR2_OCC_P9_GPU_BIN_BUILD
+        bool "Enables Compilation of GPU Binary Image"
+        default n
+        help
+            Boolean used to flag whether to compile OCC GPU binary
+
+config BR2_OCC_P9_GPU_GPE_BIN_FILENAME
+        string "Name of OCC GPU GPE Binary file"
+        help
+            String used to define name of the OCC GPUE GPE binary image file
+
+if BR2_PACKAGE_OCC_P9
+config BR2_PACKAGE_PROVIDES_OCC
+        default "occ-p9"
+endif
+
