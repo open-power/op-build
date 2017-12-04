@@ -1,0 +1,17 @@
+config BR2_PACKAGE_HOSTBOOT_P9
+        bool "hostboot-p9"
+        default y if (BR2_OPENPOWER_POWER9)
+        select BR2_CPP
+        help
+            Project to build the hostboot firmware codebase
+
+if BR2_PACKAGE_HOSTBOOT_P9
+config BR2_PACKAGE_PROVIDES_HOSTBOOT
+        default "hostboot-p9"
+endif
+
+config BR2_HOSTBOOT_P9_CONFIG_FILE
+        string "Hostboot configuration file for compilation"
+        default default
+        help
+            String used to define hw specific make config file
