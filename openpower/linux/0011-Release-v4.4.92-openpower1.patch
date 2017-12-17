@@ -1,21 +1,21 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
-Date: Tue, 17 Oct 2017 14:01:00 +1100
+Date: Mon, 18 Dec 2017 09:46:42 +1030
 Subject: [PATCH 11/11] Release v4.4.92-openpower1
 
-Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
  Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index fab2d640a27e..27efede8ada8 100644
+index 69f4ace70276..ce187e72d60a 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 4
- SUBLEVEL = 92
+ SUBLEVEL = 105
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Blurry Fish Butt
