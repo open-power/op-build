@@ -8,8 +8,8 @@ which will cause problems if we have devices attached to the primary
 HCD, like a keyboard.
 
 Sined-off-by: Joel Stanley <joel@jms.id.au>
-Signed-off-by: Joel Stanley <joel@jms.id.au>
 Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
  drivers/usb/host/xhci.c | 20 +++++++++++++++-----
  1 file changed, 15 insertions(+), 5 deletions(-)
