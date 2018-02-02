@@ -1,0 +1,17 @@
+--- a/drivers/net/ethernet/intel/fm10k/fm10k_pci.c	2018-01-10 15:27:42.437514511 -0600
++++ b/drivers/net/ethernet/intel/fm10k/fm10k_pci.c	2018-01-10 15:27:52.209436060 -0600
+@@ -1982,7 +1982,13 @@
+ 		return err;
+ 	}
+ 
+-	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(48));
++	/* check 64 bit mask first as required in DMA-API-HOWTO.txt.
++	   This is even true on modern Intel systems, see latest kernel.
++	   FM10K Datasheet allows 64 bit addresses in 11.27.2.48 PCIE_PHYADDR
++	*/
++	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
++	if (err)
++		err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(48));
+ 	if (err)
+ 		err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+ 	if (err) {
