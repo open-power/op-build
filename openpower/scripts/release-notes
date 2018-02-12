@@ -114,11 +114,11 @@ $dbh->do("CREATE TABLE platforms (platform TEXT, version TEXT);") or die "$!";
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute($begin_release, $end_release);
     my $r;
-    print OUTPUT "## Removed platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "\n## Removed platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
     print OUTPUT "- ".$r->{p}."\n" while ($r = $sth->fetchrow_hashref);
 
     $sth->execute($end_release, $begin_release);
-    print OUTPUT "## New platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
+    print OUTPUT "\n## New platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
     print OUTPUT "- ".$r->{p}."\n" while($r = $sth->fetchrow_hashref);
 }
 
@@ -222,7 +222,7 @@ my $new_level = {};
 {
     my $q = <<'SQL';
 select package as pk ,oldversion as o ,newversion as n, 
-	GROUP_CONCAT(platform) as ps
+	GROUP_CONCAT(platform,', ') as ps
 FROM package_upgrades 
 	GROUP BY package,oldversion,newversion
 ORDER BY package,platform
@@ -230,11 +230,17 @@ SQL
     my $sth = $dbh->prepare($q) or die $!;
     $sth->execute();
 
-    print OUTPUT "## Updated Packages\n\n";
+    print OUTPUT "\n## Updated Packages\n\n";
     print OUTPUT "Package | Old Version | New Version | Platforms\n";
-    print OUTPUT "--- | --- | --- | ---\n";
+    my $t;
+    my ($plen,$olen,$nlen,$platlen) = (3,3,3,3);
     while (my $r = $sth->fetchrow_hashref) {
-	print OUTPUT join(' | ',($r->{pk}, $r->{o}, $r->{n}, $r->{ps}))."\n" ;
+	$t.= join(' | ',($r->{pk}, $r->{o}, $r->{n}, $r->{ps}))."\n" ;
+	$plen = length($r->{pk}) if $plen < length($r->{pk});
+	$olen = length($r->{o}) if $olen < length($r->{o});
+	$nlen = length($r->{n}) if $nlen < length($r->{n});
+	$platlen = length($r->{ps}) if $platlen < length($r->{ps});
+
 	if ($r->{pk} eq 'machine-xml') {
 	    $old_level->{$r->{ps}."-xml"} = $r->{o};
 	    $new_level->{$r->{ps}."-xml"} = $r->{n};
@@ -243,6 +249,9 @@ SQL
 	    $new_level->{$r->{pk}} = $r->{n};
 	}
     }
+    print OUTPUT "-"x$plen." | "."-"x$olen." | "."-"x$nlen." | ".
+	"-"x$platlen."\n";
+    print OUTPUT $t;
 }
 
 {
@@ -314,7 +323,7 @@ foreach my $repo (sort keys %{$repos})
     my $url = $repos->{$repo}->{REPO};
     my $dir = $repos->{$repo}->{DIR};
 
-    print OUTPUT "## Package: $repo\n";
+    print OUTPUT "\n## Package: $repo\n";
     print OUTPUT "[Repository]($url)\n";
     print OUTPUT "\n";
 
@@ -344,7 +353,7 @@ foreach my $repo (sort keys %{$repos})
     {
         # No change identified.
         print "No changes: $repo\n";
-        print OUTPUT "No changes.\n";
+        print OUTPUT "No changes.\n\n";
         next;
     }
 
@@ -354,12 +363,13 @@ foreach my $repo (sort keys %{$repos})
         print "Changes in $repo...\n";
         open(GITLOG, "cd $repo; git shortlog $old_level->{$package}...".
                      "$new_level->{$package} --no-merges --format=".
-                     "\"* [%h]($url/commit/%h) %s\" |");
+                     "\"- [%h]($url/commit/%h) %s\" |");
 
         while (my $logline = <GITLOG>)
         {
             chomp $logline;
             $logline =~ s/^[[:space:]]*//;
+            $logline =~ s/:$/:\n/;
             print OUTPUT "$logline\n";
         }
         close GITLOG;
