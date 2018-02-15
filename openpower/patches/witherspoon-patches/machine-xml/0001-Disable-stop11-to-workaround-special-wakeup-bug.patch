@@ -1,0 +1,26 @@
+From 4a67af9ad8cafeac5bddbcad3e7d875ab5538c27 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.vnet.ibm.com>
+Date: Thu, 15 Feb 2018 14:18:07 +1100
+Subject: [PATCH] Disable stop11 to workaround special wakeup bug
+
+Signed-off-by: Stewart Smith <stewart@linux.vnet.ibm.com>
+---
+ witherspoon.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/witherspoon.xml b/witherspoon.xml
+index 09a09fc68217..eddd1ac257e6 100644
+--- a/witherspoon.xml
++++ b/witherspoon.xml
+@@ -17295,7 +17295,7 @@
+ 	</attribute>
+ 	<attribute>
+ 		<id>SUPPORTED_STOP_STATES</id>
+-		<default>0xEC100000</default>
++		<default>0xEC000000</default>
+ 	</attribute>
+ 	<attribute>
+ 		<id>SUPPORTS_DYNAMIC_MEM_VOLT</id>
+-- 
+2.14.3
+
