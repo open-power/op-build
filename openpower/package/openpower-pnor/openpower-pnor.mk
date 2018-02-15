@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= de0f8e47de145df11a18d065742c7d583307f307
+OPENPOWER_PNOR_VERSION ?= 0f3f88a0ee146bb6b923d9fbd5991119a8b3739c
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
