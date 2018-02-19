@@ -1,0 +1,59 @@
+From b2391175e61b3d1bd7e5fdba719d7fd2925fdbed Mon Sep 17 00:00:00 2001
+From: Adrian Barrera <abarrera@us.ibm.com>
+Date: Tue, 6 Feb 2018 18:38:21 -0600
+Subject: [PATCH 1/2] Update EREPAIR attributes
+
+---
+ zaius.xml | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/zaius.xml b/zaius.xml
+index 3b9f54a884d4..df1f4dfcd2d0 100644
+--- a/zaius.xml
++++ b/zaius.xml
+@@ -8972,11 +8972,11 @@
+ 	</attribute>
+ 	<attribute>
+ 		<id>DMI_EREPAIR_THRESHOLD_FIELD</id>
+-		<default></default>
++		<default>0x1</default>
+ 	</attribute>
+ 	<attribute>
+ 		<id>DMI_EREPAIR_THRESHOLD_MNFG</id>
+-		<default></default>
++		<default>0x0</default>
+ 	</attribute>
+ 	<attribute>
+ 		<id>DO_ABUS_DECONFIG</id>
+@@ -9932,6 +9932,14 @@
+ 		<id>OS_IPL_MODE</id>
+ 		<default></default>
+ 	</attribute>
++        <attribute>
++                <id>O_EREPAIR_THRESHOLD_FIELD</id>
++                <default>0x1</default>
++        </attribute>
++        <attribute>
++                <id>O_EREPAIR_THRESHOLD_MNFG</id>
++                <default>0x0</default>
++        </attribute>
+ 	<attribute>
+ 		<id>PAYLOAD_BASE</id>
+ 		<default>0</default>
+@@ -10543,11 +10551,11 @@
+ 	</attribute>
+ 	<attribute>
+ 		<id>X_EREPAIR_THRESHOLD_FIELD</id>
+-		<default></default>
++		<default>0x1</default>
+ 	</attribute>
+ 	<attribute>
+ 		<id>X_EREPAIR_THRESHOLD_MNFG</id>
+-		<default></default>
++		<default>0x0</default>
+ 	</attribute>
+ 	<attribute>
+ 		<id>power-def-filenames</id>
+-- 
+2.14.3
+

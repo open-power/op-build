@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINERS="ubuntu1404 fedora25"
+CONTAINERS="ubuntu1604 fedora27"
 
 while getopts ":ahp:c:" opt; do
   case $opt in
@@ -64,21 +64,27 @@ do
 	fi
 	if [[ -n "$HTTP_PROXY" ]]; then
 		http_proxy=$HTTP_PROXY
+		HTTP_PROXY_ENV="ENV http_proxy $HTTP_PROXY"
+	fi
+	if [[ -n "$HTTPS_PROXY" ]]; then
+		https_proxy=$HTTPS_PROXY
+		HTTPS_PROXY_ENV="ENV https_proxy $HTTPS_PROXY"
 	fi
 	if [[ -n "$http_proxy" ]]; then
-	  if [[ "$distro" == fedora25 ]]; then
+	  if [[ "$distro" == fedora27 ]]; then
 	    PROXY="RUN echo \"proxy=${http_proxy}\" >> /etc/dnf/dnf.conf"
 	  fi
-	  if [[ "$distro" == ubuntu1404 ]]; then
+	  if [[ "$distro" == ubuntu1604 ]]; then
 	    PROXY="RUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
 	  fi
         fi
 
 	Dockerfile=$(head -n1 $base_dockerfile; echo ${PROXY}; tail -n +2 $base_dockerfile; cat << EOF
-RUN groupadd -g ${GROUPS} ${USER} && useradd -d ${HOME} -m -u ${UID} -g ${GROUPS} ${USER}
 ${PROXY}
-USER ${USER}
+RUN useradd -d ${HOME} -m -u ${UID} ${USER}
 ENV HOME ${HOME}
+${HTTP_PROXY_ENV}
+${HTTPS_PROXY_ENV}
 EOF
 )
 	$DOCKER_PREFIX docker build -t openpower/op-build-$distro - <<< "${Dockerfile}"
