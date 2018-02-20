@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Michael Neuling <mikey@neuling.org>
 Date: Fri, 15 Sep 2017 15:25:48 +1000
-Subject: [PATCH 2/3] powerpc/64s: Add workaround for P9 vector CI load issue
+Subject: [PATCH 2/4] powerpc/64s: Add workaround for P9 vector CI load issue
 
 POWER9 DD2.1 and earlier has an issue where some cache inhibited
 vector load will return bad data. The workaround is two part, one
