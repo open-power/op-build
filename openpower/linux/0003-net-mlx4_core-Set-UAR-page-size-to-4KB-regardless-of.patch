@@ -58,7 +58,7 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  8 files changed, 84 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 1c8b7c22c822..cf296d7e0403 100644
+index 348828271cb0..fef3ea60bdcd 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
 @@ -1594,9 +1594,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
@@ -139,7 +139,7 @@ index ff77b8b608bd..d527c5fa5c59 100644
  			mlx4_err(dev, "Couldn't map EQ doorbell for EQN 0x%06x\n",
  				 eq->eqn);
 diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 99361352ed0d..343f5616c3bb 100644
+index a7d3144c2388..fdd85a3989ca 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/main.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
 @@ -168,6 +168,20 @@ struct mlx4_port_config {
@@ -221,7 +221,7 @@ index 99361352ed0d..343f5616c3bb 100644
  	memset(&func_cap, 0, sizeof(func_cap));
  	err = mlx4_QUERY_FUNC_CAP(dev, 0, &func_cap);
  	if (err) {
-@@ -2090,8 +2120,12 @@ static int mlx4_init_hca(struct mlx4_dev *dev)
+@@ -2098,8 +2128,12 @@ static int mlx4_init_hca(struct mlx4_dev *dev)
  
  		dev->caps.max_fmr_maps = (1 << (32 - ilog2(dev->caps.num_mpts))) - 1;
  
@@ -260,7 +260,7 @@ index 609c59dc854e..b3cc3ab63799 100644
  		return -ENODEV;
  	}
 diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index d3133be12d92..8bab38f8872a 100644
+index 7fde8af9b87e..e990cae8a959 100644
 --- a/include/linux/mlx4/device.h
 +++ b/include/linux/mlx4/device.h
 @@ -44,6 +44,8 @@
@@ -272,7 +272,7 @@ index d3133be12d92..8bab38f8872a 100644
  #define MAX_MSIX_P_PORT		17
  #define MAX_MSIX		64
  #define MIN_MSIX_P_PORT		5
-@@ -853,6 +855,7 @@ struct mlx4_dev {
+@@ -854,6 +856,7 @@ struct mlx4_dev {
  	u64			regid_promisc_array[MLX4_MAX_PORTS + 1];
  	u64			regid_allmulti_array[MLX4_MAX_PORTS + 1];
  	struct mlx4_vf_dev     *dev_vfs;
@@ -280,7 +280,7 @@ index d3133be12d92..8bab38f8872a 100644
  };
  
  struct mlx4_clock_params {
-@@ -1527,4 +1530,14 @@ int mlx4_ACCESS_PTYS_REG(struct mlx4_dev *dev,
+@@ -1528,4 +1531,14 @@ int mlx4_ACCESS_PTYS_REG(struct mlx4_dev *dev,
  int mlx4_get_internal_clock_params(struct mlx4_dev *dev,
  				   struct mlx4_clock_params *params);
  
