@@ -97,7 +97,7 @@ index 11f4bd07cce0..1e6ead577459 100644
  	__asm__ __volatile__(				\
  		"1:	"op" %1,0(%2)	# get_user\n"	\
 diff --git a/arch/powerpc/kernel/exceptions-64s.S b/arch/powerpc/kernel/exceptions-64s.S
-index e9f72abc52b7..2dcfe36ee247 100644
+index e91b40aa5417..0b3a17d17835 100644
 --- a/arch/powerpc/kernel/exceptions-64s.S
 +++ b/arch/powerpc/kernel/exceptions-64s.S
 @@ -1060,6 +1060,8 @@ TRAMP_REAL_BEGIN(hmi_exception_early)
