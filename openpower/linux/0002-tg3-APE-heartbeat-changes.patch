@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Prashant Sreedharan <prashant.sreedharan@broadcom.com>
 Date: Mon, 19 Feb 2018 12:27:04 +0530
-Subject: [PATCH 3/4] tg3: APE heartbeat changes
+Subject: [PATCH 2/3] tg3: APE heartbeat changes
 
 In ungraceful host shutdown or driver crash case BMC connectivity is
 lost. APE firmware is missing the driver state in this
@@ -29,10 +29,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  2 files changed, 29 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
-index aef3fcf2f5b9..703af1bd196c 100644
+index 8995cfefbfcf..0cbf537c8f6c 100644
 --- a/drivers/net/ethernet/broadcom/tg3.c
 +++ b/drivers/net/ethernet/broadcom/tg3.c
-@@ -818,7 +818,7 @@ static int tg3_ape_event_lock(struct tg3 *tp, u32 timeout_us)
+@@ -820,7 +820,7 @@ static int tg3_ape_event_lock(struct tg3 *tp, u32 timeout_us)
  
  		tg3_ape_unlock(tp, TG3_APE_LOCK_MEM);
  
@@ -41,7 +41,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  		timeout_us -= (timeout_us > 10) ? 10 : timeout_us;
  	}
  
-@@ -920,8 +920,8 @@ static int tg3_ape_send_event(struct tg3 *tp, u32 event)
+@@ -922,8 +922,8 @@ static int tg3_ape_send_event(struct tg3 *tp, u32 event)
  	if (!(apedata & APE_FW_STATUS_READY))
  		return -EAGAIN;
  
@@ -52,7 +52,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  	if (err)
  		return err;
  
-@@ -944,6 +944,7 @@ static void tg3_ape_driver_state_change(struct tg3 *tp, int kind)
+@@ -946,6 +946,7 @@ static void tg3_ape_driver_state_change(struct tg3 *tp, int kind)
  
  	switch (kind) {
  	case RESET_KIND_INIT:
@@ -60,7 +60,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  		tg3_ape_write32(tp, TG3_APE_HOST_SEG_SIG,
  				APE_HOST_SEG_SIG_MAGIC);
  		tg3_ape_write32(tp, TG3_APE_HOST_SEG_LEN,
-@@ -960,13 +961,6 @@ static void tg3_ape_driver_state_change(struct tg3 *tp, int kind)
+@@ -962,13 +963,6 @@ static void tg3_ape_driver_state_change(struct tg3 *tp, int kind)
  		event = APE_EVENT_STATUS_STATE_START;
  		break;
  	case RESET_KIND_SHUTDOWN:
@@ -74,7 +74,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  		if (device_may_wakeup(&tp->pdev->dev) &&
  		    tg3_flag(tp, WOL_ENABLE)) {
  			tg3_ape_write32(tp, TG3_APE_HOST_WOL_SPEED,
-@@ -988,6 +982,18 @@ static void tg3_ape_driver_state_change(struct tg3 *tp, int kind)
+@@ -990,6 +984,18 @@ static void tg3_ape_driver_state_change(struct tg3 *tp, int kind)
  	tg3_ape_send_event(tp, event);
  }
  
@@ -93,7 +93,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  static void tg3_disable_ints(struct tg3 *tp)
  {
  	int i;
-@@ -7260,6 +7266,7 @@ static int tg3_poll_msix(struct napi_struct *napi, int budget)
+@@ -7262,6 +7268,7 @@ static int tg3_poll_msix(struct napi_struct *napi, int budget)
  		}
  	}
  
@@ -101,7 +101,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  	return work_done;
  
  tx_recovery:
-@@ -7342,6 +7349,7 @@ static int tg3_poll(struct napi_struct *napi, int budget)
+@@ -7344,6 +7351,7 @@ static int tg3_poll(struct napi_struct *napi, int budget)
  		}
  	}
  
@@ -109,7 +109,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  	return work_done;
  
  tx_recovery:
-@@ -10720,7 +10728,7 @@ static int tg3_reset_hw(struct tg3 *tp, bool reset_phy)
+@@ -10732,7 +10740,7 @@ static int tg3_reset_hw(struct tg3 *tp, bool reset_phy)
  	if (tg3_flag(tp, ENABLE_APE))
  		/* Write our heartbeat update interval to APE. */
  		tg3_ape_write32(tp, TG3_APE_HOST_HEARTBEAT_INT_MS,
@@ -118,7 +118,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  
  	tg3_write_sig_post_reset(tp, RESET_KIND_INIT);
  
-@@ -11065,6 +11073,9 @@ static void tg3_timer(unsigned long __opaque)
+@@ -11077,6 +11085,9 @@ static void tg3_timer(struct timer_list *t)
  		tp->asf_counter = tp->asf_multiplier;
  	}
  
@@ -128,7 +128,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  	spin_unlock(&tp->lock);
  
  restart_timer:
-@@ -16625,6 +16636,8 @@ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
+@@ -16636,6 +16647,8 @@ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
  				       pci_state_reg);
  
  		tg3_ape_lock_init(tp);
@@ -138,10 +138,10 @@ index aef3fcf2f5b9..703af1bd196c 100644
  
  	/* Set up tp->grc_local_ctrl before calling
 diff --git a/drivers/net/ethernet/broadcom/tg3.h b/drivers/net/ethernet/broadcom/tg3.h
-index c2d02d02d1e6..99578ab2ddad 100644
+index 1f0271fa7c74..4b9d2906da90 100644
 --- a/drivers/net/ethernet/broadcom/tg3.h
 +++ b/drivers/net/ethernet/broadcom/tg3.h
-@@ -2494,6 +2494,7 @@
+@@ -2499,6 +2499,7 @@
  #define TG3_APE_LOCK_PHY3		5
  #define TG3_APE_LOCK_GPIO		7
  
@@ -149,7 +149,7 @@ index c2d02d02d1e6..99578ab2ddad 100644
  #define TG3_EEPROM_SB_F1R2_MBA_OFF	0x10
  
  
-@@ -3408,6 +3409,10 @@ struct tg3 {
+@@ -3413,6 +3414,10 @@ struct tg3 {
  	struct device			*hwmon_dev;
  	bool				link_up;
  	bool				pcierr_recovery;
