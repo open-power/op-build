@@ -8,3 +8,4 @@ op-build Release Notes
 
    v1.21-rc1
    v1.21-rc2
+   v1.21
