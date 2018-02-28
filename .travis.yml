@@ -1,0 +1,38 @@
+sudo: false
+dist: trusty
+
+cache:
+  apt: true
+
+git:
+  depth: false
+
+addons:
+  apt:
+    packages:
+      - python-pip
+      - latexmk
+      - libalgorithm-diff-perl
+      - texlive
+      - texlive-latex-extra
+      - texlive-humanities
+      - texlive-generic-recommended
+      - graphviz
+      - texlive-generic-extra
+
+
+language: python
+python:
+  - "2.7"
+install:
+ - "pip install -r doc/requirements.txt"
+script:
+  - cd doc/; make latexpdf html
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in travis-ci.org dashboard, marked secure
+  local_dir: "doc/_build/html"
+  on:
+    branch: master
