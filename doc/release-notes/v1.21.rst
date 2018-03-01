@@ -24,7 +24,9 @@ Updated Packages
 |             |             |             | palmetto,pseries,witherspoon,    |
 |             |             |             | zaius,zz,romulus                 |
 +-------------+-------------+-------------+----------------------------------+
-| capp-ucode  | p9-dd2-v2   | p9-dd2-v3   | barreleye,firestone,garrison,habanero,p9dsu,palmetto,witherspoon,zaius,romulus   |
+| capp-ucode  | p9-dd2-v2   | p9-dd2-v3   | barreleye,firestone,garrison,    |
+|             |             |             | habanero,p9dsu,palmetto,         |
+|             |             |             | witherspoon,zaius,romulus        |
 +-------------+-------------+-------------+----------------------------------+
 | ethtool     | 4.10        | 4.13        | barreleye,firenze,firestone,     |
 |             |             |             | garrison,habanero,               |
