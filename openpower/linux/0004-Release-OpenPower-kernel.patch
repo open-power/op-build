@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
-Date: Tue, 20 Feb 2018 11:14:30 +1030
+Date: Mon, 26 Feb 2018 10:29:07 +1030
 Subject: [PATCH 4/4] Release OpenPower kernel
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 33176140f133..621b3d99e2dd 100644
+index 03d41143900c..d26f783471f9 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 14
- SUBLEVEL = 20
+ SUBLEVEL = 22
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Petit Gorille
