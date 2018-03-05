@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 03d41143900c..d26f783471f9 100644
+index 38acc6047d7d..5d52a43d2258 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 14
- SUBLEVEL = 22
+ SUBLEVEL = 24
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Petit Gorille
