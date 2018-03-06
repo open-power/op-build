@@ -29,7 +29,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  2 files changed, 29 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
-index aef3fcf2f5b9..703af1bd196c 100644
+index 48738eb27806..c237b37e6b40 100644
 --- a/drivers/net/ethernet/broadcom/tg3.c
 +++ b/drivers/net/ethernet/broadcom/tg3.c
 @@ -818,7 +818,7 @@ static int tg3_ape_event_lock(struct tg3 *tp, u32 timeout_us)
@@ -109,7 +109,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  	return work_done;
  
  tx_recovery:
-@@ -10720,7 +10728,7 @@ static int tg3_reset_hw(struct tg3 *tp, bool reset_phy)
+@@ -10730,7 +10738,7 @@ static int tg3_reset_hw(struct tg3 *tp, bool reset_phy)
  	if (tg3_flag(tp, ENABLE_APE))
  		/* Write our heartbeat update interval to APE. */
  		tg3_ape_write32(tp, TG3_APE_HOST_HEARTBEAT_INT_MS,
@@ -118,7 +118,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  
  	tg3_write_sig_post_reset(tp, RESET_KIND_INIT);
  
-@@ -11065,6 +11073,9 @@ static void tg3_timer(unsigned long __opaque)
+@@ -11075,6 +11083,9 @@ static void tg3_timer(unsigned long __opaque)
  		tp->asf_counter = tp->asf_multiplier;
  	}
  
@@ -128,7 +128,7 @@ index aef3fcf2f5b9..703af1bd196c 100644
  	spin_unlock(&tp->lock);
  
  restart_timer:
-@@ -16625,6 +16636,8 @@ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
+@@ -16636,6 +16647,8 @@ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
  				       pci_state_reg);
  
  		tg3_ape_lock_init(tp);
@@ -138,10 +138,10 @@ index aef3fcf2f5b9..703af1bd196c 100644
  
  	/* Set up tp->grc_local_ctrl before calling
 diff --git a/drivers/net/ethernet/broadcom/tg3.h b/drivers/net/ethernet/broadcom/tg3.h
-index c2d02d02d1e6..99578ab2ddad 100644
+index b057f71aed48..760b7e62a1f0 100644
 --- a/drivers/net/ethernet/broadcom/tg3.h
 +++ b/drivers/net/ethernet/broadcom/tg3.h
-@@ -2494,6 +2494,7 @@
+@@ -2498,6 +2498,7 @@
  #define TG3_APE_LOCK_PHY3		5
  #define TG3_APE_LOCK_GPIO		7
  
@@ -149,7 +149,7 @@ index c2d02d02d1e6..99578ab2ddad 100644
  #define TG3_EEPROM_SB_F1R2_MBA_OFF	0x10
  
  
-@@ -3408,6 +3409,10 @@ struct tg3 {
+@@ -3412,6 +3413,10 @@ struct tg3 {
  	struct device			*hwmon_dev;
  	bool				link_up;
  	bool				pcierr_recovery;
