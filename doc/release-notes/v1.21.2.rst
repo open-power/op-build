@@ -1,0 +1,15 @@
+Release Notes for OpenPower Firmware v1.21.2
+============================================
+
+This is a point release on top of op-build v1.21.
+
+Like v1.21, this release is NOT intended for GA POWER9 platforms, for that,
+op-build v2.0 is *required*.
+
+Changes since v1.21.1:
+
+- skiboot 5.10.2
+
+  - Tie tm-suspend fw-feature and opal_reinit_cpus() together
+
+- kernel: Move to Linux 4.14.24-openpower1
