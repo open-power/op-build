@@ -4,14 +4,23 @@ The OpenPOWER firmware build process uses Buildroot to create a toolchain and
 build the various components of the PNOR firmware, including Hostboot, Skiboot,
 OCC, Petitboot etc.
 
+## Documentation
+
+https://open-power.github.io/op-build/
+
+See the doc/ directory for documentation source. Contributions
+are *VERY* welcome!
+
 ## Development
 
 Issues, Milestones, pull requests and code hosting is on GitHub:
 https://github.com/open-power/op-build
 
-Mailing list: openpower-firmware@lists.ozlabs.org  
-Info/Subscribe: https://lists.ozlabs.org/listinfo/openpower-firmware  
-Archives: https://lists.ozlabs.org/pipermail/openpower-firmware/
+See [CONTRIBUTING.md](CONTRIBUTING.md) for howto contribute code.
+
+* Mailing list: openpower-firmware@lists.ozlabs.org
+* Info/Subscribe: https://lists.ozlabs.org/listinfo/openpower-firmware  
+* Archives: https://lists.ozlabs.org/pipermail/openpower-firmware/
 
 ## Building an image
 
@@ -25,7 +34,9 @@ op-build palmetto_defconfig && op-build
 ```
 
 There are also default configurations for other platforms in
-`openpower/configs/` such as Habanero and Firestone.
+`openpower/configs/`. Current POWER8 platforms include Habanero,
+Firestone, and Garrison. Current POWER9 platforms include Witherspoon,
+Boston (p9dsu), Romulus, and Zaius.
 
 Buildroot/op-build supports both native and cross-compilation - it will
 automatically download and build an appropriate toolchain as part of the build
