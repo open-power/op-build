@@ -19,6 +19,7 @@ do with building the full firmware image.
    introduction
    testing
    process/index
+   boot-devices
    versioning
    release-notes/index
 
