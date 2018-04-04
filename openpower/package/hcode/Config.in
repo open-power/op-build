@@ -1,0 +1,19 @@
+config BR2_PACKAGE_HCODE
+        bool "hcode"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
+        select BR2_CPP
+        help
+            Project to build the hcode firmware codebase
+
+config BR2_HCODE_INCLUDE_IONV
+        bool "Enables packaging of the IONV image into the final hw image"
+        default n
+        help
+            Boolean used to flag whether to include IONV GPU binary
+
+config BR2_USE_PRE_COMPILED_HCODE
+        bool "Forces pre-compiled HCODE from hostboot-binaries to be used instead of hcode source"
+        default y
+        help
+            Boolean used to flag whether to use hcode repo to build hw image
+
