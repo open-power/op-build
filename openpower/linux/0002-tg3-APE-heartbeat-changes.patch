@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Prashant Sreedharan <prashant.sreedharan@broadcom.com>
 Date: Mon, 19 Feb 2018 12:27:04 +0530
-Subject: [PATCH 2/3] tg3: APE heartbeat changes
+Subject: [PATCH 2/4] tg3: APE heartbeat changes
 
 In ungraceful host shutdown or driver crash case BMC connectivity is
 lost. APE firmware is missing the driver state in this
