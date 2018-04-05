@@ -1,0 +1,86 @@
+From a1f98d850d356001d37242ccf13f94114bd6378c Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Tue, 13 Mar 2018 15:44:05 +0300
+Subject: [PATCH] Fill empty sensor id to reserved id 0xFF
+
+
+Hank Chang: This patch achieves the following goals:
+a. Auto set all empty sensors with reserved ID - 0xFF instead of being 0x0 in
+   the mrw process (would cause some duplicate sensor@0 in skiboot)
+b. In this way, they could simply save 128 empty DIMM_Temp* IDs to become
+   all 0xFF, and OCC would still report all the non-zero ID's DIMM_Temp*
+   reading in the poll response.
+   And then, apply another "occ-0001-Add-DIMM-temperature-sensors.patch"
+   can customize/override these 0xFF temp_sid again based on the different
+   CPU/Cen/DIMM index which can be decoded by OpenBMC accordingly.
+c. Just simply prints the "N/A" (0xFF) string in the *.rpt file for reviewing
+   all the undefined/reserved sensor targets.
+
+Originally created by MSI (S188)
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/usr/ipmi/ipmisensor.C              |  5 +----
+ src/usr/targeting/common/processMrw.pl | 21 ++++++++++++++++++---
+ 2 files changed, 19 insertions(+), 7 deletions(-)
+
+diff --git a/src/usr/ipmi/ipmisensor.C b/src/usr/ipmi/ipmisensor.C
+index 4aa1c9f4b..a5bded63a 100644
+--- a/src/usr/ipmi/ipmisensor.C
++++ b/src/usr/ipmi/ipmisensor.C
+@@ -216,14 +216,11 @@ namespace SENSOR
+         }
+         else
+         {
+-            TRACFCOMP(g_trac_ipmi,"We were not able to find a sensor number in"
++            TRACFCOMP(g_trac_ipmi,"Found a reserved sensor number (0xFF) in"
+                       " the IPMI_SENSORS attribute for sensor_name=0x%x"
+                       "for target with huid=0x%x, skipping call to "
+                       "sendSetSensorReading()",
+                     iv_name, TARGETING::get_huid( iv_target ));
+-
+-            assert(false);
+-
+         }
+ 
+         return l_err;
+diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
+index 8bfa7bddd..45d250872 100644
+--- a/src/usr/targeting/common/processMrw.pl
++++ b/src/usr/targeting/common/processMrw.pl
+@@ -239,14 +239,29 @@ sub processIpmiSensors {
+                 $sensor_name=$name."_".$name_suffix;
+             }
+             my $attribute_name="";
+-            my $s=sprintf("0x%02X%02X,0x%02X",
+-                  oct($sensor_type),oct($entity_id),oct($sensor_id));
+-            push(@sensors,$s);
++
++            if ($sensor_id ne "")
++            {
++                my $s = sprintf("0x%02X%02X,0x%02X",
++                        oct($sensor_type), oct($entity_id), oct($sensor_id));
++                push(@sensors, $s);
++            }
++            else
++            {
++                my $s = sprintf("0x%02X%02X,0xFF",
++                                oct($sensor_type), oct($entity_id));
++                push(@sensors, $s);
++            }
++
+             my $sensor_id_str = "";
+             if ($sensor_id ne "")
+             {
+                 $sensor_id_str = sprintf("0x%02X",oct($sensor_id));
+             }
++            else
++            {
++                $sensor_id_str = sprintf("N/A");
++            }
+             my $str=sprintf(
+                 " %30s | %10s |  0x%02X  | 0x%02X |    0x%02x   |" .
+                 " %4s | %4d | %4d | %10s | %s\n",
+-- 
+2.14.1
+
