@@ -150,3 +150,15 @@ config BR2_OPENPOWER_PNOR_XZ_ENABLED
 config BR2_BUILD_PNOR_SQUASHFS
         bool "Create a virtual PNOR image along with the standard image"
         default y
+
+config BR2_OPENPOWER_HDAT_BIN_FILENAME
+       string " Name of openpower HDAT binary file"
+       default "hdat.bin"
+       help
+            String used to define name of the HDAT binary file
+config BR2_OPENPOWER_HDAT_ECC_FILENAME
+       string " Name of openpower HDAT binary file with ecc"
+       default "hdat.bin.ecc"
+       help
+            String used to define name of ECC protected HDAT binary file
+
