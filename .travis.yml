@@ -27,6 +27,7 @@ python:
 install:
  - "pip install -r doc/requirements.txt"
 script:
+  - bash openpower/scripts/update-defconfigs.sh
   - cd doc/; make latexpdf html
 
 deploy:
