@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-HCODE_VERSION ?= 270068cbfcb001fa5ccfbb6e8bc18eea22d68487
+HCODE_VERSION ?= a9f12dad7a4f6db9608394dccde8176fe4500224
 HCODE_SITE = $(call github,open-power,hcode,$(HCODE_VERSION))
 
 HCODE_LICENSE = Apache-2.0
