@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-SBE_VERSION ?= 783b420403b7d649b38ffd4772dc422499914449
+SBE_VERSION ?= 6415b1f1bc293f75101320885664320ba5d7a5f2
 SBE_SITE ?= $(call github,open-power,sbe,$(SBE_VERSION))
 
 SBE_LICENSE = Apache-2.0
