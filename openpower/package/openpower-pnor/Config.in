@@ -16,6 +16,8 @@ config BR2_PACKAGE_OPENPOWER_PNOR
         help
             Utilites for building a targeting binary image
 
+menu "OpenPOWER PNOR assembly options"
+
 choice
     prompt "Secure Boot key transition type"
     default BR2_OPENPOWER_SECUREBOOT_NO_KEY_TRANSITION
@@ -159,3 +161,5 @@ config BR2_OPENPOWER_PNOR_XZ_ENABLED
 config BR2_BUILD_PNOR_SQUASHFS
         bool "Create a virtual PNOR image along with the standard image"
         default y
+
+endmenu
