@@ -5,9 +5,12 @@ config BR2_PACKAGE_HCODE
         help
             Project to build the hcode firmware codebase
 
+if BR2_PACKAGE_HCODE
+
 config BR2_HCODE_INCLUDE_IONV
         bool "Enables packaging of the NVIDIA GPU image into the final hw image"
         default y
         help
             Boolean used to flag whether to include NVIDIA GPU binary
 
+endif
