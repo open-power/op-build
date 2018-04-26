@@ -24,6 +24,9 @@ OCC_IMAGE_BIN_PATH = $(if $(BR2_OPENPOWER_POWER9),obj/image.bin,src/image.bin)
 
 OCC_DEPENDENCIES_P8 = host-binutils host-p8-pore-binutils
 OCC_DEPENDENCIES_P9 = host-binutils host-ppe42-gcc hostboot-binaries
+ifeq ($(BR2_OCC_GPU_BIN_BUILD),y)
+	OCC_DEPENDENCIES_P9 += hostboot-binaries
+endif
 OCC_DEPENDENCIES ?= $(if $(BR2_OPENPOWER_POWER9),$(OCC_DEPENDENCIES_P9),$(OCC_DEPENDENCIES_P8))
 
 define OCC_APPLY_PATCHES

@@ -13,6 +13,7 @@ config BR2_OCC_BIN_FILENAME
 config BR2_OCC_GPU_BIN_BUILD
         bool "Enables Compilation of GPU Binary Image"
         default n
+        select BR2_PACKAGE_HOSTBOOT_BINARIES
         help
             Boolean used to flag whether to compile OCC GPU binary
 
