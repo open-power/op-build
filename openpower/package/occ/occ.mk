@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-OCC_VERSION ?= cd30b100eee09956a27b69f7893349451400e5ba
+OCC_VERSION = $(call qstrip,$(BR2_OCC_VERSION))
+OCC_SITE = $(call github,open-power,occ,$(OCC_VERSION))
 
-OCC_SITE ?= $(call github,open-power,occ,$(OCC_VERSION))
 OCC_LICENSE = Apache-2.0
 
 OCC_LICENSE_FILES = LICENSE
