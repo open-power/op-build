@@ -1,13 +1,43 @@
 config BR2_PACKAGE_HOSTBOOT
         bool "hostboot"
-        default y if (BR2_OPENPOWER_PLATFORM)
+        default y if (BR2_OPENPOWER_POWER9)
         select BR2_CPP
         help
             Project to build the hostboot firmware codebase
 
+if BR2_PACKAGE_HOSTBOOT
+
+choice
+	prompt "Hostboot version"
+	default BR2_HOSTBOOT_OP920_VERSION
+
+config BR2_HOSTBOOT_OP920_VERSION
+	bool "Use latest Hostboot stable version (OP920)"
+
+config BR2_HOSTBOOT_LATEST_VERSION
+	bool "Use latest Hostboot master"
+
+config BR2_HOSTBOOT_CUSTOM_VERSION
+	bool "Custom version"
+
+endchoice
+
+config BR2_HOSTBOOT_CUSTOM_VERSION_VALUE
+	string "hostboot version"
+	depends on BR2_HOSTBOOT_CUSTOM_VERSION
+
+config BR2_HOSTBOOT_VERSION
+	string
+	default "c38615a583b7f19c0ae6a5a152b575fe61ff3d2a" if BR2_HOSTBOOT_LATEST_VERSION
+	default "c78530bd29942282e2345295af1f157f0a8eefd7" if BR2_HOSTBOOT_OP920_VERSION
+	default BR2_HOSTBOOT_CUSTOM_VERSION_VALUE \
+		if BR2_HOSTBOOT_CUSTOM_VERSION
 
 config BR2_HOSTBOOT_CONFIG_FILE
         string "Hostboot configuration file for compilation"
         default default
         help
             String used to define hw specific make config file
+
+endif
+
