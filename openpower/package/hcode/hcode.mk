@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-HCODE_VERSION = $(call qstrip,$(BR2_HCODE_VERSION))
+HCODE_VERSION ?= b42d27310905144f4254c8a7a1c0ad3656736421
 HCODE_SITE = $(call github,open-power,hcode,$(HCODE_VERSION))
 
 HCODE_LICENSE = Apache-2.0
