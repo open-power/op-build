@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-LIBFLASH_VERSION = v5.10.1
-LIBFLASH_SITE = $(call github,open-power,skiboot,$(LIBFLASH_VERSION))
+LIBFLASH_VERSION ?= v5.10.1
+LIBFLASH_SITE ?= $(call github,open-power,skiboot,$(LIBFLASH_VERSION))
 
 LIBFLASH_INSTALL_STAGING = YES
 LIBFLASH_INSTALL_TARGET = YES
