@@ -5,7 +5,7 @@
 ################################################################################
 
 
-HOSTBOOT_BINARIES_VERSION = $(call qstrip,$(BR2_HOSTBOOT_BINARIES_VERSION))
+HOSTBOOT_BINARIES_VERSION ?= 9bce4ba22cff29d028d76f0d4c097e402aaa1f6a
 HOSTBOOT_BINARIES_SITE ?= $(call github,open-power,hostboot-binaries,$(HOSTBOOT_BINARIES_VERSION))
 
 HOSTBOOT_BINARIES_LICENSE = Apache-2.0
