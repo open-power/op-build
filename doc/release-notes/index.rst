@@ -13,3 +13,4 @@ op-build Release Notes
    v1.21.2
    v1.22-rc1
    v1.22
+   v2.0-rc1
