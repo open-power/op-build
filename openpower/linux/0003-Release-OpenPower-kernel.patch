@@ -1,9 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Joel Stanley <joel@jms.id.au>
-Date: Thu, 3 May 2018 12:21:12 +0930
-Subject: [PATCH 2/2] Release OpenPower kernel
+From: Stewart Smith <stewart@linux.ibm.com>
+Date: Fri, 11 May 2018 17:41:12 -0700
+Subject: [PATCH 3/3] Release OpenPower kernel
 
-Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Stewart Smith <stewart@linux.ibm.com>
 ---
  Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -17,7 +17,7 @@ index 1c5d5d8c45e2..ea0dccd03e90 100644
  PATCHLEVEL = 16
  SUBLEVEL = 7
 -EXTRAVERSION =
-+EXTRAVERSION = -openpower1
++EXTRAVERSION = -openpower2
  NAME = Fearless Coyote
  
  # *DOCUMENTATION*
