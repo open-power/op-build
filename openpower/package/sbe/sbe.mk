@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-SBE_VERSION = $(call qstrip,$(BR2_SBE_VERSION))
+SBE_VERSION ?= af40291dc92d9e67173b7d538cb580c4aa557fee
 SBE_SITE = $(call github,open-power,sbe,$(SBE_VERSION))
 
 SBE_LICENSE = Apache-2.0
