@@ -1,7 +1,7 @@
-From 65c085a4b6b757778f2ebb1f596a6091d1d96bc8 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Anju T Sudhakar <anju@linux.vnet.ibm.com>
 Date: Fri, 11 May 2018 19:13:42 +0530
-Subject: [PATCH] powerpc/perf: Fix memory allocation for core-imc based on
+Subject: [PATCH 3/4] powerpc/perf: Fix memory allocation for core-imc based on
  num_possible_cpus()
 
 Currently memory is allocated for core-imc based on cpu_present_mask, which has
@@ -23,7 +23,9 @@ bit 'cpu' set iff cpu is populatable, will fix this issue.
 
 Reported-by: Pridhiviraj Paidipeddi <ppaidipe@linux.vnet.ibm.com>
 Signed-off-by: Anju T Sudhakar <anju@linux.vnet.ibm.com>
-Signed-off-by: Stewart Smith <stewart@linux.ibm.com>
+Reviewed-by: Balbir Singh <bsingharora@gmail.com>
+Message-Id: <1526046222-17842-1-git-send-email-anju@linux.vnet.ibm.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
  arch/powerpc/perf/imc-pmu.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
@@ -50,6 +52,3 @@ index d7532e7b9ab5..75fb23c24ee8 100644
  		pmu_ptr->mem_info = kcalloc(nr_cores, sizeof(struct imc_mem_info),
  								GFP_KERNEL);
  
--- 
-2.14.3
-
