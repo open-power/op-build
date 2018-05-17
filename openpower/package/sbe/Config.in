@@ -10,7 +10,7 @@ if BR2_PACKAGE_SBE
 
 choice
 	prompt "SBE version"
-	default BR2_SBE_OP920_VERSION
+	default BR2_SBE_LATEST_VERSION
 
 config BR2_SBE_OP920_VERSION
 	bool "Use latest SBE stable version (OP920)"
