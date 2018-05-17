@@ -11,9 +11,6 @@ choice
 	prompt "Hostboot version"
 	default BR2_HOSTBOOT_LATEST_VERSION
 
-config BR2_HOSTBOOT_OP920_VERSION
-	bool "Use latest Hostboot stable version (OP920)"
-
 config BR2_HOSTBOOT_LATEST_VERSION
 	bool "Use latest Hostboot master"
 
@@ -29,7 +26,6 @@ config BR2_HOSTBOOT_CUSTOM_VERSION_VALUE
 config BR2_HOSTBOOT_VERSION
 	string
 	default "c4b9c94600ccc933ccb2dcb7563a6e5423d30153" if BR2_HOSTBOOT_LATEST_VERSION
-	default "8e05a4399bf567a49f91cfee8ad24b3896e96982" if BR2_HOSTBOOT_OP920_VERSION
 	default BR2_HOSTBOOT_CUSTOM_VERSION_VALUE \
 		if BR2_HOSTBOOT_CUSTOM_VERSION
 
