@@ -15,10 +15,7 @@ config BR2_HCODE_INCLUDE_IONV
 
 choice
 	prompt "HCODE version"
-	default BR2_HCODE_OP920_VERSION
-
-config BR2_HCODE_OP920_VERSION
-	bool "Use latest HCODE stable version (OP920)"
+	default BR2_HCODE_LATEST_VERSION
 
 config BR2_HCODE_LATEST_VERSION
 	bool "Use latest HCODE master"
@@ -34,8 +31,7 @@ config BR2_HCODE_CUSTOM_VERSION_VALUE
 
 config BR2_HCODE_VERSION
 	string
-	default "hw051018a.920" if BR2_HCODE_LATEST_VERSION
-	default "hw051018a.op920" if BR2_HCODE_OP920_VERSION
+	default "hw051618a.920" if BR2_HCODE_LATEST_VERSION
 	default BR2_HCODE_CUSTOM_VERSION_VALUE \
 		if BR2_HCODE_CUSTOM_VERSION
 
