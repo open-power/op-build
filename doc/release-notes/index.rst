@@ -15,3 +15,4 @@ op-build Release Notes
    v1.22
    v2.0-rc1
    v2.0
+   v2.0.1
