@@ -145,6 +145,8 @@ foreach my $p (@common_platforms) {
     next if $p =~ /redbud/;
     next if $p =~ /pseries/;
     next if $p =~ /witherspoon-redbud/;
+    next if $p =~ /p9dsu_dev/;
+    next if $p =~ /witherspoon_dev/;
     if ($p =~ /witherspoon-sequoia/) {
 	    $p = "witherspoon";
 	    $witherspoon_insanity = 1;
