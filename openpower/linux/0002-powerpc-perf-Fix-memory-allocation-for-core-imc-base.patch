@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Anju T Sudhakar <anju@linux.vnet.ibm.com>
 Date: Fri, 11 May 2018 19:13:42 +0530
-Subject: [PATCH 3/4] powerpc/perf: Fix memory allocation for core-imc based on
+Subject: [PATCH 2/3] powerpc/perf: Fix memory allocation for core-imc based on
  num_possible_cpus()
 
 Currently memory is allocated for core-imc based on cpu_present_mask, which has
