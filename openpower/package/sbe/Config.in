@@ -2,5 +2,32 @@ config BR2_PACKAGE_SBE
         bool "sbe"
         default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
         select BR2_CPP
+        depends on BR2_PACKAGE_HCODE
         help
             Project to build the sbe firmware codebase
+
+if BR2_PACKAGE_SBE
+
+choice
+	prompt "SBE version"
+	default BR2_SBE_LATEST_VERSION
+
+config BR2_SBE_LATEST_VERSION
+	bool "Use latest SBE master"
+
+config BR2_SBE_CUSTOM_VERSION
+	bool "Custom SBE version"
+
+endchoice
+
+config BR2_SBE_CUSTOM_VERSION_VALUE
+	string "SBE version"
+	depends on BR2_SBE_CUSTOM_VERSION
+
+config BR2_SBE_VERSION
+	string
+	default "02f710ae2d11e1a5edbfc45787f4625803411348" if BR2_SBE_LATEST_VERSION
+	default BR2_SBE_CUSTOM_VERSION_VALUE \
+		if BR2_SBE_CUSTOM_VERSION
+
+endif

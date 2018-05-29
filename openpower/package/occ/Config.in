@@ -1,18 +1,22 @@
 config BR2_PACKAGE_OCC
-        bool "occ"
-        default y if (BR2_OPENPOWER_PLATFORM)
+        bool "OCC (POWER9)"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
         select BR2_CPP
         help
             Project to build OCC
 
+if BR2_PACKAGE_OCC
+
 config BR2_OCC_BIN_FILENAME
-        string "Name of OCC image file"
+        string "Name of OCC P9 image file"
+	default "occ.bin"
         help
             String used to define name of the OCC binary image file
 
 config BR2_OCC_GPU_BIN_BUILD
         bool "Enables Compilation of GPU Binary Image"
         default n
+        select BR2_PACKAGE_HOSTBOOT_BINARIES
         help
             Boolean used to flag whether to compile OCC GPU binary
 
@@ -20,4 +24,28 @@ config BR2_OCC_GPU_GPE_BIN_FILENAME
         string "Name of OCC GPU GPE Binary file"
         help
             String used to define name of the OCC GPUE GPE binary image file
+
+choice
+	prompt "OCC version"
+	default BR2_OCC_LATEST_VERSION
+
+config BR2_OCC_LATEST_VERSION
+	bool "Use latest OCC master"
+
+config BR2_OCC_CUSTOM_VERSION
+	bool "Custom OCC version"
+
+endchoice
+
+config BR2_OCC_CUSTOM_VERSION_VALUE
+	string "OCC version"
+	depends on BR2_OCC_CUSTOM_VERSION
+
+config BR2_OCC_VERSION
+	string
+	default "77bb5e602b4aa3421e38af2b8fadb55bb2e9496b" if BR2_OCC_LATEST_VERSION
+	default BR2_OCC_CUSTOM_VERSION_VALUE \
+		if BR2_OCC_CUSTOM_VERSION
+
+endif
 

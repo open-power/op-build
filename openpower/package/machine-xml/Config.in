@@ -1,3 +1,5 @@
+menu "Machine XML (MRW)"
+
 config BR2_PACKAGE_MACHINE_XML
         bool "machine_xml"
         default y if (BR2_OPENPOWER_PLATFORM)
@@ -61,3 +63,5 @@ config BR2_OPENPOWER_BIOS_XML_FILENAME
         default ""
         help
             Defines the name of the BIOS XML filename to parse when generating BIOS metadata
+
+endmenu

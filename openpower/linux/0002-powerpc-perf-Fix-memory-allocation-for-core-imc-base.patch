@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Anju T Sudhakar <anju@linux.vnet.ibm.com>
+Date: Fri, 11 May 2018 19:13:42 +0530
+Subject: [PATCH 2/3] powerpc/perf: Fix memory allocation for core-imc based on
+ num_possible_cpus()
+
+Currently memory is allocated for core-imc based on cpu_present_mask, which has
+bit 'cpu' set iff cpu is populated. We use  (cpu number / threads per core)
+as as array index to access the memory.
+So in a system with guarded cores, since allocation happens based on
+cpu_present_mask, (cpu number / threads per core) bounds the index and leads
+to memory overflow.
+
+The issue is exposed in a guard test.
+The guard test will make some CPU's as un-available to the system during boot
+time as well as at runtime. So when the cpu is unavailable to the system during
+boot time, the memory allocation happens depending on the number of available
+cpus. And when we access the memory using (cpu number / threads per core) as the
+index the system crashes due to memory overflow.
+
+Allocating memory for core-imc based on cpu_possible_mask, which has
+bit 'cpu' set iff cpu is populatable, will fix this issue.
+
+Reported-by: Pridhiviraj Paidipeddi <ppaidipe@linux.vnet.ibm.com>
+Signed-off-by: Anju T Sudhakar <anju@linux.vnet.ibm.com>
+Reviewed-by: Balbir Singh <bsingharora@gmail.com>
+Message-Id: <1526046222-17842-1-git-send-email-anju@linux.vnet.ibm.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ arch/powerpc/perf/imc-pmu.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/powerpc/perf/imc-pmu.c b/arch/powerpc/perf/imc-pmu.c
+index d7532e7b9ab5..75fb23c24ee8 100644
+--- a/arch/powerpc/perf/imc-pmu.c
++++ b/arch/powerpc/perf/imc-pmu.c
+@@ -1146,7 +1146,7 @@ static int init_nest_pmu_ref(void)
+ 
+ static void cleanup_all_core_imc_memory(void)
+ {
+-	int i, nr_cores = DIV_ROUND_UP(num_present_cpus(), threads_per_core);
++	int i, nr_cores = DIV_ROUND_UP(num_possible_cpus(), threads_per_core);
+ 	struct imc_mem_info *ptr = core_imc_pmu->mem_info;
+ 	int size = core_imc_pmu->counter_mem_size;
+ 
+@@ -1264,7 +1264,7 @@ static int imc_mem_init(struct imc_pmu *pmu_ptr, struct device_node *parent,
+ 		if (!pmu_ptr->pmu.name)
+ 			return -ENOMEM;
+ 
+-		nr_cores = DIV_ROUND_UP(num_present_cpus(), threads_per_core);
++		nr_cores = DIV_ROUND_UP(num_possible_cpus(), threads_per_core);
+ 		pmu_ptr->mem_info = kcalloc(nr_cores, sizeof(struct imc_mem_info),
+ 								GFP_KERNEL);
+ 
