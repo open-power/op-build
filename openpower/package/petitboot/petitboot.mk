@@ -4,22 +4,18 @@
 #
 ################################################################################
 
-PETITBOOT_VERSION = v1.7.1
-PETITBOOT_SITE ?= $(call github,open-power,petitboot,$(PETITBOOT_VERSION))
+PETITBOOT_VERSION = 1.8.0
+PETITBOOT_SOURCE = petitboot-$(PETITBOOT_VERSION).tar.gz
+PETITBOOT_SITE ?= https://github.com/open-power/petitboot/releases/download/v$(PETITBOOT_VERSION)
 PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
 PETITBOOT_LICENSE = GPLv2
 PETITBOOT_LICENSE_FILES = COPYING
 
-PETITBOOT_AUTORECONF = YES
-PETITBOOT_AUTORECONF_OPTS = -i
-PETITBOOT_GETTEXTIZE = YES
 PETITBOOT_CONF_OPTS += --with-ncurses --without-twin-x11 --without-twin-fbdev \
 	      --localstatedir=/var \
 	      HOST_PROG_KEXEC=/usr/sbin/kexec \
 	      HOST_PROG_SHUTDOWN=/usr/libexec/petitboot/bb-kexec-reboot \
 	      $(if $(BR2_PACKAGE_BUSYBOX),--with-tftp=busybox --enable-busybox)
-
-PETITBOOT_AUTORECONF_ENV += PETITBOOT_VERSION=`cat $(PETITBOOT_VERSION_FILE) | cut -d '-' -f 2-`
 
 ifdef PETITBOOT_DEBUG
 PETITBOOT_CONF_OPTS += --enable-debug
@@ -35,8 +31,6 @@ endif
 ifeq ($(BR2_PACKAGE_NCURSES_WCHAR),y)
 PETITBOOT_CONF_OPTS += --with-ncursesw MENU_LIB=-lmenuw FORM_LIB=-lformw
 endif
-
-PETITBOOT_PRE_CONFIGURE_HOOKS += PETITBOOT_PRE_CONFIGURE_BOOTSTRAP
 
 define PETITBOOT_POST_INSTALL
 	$(INSTALL) -D -m 0755 $(@D)/utils/bb-kexec-reboot \
