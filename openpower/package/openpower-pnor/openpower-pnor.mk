@@ -167,7 +167,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
         fi
 
-	    tar --transform 's/.*\///g' -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar $(FILES_TO_TAR)
+	    tar --transform 's/.*\//host_fw_debug/g' -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar $(FILES_TO_TAR)
 
 endef
 
