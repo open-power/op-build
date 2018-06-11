@@ -72,6 +72,14 @@ OUTPUT_BUILD_DIR = $(STAGING_DIR)/../../../build/
 OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/../../../staging/hostboot_build_images/
 
+ifneq ("$(wildcard $($(HOSTBOOT_IMAGE_DIR)/genHDATstructures.pl))","")
+    echo " genHDATstructures.pl found. So creating HDAT partitions"
+    perl -I $(HOSTBOOT_IMAGE_DIR)
+    $(HOSTBOOT_IMAGE_DIR)/genHDATstructures.pl -x $(MRW_SCRATCH)/$(BR2_OPENPOWER_MACHINE_XML_FILENAME)
+    $(HOSTBOOT_IMAGE_DIR)/genHdatBin.pl
+endif
+
+
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-*/skiboot.elf \
                $(OUTPUT_BUILD_DIR)/skiboot-*/skiboot.map \
@@ -124,6 +132,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -ima_catalog_binary_filename $(BINARIES_DIR)/$(BR2_IMA_CATALOG_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
             -wof_binary_filename $(OPENPOWER_MRW_SCRATCH_DIR)/$(BR2_WOFDATA_FILENAME) \
+			-hdat_binary_filename $(HOSTBOOT_IMAGE_DIR)/$(BR2_HDATDATA_FILENAME) \
             -memd_binary_filename $(OPENPOWER_MRW_SCRATCH_DIR)/$(BR2_MEMDDATA_FILENAME) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
             -payload_filename $(BR2_SKIBOOT_LID_XZ_NAME) \
@@ -148,6 +157,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -occ_binary_filename $(OCC_STAGING_DIR)/$(OCC_BIN_FILENAME) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -wofdata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_WOFDATA_BINARY_FILENAME) \
+			-hdat_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_HDATDATA_BINARY_FILENAME) \
             -memddata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_MEMDDATA_BINARY_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE)
 
