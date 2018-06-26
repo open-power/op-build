@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index e551c9af6a06..1ec18f8a0e72 100644
+index 31dc3a08295a..0b03fdaf7349 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 17
- SUBLEVEL = 1
+ SUBLEVEL = 3
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Merciless Moray
