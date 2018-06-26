@@ -1,0 +1,26 @@
+From e5b31a0544d17dea4252355545bfb569ebc5fa6a Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Mon, 25 Jun 2018 18:50:27 +0300
+Subject: [PATCH] Fix incorrect syntax in calling shell script
+
+Invalid redirection couses error 'Syntax error: Bad fd number'
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/build/tools/addimgid | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/build/tools/addimgid b/src/build/tools/addimgid
+index 34d633ea6..ebf21c455 100755
+--- a/src/build/tools/addimgid
++++ b/src/build/tools/addimgid
+@@ -52,5 +52,5 @@ if (($imageId =~ m/Unknown-Image/) ||  	# Couldn't find git describe tag.
+     $imageId = $imageId."/".$ENV{"USER"};
+ }
+ 
+-system("echo -n $imageId | dd of=$img conv=notrunc bs=1 seek=$address count=127 >& /dev/null");
++system("echo -n $imageId | dd of=$img conv=notrunc bs=1 seek=$address count=127");
+ exit $?
+-- 
+2.17.1
+

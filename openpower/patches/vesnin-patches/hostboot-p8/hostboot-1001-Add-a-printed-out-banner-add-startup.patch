@@ -1,0 +1,64 @@
+From fe8964b42bf038efcb5ef0862969d9cb46c0c953 Mon Sep 17 00:00:00 2001
+From: "William A. Kennington III" <wak@google.com>
+Date: Thu, 2 Mar 2017 14:53:17 -0800
+Subject: [PATCH] hostboot: Add a printed out banner add startup
+
+This better clarifies the ImageId immediately to the end user.
+
+Resolves #90
+
+Signed-off-by: William A. Kennington III <wak@google.com>
+Change-Id: Ieab56b9d1902aebbbf9f4f093f0a4a13c41d81f7
+Reviewed-on: http://ralgit01.raleigh.ibm.com/gerrit1/37457
+Reviewed-by: William G. Hoffa <wghoffa@us.ibm.com>
+Tested-by: Jenkins Server <pfd-jenkins+hostboot@us.ibm.com>
+Tested-by: Jenkins OP Build CI <op-jenkins+hostboot@us.ibm.com>
+Tested-by: FSP CI Jenkins <fsp-CI-jenkins+hostboot@us.ibm.com>
+Reviewed-by: Dean Sanner <dsanner@us.ibm.com>
+Reviewed-by: Daniel M. Crowell <dcrowell@us.ibm.com>
+---
+ src/usr/console/daemon.C | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/src/usr/console/daemon.C b/src/usr/console/daemon.C
+index a501920ff..b51122561 100644
+--- a/src/usr/console/daemon.C
++++ b/src/usr/console/daemon.C
+@@ -5,9 +5,9 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2014                             */
+-/* [+] International Business Machines Corp.                              */
++/* Contributors Listed Below - COPYRIGHT 2014,2017                        */
+ /* [+] Google Inc.                                                        */
++/* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+@@ -32,6 +32,8 @@
+ #include "uart.H"
+ #include "daemon.H"
+ 
++extern char hbi_ImageId[];
++
+ namespace CONSOLE
+ {
+     extern msg_q_t g_msgq;
+@@ -70,6 +72,13 @@ namespace CONSOLE
+             Uart::g_device->initialize();
+         }
+ 
++        // Display a banner denoting the hostboot version
++        char banner[256];
++        snprintf(banner, sizeof(banner),
++                 "\n\n--== Welcome to Hostboot %s ==--\n\n",
++                 hbi_ImageId);
++        _display(banner);
++
+         while(1)
+         {
+             msg_t* msg = msg_wait(g_msgq);
+-- 
+2.17.1
+
