@@ -1,6 +1,14 @@
 Release Notes for OpenPower Firmware v2.1
 =========================================
 
+op-build v2.1 was released on Thursday July 12th, 2018. It is the new stable release of op-build, following on from v2.0, first released on May 16th 2018.
+
+op-build v2.1 contains all the fixes as of op-build v2.0.3, and we expect to continue to do stable 2.0.y releases of v2.0 into the forseeable future.
+
+This release is largely small and incremental changes on top of op-build v2.0 rather than containing anything major.
+
+Over op-build v2.0, this release contains the following changes:
+
 Removed platforms
 -----------------
 
