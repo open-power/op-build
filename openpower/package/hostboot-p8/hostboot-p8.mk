@@ -3,9 +3,9 @@
 # hostboot for POWER8
 #
 ################################################################################
-HOSTBOOT_P8_VERSION ?= d3025f5d7ddd0723946bb54fcb471d2bf1fd2da4
+HOSTBOOT_P8_VERSION ?= 9f111224514250f4ecf8f52d242512cc377f2fe6
 
-HOSTBOOT_P8_SITE ?= $(call github,open-power,hostboot,$(HOSTBOOT_P8_VERSION))
+HOSTBOOT_P8_SITE ?= $(call github,shenki,hostboot,$(HOSTBOOT_P8_VERSION))
 
 HOSTBOOT_P8_LICENSE = Apache-2.0
 HOSTBOOT_P8_LICENSE_FILES = LICENSE
