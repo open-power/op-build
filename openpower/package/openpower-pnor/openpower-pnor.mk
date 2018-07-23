@@ -4,12 +4,12 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= 864bec404e8d5a5ee19e3d5478b290cdf6ef7cab
+OPENPOWER_PNOR_VERSION ?= f6d970c6a600a7e248fa5d604eb471db4482760b
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_DEPENDENCIES = hostboot hostboot-binaries machine-xml skiboot host-openpower-ffs occ capp-ucode
+OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
 OPENPOWER_PNOR_DEPENDENCIES += hcode
@@ -82,12 +82,25 @@ FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
 
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
-OPENPOWER_VERSIONED_SUBPACKAGES = skiboot hostboot linux petitboot machine-xml occ hostboot-binaries capp-ucode
+OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
+ifeq ($(BR2_PACKAGE_HOSTBOOT_P8),y)
+OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p8 occ-p8
+endif
+ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
+OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
+endif
+OPENPOWER_VERSIONED_SUBPACKAGES += linux petitboot machine-xml hostboot-binaries capp-ucode
 OPENPOWER_PNOR = openpower-pnor
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
-    OPENPOWER_PNOR_DEPENDENCIES += sbe
-    OPENPOWER_VERSIONED_SUBPACKAGES += sbe
+    OPENPOWER_PNOR_DEPENDENCIES += sbe hcode
+    OPENPOWER_VERSIONED_SUBPACKAGES += sbe hcode
+endif
+
+ifeq ($(BR2_PACKAGE_OCC_P8),y)
+    OCC_BIN_FILENAME=$(BR2_OCC_P8_BIN_FILENAME)
+else
+    OCC_BIN_FILENAME=$(BR2_OCC_BIN_FILENAME)
 endif
 
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
@@ -106,7 +119,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -sbe_binary_dir $(SBE_BINARY_DIR) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
-            -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
+            -occ_binary_filename $(OCC_STAGING_DIR)/$(OCC_BIN_FILENAME) \
             -capp_binary_filename $(BINARIES_DIR)/$(BR2_CAPP_UCODE_BIN_FILENAME) \
             -ima_catalog_binary_filename $(BINARIES_DIR)/$(BR2_IMA_CATALOG_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE) \
@@ -132,7 +145,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \
-            -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_BIN_FILENAME) \
+            -occ_binary_filename $(OCC_STAGING_DIR)/$(OCC_BIN_FILENAME) \
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -wofdata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_WOFDATA_BINARY_FILENAME) \
             -memddata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_MEMDDATA_BINARY_FILENAME) \
@@ -150,14 +163,14 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         # If this is a VPNOR system, run the generate-squashfs command and
         # create a tarball
         if [ "$(BR2_BUILD_PNOR_SQUASHFS)" == "y" ]; then \
-            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME); \
+            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
         fi
 
 	#Create Debug Tarball
 	mkdir -p $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
-        cp -r $(FILES_TO_TAR) $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
-        tar -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar -C .
+  cp -r $(FILES_TO_TAR) $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
+  tar -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar -C .
 
 endef
 

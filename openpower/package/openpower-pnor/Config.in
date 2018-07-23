@@ -1,11 +1,13 @@
 config BR2_PACKAGE_OPENPOWER_PNOR
         bool "openpower_pnor"
         default y if (BR2_OPENPOWER_PLATFORM)
-        select BR2_PACKAGE_HOSTBOOT
+        select BR2_PACKAGE_HOSTBOOT if !BR2_OPENPOWER_POWER8
+        select BR2_PACKAGE_HOSTBOOT_P8 if BR2_OPENPOWER_POWER8
         select BR2_PACKAGE_HOSTBOOT_BINARIES
         select BR2_PACKAGE_SKIBOOT
         select BR2_PACKAGE_OPENPOWER_FFS
-        select BR2_PACKAGE_OCC
+        select BR2_PACKAGE_OCC if !BR2_OPENPOWER_POWER8
+        select BR2_PACKAGE_OCC_P8 if BR2_OPENPOWER_POWER8
         select BR2_PACKAGE_CAPP_UCODE
         select BR2_PACKAGE_IMA_CATALOG
         select BR2_PACKAGE_HOST_OPENPOWER_VPNOR
@@ -13,6 +15,8 @@ config BR2_PACKAGE_OPENPOWER_PNOR
         select BR2_PACKAGE_HCODE if BR2_OPENPOWER_POWER9
         help
             Utilites for building a targeting binary image
+
+menu "OpenPOWER PNOR assembly options"
 
 choice
     prompt "Secure Boot key transition type"
@@ -157,3 +161,5 @@ config BR2_OPENPOWER_PNOR_XZ_ENABLED
 config BR2_BUILD_PNOR_SQUASHFS
         bool "Create a virtual PNOR image along with the standard image"
         default y
+
+endmenu

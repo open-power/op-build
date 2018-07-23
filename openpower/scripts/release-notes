@@ -14,6 +14,8 @@ my $dbh = DBI->connect($db,undef,undef, {AutoCommit => 1, RaiseError=>1});
 my $repos =
 {
     'op-build' => { REPO => "https://github.com/open-power/op-build" },
+    'hcode'    => { REPO => "https://github.com/open-power/hcode" ,
+                    DIR => "openpower/package/hcode" },
     'hostboot' => { REPO => "https://github.com/open-power/hostboot" ,
                     DIR => "openpower/package/hostboot" },
     'sbe'      => { REPO => "https://github.com/open-power/sbe" ,
