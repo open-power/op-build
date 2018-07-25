@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Tue, 3 Jul 2018 16:36:13 +1000
+Subject: [PATCH] udhcp: add option 211, "reboot time"
+
+As defined in RFC 5071.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+---
+ networking/udhcp/common.c | 2 ++
+ networking/udhcp/common.h | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/networking/udhcp/common.c b/networking/udhcp/common.c
+index 52ef875f0..77fb07cdc 100644
+--- a/networking/udhcp/common.c
++++ b/networking/udhcp/common.c
+@@ -65,6 +65,7 @@ const struct dhcp_optflag dhcp_optflags[] = {
+ #endif
+ 	{ OPTION_STRING                           , 0xd1 }, /* DHCP_PXE_CONF_FILE */
+ 	{ OPTION_STRING                           , 0xd2 }, /* DHCP_PXE_PATH_PREFIX */
++	{ OPTION_U32                              , 0xd3 }, /* DHCP_REBOOT_TIME   */
+ 	{ OPTION_6RD                              , 0xd4 }, /* DHCP_6RD           */
+ 	{ OPTION_STATIC_ROUTES | OPTION_LIST      , 0xf9 }, /* DHCP_MS_STATIC_ROUTES */
+ 	{ OPTION_STRING                           , 0xfc }, /* DHCP_WPAD          */
+@@ -133,6 +134,7 @@ const char dhcp_option_strings[] ALIGN1 =
+ #endif
+ 	"pxeconffile" "\0" /* DHCP_PXE_CONF_FILE  */
+ 	"pxepathprefix" "\0" /* DHCP_PXE_PATH_PREFIX  */
++	"reboottime" "\0"  /* DHCP_REBOOT_TIME    */
+ 	"ip6rd" "\0"       /* DHCP_6RD            */
+ 	"msstaticroutes""\0"/* DHCP_MS_STATIC_ROUTES */
+ 	"wpad" "\0"        /* DHCP_WPAD           */
+diff --git a/networking/udhcp/common.h b/networking/udhcp/common.h
+index 50ea9199b..550161934 100644
+--- a/networking/udhcp/common.h
++++ b/networking/udhcp/common.h
+@@ -156,6 +156,7 @@ enum {
+ //#define DHCP_VLAN_PRIORITY    0x85 /* 802.1Q VLAN priority */
+ //#define DHCP_PXE_CONF_FILE    0xd1 /* RFC 5071 Configuration File */
+ //#define DHCP_PXE_PATH_PREFIX  0xd2 /* RFC 5071 Configuration File */
++//#define DHCP_REBOOT_TIME      0xd3 /* RFC 5071 Reboot time */
+ //#define DHCP_MS_STATIC_ROUTES 0xf9 /* Microsoft's pre-RFC 3442 code for 0x79? */
+ //#define DHCP_WPAD             0xfc /* MSIE's Web Proxy Autodiscovery Protocol */
+ #define DHCP_END                0xff
+-- 
+2.18.0
+
