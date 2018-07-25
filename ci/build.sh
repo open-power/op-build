@@ -57,9 +57,9 @@ fi
 
 for distro in $CONTAINERS;
 do
-	base_dockerfile=ci/Dockerfile/$distro.`arch`
+	base_dockerfile=ci/Dockerfile/$distro.`uname -m`
 	if [ ! -f $base_dockerfile ]; then
-	  echo '$distro not supported on `arch`.';
+	  echo "$distro not supported on $(uname -m).";
 	  continue
 	fi
 	if [[ -n "$HTTP_PROXY" ]]; then
