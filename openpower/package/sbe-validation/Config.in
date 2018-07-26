@@ -1,0 +1,32 @@
+config BR2_PACKAGE_SBE_VALIDATION
+        bool "sbe-validation"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
+        select BR2_CPP
+        help
+            Project to build the sbe validation codebase
+
+if BR2_PACKAGE_SBE_VALIDATION
+
+choice
+	prompt "SBE_VALIDATION version"
+	default BR2_SBE_VALIDATION_LATEST_VERSION
+
+config BR2_SBE_VALIDATION_LATEST_VERSION
+	bool "Use latest SBE_VALIDATION master"
+
+config BR2_SBE_VALIDATION_CUSTOM_VERSION
+	bool "Custom SBE_VALIDATION version"
+
+endchoice
+
+config BR2_SBE_VALIDATION_CUSTOM_VERSION_VALUE
+	string "SBE_VALIDATION version"
+	depends on BR2_SBE_VALIDATION_CUSTOM_VERSION
+
+config BR2_SBE_VALIDATION_VERSION
+	string
+	default "687d78e4df0d97852e0c6704159cbdbdb4d4b4a3" if BR2_SBE_VALIDATION_LATEST_VERSION
+	default BR2_SBE_VALIDATION_CUSTOM_VERSION_VALUE \
+		if BR2_SBE_VALIDATION_CUSTOM_VERSION
+
+endif
