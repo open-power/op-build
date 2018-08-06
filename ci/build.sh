@@ -2,11 +2,15 @@
 
 CONTAINERS="ubuntu1604 fedora27"
 
-while getopts ":ahp:c:" opt; do
+while getopts ":ab:hp:c:" opt; do
   case $opt in
     a)
       echo "Build firmware images for all the platforms"
       PLATFORMS=""
+      ;;
+    b)
+      echo "Directory to bind to container: $OPTARG"
+      BIND="$OPTARG"
       ;;
     p)
       echo "Build firmware images for the platforms: $OPTARG"
@@ -20,6 +24,7 @@ while getopts ":ahp:c:" opt; do
       echo "Usage: ./ci/build.sh [options] [--]"
       echo "-h          Print this help and exit successfully."
       echo "-a          Build firmware images for all the platform defconfig's."
+      echo "-b DIR      Bind DIR to container."
       echo "-p          List of comma separated platform names to build images for particular platforms."
       echo "-c          Container to run in"
       echo "Example:DOCKER_PREFIX=sudo ./ci/build.sh -a"
@@ -43,8 +48,13 @@ set -eo pipefail
 
 function run_docker
 {
+	if [ -n "$BIND" ]; then
+		BINDARG="--mount=type=bind,src=${BIND},dst=${BIND}"
+	else
+		BINDARG="--mount=type=bind,src=${PWD},dst=${PWD}"
+	fi
 	$DOCKER_PREFIX docker run --cap-add=sys_admin --net=host --rm=true \
-	 --user="${USER}" -w "${PWD}" -v "${PWD}":"${PWD}":Z \
+	 --user="${USER}" -w "${PWD}" "${BINDARG}" \
          -t $1 $2
 }
 
@@ -78,6 +88,12 @@ do
 	    PROXY="RUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
 	  fi
         fi
+	if [[ -n "DL_DIR" ]]; then
+	  DL_DIR_ENV="ENV DL_DIR $DL_DIR"
+	fi
+	if [[ -n "CCACHE_DIR" ]]; then
+	  CCACHE_DIR_ENV="ENV CCACHE_DIR $CCACHE_DIR"
+	fi
 
 	Dockerfile=$(head -n1 $base_dockerfile; echo ${PROXY}; tail -n +2 $base_dockerfile; cat << EOF
 ${PROXY}
@@ -85,9 +101,11 @@ RUN useradd -d ${HOME} -m -u ${UID} ${USER}
 ENV HOME ${HOME}
 ${HTTP_PROXY_ENV}
 ${HTTPS_PROXY_ENV}
+${DL_DIR_ENV}
+${CCACHE_DIR_ENV}
 EOF
 )
-	$DOCKER_PREFIX docker build -t openpower/op-build-$distro - <<< "${Dockerfile}"
+	$DOCKER_PREFIX docker build --network=host -t openpower/op-build-$distro - <<< "${Dockerfile}"
 	mkdir -p output-images/$distro
 	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh output-images/$distro $PLATFORMS"
 	if [ $? = 0 ]; then
