@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
-Date: Mon, 30 Jul 2018 10:11:26 +0930
+Date: Mon, 6 Aug 2018 09:57:08 +0930
 Subject: [PATCH 2/2] Release OpenPower kernel
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index e2664c641109..14bbfe0fb775 100644
+index 790e8faf0ddc..50a44b3512dc 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 17
- SUBLEVEL = 11
+ SUBLEVEL = 12
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Merciless Moray
