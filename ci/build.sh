@@ -88,6 +88,12 @@ do
 	    PROXY="RUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
 	  fi
         fi
+	if [[ -n "DL_DIR" ]]; then
+	  DL_DIR_ENV="ENV DL_DIR $DL_DIR"
+	fi
+	if [[ -n "CCACHE_DIR" ]]; then
+	  CCACHE_DIR_ENV="ENV CCACHE_DIR $CCACHE_DIR"
+	fi
 
 	Dockerfile=$(head -n1 $base_dockerfile; echo ${PROXY}; tail -n +2 $base_dockerfile; cat << EOF
 ${PROXY}
@@ -95,6 +101,8 @@ RUN useradd -d ${HOME} -m -u ${UID} ${USER}
 ENV HOME ${HOME}
 ${HTTP_PROXY_ENV}
 ${HTTPS_PROXY_ENV}
+${DL_DIR_ENV}
+${CCACHE_DIR_ENV}
 EOF
 )
 	$DOCKER_PREFIX docker build --network=host -t openpower/op-build-$distro - <<< "${Dockerfile}"
