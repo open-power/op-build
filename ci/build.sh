@@ -87,7 +87,7 @@ ${HTTP_PROXY_ENV}
 ${HTTPS_PROXY_ENV}
 EOF
 )
-	$DOCKER_PREFIX docker build -t openpower/op-build-$distro - <<< "${Dockerfile}"
+	$DOCKER_PREFIX docker build --network=host -t openpower/op-build-$distro - <<< "${Dockerfile}"
 	mkdir -p output-images/$distro
 	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh output-images/$distro $PLATFORMS"
 	if [ $? = 0 ]; then
