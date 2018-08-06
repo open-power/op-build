@@ -30,6 +30,11 @@ fi
 shopt -s expand_aliases
 source op-build-env
 
+if [ -n "$DL_DIR" ]; then
+	unset BR2_DL_DIR
+	export BR2_DL_DIR=${DL_DIR}
+fi
+
 for i in ${DEFCONFIGS[@]}; do
         op-build $i
         echo 'BR2_CCACHE=y' >> output/.config
