@@ -2,11 +2,15 @@
 
 CONTAINERS="ubuntu1604 fedora27"
 
-while getopts ":ahp:c:" opt; do
+while getopts ":ab:hp:c:" opt; do
   case $opt in
     a)
       echo "Build firmware images for all the platforms"
       PLATFORMS=""
+      ;;
+    b)
+      echo "Directory to bind to container: $OPTARG"
+      BIND="$OPTARG"
       ;;
     p)
       echo "Build firmware images for the platforms: $OPTARG"
@@ -20,6 +24,7 @@ while getopts ":ahp:c:" opt; do
       echo "Usage: ./ci/build.sh [options] [--]"
       echo "-h          Print this help and exit successfully."
       echo "-a          Build firmware images for all the platform defconfig's."
+      echo "-b DIR      Bind DIR to container."
       echo "-p          List of comma separated platform names to build images for particular platforms."
       echo "-c          Container to run in"
       echo "Example:DOCKER_PREFIX=sudo ./ci/build.sh -a"
@@ -43,8 +48,13 @@ set -eo pipefail
 
 function run_docker
 {
+	if [ -n "$BIND" ]; then
+		BINDARG="--mount=type=bind,src=${BIND},dst=${BIND}"
+	else
+		BINDARG="--mount=type=bind,src=${PWD},dst=${PWD}"
+	fi
 	$DOCKER_PREFIX docker run --cap-add=sys_admin --net=host --rm=true \
-	 --user="${USER}" -w "${PWD}" -v "${PWD}":"${PWD}":Z \
+	 --user="${USER}" -w "${PWD}" "${BINDARG}" \
          -t $1 $2
 }
 
