@@ -36,6 +36,7 @@ if [ -n "$DL_DIR" ]; then
 fi
 
 for i in ${DEFCONFIGS[@]}; do
+        rm -rf output/*
         op-build $i
         echo 'BR2_CCACHE=y' >> output/.config
         echo "BR2_CCACHE_DIR=\"$CCACHE_DIR\"" >> output/.config
@@ -48,7 +49,6 @@ for i in ${DEFCONFIGS[@]}; do
         mv output/images/* $1/$i-images/
         mv output/.config $1/$i-images/.config
 	lsb_release -a > $1/$i-images/lsb_release
-        rm -rf output/*
         if [ $r -ne 0 ]; then
         	exit $r
         fi
