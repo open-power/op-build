@@ -2,7 +2,7 @@
 
 CONTAINERS="ubuntu1604 fedora27"
 
-while getopts ":ab:hp:c:" opt; do
+while getopts ":ab:hp:c:r" opt; do
   case $opt in
     a)
       echo "Build firmware images for all the platforms"
@@ -31,6 +31,10 @@ while getopts ":ab:hp:c:" opt; do
       echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p firestone"
       echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p garrison,palmetto,openpower_p9_mambo"
       exit 1
+      ;;
+    r)
+      echo "Build for release"
+      release_args="-r"
       ;;
     \?)
       echo "Invalid option: -$OPTARG"
@@ -107,7 +111,7 @@ EOF
 )
 	$DOCKER_PREFIX docker build --network=host -t openpower/op-build-$distro - <<< "${Dockerfile}"
 	mkdir -p output-images/$distro
-	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh output-images/$distro $PLATFORMS"
+	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh -o output-images/$distro -p $PLATFORMS ${release_args}"
 	if [ $? = 0 ]; then
 		mv *-images output-$distro/
 	else
