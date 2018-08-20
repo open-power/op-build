@@ -10,7 +10,6 @@ whitelist=(     'acenic/'
                 'cxgb4/t4fw-1.16.63.0.bin'
                 'cxgb4/t4fw.bin'
                 'cxgb3/'
-                'e100/'
                 'ql2500_fw.bin')
 
 if [ -z "${TARGET_DIR}" ] ; then
