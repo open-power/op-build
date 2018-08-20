@@ -11,12 +11,7 @@ whitelist=(     'acenic/'
                 'cxgb4/t4fw.bin'
                 'cxgb3/'
                 'e100/'
-                'ql2500_fw.bin'
-                'radeon/CEDAR_rlc.bin'
-                'radeon/CEDAR_pfp.bin'
-                'radeon/CEDAR_smc.bin'
-                'radeon/CEDAR_me.bin'
-                'radeon/CYPRESS_uvd.bin')
+                'ql2500_fw.bin')
 
 if [ -z "${TARGET_DIR}" ] ; then
         echo "TARGET_DIR not defined, setting to $1"
