@@ -8,18 +8,24 @@ CONFIGTAG="_defconfig"
 
 DEFCONFIGS=();
 
-while getopts "o:p:r" opt; do
+SDK_DIR=""
+
+while getopts "o:p:rs:" opt; do
   case $opt in
     o)
       echo "Output directory: $OPTARG"
       OUTDIR="$OPTARG"
+      ;;
+    s)
+      echo "SDK is in: $OPTARG"
+      SDK_DIR=$OPTARG
       ;;
     p)
       echo "Platforms to build: $OPTARG"
       PLATFORM_LIST="$OPTARG"
       ;;
     r)
-      echo "Build legal-info for release"
+      echo "Build legal-info etc for release"
       BUILD_INFO=1
       ;;
     \?)
@@ -61,26 +67,35 @@ if [ -n "$DL_DIR" ]; then
 	export BR2_DL_DIR=${DL_DIR}
 fi
 
+if [ -f $(ldconfig -p | grep libeatmydata.so | tr ' ' '\n' | grep /|head -n1) ]; then
+    export LD_PRELOAD=${LD_PRELOAD:+"$LD_PRELOAD "}libeatmydata.so
+fi
+
 for i in ${DEFCONFIGS[@]}; do
-        rm -rf output/*
-        op-build $i
-        echo 'BR2_CCACHE=y' >> output/.config
-        echo "BR2_CCACHE_DIR=\"$CCACHE_DIR\"" >> output/.config
-        echo 'BR2_CCACHE_INITIAL_SETUP=""' >> output/.config
-
-        op-build olddefconfig
-        op-build
+	export O=${OUTDIR}-$i
+	rm -rf $O
+        op-build O=$O $i
+	./buildroot/utils/config --file $O/.config --set-val BR2_CCACHE y
+        ./buildroot/utils/config --file $O/.config --set-str BR2_CCACHE_DIR $CCACHE_DIR
+	if [ -d "$SDK_DIR" ]; then
+	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL y
+	    ./buildroot/utils/config --file $O/.config --set-str BR2_TOOLCHAIN_EXTERNAL_PATH $SDK_DIR
+	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC y
+	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CXX y
+	    # FIXME: How do we work this out programatically?
+	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_6 y
+	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_HEADERS_4_18 y
+	fi
+        op-build O=$O olddefconfig
+        op-build O=$O
         r=$?
-
-        if [ ${BUILD_INFO} = 1 ] && [ $r = 0 ]; then
-                op-build legal-info
-                mv output/legal-info ${OUTDIR}/$i-legal-info
-        fi
-
-        mkdir ${OUTDIR}/$i-images
-        mv output/images/* ${OUTDIR}/$i-images/
-        mv output/.config ${OUTDIR}/$i-images/.config
-        lsb_release -a > ${OUTDIR}/$i-images/lsb_release
+	if [ ${BUILD_INFO} = 1 ] && [ $r = 0 ]; then
+	    op-build O=$O legal-info
+	    op-build O=$O graph-build
+	    op-build O=$O graph-size
+	    op-build O=$O graph-depends
+	fi
+	lsb_release -a > $O/lsb_release
         if [ $r -ne 0 ]; then
         	exit $r
         fi
