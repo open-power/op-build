@@ -160,6 +160,6 @@ config BR2_OPENPOWER_PNOR_XZ_ENABLED
 
 config BR2_BUILD_PNOR_SQUASHFS
         bool "Create a virtual PNOR image along with the standard image"
-        default y
+        default n
 
 endmenu
