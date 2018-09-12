@@ -265,7 +265,7 @@ index 000000000..17bec9332
 +                         const char** decoded = NULL)
 +{
 +    size_t fieldSz = sizeof(value);
-+    if (deviceRead(target, &value, fieldSz, DEVICE_SPD_ADDRESS(spdId) != NULL))
++    if (deviceRead(target, &value, fieldSz, DEVICE_SPD_ADDRESS(spdId)) != NULL)
 +        return false; // Read error
 +    if (decoded)
 +        *decoded = jedecDecode(spdId, value);
