@@ -1,0 +1,465 @@
+From 294aa475e0dce3d5ac3c109d172684fcf0180c8f Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Wed, 12 Sep 2018 16:01:51 +0300
+Subject: [PATCH] Support for extended FRU data for memory modules.
+
+Replace part of upstream's FRU constructor with own implementation to
+fill FRU IPMI message with detailed memory modules description.
+Identifiers are decoded according to JEDEC format.
+1. Manufacturer name field contains real orgainsation name instead of ID.
+2. Module name contains type, speed and other attributes.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+Signed-off-by: Maxim Polyakov <m.polyakov@yadro.com>
+---
+ src/usr/ipmi/ipmifruinv.C     |  11 +-
+ src/usr/ipmi/ipmifruinv_ext.C | 344 ++++++++++++++++++++++++++++++++++
+ src/usr/ipmi/ipmifruinv_ext.H |  43 +++++
+ src/usr/ipmi/makefile         |   1 +
+ 4 files changed, 393 insertions(+), 6 deletions(-)
+ create mode 100644 src/usr/ipmi/ipmifruinv_ext.C
+ create mode 100644 src/usr/ipmi/ipmifruinv_ext.H
+
+diff --git a/src/usr/ipmi/ipmifruinv.C b/src/usr/ipmi/ipmifruinv.C
+index 4aa082335..6235d0a87 100644
+--- a/src/usr/ipmi/ipmifruinv.C
++++ b/src/usr/ipmi/ipmifruinv.C
+@@ -36,6 +36,7 @@
+ #include <ipmi/ipmifruinv.H>
+ #include "ipmifru.H"
+ #include "ipmifruinvprvt.H"
++#include "ipmifruinv_ext.H"
+ #include <stdio.h>
+ #include <assert.h>
+ #include <pnor/pnorif.H>
+@@ -419,12 +420,10 @@ errlHndl_t isdimmIpmiFruInv::buildProductInfoArea(std::vector<uint8_t> &io_data)
+         //Set formatting data that goes at the beginning of the record
+         preFormatProcessing(io_data, true);
+ 
+-        //Set Manufacturer's Name - Use JEDEC standard MFG ID
+-        l_errl = addVpdData(io_data, SPD::MODULE_MANUFACTURER_ID);
+-        if (l_errl) { break; }
+-        //Set Product Name - Use Basic SPD Memory Type
+-        l_errl = addVpdData(io_data, SPD::BASIC_MEMORY_TYPE);
+-        if (l_errl) { break; }
++        //Set Manufacturer Name - Use full info with decoded name
++        memModuleManufacturer(iv_target, io_data);
++        //Set Product Name - Use detailed description
++        memModuleDetails(iv_target, io_data);
+         //Set Product Part/Model Number
+         l_errl = addVpdData(io_data, SPD::MODULE_PART_NUMBER, true);
+         if (l_errl) { break; }
+diff --git a/src/usr/ipmi/ipmifruinv_ext.C b/src/usr/ipmi/ipmifruinv_ext.C
+new file mode 100644
+index 000000000..17bec9332
+--- /dev/null
++++ b/src/usr/ipmi/ipmifruinv_ext.C
+@@ -0,0 +1,344 @@
++/**
++ * @brief IPMI FRU inventory - extended data collector.
++ *
++ * This file is part of Hostboot project.
++ *
++ * Copyright (c) 2018 YADRO
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ipmifruinv_ext.H"
++#include <errl/errlentry.H>
++#include <devicefw/userif.H>
++#include <vpd/spdenums.H>
++#include <stdio.h>
++#include "ipmifruinvprvt.H"
++
++
++// JEDEC constants used to calculate memory module capacity
++#define JEDEC_DENSITY_MASK                   7
++#define JEDEC_DENSITY_MIN_VALUE              256
++#define JEDEC_MEMORY_BUS_WIDTH_PRI_MASK      3
++#define JEDEC_MEMORY_BUS_WIDTH_PRI_MIN_VALUE 8
++#define JEDEC_DRAM_WIDTH_MASK                3
++#define JEDEC_DRAM_WIDTH_MIN_VALUE           4
++#define JEDEC_RANKS_MASK                     3
++#define JEDEC_RANKS_MIN_VALUE                1
++
++#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
++
++
++/**
++ * @brief Structure described mapping between JEDEC identifiers
++ * and their decoded values.
++ */
++struct JedecNameMap {
++    uint16_t    id;
++    const char* decoded;
++};
++
++static const JedecNameMap jedecManufacturer[] = {
++    { 0x014F, "Transcend Information" },
++    { 0x017A, "Apacer Technology" },
++    { 0x0198, "Kingston" },
++    { 0x0230, "Corsair" },
++    { 0x0245, "Siemens AG" },
++    { 0x04F1, "Toshiba Corporation" },
++    { 0x0831, "Baikal Electronics" },
++    { 0x8001, "AMD" },
++    { 0x8004, "Fujitsu" },
++    { 0x802C, "Micron Technology" },
++    { 0x8054, "Hewlett-Packard" },
++    { 0x8089, "Intel" },
++    { 0x8089, "Intel" },
++    { 0x8096, "LG Semi" },
++    { 0x80A4, "IBM" },
++    { 0x80AD, "SK Hynix" },
++    { 0x80CE, "Samsung Electronics" },
++    { 0x859B, "Crucial Technology" },
++    { 0x8983, "Hewlett Packard Enterprise" }
++};
++
++static const JedecNameMap jedecBasicType[] = {
++    { 0x0B, "DDR3" },
++    { 0x0C, "DDR4" },
++    { 0x0E, "DDR4E" },
++    { 0x0F, "LPDDR3" },
++    { 0x10, "LPDDR4" }
++};
++
++static const JedecNameMap jedecModuleType[] = {
++    { 0x01, "RDIMM" },
++    { 0x02, "UDIMM" },
++    { 0x03, "SODIMM" },
++    { 0x04, "LRDIMM" },
++    { 0x05, "MINI RDIMM" },
++    { 0x06, "MINI UDIMM" },
++    { 0x08, "SORDIMM 72b"},
++    { 0x09, "SOUDIMM 72b" },
++    { 0x0C, "SODIMM 16b" },
++    { 0x0D, "SODIMM 32b" }
++};
++
++static const JedecNameMap jedecBusWidthPri[] = {
++    { 0x00, "8-bit" },
++    { 0x01, "16-bit" },
++    { 0x02, "32-bit" },
++    { 0x03, "64-bit" }
++};
++
++static const JedecNameMap jedecBusWidthExt[] = {
++    { 0x00, "non-ECC" },
++    { 0x01, "ECC" }
++};
++
++static const JedecNameMap jedecTckMin[] = {
++    { 0x05, "3200" },
++    { 0x06, "2666" },
++    { 0x07, "2400" },
++    { 0x08, "2133" },
++    { 0x09, "1866" },
++    { 0x0A, "1600" }
++};
++
++
++/**
++ * @brief Get decoded value of JEDEC id.
++ *
++ * @param[in] spdId, SPD field identifier (type of JEDEC table)
++ * @param[in] jedecId, JEDEC identifier
++ * @param[in] defaultText, Default text used if identifier is unknown
++ *
++ * @return const char*, text string or defaultText if identifier is unknown
++ */
++static const char* jedecDecode(uint16_t spdId,
++                               uint16_t jedecId,
++                               const char* defaultText = NULL)
++{
++    const char* decoded = defaultText;
++
++    const JedecNameMap* jm;
++    size_t js;
++
++    switch (spdId) {
++        case SPD::MODULE_MANUFACTURER_ID:
++            jm = jedecManufacturer;
++            js = ARRAY_SIZE(jedecManufacturer);
++            break;
++        case SPD::BASIC_MEMORY_TYPE:
++            jm = jedecBasicType;
++            js = ARRAY_SIZE(jedecBasicType);
++            break;
++        case SPD::MODULE_TYPE:
++            jm = jedecModuleType;
++            js = ARRAY_SIZE(jedecModuleType);
++            break;
++        case SPD::MODULE_MEMORY_BUS_WIDTH_PRI:
++            jm = jedecBusWidthPri;
++            js = ARRAY_SIZE(jedecBusWidthPri);
++            break;
++        case SPD::MODULE_MEMORY_BUS_WIDTH_EXT:
++            jm = jedecBusWidthExt;
++            js = ARRAY_SIZE(jedecBusWidthExt);
++            break;
++        case SPD::TCK_MIN:
++            jm = jedecTckMin;
++            js = ARRAY_SIZE(jedecTckMin);
++            break;
++        default:
++            jm = NULL;
++            js = 0;
++    }
++
++    for (size_t i = 0; i < js; ++i) {
++        if (jm[i].id == jedecId) {
++            decoded = jm[i].decoded;
++            break;
++        }
++    }
++
++    return decoded;
++}
++
++
++/**
++ * @brief Put string data into IPMI message buffer.
++ *
++ * @param[out] msgData, IPMI message buffer
++ * @param[in] buff, Source buffer containing text string
++ * @param[in] len, Length of the string in \p buff as reported by strlen()
++ */
++static void putIpmiString(std::vector<uint8_t>& msgData,
++                          const char* buff,
++                          size_t len)
++{
++    // Trim string to maximum lenght allowed
++    if (len > IPMIFRUINV::MAX_ASCII_FIELD_SIZE)
++        len = IPMIFRUINV::MAX_ASCII_FIELD_SIZE;
++
++    msgData.push_back(len + IPMIFRUINV::TYPELENGTH_BYTE_ASCII);
++    msgData.insert(msgData.end(), buff, buff + len);
++}
++
++
++/**
++ * @brief Read value from SPD field and decode it.
++ *
++ * @param[in] target, Descriptor of target module to read
++ * @param[in] spdId, SPD field identifier
++ * @param[out] value, SPD field value
++ * @param[out] decoded, Pointer to save decoded value, optional
++ *
++ * @return bool, true if operation was completed successfully
++ */
++static bool readSpdField(TARGETING::TargetHandle_t target,
++                         uint16_t spdId,
++                         uint8_t& value,
++                         const char** decoded = NULL)
++{
++    size_t fieldSz = sizeof(value);
++    if (deviceRead(target, &value, fieldSz, DEVICE_SPD_ADDRESS(spdId) != NULL))
++        return false; // Read error
++    if (decoded)
++        *decoded = jedecDecode(spdId, value);
++    return true;
++}
++
++
++void memModuleManufacturer(TARGETING::TargetHandle_t target,
++                           std::vector<uint8_t>& msgData)
++{
++    const uint16_t spdId = SPD::MODULE_MANUFACTURER_ID;
++
++    // Read manufacturer Id, ignore errors as FRU is not a critical operation
++    uint16_t manufacturerId = 0;
++    size_t sz = sizeof(manufacturerId);
++    deviceRead(target, &manufacturerId, sz, DEVICE_SPD_ADDRESS(spdId));
++    manufacturerId = le16toh(manufacturerId); // SPD values are stored in LE format
++
++    const char* name = jedecDecode(spdId, manufacturerId);
++    if (name)
++        putIpmiString(msgData, name, strlen(name));
++    else {
++        char buf[32];
++        const size_t len = snprintf(buf, sizeof(buf),
++                                    "Unknown (0x%04x)", manufacturerId);
++        putIpmiString(msgData, buf, len);
++    }
++}
++
++
++void memModuleDetails(TARGETING::TargetHandle_t target,
++                      std::vector<uint8_t>& msgData)
++{
++    // Read detailed memory module info,
++    // ignore errors as FRU is not a critical operation
++    uint8_t basicType = 0xff;
++    const char* basicTypeName = NULL;
++    readSpdField(target, SPD::BASIC_MEMORY_TYPE, basicType, &basicTypeName);
++
++    uint8_t moduleType = 0xff;
++    const char* moduleTypeName = NULL;
++    readSpdField(target, SPD::MODULE_TYPE, moduleType, &moduleTypeName);
++
++    uint8_t busWidthPri = 0xff;
++    const char* busWidthPriName = NULL;
++    readSpdField(target, SPD::MODULE_MEMORY_BUS_WIDTH_PRI, busWidthPri, &busWidthPriName);
++
++    uint8_t busWidthExt = 0xff;
++    const char* busWidthExtName = NULL;
++    readSpdField(target, SPD::MODULE_MEMORY_BUS_WIDTH_EXT, busWidthExt, &busWidthExtName);
++
++    uint8_t tckMin = 0xff;
++    const char* tckMinName = NULL;
++    readSpdField(target, SPD::TCK_MIN, tckMin, &tckMinName);
++
++    uint8_t density = 0xff;
++    readSpdField(target, SPD::DENSITY, density);
++
++    uint8_t dramWidth = 0xff;
++    readSpdField(target, SPD::MODULE_DRAM_WIDTH, dramWidth);
++
++    uint8_t ranks = 0xff;
++    readSpdField(target, SPD::MODULE_RANKS, ranks);
++
++    // Calculate capacity of memory module
++    uint16_t capacityGiB = 0;
++    if (density <= JEDEC_DENSITY_MASK &&
++        busWidthPri <= JEDEC_MEMORY_BUS_WIDTH_PRI_MASK &&
++        dramWidth <= JEDEC_DRAM_WIDTH_MASK &&
++        ranks <= JEDEC_RANKS_MASK)
++    {
++        // Get density
++        // JEDEC Standard No. 21-C. Page 4.1.2.12 – 9
++        // density = 256 Mb* (2 ^ density) / 8 = 32 MB * (2 ^ density)
++        const uint32_t realDensity = (JEDEC_DENSITY_MIN_VALUE / 8) << density;
++
++        // Calculate the Primary Bus Width
++        // JEDEC Standard No. 21-C. Page 4.1.2.12 – 15
++        // b00 - 8 bits ... b11 - 64 bits. All others reserved.
++        const uint32_t realBusWidth = JEDEC_MEMORY_BUS_WIDTH_PRI_MIN_VALUE << busWidthPri;
++
++        // Calculate the SDRAM Device Width
++        // JEDEC Standard No. 21-C. Page 4.1.2.12 – 14
++        // b00 - 4 bits ... b11 - 32 bits. All others reserved.
++        const uint32_t realDevWidth = JEDEC_DRAM_WIDTH_MIN_VALUE << dramWidth;
++
++        // Calculate the Number of Package Ranks per DIMM
++        // JEDEC Standard No. 21-C. Page 4.1.2.12 – 14
++        // b00 - 1 package rank ... b11 - 4 package ranks. All others reserved.
++        const uint32_t realRanks = JEDEC_RANKS_MIN_VALUE + ranks;
++
++        // Calculate the Module Capacity (in GiB >> 10) according to the formula
++        // from the JEDEC Standard specification No. 21-C. Page 4.1.2.12 – 15
++        capacityGiB = (realDensity * (realBusWidth / realDevWidth) * realRanks) >> 10;
++    }
++
++    // Construct detailed string description
++    char desc[64] = { 0 };
++    const size_t descSz = sizeof(desc) - 1; // Always store last null-termination symbol
++
++    if (basicTypeName)
++        strncpy(desc, basicTypeName, descSz);
++    else
++        snprintf(desc, descSz, "N/A (%02x)", basicType);
++
++    if (tckMinName) {
++        strncat(desc, "-", descSz);
++        strncat(desc, tckMinName, descSz);
++    }
++
++    if (capacityGiB) {
++        char buff[16] = { 0 };
++        snprintf(buff, sizeof(buff) - 1, " %iGiB", capacityGiB);
++        strncat(desc, buff, descSz);
++    }
++
++    if (busWidthPriName) {
++        strncat(desc, " ", descSz);
++        strncat(desc, busWidthPriName, descSz);
++    }
++
++    if (busWidthExtName) {
++        strncat(desc, " ", descSz);
++        strncat(desc, busWidthExtName, descSz);
++    }
++
++    if (moduleTypeName) {
++        strncat(desc, " ", descSz);
++        strncat(desc, moduleTypeName, descSz);
++    }
++
++    putIpmiString(msgData, desc, strlen(desc));
++}
+diff --git a/src/usr/ipmi/ipmifruinv_ext.H b/src/usr/ipmi/ipmifruinv_ext.H
+new file mode 100644
+index 000000000..836ab637b
+--- /dev/null
++++ b/src/usr/ipmi/ipmifruinv_ext.H
+@@ -0,0 +1,43 @@
++/**
++ * @brief IPMI FRU inventory - extended data collector.
++ *
++ * This file is part of Hostboot project.
++ *
++ * Copyright (c) 2018 YADRO
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include <vector>
++#include <targeting/common/target.H>
++
++
++/**
++ * @brief Put manufacturer name of memory module into IPMI message buffer.
++ *
++ * @param[in] target, Descriptor of target Memory module
++ * @param[out] msgData, IPMI message buffer
++ */
++void memModuleManufacturer(TARGETING::TargetHandle_t target,
++                           std::vector<uint8_t>& msgData);
++
++/**
++ * @brief Put detailed description of memory module into IPMI message buffer.
++ *
++ * @param[in] target, Descriptor of target Memory module
++ * @param[out] msgData, IPMI message buffer
++ */
++void memModuleDetails(TARGETING::TargetHandle_t target,
++                      std::vector<uint8_t>& msgData);
+diff --git a/src/usr/ipmi/makefile b/src/usr/ipmi/makefile
+index 50638b522..657a23db3 100644
+--- a/src/usr/ipmi/makefile
++++ b/src/usr/ipmi/makefile
+@@ -36,6 +36,7 @@ OBJS += ipmifru.o
+ OBJS += ipmiconfig.o
+ OBJS += ipmiwatchdog.o
+ OBJS += ipmifruinv.o
++OBJS += ipmifruinv_ext.o
+ OBJS += ipmipowerstate.o
+ OBJS += ipmiselrecord.o
+ OBJS += ipmichassiscontrol.o
+-- 
+2.17.1
+
