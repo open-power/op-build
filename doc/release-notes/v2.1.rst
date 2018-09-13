@@ -192,12 +192,12 @@ Package: hostboot
 
 `Repository <https://github.com/open-power/hostboot>`__
 
-.. _patches-1:
+.. _v2.1-patches-1:
 
 Patches
 ~~~~~~~
 
-.. _commits-1:
+.. _v2.1-commits-1:
 
 Commits
 ~~~~~~~
@@ -866,12 +866,12 @@ Package: occ
 
 `Repository <https://github.com/open-power/occ>`__
 
-.. _patches-2:
+.. _v2.1-patches-2:
 
 Patches
 ~~~~~~~
 
-.. _commits-2:
+.. _v2.1-commits-2:
 
 Commits
 ~~~~~~~
@@ -898,12 +898,12 @@ Package: op-build
 
 `Repository <https://github.com/open-power/op-build>`__
 
-.. _patches-3:
+.. _v2.1-patches-3:
 
 Patches
 ~~~~~~~
 
-.. _commits-3:
+.. _v2.1-commits-3:
 
 Commits
 ~~~~~~~
@@ -915,12 +915,12 @@ Package: p9dsu-xml
 
 `Repository <https://github.com/open-power/p9dsu-xml>`__
 
-.. _patches-4:
+.. _v2.1-patches-4:
 
 Patches
 ~~~~~~~
 
-.. _commits-4:
+.. _v2.1-commits-4:
 
 Commits
 ~~~~~~~
@@ -932,12 +932,12 @@ Package: palmetto-xml
 
 `Repository <https://github.com/open-power/palmetto-xml>`__
 
-.. _patches-5:
+.. _v2.1-patches-5:
 
 Patches
 ~~~~~~~
 
-.. _commits-5:
+.. _v2.1-commits-5:
 
 Commits
 ~~~~~~~
@@ -949,14 +949,14 @@ Package: petitboot
 
 `Repository <https://github.com/open-power/petitboot>`__
 
-.. _patches-6:
+.. _v2.1-patches-6:
 
 Patches
 ~~~~~~~
 
 -  `petitboot-01-autotools-Add-autopoint-generated-files.patch <https://github.com/open-power/op-build/tree/v2.1/openpower/package/petitboot/petitboot-01-autotools-Add-autopoint-generated-files.patch>`__
 
-.. _commits-6:
+.. _v2.1-commits-6:
 
 Commits
 ~~~~~~~
@@ -966,12 +966,12 @@ Package: pnor
 
 `Repository <https://github.com/open-power/pnor>`__
 
-.. _patches-7:
+.. _v2.1-patches-7:
 
 Patches
 ~~~~~~~
 
-.. _commits-7:
+.. _v2.1-commits-7:
 
 Commits
 ~~~~~~~
@@ -983,12 +983,12 @@ Package: romulus-xml
 
 `Repository <https://github.com/open-power/romulus-xml>`__
 
-.. _patches-8:
+.. _v2.1-patches-8:
 
 Patches
 ~~~~~~~
 
-.. _commits-8:
+.. _v2.1-commits-8:
 
 Commits
 ~~~~~~~
@@ -1000,12 +1000,12 @@ Package: sbe
 
 `Repository <https://github.com/open-power/sbe>`__
 
-.. _patches-9:
+.. _v2.1-patches-9:
 
 Patches
 ~~~~~~~
 
-.. _commits-9:
+.. _v2.1-commits-9:
 
 Commits
 ~~~~~~~
@@ -1130,12 +1130,12 @@ Package: skiboot
 
 `Repository <https://github.com/open-power/skiboot>`__
 
-.. _patches-10:
+.. _v2.1-patches-10:
 
 Patches
 ~~~~~~~
 
-.. _commits-10:
+.. _v2.1-commits-10:
 
 Commits
 ~~~~~~~
@@ -1330,12 +1330,12 @@ Package: zaius-xml
 
 `Repository <https://github.com/open-power/zaius-xml>`__
 
-.. _patches-11:
+.. _v2.1-patches-11:
 
 Patches
 ~~~~~~~
 
-.. _commits-11:
+.. _v2.1-commits-11:
 
 Commits
 ~~~~~~~

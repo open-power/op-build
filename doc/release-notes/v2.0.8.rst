@@ -51,12 +51,12 @@ Package: hostboot
 
 `Repository <https://github.com/open-power/hostboot>`__
 
-.. _patches-1:
+.. _v2.0.8-patches-1:
 
 Patches
 ~~~~~~~
 
-.. _commits-1:
+.. _v2.0.8-commits-1:
 
 Commits
 ~~~~~~~
