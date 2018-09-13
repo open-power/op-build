@@ -2,8 +2,19 @@
 
 CONTAINERS="ubuntu1604 fedora27"
 
-while getopts ":ab:hp:c:r" opt; do
+
+SDK_ONLY=0
+
+while getopts ":ab:hp:c:rs:S" opt; do
   case $opt in
+    s)
+      echo "SDK Cache dir"
+      SDK_CACHE="$OPTARG"
+      ;;
+    S)
+      echo "Build SDK Only"
+      SDK_ONLY=1
+      ;;
     a)
       echo "Build firmware images for all the platforms"
       PLATFORMS=""
@@ -26,6 +37,8 @@ while getopts ":ab:hp:c:r" opt; do
       echo "-a          Build firmware images for all the platform defconfig's."
       echo "-b DIR      Bind DIR to container."
       echo "-p          List of comma separated platform names to build images for particular platforms."
+      echo "-s DIR      SDK cache dir."
+      echo "-S          Build SDK only"
       echo "-c          Container to run in"
       echo "Example:DOCKER_PREFIX=sudo ./ci/build.sh -a"
       echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p firestone"
@@ -62,12 +75,12 @@ function run_docker
          -t $1 $2
 }
 
-env
+function toolchain_hash
+{
+    echo -n 'toolchain-'$((git submodule ; cd openpower/configs/; cat `ls -1 |grep '_defconfig$'|sort`)|sha1sum |sed -e 's/ .*//')
+}
 
-if [ -d output-images ]; then
-	echo 'output-images already exists!';
-	exit 1;
-fi
+env
 
 for distro in $CONTAINERS;
 do
@@ -108,13 +121,26 @@ ${HTTPS_PROXY_ENV}
 ${DL_DIR_ENV}
 ${CCACHE_DIR_ENV}
 EOF
-)
+		  )
 	$DOCKER_PREFIX docker build --network=host -t openpower/op-build-$distro - <<< "${Dockerfile}"
-	mkdir -p output-images/$distro
-	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh -o output-images/$distro -p $PLATFORMS ${release_args}"
-	if [ $? = 0 ]; then
-		mv *-images output-$distro/
+	if [ -d "$SDK_CACHE" ]; then
+	    SDK_DIR=$SDK_CACHE/$(toolchain_hash)-$distro
+	    if [ ! -d "$SDK_DIR" ]; then
+		chmod +x ci/build-sdk.sh
+		run_docker openpower/op-build-$distro "./ci/build-sdk.sh $distro witherspoon_defconfig"
+		mv output-$distro-witherspoon_defconfig $SDK_DIR
+		$SDK_DIR/host/relocate-sdk.sh
+	    fi
+	    sdk_args="-s $SDK_DIR/host"
 	else
+	    sdk_args=""
+	fi
+
+	if [ $SDK_ONLY == 0 ]; then
+	    run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh -o `pwd`/output-$distro -p $PLATFORMS ${release_args} ${sdk_args}"
+	fi
+
+	if [ $? != 0 ]; then
 		exit $?;
 	fi
 done;
