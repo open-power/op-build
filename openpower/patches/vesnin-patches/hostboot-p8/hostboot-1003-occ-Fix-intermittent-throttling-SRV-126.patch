@@ -1,0 +1,56 @@
+From b56bf371295359f4bfdee8bf3e4b46041a05fd6e Mon Sep 17 00:00:00 2001
+From: Alexander Amelkin <a.amelkin@yadro.com>
+Date: Thu, 30 Aug 2018 14:39:19 +0300
+Subject: [PATCH] occ: Fix intermittent throttling (SRV-126)
+
+> The sympthom is intermittent processors frequency drop to 2.06 GHz
+> regardless of workload and performance governor.
+
+On 07/13/2018 12:35 PM, Hank CH Chang wrote:
+"there is a block of code that is in a loop and it
+needs to be moved out of the loop".
+---
+ src/usr/htmgt/htmgt_occ.C | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/src/usr/htmgt/htmgt_occ.C b/src/usr/htmgt/htmgt_occ.C
+index 8b34c52..f2c8a5c 100644
+--- a/src/usr/htmgt/htmgt_occ.C
++++ b/src/usr/htmgt/htmgt_occ.C
+@@ -425,22 +425,22 @@ namespace HTMGT
+                                   ERRORLOG::ERRL_SEV_UNRECOVERABLE);
+                     }
+                 }
++            } // for each processor
+ 
+-                if (NULL != iv_occMaster)
++            if (NULL != iv_occMaster)
++            {
++                // update master occsPresent bit for each slave OCC
++                for(occList_t::const_iterator occ = iv_occArray.begin();
++                    occ != iv_occArray.end();
++                    ++occ)
+                 {
+-                    // update master occsPresent bit for each slave OCC
+-                    for(occList_t::const_iterator occ = iv_occArray.begin();
+-                        occ != iv_occArray.end();
+-                        ++occ)
++                    if((*occ) != iv_occMaster)
+                     {
+-                        if((*occ) != iv_occMaster)
+-                        {
+-                            iv_occMaster->
+-                                updateOccPresentBits((*occ)->getPresentBits());
+-                        }
++                        iv_occMaster->
++                            updateOccPresentBits((*occ)->getPresentBits());
+                     }
+                 }
+-            } // for each processor
++            }
+         }
+         else
+         {
+-- 
+2.7.4
+
