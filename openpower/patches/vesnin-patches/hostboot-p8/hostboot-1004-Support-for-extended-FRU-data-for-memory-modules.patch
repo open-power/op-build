@@ -1,4 +1,4 @@
-From 294aa475e0dce3d5ac3c109d172684fcf0180c8f Mon Sep 17 00:00:00 2001
+From 840b8d7fc18973e72d02673026c7f22f3c69acf6 Mon Sep 17 00:00:00 2001
 From: Artem Senichev <a.senichev@yadro.com>
 Date: Wed, 12 Sep 2018 16:01:51 +0300
 Subject: [PATCH] Support for extended FRU data for memory modules.
@@ -13,10 +13,10 @@ Signed-off-by: Artem Senichev <a.senichev@yadro.com>
 Signed-off-by: Maxim Polyakov <m.polyakov@yadro.com>
 ---
  src/usr/ipmi/ipmifruinv.C     |  11 +-
- src/usr/ipmi/ipmifruinv_ext.C | 344 ++++++++++++++++++++++++++++++++++
+ src/usr/ipmi/ipmifruinv_ext.C | 327 ++++++++++++++++++++++++++++++++++
  src/usr/ipmi/ipmifruinv_ext.H |  43 +++++
  src/usr/ipmi/makefile         |   1 +
- 4 files changed, 393 insertions(+), 6 deletions(-)
+ 4 files changed, 376 insertions(+), 6 deletions(-)
  create mode 100644 src/usr/ipmi/ipmifruinv_ext.C
  create mode 100644 src/usr/ipmi/ipmifruinv_ext.H
 
@@ -51,10 +51,10 @@ index 4aa082335..6235d0a87 100644
          if (l_errl) { break; }
 diff --git a/src/usr/ipmi/ipmifruinv_ext.C b/src/usr/ipmi/ipmifruinv_ext.C
 new file mode 100644
-index 000000000..17bec9332
+index 000000000..65c01ca0d
 --- /dev/null
 +++ b/src/usr/ipmi/ipmifruinv_ext.C
-@@ -0,0 +1,344 @@
+@@ -0,0 +1,327 @@
 +/**
 + * @brief IPMI FRU inventory - extended data collector.
 + *
@@ -148,13 +148,6 @@ index 000000000..17bec9332
 +    { 0x0D, "SODIMM 32b" }
 +};
 +
-+static const JedecNameMap jedecBusWidthPri[] = {
-+    { 0x00, "8-bit" },
-+    { 0x01, "16-bit" },
-+    { 0x02, "32-bit" },
-+    { 0x03, "64-bit" }
-+};
-+
 +static const JedecNameMap jedecBusWidthExt[] = {
 +    { 0x00, "non-ECC" },
 +    { 0x01, "ECC" }
@@ -200,10 +193,6 @@ index 000000000..17bec9332
 +        case SPD::MODULE_TYPE:
 +            jm = jedecModuleType;
 +            js = ARRAY_SIZE(jedecModuleType);
-+            break;
-+        case SPD::MODULE_MEMORY_BUS_WIDTH_PRI:
-+            jm = jedecBusWidthPri;
-+            js = ARRAY_SIZE(jedecBusWidthPri);
 +            break;
 +        case SPD::MODULE_MEMORY_BUS_WIDTH_EXT:
 +            jm = jedecBusWidthExt;
@@ -309,13 +298,12 @@ index 000000000..17bec9332
 +    const char* moduleTypeName = NULL;
 +    readSpdField(target, SPD::MODULE_TYPE, moduleType, &moduleTypeName);
 +
-+    uint8_t busWidthPri = 0xff;
-+    const char* busWidthPriName = NULL;
-+    readSpdField(target, SPD::MODULE_MEMORY_BUS_WIDTH_PRI, busWidthPri, &busWidthPriName);
-+
 +    uint8_t busWidthExt = 0xff;
 +    const char* busWidthExtName = NULL;
 +    readSpdField(target, SPD::MODULE_MEMORY_BUS_WIDTH_EXT, busWidthExt, &busWidthExtName);
++
++    uint8_t busWidthPri = 0xff;
++    readSpdField(target, SPD::MODULE_MEMORY_BUS_WIDTH_PRI, busWidthPri);
 +
 +    uint8_t tckMin = 0xff;
 +    const char* tckMinName = NULL;
@@ -380,11 +368,6 @@ index 000000000..17bec9332
 +        char buff[16] = { 0 };
 +        snprintf(buff, sizeof(buff) - 1, " %iGiB", capacityGiB);
 +        strncat(desc, buff, descSz);
-+    }
-+
-+    if (busWidthPriName) {
-+        strncat(desc, " ", descSz);
-+        strncat(desc, busWidthPriName, descSz);
 +    }
 +
 +    if (busWidthExtName) {
