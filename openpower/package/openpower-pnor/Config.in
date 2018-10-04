@@ -162,4 +162,10 @@ config BR2_BUILD_PNOR_SQUASHFS
         bool "Create a virtual PNOR image along with the standard image"
         default n
 
+config BR2_HDAT_BINARY_FILENAME
+        string "Name of hdat binary file"
+        default "HDAT.bin"
+        help
+            String used to define name of hdat binary file
+
 endmenu
