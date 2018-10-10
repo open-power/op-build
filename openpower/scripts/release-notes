@@ -149,6 +149,7 @@ foreach my $p (@common_platforms) {
 	    $p = "witherspoon";
 	    $witherspoon_insanity = 1;
     }
+    next if ($p =~ /witherspoon_dev/);
     $repos->{"$p-xml"} = { REPO => "https://github.com/open-power/$p-xml" ,
 			   DIR => "openpower/package/$p-xml" };
 }
