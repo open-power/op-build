@@ -47,7 +47,7 @@ die "Required argument missing" unless ($begin_release and $end_release and $beg
 
 open(OUTPUT, "> RELEASE.md") || die "Failed to open RELEASE.md";
 
-print OUTPUT "# Release Notes for OpenPower Firmware $end_release\n";
+print OUTPUT "# Release Notes for OpenPower Firmware $end_release  \n";
 
 if (-e $begin_worktree) {
     system("cd $begin_worktree && git checkout $begin_release && git submodule update --reference ../buildroot && git submodule update") and die "Could not update $begin_worktree";
@@ -117,11 +117,11 @@ $dbh->do("CREATE TABLE platforms (platform TEXT, version TEXT);") or die "$!";
     $sth->execute($begin_release, $end_release);
     my $r;
     print OUTPUT "\n## Removed platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
-    print OUTPUT "- ".$r->{p}."\n" while ($r = $sth->fetchrow_hashref);
+    print OUTPUT "- ".$r->{p}."  \n" while ($r = $sth->fetchrow_hashref);
 
     $sth->execute($end_release, $begin_release);
     print OUTPUT "\n## New platforms\n\n- ".$r->{p}."\n" if $r = $sth->fetchrow_hashref;
-    print OUTPUT "- ".$r->{p}."\n" while($r = $sth->fetchrow_hashref);
+    print OUTPUT "- ".$r->{p}."  \n" while($r = $sth->fetchrow_hashref);
 }
 
 my @common_platforms;
@@ -233,11 +233,11 @@ SQL
     $sth->execute();
 
     print OUTPUT "\n## Updated Packages\n\n";
-    print OUTPUT "Package | Old Version | New Version | Platforms\n";
+    print OUTPUT "Package | Old Version | New Version | Platforms  \n";
     my $t;
     my ($plen,$olen,$nlen,$platlen) = (3,3,3,3);
     while (my $r = $sth->fetchrow_hashref) {
-	$t.= join(' | ',($r->{pk}, $r->{o}, $r->{n}, $r->{ps}))."\n" ;
+	$t.= join(' | ',($r->{pk}, $r->{o}, $r->{n}, $r->{ps}))."  \n" ;
 	$plen = length($r->{pk}) if $plen < length($r->{pk});
 	$olen = length($r->{o}) if $olen < length($r->{o});
 	$nlen = length($r->{n}) if $nlen < length($r->{n});
@@ -252,7 +252,7 @@ SQL
 	}
     }
     print OUTPUT "-"x$plen." | "."-"x$olen." | "."-"x$nlen." | ".
-	"-"x$platlen."\n";
+	"-"x$platlen."  \n";
     print OUTPUT $t;
 }
 
@@ -268,10 +268,10 @@ SQL
     $sth->execute();
 
     print OUTPUT "\n\n## New Packages\n\n";
-    print OUTPUT "Package | Version | Platforms\n";
-    print OUTPUT "--- | --- | ---\n";
+    print OUTPUT "Package | Version | Platforms  \n";
+    print OUTPUT "--- | --- | ---  \n";
     while (my $r = $sth->fetchrow_hashref) {
-	print OUTPUT join(' | ',($r->{pk}, $r->{v}, $r->{ps}))."\n" ;
+	print OUTPUT join(' | ',($r->{pk}, $r->{v}, $r->{ps}))."  \n" ;
 	if ($r->{pk} eq 'machine-xml') {
 	    $new_level->{$r->{ps}."-xml"} = $r->{v};
 	}
@@ -290,10 +290,10 @@ SQL
     $sth->execute();
 
     print OUTPUT "\n\n## Removed Packages\n\n";
-    print OUTPUT "Package | Version | Platforms\n";
-    print OUTPUT "--- | --- | ---\n";
+    print OUTPUT "Package | Version | Platforms  \n";
+    print OUTPUT "--- | --- | ---  \n";
     while (my $r = $sth->fetchrow_hashref) {
-	print OUTPUT join(' | ',($r->{pk}, $r->{v}, $r->{ps}))."\n" ;
+	print OUTPUT join(' | ',($r->{pk}, $r->{v}, $r->{ps}))."  \n" ;
 	if ($r->{pk} eq $r->{ps}."-xml") {
 	    $old_level->{$r->{ps}."-xml"} = $r->{v};
 	}
@@ -325,36 +325,36 @@ foreach my $repo (sort keys %{$repos})
     my $url = $repos->{$repo}->{REPO};
     my $dir = $repos->{$repo}->{DIR};
 
-    print OUTPUT "\n## Package: $repo\n";
-    print OUTPUT "[Repository]($url)\n";
+    print OUTPUT "\n## Package: $repo  \n";
+    print OUTPUT "[Repository]($url)  \n";
     print OUTPUT "\n";
 
     # Display patches.
     if (open(LSLOG, "ls op-build/$dir/*.patch | ".
                     "xargs -n1 --no-run-if-empty basename |"))
     {
-        print OUTPUT "### Patches\n";
+        print OUTPUT "### Patches  \n";
         while (my $logline = <LSLOG>)
         {
             chomp $logline;
             print OUTPUT "* [$logline]".
-                "($op_url/tree/$end_release/$dir/$logline)\n";
+                "($op_url/tree/$end_release/$dir/$logline)  \n";
         }
         close LSLOG;
         print OUTPUT "\n";
     }
     else
     {
-        print OUTPUT "None.\n";
+        print OUTPUT "None.  \n";
     }
 
     # Display changes.
-    print OUTPUT "### Commits\n";
+    print OUTPUT "### Commits  \n";
     if ((not exists $old_level->{$package}) &&
         (not exists $new_level->{$package}))
     {
         # No change identified.
-        print "No changes: $repo\n";
+        print "No changes: $repo  \n";
         print OUTPUT "No changes.\n\n";
         next;
     }
@@ -362,7 +362,7 @@ foreach my $repo (sort keys %{$repos})
     if ((exists $old_level->{$package}) &&
         (exists $new_level->{$package}))
     {
-        print "Changes in $repo...\n";
+        print "Changes in $repo...  \n";
         open(GITLOG, "cd $repo; git shortlog $old_level->{$package}...".
                      "$new_level->{$package} --no-merges --format=".
                      "\"- [%h]($url/commit/%h) %s\" |");
@@ -372,24 +372,24 @@ foreach my $repo (sort keys %{$repos})
             chomp $logline;
             $logline =~ s/^[[:space:]]*//;
             $logline =~ s/:$/:\n/;
-            print OUTPUT "$logline\n";
+            print OUTPUT "$logline  \n";
         }
         close GITLOG;
-        print OUTPUT "\n";
+        print OUTPUT "  \n";
         next;
     }
 
     if (not exists $old_level->{$package})
     {
         print "New package $repo.\n";
-        print OUTPUT "New package.\n";
+        print OUTPUT "New package.  \n";
         next;
     }
 
     if (not exists $new_level->{$package})
     {
         print "Deleted package $repo.\n";
-        print OUTPUT "Package removed.\n";
+        print OUTPUT "Package removed.  \n";
         next;
     }
 }
