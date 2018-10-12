@@ -3,7 +3,7 @@ menu "Machine XML (MRW)"
 config BR2_PACKAGE_MACHINE_XML
         bool "machine_xml"
         default y if (BR2_OPENPOWER_PLATFORM)
-        select BR2_PACKAGE_COMMON_P8_XML
+        select BR2_PACKAGE_COMMON_P8_XML if (BR2_OPENPOWER_POWER8)
         help
 
 choice
