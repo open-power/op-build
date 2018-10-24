@@ -1,4 +1,4 @@
 [submodule "buildroot"]
 	path = buildroot
-	branch = 2018.05-op-build
+	branch = 2018.08-op-build
 	url = https://github.com/open-power/buildroot
