@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= 491ac2632f951ba77e2220ed87b8002b01ed6fae
+OPENPOWER_PNOR_VERSION ?= 2e68ed6a605d709e09fe268366565a3f10afec31
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -149,7 +149,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -targeting_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME) \
             -wofdata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_WOFDATA_BINARY_FILENAME) \
             -memddata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_MEMDDATA_BINARY_FILENAME) \
-            -openpower_version_filename $(OPENPOWER_PNOR_VERSION_FILE)
+            -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
 
@@ -167,7 +167,10 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
         fi
 
-	    tar --transform 's/.*\///g' -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar $(FILES_TO_TAR)
+	#Create Debug Tarball
+	mkdir -p $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
+	cp -r $(FILES_TO_TAR) $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
+	tar -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar -C $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/  .
 
 endef
 
