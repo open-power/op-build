@@ -73,7 +73,7 @@ function run_docker
 	else
 		BINDARG="--mount=type=bind,src=${PWD},dst=${PWD}"
 	fi
-	$DOCKER_PREFIX docker run --cap-add=sys_admin --net=host --rm=true \
+	$DOCKER_PREFIX docker run --init --cap-add=sys_admin --net=host --rm=true \
 	 --user="${USER}" -w "${PWD}" "${BINDARG}" \
          -t $1 $2
 }
