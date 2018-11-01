@@ -37,7 +37,7 @@ while getopts ":ab:hp:c:rs:S" opt; do
       echo "-a          Build firmware images for all the platform defconfig's."
       echo "-b DIR      Bind DIR to container."
       echo "-p          List of comma separated platform names to build images for particular platforms."
-      echo "-s DIR      SDK cache dir."
+      echo "-s DIR      SDK cache dir (must exist)."
       echo "-S          Build SDK only"
       echo "-c          Container to run in"
       echo "Example:DOCKER_PREFIX=sudo ./ci/build.sh -a"
