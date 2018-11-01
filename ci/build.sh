@@ -108,10 +108,10 @@ do
 	    PROXY="RUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
 	  fi
         fi
-	if [[ -n "DL_DIR" ]]; then
+	if [ ! -z ${DL_DIR+x} ]; then
 	  DL_DIR_ENV="ENV DL_DIR $DL_DIR"
 	fi
-	if [[ -n "CCACHE_DIR" ]]; then
+	if [ ! -z ${CCACHE_DIR+x} ]; then
 	  CCACHE_DIR_ENV="ENV CCACHE_DIR $CCACHE_DIR"
 	fi
 
