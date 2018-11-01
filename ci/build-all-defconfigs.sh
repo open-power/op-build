@@ -39,6 +39,12 @@ while getopts "o:p:rs:" opt; do
   esac
 done
 
+function get_kernel_release
+{
+	IFS=. read major minor macro <<<"$1"
+	echo -n "${major}_${minor}"
+}
+
 if [ -z "${PLATFORM_LIST}" ]; then
         echo "Using all the defconfigs for all the platforms"
         DEFCONFIGS=`(cd openpower/configs; ls -1 *_defconfig)`
@@ -84,7 +90,11 @@ for i in ${DEFCONFIGS[@]}; do
 	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CXX y
 	    # FIXME: How do we work this out programatically?
 	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_6 y
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_HEADERS_4_18 y
+
+	    KERNEL_VER=$(./buildroot/utils/config --file $O/.config --state BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)
+	    echo "KERNEL_VER " $KERNEL_VER
+	    HEADERS=BR2_TOOLCHAIN_EXTERNAL_HEADERS_$(get_kernel_release $KERNEL_VER)
+	    ./buildroot/utils/config --file $O/.config --set-val $HEADERS y
 	fi
         op-build O=$O olddefconfig
         op-build O=$O
