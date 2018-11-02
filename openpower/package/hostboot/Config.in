@@ -9,7 +9,7 @@ if BR2_PACKAGE_HOSTBOOT
 
 choice
 	prompt "Hostboot version"
-	default BR2_HOSTBOOT_STABLE_VERSION
+	default BR2_HOSTBOOT_LATEST_VERSION
 
 config BR2_HOSTBOOT_LATEST_VERSION
 	bool "Use latest Hostboot master"
