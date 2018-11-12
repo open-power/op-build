@@ -3,7 +3,7 @@
 # hostboot for POWER8
 #
 ################################################################################
-HOSTBOOT_P8_VERSION ?= 92e482dc468490502ab431663eb46d4f025913ea
+HOSTBOOT_P8_VERSION ?= 35c26c7f24033b29f714218de2fbd36fc736c6d5
 
 HOSTBOOT_P8_SITE ?= $(call github,open-power,hostboot,$(HOSTBOOT_P8_VERSION))
 
