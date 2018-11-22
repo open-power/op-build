@@ -1,0 +1,9 @@
+config BR2_PACKAGE_DEVICETREE
+	bool "Device tree"
+
+if BR2_PACKAGE_DEVICETREE
+
+config BR2_DEVICETREE_SOURCE
+	string "Device tree source"
+
+endif

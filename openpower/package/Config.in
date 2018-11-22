@@ -21,4 +21,5 @@ source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ima-catalog/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/sbe/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/sb-signing-utils/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/sb-signing-framework/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/devicetree/Config.in"
 
