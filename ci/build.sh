@@ -37,9 +37,12 @@ while getopts ":ab:hp:c:rs:S" opt; do
       echo "-a          Build firmware images for all the platform defconfig's."
       echo "-b DIR      Bind DIR to container."
       echo "-p          List of comma separated platform names to build images for particular platforms."
-      echo "-s DIR      SDK cache dir."
+      echo "-s DIR      SDK cache dir (must exist)."
       echo "-S          Build SDK only"
       echo "-c          Container to run in"
+      echo ""
+      echo "Note: set environment variables HTTP_PROXY and HTTPS_PROXY if a proxy is required."
+      echo ""
       echo "Example:DOCKER_PREFIX=sudo ./ci/build.sh -a"
       echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p firestone"
       echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p garrison,palmetto,openpower_p9_mambo"
@@ -70,7 +73,7 @@ function run_docker
 	else
 		BINDARG="--mount=type=bind,src=${PWD},dst=${PWD}"
 	fi
-	$DOCKER_PREFIX docker run --cap-add=sys_admin --net=host --rm=true \
+	$DOCKER_PREFIX docker run --init --cap-add=sys_admin --net=host --rm=true \
 	 --user="${USER}" -w "${PWD}" "${BINDARG}" \
          -t $1 $2
 }
@@ -105,10 +108,10 @@ do
 	    PROXY="RUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
 	  fi
         fi
-	if [[ -n "DL_DIR" ]]; then
+	if [ ! -z ${DL_DIR+x} ]; then
 	  DL_DIR_ENV="ENV DL_DIR $DL_DIR"
 	fi
-	if [[ -n "CCACHE_DIR" ]]; then
+	if [ ! -z ${CCACHE_DIR+x} ]; then
 	  CCACHE_DIR_ENV="ENV CCACHE_DIR $CCACHE_DIR"
 	fi
 
