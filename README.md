@@ -55,7 +55,7 @@ cross-compiler. Cross-compiling from a x86-64 host is officially supported.
         sudo apt-get install cscope ctags libz-dev libexpat-dev \
           python language-pack-en texinfo \
           build-essential g++ git bison flex unzip \
-          libssl-dev libxml-simple-perl libxml-sax-perl libxml2-dev libxml2-utils xsltproc \
+          libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
           wget bc
 
 ### Dependencies for *64-bit* Fedora systems
