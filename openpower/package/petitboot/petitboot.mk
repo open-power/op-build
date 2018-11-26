@@ -13,6 +13,7 @@ PETITBOOT_LICENSE_FILES = COPYING
 
 PETITBOOT_CONF_OPTS += --with-ncurses --without-twin-x11 --without-twin-fbdev \
 	      --localstatedir=/var \
+	      --enable-crypt \
 	      HOST_PROG_KEXEC=/usr/sbin/kexec \
 	      HOST_PROG_SHUTDOWN=/usr/libexec/petitboot/bb-kexec-reboot \
 	      $(if $(BR2_PACKAGE_BUSYBOX),--with-tftp=busybox --enable-busybox)
@@ -61,7 +62,11 @@ define PETITBOOT_POST_INSTALL
 	ln -sf /usr/sbin/pb-udhcpc \
 		$(TARGET_DIR)/usr/share/udhcpc/default.script.d/
 
-	mkdir -p $(TARGET_DIR)/var/log/petitboot
+	mkdir -p $(TARGET_DIR)/home/petituser
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/petitboot/shell_profile \
+		$(TARGET_DIR)/home/petituser/.profile
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/petitboot/shell_config \
+		$(TARGET_DIR)/home/petituser/.shrc
 
 	$(MAKE) -C $(@D)/po DESTDIR=$(TARGET_DIR) install
 endef

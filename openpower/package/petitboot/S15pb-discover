@@ -15,7 +15,12 @@ fi
 case "$1" in
     start)
         ulimit -c unlimited
-        mkdir -p $(dirname $LOGFILE)
+        mkdir -p -m 0775 $(dirname $LOGFILE)
+        mkdir -p -m 0775 /var/petitboot
+        # Set permissions for normal users
+        chown -R root:petitgroup $(dirname $LOGFILE)
+        chown -R root:petitgroup /var/petitboot
+
         export $(cat /etc/locale)
         pb-discover -l $LOGFILE $verbose &
         echo $! > $PIDFILE
