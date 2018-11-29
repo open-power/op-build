@@ -25,6 +25,7 @@ op-build Release Notes
    v2.0.8
    v2.0.9
    v2.0.10
+   v2.0.11
    v2.1-rc1
    v2.1
    v2.2-rc1
