@@ -1,4 +1,4 @@
-From bfd3a8c6279881b761ed057f469b0814283fdb67 Mon Sep 17 00:00:00 2001
+From 0cd588d30268958d8e4dc06e72c07a0cfdfc534a Mon Sep 17 00:00:00 2001
 From: Stewart Smith <stewart@linux.ibm.com>
 Date: Thu, 22 Nov 2018 10:51:50 +1100
 Subject: [PATCH] Revert "Fixes LRDIMM eff_config bugs"
@@ -93,24 +93,22 @@ Change-Id: Ib35da530c301e2c57e8bd495a4281fc750150f5d
 Fixes: https://github.com/open-power/hostboot/issues/150
 Signed-off-by: Stewart Smith <stewart@linux.ibm.com>
 ---
- .../procedures/hwp/initfiles/p9n_mca_scom.C   | 136 +--
- .../hwp/memory/lib/dimm/bcw_load_ddr4.C       |  16 +-
- .../memory/lib/dimm/ddr4/data_buffer_ddr4.H   |   9 +-
- .../hwp/memory/lib/dimm/ddr4/mrs01.C          |   4 +-
- .../procedures/hwp/memory/lib/dimm/eff_dimm.C | 617 ++-----------
- .../procedures/hwp/memory/lib/dimm/eff_dimm.H | 212 +----
- .../hwp/memory/lib/mss_attribute_accessors.H  | 834 ++----------------
- .../procedures/hwp/memory/lib/phy/ddr_phy.C   |   6 +-
- .../hwp/memory/lib/shared/mss_const.H         |   1 -
- .../procedures/hwp/memory/p9_mss_eff_config.C |  20 -
- .../attribute_info/memory_mcs_attributes.xml  |  60 --
- .../error_info/p9_memory_mss_eff_config.xml   |  18 -
- 12 files changed, 236 insertions(+), 1697 deletions(-)
+ .../p9/procedures/hwp/initfiles/p9n_mca_scom.C     | 136 ++---
+ .../procedures/hwp/memory/lib/dimm/bcw_load_ddr4.C |  16 +-
+ .../hwp/memory/lib/dimm/ddr4/data_buffer_ddr4.H    |   9 +-
+ .../p9/procedures/hwp/memory/lib/dimm/ddr4/mrs01.C |   2 +-
+ .../p9/procedures/hwp/memory/lib/dimm/eff_dimm.C   | 617 ++++-----------------
+ .../p9/procedures/hwp/memory/lib/dimm/eff_dimm.H   | 212 +------
+ .../p9/procedures/hwp/memory/lib/phy/ddr_phy.C     |   6 +-
+ .../procedures/hwp/memory/lib/shared/mss_const.H   |   1 -
+ .../p9/procedures/hwp/memory/p9_mss_eff_config.C   |  20 -
+ .../xml/error_info/p9_memory_mss_eff_config.xml    |  18 -
+ 10 files changed, 172 insertions(+), 865 deletions(-)
  mode change 100755 => 100644 src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.C
  mode change 100755 => 100644 src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C
 
 diff --git a/src/import/chips/p9/procedures/hwp/initfiles/p9n_mca_scom.C b/src/import/chips/p9/procedures/hwp/initfiles/p9n_mca_scom.C
-index edce5e27f158..7b010b1da6df 100644
+index edce5e2..7b010b1 100644
 --- a/src/import/chips/p9/procedures/hwp/initfiles/p9n_mca_scom.C
 +++ b/src/import/chips/p9/procedures/hwp/initfiles/p9n_mca_scom.C
 @@ -183,10 +183,10 @@ fapi2::ReturnCode p9n_mca_scom(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& TGT0
@@ -327,7 +325,7 @@ index edce5e27f158..7b010b1da6df 100644
              FAPI_TRY(fapi2::putScom(TGT0, 0x7010915ull, l_scom_buffer));
          }
 diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/bcw_load_ddr4.C b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/bcw_load_ddr4.C
-index 353973562b99..92e65bc5d0fd 100644
+index 3539735..92e65bc 100644
 --- a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/bcw_load_ddr4.C
 +++ b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/bcw_load_ddr4.C
 @@ -100,7 +100,6 @@ fapi2::ReturnCode bcw_load_ddr4( const fapi2::Target<TARGET_TYPE_DIMM>& i_target
@@ -366,7 +364,7 @@ index 353973562b99..92e65bc5d0fd 100644
              // So, we always want to know what function space we're in
              // The way to do that is to always return to one function space
 diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/data_buffer_ddr4.H b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/data_buffer_ddr4.H
-index ab980a962bcc..9f7d38a41eb6 100644
+index 05b1f2f..a92d8ea 100644
 --- a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/data_buffer_ddr4.H
 +++ b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/data_buffer_ddr4.H
 @@ -90,12 +90,9 @@ enum db02_def : size_t
@@ -386,18 +384,9 @@ index ab980a962bcc..9f7d38a41eb6 100644
  
  namespace ddr4
 diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/mrs01.C b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/mrs01.C
-index 834ee1ead1fc..3fd08b8a060e 100644
+index 834ee1e..875c83f 100644
 --- a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/mrs01.C
 +++ b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/ddr4/mrs01.C
-@@ -5,7 +5,7 @@
- /*                                                                        */
- /* OpenPOWER HostBoot Project                                             */
- /*                                                                        */
--/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
-+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
- /* [+] International Business Machines Corp.                              */
- /*                                                                        */
- /*                                                                        */
 @@ -62,7 +62,7 @@ mrs01_data::mrs01_data( const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target,
      iv_qoff(0)
  {
@@ -410,7 +399,7 @@ index 834ee1ead1fc..3fd08b8a060e 100644
 diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.C b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.C
 old mode 100755
 new mode 100644
-index b5e562a398e4..ae55f78e05bf
+index b5e562a..ae55f78
 --- a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.C
 +++ b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.C
 @@ -312,20 +312,9 @@ enum rc3x_encode : uint8_t
@@ -453,11 +442,10 @@ index b5e562a398e4..ae55f78e05bf
  };
  
  ///
-@@ -1417,28 +1404,6 @@ fapi_try_exit:
-     return fapi2::current_err;
+@@ -1418,28 +1405,6 @@ fapi_try_exit:
  }
  
--///
+ ///
 -/// @brief Determines & sets effective config for DRAM output driver impedance control
 -/// @return fapi2::FAPI2_RC_SUCCESS if okay
 -///
@@ -479,9 +467,10 @@ index b5e562a398e4..ae55f78e05bf
 -    return fapi2::current_err;
 -}
 -
- ///
+-///
  /// @brief Determines & sets effective config for tCCD_L
  /// @return fapi2::FAPI2_RC_SUCCESS if okay
+ ///
 @@ -1926,8 +1891,8 @@ fapi2::ReturnCode eff_dimm::dimm_rc09()
          // 2) Gets the ODT values for the other DIMM
          uint8_t l_wr_odt[MAX_RANK_PER_DIMM] = {};
@@ -493,11 +482,10 @@ index b5e562a398e4..ae55f78e05bf
  
          // 3) Checks whether this DIMM's ODTs are used for writes or reads that target the other DIMMs
          for(uint8_t l_rank = 0; l_rank < MAX_RANK_PER_DIMM; ++l_rank)
-@@ -2896,42 +2861,6 @@ fapi_try_exit:
-     return fapi2::current_err;
+@@ -2897,42 +2862,6 @@ fapi_try_exit:
  }
  
--///
+ ///
 -/// @brief Determines & sets effective config for Vref DQ Train Value and Range
 -/// @return fapi2::FAPI2_RC_SUCCESS if okay
 -///
@@ -533,9 +521,10 @@ index b5e562a398e4..ae55f78e05bf
 -    return fapi2::current_err;
 -}
 -
- ///
+-///
  /// @brief Determines & sets effective config for Vref DQ Train Enable
  /// @return fapi2::FAPI2_RC_SUCCESS if okay
+ ///
 @@ -4350,7 +4279,7 @@ fapi2::ReturnCode eff_rdimm::dram_rtt_nom()
      // Indexed by denominator. So, if RQZ is 240, and you have OHM240, then you're looking
      // for mss::index 1. So this doesn't correspond directly with the table in the JEDEC spec,
@@ -810,11 +799,10 @@ index b5e562a398e4..ae55f78e05bf
               l_attrs_dimm_bc05[iv_port_index][iv_dimm_index] );
      FAPI_TRY( FAPI_ATTR_SET(fapi2::ATTR_EFF_DIMM_DDR4_BC05, iv_mcs, l_attrs_dimm_bc05) );
  
-@@ -4934,32 +4863,6 @@ fapi_try_exit:
-     return fapi2::current_err;
+@@ -4935,32 +4864,6 @@ fapi_try_exit:
  }
  
--///
+ ///
 -/// @brief Determines & sets effective config for DIMM BC06
 -/// @return fapi2::FAPI2_RC_SUCCESS if okay
 -/// @noteCommand Space Control Word
@@ -840,9 +828,10 @@ index b5e562a398e4..ae55f78e05bf
 -    return fapi2::current_err;
 -}
 -
- ///
+-///
  /// @brief Determines & sets effective config for DIMM BC07
  /// @return fapi2::FAPI2_RC_SUCCESS if okay
+ /// @note Rank Presence Control Word
 @@ -4972,7 +4875,7 @@ fapi2::ReturnCode eff_lrdimm::dimm_bc07()
  {
      // Map for the bc07 attribute, Each bit and its position represents one rank
@@ -926,11 +915,10 @@ index b5e562a398e4..ae55f78e05bf
  /// From DDR4DB02 Spec Rev 0.95
  /// Page 60 Table 24
  /// @note This register is used by the Non Volatile controller (NVC) to change the mode of operation of the DDR4DB02
-@@ -5309,219 +5203,6 @@ fapi_try_exit:
-     return fapi2::current_err;
+@@ -5310,219 +5204,6 @@ fapi_try_exit:
  }
  
--///
+ ///
 -/// @brief Determines and sets DIMM BC1x
 -/// @return fapi2::FAPI2_RC_SUCCESS if okay
 -///
@@ -1143,9 +1131,10 @@ index b5e562a398e4..ae55f78e05bf
 -    return fapi2::current_err;
 -}
 -
- ///
+-///
  /// @brief Grab the VPD blobs and decode into attributes
  /// @param[in] i_target FAPI2 target (MCS)
+ /// @return fapi2::FAPI2_RC_SUCCESS if okay
 @@ -5881,116 +5562,4 @@ fapi2::ReturnCode eff_dimm::phy_seq_refresh()
                           iv_mcs,
                           UINT8_VECTOR_TO_1D_ARRAY(l_phy_seq_ref_enable, PORTS_PER_MCS));
@@ -1264,22 +1253,22 @@ index b5e562a398e4..ae55f78e05bf
 -
  }//mss
 diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.H b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.H
-index 693e14a8b0ca..7e33c0bdb1cb 100644
+index 693e14a..7e33c0b 100644
 --- a/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.H
 +++ b/src/import/chips/p9/procedures/hwp/memory/lib/dimm/eff_dimm.H
-@@ -290,12 +290,6 @@ class eff_dimm
-         ///
+@@ -291,12 +291,6 @@ class eff_dimm
          fapi2::ReturnCode dram_dqs_time();
  
--        ///
+         ///
 -        /// @brief Determines & sets effective config for DRAM output driver impedance control
 -        /// @return fapi2::FAPI2_RC_SUCCESS if okay
 -        ///
 -        virtual fapi2::ReturnCode dram_odic() = 0;
 -
-         ///
+-        ///
          /// @brief Determines & sets effective config for tCCD_L
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
+         ///
 @@ -534,7 +528,7 @@ class eff_dimm
          /// @brief Determines & sets effective config for Vref DQ Train Value and Range
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
@@ -1308,19 +1297,19 @@ index 693e14a8b0ca..7e33c0bdb1cb 100644
          ///
          /// @brief Determines & sets effective config for data_mask
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
-@@ -908,12 +890,6 @@ class eff_dimm
-         ///
+@@ -909,12 +891,6 @@ class eff_dimm
          virtual fapi2::ReturnCode dimm_bc05() = 0;
  
--        ///
+         ///
 -        /// @brief Determines and sets DIMM BC06
 -        /// @return fapi2::FAPI2_RC_SUCCESS if okay
 -        ///
 -        virtual fapi2::ReturnCode dimm_bc06() = 0;
 -
-         ///
+-        ///
          /// @brief Determines and sets DIMM BC07
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
+         ///
 @@ -969,43 +945,6 @@ class eff_dimm
          ///
          virtual fapi2::ReturnCode dimm_bc0f() = 0;
@@ -1391,32 +1380,32 @@ index 693e14a8b0ca..7e33c0bdb1cb 100644
          ///
          /// @brief Sets the RTT_NOM value from SPD
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
-@@ -1116,12 +1036,6 @@ class eff_lrdimm : public eff_dimm
-         ///
+@@ -1117,12 +1037,6 @@ class eff_lrdimm : public eff_dimm
          virtual fapi2::ReturnCode dram_rtt_park() final;
  
--        ///
+         ///
 -        /// @brief Determines & sets effective config for DRAM output driver impedance control
 -        /// @return fapi2::FAPI2_RC_SUCCESS if okay
 -        ///
 -        virtual fapi2::ReturnCode dram_odic() final;
 -
-         ///
+-        ///
          /// @brief Determines and sets DIMM BC00
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
-@@ -1158,12 +1072,6 @@ class eff_lrdimm : public eff_dimm
          ///
+@@ -1159,12 +1073,6 @@ class eff_lrdimm : public eff_dimm
          virtual fapi2::ReturnCode dimm_bc05() final;
  
--        ///
+         ///
 -        /// @brief Determines and sets DIMM BC09
 -        /// @return fapi2::FAPI2_RC_SUCCESS if okay
 -        ///
 -        virtual fapi2::ReturnCode dimm_bc06() final;
 -
-         ///
+-        ///
          /// @brief Determines and sets DIMM BC07
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
+         ///
 @@ -1217,42 +1125,6 @@ class eff_lrdimm : public eff_dimm
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
          ///
@@ -1460,11 +1449,10 @@ index 693e14a8b0ca..7e33c0bdb1cb 100644
  };
  
  ///
-@@ -1397,18 +1269,6 @@ class eff_rdimm : public eff_dimm
-         ///
+@@ -1398,18 +1270,6 @@ class eff_rdimm : public eff_dimm
          ~eff_rdimm() = default;
  
--        ///
+         ///
 -        /// @brief Determines & sets effective ODT write values
 -        /// @return fapi2::FAPI2_RC_SUCCESS if okay
 -        ///
@@ -1476,27 +1464,27 @@ index 693e14a8b0ca..7e33c0bdb1cb 100644
 -        ///
 -        virtual fapi2::ReturnCode odt_rd() final;
 -
-         ///
+-        ///
          /// @brief Sets the RTT_NOM value from SPD
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
-@@ -1430,12 +1290,6 @@ class eff_rdimm : public eff_dimm
-         ///
+         /// @note used for MRS01
+@@ -1431,12 +1291,6 @@ class eff_rdimm : public eff_dimm
          fapi2::ReturnCode dram_rtt_park() final;
  
--        ///
+         ///
 -        /// @brief Determines & sets effective config for DRAM output driver impedance control
 -        /// @return fapi2::FAPI2_RC_SUCCESS if okay
 -        ///
 -        virtual fapi2::ReturnCode dram_odic() final;
 -
-         ///
+-        ///
          /// @brief Determines and sets DIMM BC00
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
-@@ -1490,15 +1344,6 @@ class eff_rdimm : public eff_dimm
-             return fapi2::FAPI2_RC_SUCCESS;
+         ///
+@@ -1491,15 +1345,6 @@ class eff_rdimm : public eff_dimm
          }
  
--        ///
+         ///
 -        /// @brief Determines and sets DIMM BC06
 -        /// @return fapi2::FAPI2_RC_SUCCESS if okay
 -        ///
@@ -1505,9 +1493,10 @@ index 693e14a8b0ca..7e33c0bdb1cb 100644
 -            return fapi2::FAPI2_RC_SUCCESS;
 -        }
 -
-         ///
+-        ///
          /// @brief Determines and sets DIMM BC07
          /// @return fapi2::FAPI2_RC_SUCCESS if okay
+         ///
 @@ -1579,61 +1424,6 @@ class eff_rdimm : public eff_dimm
          {
              return fapi2::FAPI2_RC_SUCCESS;
@@ -1570,1035 +1559,8 @@ index 693e14a8b0ca..7e33c0bdb1cb 100644
  };
  }//mss
  
-diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/mss_attribute_accessors.H b/src/import/chips/p9/procedures/hwp/memory/lib/mss_attribute_accessors.H
-index 31dfa4592ed3..3660561c03ad 100644
---- a/src/import/chips/p9/procedures/hwp/memory/lib/mss_attribute_accessors.H
-+++ b/src/import/chips/p9/procedures/hwp/memory/lib/mss_attribute_accessors.H
-@@ -8569,90 +8569,6 @@ fapi_try_exit:
-     return fapi2::current_err;
- }
- 
--///
--/// @brief ATTR_EFF_DIMM_DDR4_BC06 getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] ref to the value uint8_t
--/// @note Generated by gen_accessors.pl generateParameters (F)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW06 Command Space Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_bc06(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
--{
--    uint8_t l_value[2][2];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_BC06, l_mcs, l_value) );
--    o_value = l_value[mss::index(l_mca)][mss::index(i_target)];
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_BC06: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_BC06 getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (G)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW06 Command Space Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_bc06(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_BC06, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 2);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_BC06: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_BC06 getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (H)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW06 Command Space Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_bc06(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_BC06, i_target, l_value) );
--    memcpy(o_array, &l_value, 4);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_BC06: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
- ///
- /// @brief ATTR_EFF_DIMM_DDR4_BC07 getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
-@@ -9410,40 +9326,40 @@ fapi_try_exit:
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F0BC1x getter
-+/// @brief ATTR_EFF_DIMM_DDR4_F5BC6x getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
- /// @param[out] ref to the value uint8_t
- /// @note Generated by gen_accessors.pl generateParameters (F)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW1x Buffer Configuration Control
-+/// @note  F5BCW6x DRAM Interface Vref Control
- /// Word
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f0bc1x(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
-+inline fapi2::ReturnCode eff_dimm_ddr4_f5bc6x(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
- {
-     uint8_t l_value[2][2];
-     auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
-     auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F0BC1x, l_mcs, l_value) );
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC6x, l_mcs, l_value) );
-     o_value = l_value[mss::index(l_mca)][mss::index(i_target)];
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F0BC1x: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC6x: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F0BC1x getter
-+/// @brief ATTR_EFF_DIMM_DDR4_F5BC6x getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
- /// @param[out] uint8_t* memory to store the value
- /// @note Generated by gen_accessors.pl generateParameters (G)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW1x Buffer Configuration Control
-+/// @note  F5BCW6x DRAM Interface Vref Control
- /// Word
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f0bc1x(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
-+inline fapi2::ReturnCode eff_dimm_ddr4_f5bc6x(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
- {
-     if (o_array == nullptr)
-     {
-@@ -9454,26 +9370,26 @@ inline fapi2::ReturnCode eff_dimm_ddr4_f0bc1x(const fapi2::Target<fapi2::TARGET_
-     uint8_t l_value[2][2];
-     auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F0BC1x, l_mcs, l_value) );
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC6x, l_mcs, l_value) );
-     memcpy(o_array, &(l_value[mss::index(i_target)][0]), 2);
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F0BC1x: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC6x: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F0BC1x getter
-+/// @brief ATTR_EFF_DIMM_DDR4_F5BC6x getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
- /// @param[out] uint8_t* memory to store the value
- /// @note Generated by gen_accessors.pl generateParameters (H)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW1x Buffer Configuration Control
-+/// @note  F5BCW6x DRAM Interface Vref Control
- /// Word
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f0bc1x(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
-+inline fapi2::ReturnCode eff_dimm_ddr4_f5bc6x(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
- {
-     if (o_array == nullptr)
-     {
-@@ -9483,51 +9399,51 @@ inline fapi2::ReturnCode eff_dimm_ddr4_f0bc1x(const fapi2::Target<fapi2::TARGET_
- 
-     uint8_t l_value[2][2];
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F0BC1x, i_target, l_value) );
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC6x, i_target, l_value) );
-     memcpy(o_array, &l_value, 4);
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F0BC1x: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC6x: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F0BC6x getter
-+/// @brief ATTR_EFF_DIMM_DDR4_F6BC4x getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
- /// @param[out] ref to the value uint8_t
- /// @note Generated by gen_accessors.pl generateParameters (F)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW6x Fine Granularity Frequency Operating Speed Control
-+/// @note  F6BCW4x Buffer Training Configuration Control
- /// Word
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f0bc6x(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
-+inline fapi2::ReturnCode eff_dimm_ddr4_f6bc4x(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
- {
-     uint8_t l_value[2][2];
-     auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
-     auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F0BC6x, l_mcs, l_value) );
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F6BC4x, l_mcs, l_value) );
-     o_value = l_value[mss::index(l_mca)][mss::index(i_target)];
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F0BC6x: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F6BC4x: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F0BC6x getter
-+/// @brief ATTR_EFF_DIMM_DDR4_F6BC4x getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
- /// @param[out] uint8_t* memory to store the value
- /// @note Generated by gen_accessors.pl generateParameters (G)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW6x Fine Granularity Frequency Operating Speed Control
-+/// @note  F6BCW4x Buffer Training Configuration Control
- /// Word
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f0bc6x(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
-+inline fapi2::ReturnCode eff_dimm_ddr4_f6bc4x(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
- {
-     if (o_array == nullptr)
-     {
-@@ -9538,26 +9454,26 @@ inline fapi2::ReturnCode eff_dimm_ddr4_f0bc6x(const fapi2::Target<fapi2::TARGET_
-     uint8_t l_value[2][2];
-     auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F0BC6x, l_mcs, l_value) );
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F6BC4x, l_mcs, l_value) );
-     memcpy(o_array, &(l_value[mss::index(i_target)][0]), 2);
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F0BC6x: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F6BC4x: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F0BC6x getter
-+/// @brief ATTR_EFF_DIMM_DDR4_F6BC4x getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
- /// @param[out] uint8_t* memory to store the value
- /// @note Generated by gen_accessors.pl generateParameters (H)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F0BCW6x Fine Granularity Frequency Operating Speed Control
-+/// @note  F6BCW4x Buffer Training Configuration Control
- /// Word
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f0bc6x(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
-+inline fapi2::ReturnCode eff_dimm_ddr4_f6bc4x(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
- {
-     if (o_array == nullptr)
-     {
-@@ -9567,165 +9483,79 @@ inline fapi2::ReturnCode eff_dimm_ddr4_f0bc6x(const fapi2::Target<fapi2::TARGET_
- 
-     uint8_t l_value[2][2];
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F0BC6x, i_target, l_value) );
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F6BC4x, i_target, l_value) );
-     memcpy(o_array, &l_value, 4);
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F0BC6x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F2BCEx getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] ref to the value uint8_t
--/// @note Generated by gen_accessors.pl generateParameters (F)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F2BCWEx Host Interface DFE Programming Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f2bcex(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
--{
--    uint8_t l_value[2][2];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F2BCEx, l_mcs, l_value) );
--    o_value = l_value[mss::index(l_mca)][mss::index(i_target)];
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F2BCEx: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F6BC4x: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F2BCEx getter
-+/// @brief ATTR_EFF_DRAM_TDQS getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (G)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F2BCWEx Host Interface DFE Programming Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f2bcex(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F2BCEx, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 2);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F2BCEx: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F2BCEx getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (H)
-+/// @param[out] ref to the value uint8_t
-+/// @note Generated by gen_accessors.pl generateParameters (D)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F2BCWEx Host Interface DFE Programming Control
--/// Word
-+/// @note  TDQS. Used in various locations and is computed in mss_eff_cnfg. Each memory
-+/// channel will have a value. creator: mss_eff_cnfg consumer: various firmware
-+/// notes:
-+/// none
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f2bcex(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
-+inline fapi2::ReturnCode eff_dram_tdqs(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t& o_value)
- {
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
-+    uint8_t l_value[2];
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F2BCEx, i_target, l_value) );
--    memcpy(o_array, &l_value, 4);
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_TDQS, i_target.getParent<fapi2::TARGET_TYPE_MCS>(), l_value) );
-+    o_value = l_value[mss::index(i_target)];
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F2BCEx: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DRAM_TDQS: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F5BC5x getter
-+/// @brief ATTR_EFF_DRAM_TDQS getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
- /// @param[out] ref to the value uint8_t
--/// @note Generated by gen_accessors.pl generateParameters (F)
-+/// @note Generated by gen_accessors.pl generateParameters (D.1)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F5BCW5x Host Interface Vref Control
--/// Word
-+/// @note  TDQS. Used in various locations and is computed in mss_eff_cnfg. Each memory
-+/// channel will have a value. creator: mss_eff_cnfg consumer: various firmware
-+/// notes:
-+/// none
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f5bc5x(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
-+inline fapi2::ReturnCode eff_dram_tdqs(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
- {
--    uint8_t l_value[2][2];
-+    uint8_t l_value[2];
-     auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC5x, l_mcs, l_value) );
--    o_value = l_value[mss::index(l_mca)][mss::index(i_target)];
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC5x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F5BC5x getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (G)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F5BCW5x Host Interface Vref Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f5bc5x(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC5x, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 2);
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_TDQS, l_mca.getParent<fapi2::TARGET_TYPE_MCS>(), l_value) );
-+    o_value = l_value[mss::index(l_mca)];
-     return fapi2::current_err;
- 
- fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC5x: 0x%lx (target: %s)",
-+    FAPI_ERR("failed accessing ATTR_EFF_DRAM_TDQS: 0x%lx (target: %s)",
-              uint64_t(fapi2::current_err), mss::c_str(i_target));
-     return fapi2::current_err;
- }
- 
- ///
--/// @brief ATTR_EFF_DIMM_DDR4_F5BC5x getter
-+/// @brief ATTR_EFF_DRAM_TDQS getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
- /// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (H)
-+/// @note Generated by gen_accessors.pl generateParameters (E)
- /// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F5BCW5x Host Interface Vref Control
--/// Word
-+/// @note  TDQS. Used in various locations and is computed in mss_eff_cnfg. Each memory
-+/// channel will have a value. creator: mss_eff_cnfg consumer: various firmware
-+/// notes:
-+/// none
- ///
--inline fapi2::ReturnCode eff_dimm_ddr4_f5bc5x(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
-+inline fapi2::ReturnCode eff_dram_tdqs(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
- {
-     if (o_array == nullptr)
-     {
-@@ -9733,203 +9563,10 @@ inline fapi2::ReturnCode eff_dimm_ddr4_f5bc5x(const fapi2::Target<fapi2::TARGET_
-         return fapi2::FAPI2_RC_INVALID_PARAMETER;
-     }
- 
--    uint8_t l_value[2][2];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC5x, i_target, l_value) );
--    memcpy(o_array, &l_value, 4);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC5x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F5BC6x getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] ref to the value uint8_t
--/// @note Generated by gen_accessors.pl generateParameters (F)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F5BCW6x DRAM Interface Vref Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f5bc6x(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
--{
--    uint8_t l_value[2][2];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
-+    uint8_t l_value[2];
- 
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC6x, l_mcs, l_value) );
--    o_value = l_value[mss::index(l_mca)][mss::index(i_target)];
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC6x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F5BC6x getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (G)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F5BCW6x DRAM Interface Vref Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f5bc6x(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC6x, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 2);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC6x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F5BC6x getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (H)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F5BCW6x DRAM Interface Vref Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f5bc6x(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F5BC6x, i_target, l_value) );
--    memcpy(o_array, &l_value, 4);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F5BC6x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F6BC4x getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] ref to the value uint8_t
--/// @note Generated by gen_accessors.pl generateParameters (F)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F6BCW4x Buffer Training Configuration Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f6bc4x(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
--{
--    uint8_t l_value[2][2];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F6BC4x, l_mcs, l_value) );
--    o_value = l_value[mss::index(l_mca)][mss::index(i_target)];
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F6BC4x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F6BC4x getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (G)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F6BCW4x Buffer Training Configuration Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f6bc4x(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F6BC4x, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 2);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F6BC4x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DIMM_DDR4_F6BC4x getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (H)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  F6BCW4x Buffer Training Configuration Control
--/// Word
--///
--inline fapi2::ReturnCode eff_dimm_ddr4_f6bc4x(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DIMM_DDR4_F6BC4x, i_target, l_value) );
--    memcpy(o_array, &l_value, 4);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DIMM_DDR4_F6BC4x: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DRAM_TDQS getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] ref to the value uint8_t
--/// @note Generated by gen_accessors.pl generateParameters (D)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  TDQS. Used in various locations and is computed in mss_eff_cnfg. Each memory
--/// channel will have a value. creator: mss_eff_cnfg consumer: various firmware
--/// notes:
--/// none
--///
--inline fapi2::ReturnCode eff_dram_tdqs(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t& o_value)
--{
--    uint8_t l_value[2];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_TDQS, i_target.getParent<fapi2::TARGET_TYPE_MCS>(), l_value) );
--    o_value = l_value[mss::index(i_target)];
-+    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_TDQS, i_target, l_value) );
-+    memcpy(o_array, &l_value, 2);
-     return fapi2::current_err;
- 
- fapi_try_exit:
-@@ -9938,351 +9575,6 @@ fapi_try_exit:
-     return fapi2::current_err;
- }
- 
--///
--/// @brief ATTR_EFF_DRAM_TDQS getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] ref to the value uint8_t
--/// @note Generated by gen_accessors.pl generateParameters (D.1)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  TDQS. Used in various locations and is computed in mss_eff_cnfg. Each memory
--/// channel will have a value. creator: mss_eff_cnfg consumer: various firmware
--/// notes:
--/// none
--///
--inline fapi2::ReturnCode eff_dram_tdqs(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t& o_value)
--{
--    uint8_t l_value[2];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_TDQS, l_mca.getParent<fapi2::TARGET_TYPE_MCS>(), l_value) );
--    o_value = l_value[mss::index(l_mca)];
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DRAM_TDQS: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DRAM_TDQS getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (E)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  TDQS. Used in various locations and is computed in mss_eff_cnfg. Each memory
--/// channel will have a value. creator: mss_eff_cnfg consumer: various firmware
--/// notes:
--/// none
--///
--inline fapi2::ReturnCode eff_dram_tdqs(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_TDQS, i_target, l_value) );
--    memcpy(o_array, &l_value, 2);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DRAM_TDQS: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DRAM_ODIC getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (A)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  DRAM output driver impedance control
--/// (ODIC)
--///
--inline fapi2::ReturnCode eff_dram_odic(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_ODIC, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(l_mca)][mss::index(i_target)][0]), 4);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DRAM_ODIC: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DRAM_ODIC getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (B)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  DRAM output driver impedance control
--/// (ODIC)
--///
--inline fapi2::ReturnCode eff_dram_odic(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_ODIC, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 8);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DRAM_ODIC: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_EFF_DRAM_ODIC getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (C)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  DRAM output driver impedance control
--/// (ODIC)
--///
--inline fapi2::ReturnCode eff_dram_odic(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_EFF_DRAM_ODIC, i_target, l_value) );
--    memcpy(o_array, &l_value, 16);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_EFF_DRAM_ODIC: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_MSS_EFF_ODT_RD getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (A)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  READ, On Die Termination triggering bitmap. Use bitmap to determine which ODT to
--/// fire for the designated rank. The bits in 8 bit field are [Dimm0 ODT0][Dimm0
--/// ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A] Attribute is derived from VPD
--/// for RDIMM or from termination settings for
--/// LRDIMM
--///
--inline fapi2::ReturnCode eff_odt_rd(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_MSS_EFF_ODT_RD, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(l_mca)][mss::index(i_target)][0]), 4);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_MSS_EFF_ODT_RD: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_MSS_EFF_ODT_RD getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (B)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  READ, On Die Termination triggering bitmap. Use bitmap to determine which ODT to
--/// fire for the designated rank. The bits in 8 bit field are [Dimm0 ODT0][Dimm0
--/// ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A] Attribute is derived from VPD
--/// for RDIMM or from termination settings for
--/// LRDIMM
--///
--inline fapi2::ReturnCode eff_odt_rd(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_MSS_EFF_ODT_RD, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 8);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_MSS_EFF_ODT_RD: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_MSS_EFF_ODT_RD getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (C)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  READ, On Die Termination triggering bitmap. Use bitmap to determine which ODT to
--/// fire for the designated rank. The bits in 8 bit field are [Dimm0 ODT0][Dimm0
--/// ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A] Attribute is derived from VPD
--/// for RDIMM or from termination settings for
--/// LRDIMM
--///
--inline fapi2::ReturnCode eff_odt_rd(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_MSS_EFF_ODT_RD, i_target, l_value) );
--    memcpy(o_array, &l_value, 16);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_MSS_EFF_ODT_RD: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_MSS_EFF_ODT_WR getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_DIMM>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (A)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  WRITE, On Die Termination triggering bitmap. Use bitmap to determine which ODT
--/// to fire for the designated rank. The bits in 8 bit field are [Dimm0 ODT0][Dimm0
--/// ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A] Attribute is derived from VPD
--/// for RDIMM or from termination settings for
--/// LRDIMM
--///
--inline fapi2::ReturnCode eff_odt_wr(const fapi2::Target<fapi2::TARGET_TYPE_DIMM>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--    auto l_mca = i_target.getParent<fapi2::TARGET_TYPE_MCA>();
--    auto l_mcs = l_mca.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_MSS_EFF_ODT_WR, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(l_mca)][mss::index(i_target)][0]), 4);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_MSS_EFF_ODT_WR: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_MSS_EFF_ODT_WR getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (B)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  WRITE, On Die Termination triggering bitmap. Use bitmap to determine which ODT
--/// to fire for the designated rank. The bits in 8 bit field are [Dimm0 ODT0][Dimm0
--/// ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A] Attribute is derived from VPD
--/// for RDIMM or from termination settings for
--/// LRDIMM
--///
--inline fapi2::ReturnCode eff_odt_wr(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--    auto l_mcs = i_target.getParent<fapi2::TARGET_TYPE_MCS>();
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_MSS_EFF_ODT_WR, l_mcs, l_value) );
--    memcpy(o_array, &(l_value[mss::index(i_target)][0]), 8);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_MSS_EFF_ODT_WR: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
--///
--/// @brief ATTR_MSS_EFF_ODT_WR getter
--/// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCS>
--/// @param[out] uint8_t* memory to store the value
--/// @note Generated by gen_accessors.pl generateParameters (C)
--/// @return fapi2::ReturnCode - FAPI2_RC_SUCCESS iff get is OK
--/// @note  WRITE, On Die Termination triggering bitmap. Use bitmap to determine which ODT
--/// to fire for the designated rank. The bits in 8 bit field are [Dimm0 ODT0][Dimm0
--/// ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A] Attribute is derived from VPD
--/// for RDIMM or from termination settings for
--/// LRDIMM
--///
--inline fapi2::ReturnCode eff_odt_wr(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target, uint8_t* o_array)
--{
--    if (o_array == nullptr)
--    {
--        FAPI_ERR("nullptr passed to attribute accessor %s", __func__);
--        return fapi2::FAPI2_RC_INVALID_PARAMETER;
--    }
--
--    uint8_t l_value[2][2][4];
--
--    FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_MSS_EFF_ODT_WR, i_target, l_value) );
--    memcpy(o_array, &l_value, 16);
--    return fapi2::current_err;
--
--fapi_try_exit:
--    FAPI_ERR("failed accessing ATTR_MSS_EFF_ODT_WR: 0x%lx (target: %s)",
--             uint64_t(fapi2::current_err), mss::c_str(i_target));
--    return fapi2::current_err;
--}
--
- ///
- /// @brief ATTR_EFF_DRAM_TREFI getter
- /// @param[in] const ref to the fapi2::Target<fapi2::TARGET_TYPE_MCA>
 diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/phy/ddr_phy.C b/src/import/chips/p9/procedures/hwp/memory/lib/phy/ddr_phy.C
-index c8f59400e8ff..187b60c085fe 100644
+index c8f5940..187b60c 100644
 --- a/src/import/chips/p9/procedures/hwp/memory/lib/phy/ddr_phy.C
 +++ b/src/import/chips/p9/procedures/hwp/memory/lib/phy/ddr_phy.C
 @@ -1255,7 +1255,7 @@ fapi2::ReturnCode reset_odt_rd_config( const fapi2::Target<fapi2::TARGET_TYPE_MC
@@ -2629,10 +1591,10 @@ index c8f59400e8ff..187b60c085fe 100644
      // set the ODTs for the rank selected
      // The ODT encoding is (for mranks only)
 diff --git a/src/import/chips/p9/procedures/hwp/memory/lib/shared/mss_const.H b/src/import/chips/p9/procedures/hwp/memory/lib/shared/mss_const.H
-index 3adb52f9e516..56dd353399eb 100644
+index d1effb8..e7999e9 100644
 --- a/src/import/chips/p9/procedures/hwp/memory/lib/shared/mss_const.H
 +++ b/src/import/chips/p9/procedures/hwp/memory/lib/shared/mss_const.H
-@@ -156,7 +156,6 @@ enum ffdc_function_codes
+@@ -153,7 +153,6 @@ enum ffdc_function_codes
      DRAM_BANK_BITS = 25,
      DRAM_ROW_BITS = 26,
      SOFT_POST_PACKAGE_REPAIR = 27,
@@ -2643,7 +1605,7 @@ index 3adb52f9e516..56dd353399eb 100644
 diff --git a/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C b/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C
 old mode 100755
 new mode 100644
-index 6b078f902dc9..c05c51992aa7
+index 6b078f9..c05c519
 --- a/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C
 +++ b/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C
 @@ -98,12 +98,6 @@ fapi2::ReturnCode p9_mss_eff_config( const fapi2::Target<fapi2::TARGET_TYPE_MCS>
@@ -2687,121 +1649,14 @@ index 6b078f902dc9..c05c51992aa7
  
          // Sets up the calibration steps
          FAPI_TRY( l_eff_dimm->cal_step_enable(),
-diff --git a/src/import/chips/p9/procedures/xml/attribute_info/memory_mcs_attributes.xml b/src/import/chips/p9/procedures/xml/attribute_info/memory_mcs_attributes.xml
-index 2ff3e37937b9..bb96987aa783 100644
---- a/src/import/chips/p9/procedures/xml/attribute_info/memory_mcs_attributes.xml
-+++ b/src/import/chips/p9/procedures/xml/attribute_info/memory_mcs_attributes.xml
-@@ -2409,7 +2409,6 @@
-         <valueType>uint8</valueType>
-         <writeable />
-         <array> 2 2 </array>
--        <mssAccessorName>eff_dimm_ddr4_bc06</mssAccessorName>
-     </attribute>
- 
-     <attribute>
-@@ -2519,7 +2518,6 @@
-         <valueType>uint8</valueType>
-         <writeable />
-         <array> 2 2 </array>
--        <mssAccessorName>eff_dimm_ddr4_f0bc1x</mssAccessorName>
-     </attribute>
- 
-     <attribute>
-@@ -2570,7 +2568,6 @@
-         <valueType>uint8</valueType>
-         <writeable />
-         <array> 2 2 </array>
--        <mssAccessorName>eff_dimm_ddr4_f0bc6x</mssAccessorName>
-     </attribute>
- 
-     <attribute>
-@@ -2700,17 +2697,6 @@
-         <array> 2 2 </array>
-         </attribute>
- 
--    <attribute>
--        <id>ATTR_EFF_DIMM_DDR4_F2BCEx</id>
--        <targetType>TARGET_TYPE_MCS</targetType>
--        <description>F2BCWEx Host Interface DFE Programming Control Word</description>
--        <initToZero></initToZero>
--        <valueType>uint8</valueType>
--        <writeable />
--        <array> 2 2 </array>
--        <mssAccessorName>eff_dimm_ddr4_f2bcex</mssAccessorName>
--    </attribute>
--
-     <attribute>
-         <id>ATTR_EFF_DIMM_DDR4_F4BC0x</id>
-         <targetType>TARGET_TYPE_MCS</targetType>
-@@ -2829,7 +2815,6 @@
-         <valueType>uint8</valueType>
-         <writeable />
-         <array> 2 2 </array>
--        <mssAccessorName>eff_dimm_ddr4_f5bc5x</mssAccessorName>
-     </attribute>
- 
-     <attribute>
-@@ -3018,51 +3003,6 @@
-         <mssAccessorName>eff_dram_tdqs</mssAccessorName>
-     </attribute>
- 
--    <attribute>
--        <id>ATTR_EFF_DRAM_ODIC</id>
--        <targetType>TARGET_TYPE_MCS</targetType>
--        <description>
--            DRAM output driver impedance control (ODIC)
--        </description>
--        <initToZero></initToZero>
--        <valueType>uint8</valueType>
--        <enum>OHM34 = 34, OHM48 = 48</enum>
--        <writeable/>
--        <array> 2 2 4 </array>
--        <mssAccessorName>eff_dram_odic</mssAccessorName>
--    </attribute>
--
--    <attribute>
--        <id>ATTR_MSS_EFF_ODT_RD</id>
--        <targetType>TARGET_TYPE_MCS</targetType>
--        <description>
--            READ, On Die Termination triggering bitmap. Use bitmap to determine which ODT to fire for the designated rank.
--            The bits in 8 bit field are [Dimm0 ODT0][Dimm0 ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A]
--	    Attribute is derived from VPD for RDIMM or from termination settings for LRDIMM
--        </description>
--        <initToZero></initToZero>
--        <writeable/>
--        <valueType>uint8</valueType>
--        <mssAccessorName>eff_odt_rd</mssAccessorName>
--        <array>2 2 4</array>
--    </attribute>
--
--    <attribute>
--        <id>ATTR_MSS_EFF_ODT_WR</id>
--        <targetType>TARGET_TYPE_MCS</targetType>
--        <description>
--            WRITE, On Die Termination triggering bitmap. Use bitmap to determine which ODT to fire for the designated rank.
--            The bits in 8 bit field are [Dimm0 ODT0][Dimm0 ODT1][N/A][N/A][Dimm1 ODT0][Dimm1 ODT1][N/A][N/A]
--	    Attribute is derived from VPD for RDIMM or from termination settings for LRDIMM
--        </description>
--        <initToZero></initToZero>
--        <writeable/>
--        <valueType>uint8</valueType>
--        <writeable/>
--        <mssAccessorName>eff_odt_wr</mssAccessorName>
--        <array>2 2 4</array>
--    </attribute>
--
-     <attribute>
-       <id>ATTR_EFF_DRAM_TREFI</id>
-       <targetType>TARGET_TYPE_MCS</targetType>
 diff --git a/src/import/chips/p9/procedures/xml/error_info/p9_memory_mss_eff_config.xml b/src/import/chips/p9/procedures/xml/error_info/p9_memory_mss_eff_config.xml
-index 9d9aea1744fb..965e0de84ccc 100644
+index 9d9aea1..965e0de 100644
 --- a/src/import/chips/p9/procedures/xml/error_info/p9_memory_mss_eff_config.xml
 +++ b/src/import/chips/p9/procedures/xml/error_info/p9_memory_mss_eff_config.xml
-@@ -485,24 +485,6 @@
-     </callout>
+@@ -486,24 +486,6 @@
    </hwpError>
  
--  <hwpError>
+   <hwpError>
 -    <rc>RC_MSS_INVALID_RTT_PARK_CALCULATIONS</rc>
 -    <description>
 -        Calculated the rtt_park_index into the VPD attribute incorrectly
@@ -2819,9 +1674,10 @@ index 9d9aea1744fb..965e0de84ccc 100644
 -    </callout>
 -  </hwpError>
 -
-   <hwpError>
+-  <hwpError>
      <rc>RC_MSS_INVALID_RTT_NOM_CALCULATIONS</rc>
      <description>
+         Calculated the rtt_nom_index into the VPD attribute incorrectly
 -- 
-2.19.1
+1.8.2.2
 
