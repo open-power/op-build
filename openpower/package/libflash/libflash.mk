@@ -37,6 +37,8 @@ define HOST_LIBFLASH_BUILD_CMDS
 	    $(MAKE) -C $(@D)/external/pflash
     $(HOST_MAKE_ENV) SKIBOOT_VERSION=$(LIBFLASH_VERSION) \
 	    $(MAKE) -C $(@D)/external/gard
+    $(HOST_MAKE_ENV) SKIBOOT_VERSION=$(LIBFLASH_VERSION) \
+	    $(MAKE) -C $(@D)/external/ffspart
 endef
 
 define LIBFLASH_INSTALL_STAGING_CMDS
@@ -56,6 +58,7 @@ endef
 
 define HOST_LIBFLASH_INSTALL_CMDS
     $(INSTALL) $(@D)/external/pflash/pflash $(HOST_DIR)/usr/bin/pflash
+    $(INSTALL) $(@D)/external/ffspart/ffspart $(HOST_DIR)/usr/bin/ffspart
 endef
 
 $(eval $(generic-package))
