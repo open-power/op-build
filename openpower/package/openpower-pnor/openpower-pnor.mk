@@ -158,6 +158,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
+	$(TARGET_MAKE_ENV) ../openpower/scripts/pnordiff.sh $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(STAGING_DIR)/pnor/ffspart.pnor
 
         # if this config has an UPDATE_FILENAME defined, create a 32M (1/2 size)
         # image that only updates the non-golden side
