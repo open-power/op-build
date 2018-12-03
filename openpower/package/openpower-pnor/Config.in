@@ -78,7 +78,7 @@ config BR2_SKIBOOT_LID_NAME
             String used to define skiboot lid filename
 
 config BR2_TARGET_SKIBOOT_XZ
-        boolean "Compress the skiboot image with XZ"
+        bool "Compress the skiboot image with XZ"
         select BR2_OPENPOWER_PNOR_XZ_ENABLED
         default y
 
