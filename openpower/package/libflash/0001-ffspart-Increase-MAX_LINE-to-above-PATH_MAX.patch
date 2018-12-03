@@ -1,0 +1,29 @@
+From 11c256c70355e4aa12c7a993c43d602aeb46dee0 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@linux.ibm.com>
+Date: Mon, 3 Dec 2018 11:19:02 +1100
+Subject: [PATCH] ffspart: Increase MAX_LINE to above PATH_MAX
+
+Otherwise we saw failures in CI and the ~221 character paths Jankins
+likes to have.
+
+Signed-off-by: Stewart Smith <stewart@linux.ibm.com>
+---
+ external/ffspart/ffspart.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/external/ffspart/ffspart.c b/external/ffspart/ffspart.c
+index 179ed582170b..eeee0d4d657b 100644
+--- a/external/ffspart/ffspart.c
++++ b/external/ffspart/ffspart.c
+@@ -50,7 +50,7 @@
+  *  Plus \n 40
+  *  Lets do 50.
+  */
+-#define MAX_LINE 255
++#define MAX_LINE (PATH_MAX+255)
+ #define MAX_TOCS 10
+ #define SEPARATOR ','
+ 
+-- 
+2.19.2
+
