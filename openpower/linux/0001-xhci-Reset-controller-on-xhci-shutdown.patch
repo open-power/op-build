@@ -14,10 +14,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 0420eefa647a..618fabbdb4cc 100644
+index c928dbbff881..2f5aff97f387 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -796,6 +796,7 @@ static void xhci_shutdown(struct usb_hcd *hcd)
+@@ -794,6 +794,7 @@ static void xhci_shutdown(struct usb_hcd *hcd)
  	/* Yet another workaround for spurious wakeups at shutdown with HSW */
  	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
  		pci_set_power_state(to_pci_dev(hcd->self.sysdev), PCI_D3hot);
