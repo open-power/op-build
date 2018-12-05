@@ -4,12 +4,12 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= aa94a39eb470d1a50138f4d0b04a5a135c4431ff
-OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
+OPENPOWER_PNOR_VERSION ?= d3e41ea1efffc8fa0f96c8239d154dbbe3ee29b4
+OPENPOWER_PNOR_SITE ?= $(call github,stewart-ibm,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode
+OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode host-libflash
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
 OPENPOWER_PNOR_DEPENDENCIES += hcode
@@ -158,6 +158,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
+	$(TARGET_MAKE_ENV) ../openpower/scripts/pnordiff.sh $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(STAGING_DIR)/pnor/ffspart.pnor
 
         # if this config has an UPDATE_FILENAME defined, create a 32M (1/2 size)
         # image that only updates the non-golden side
