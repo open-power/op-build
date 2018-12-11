@@ -1,7 +1,7 @@
 op-build Linux Kernel
 =====================
 
-The skiroot/Petitboot kernel is currently based on the 4.17 series.
+The skiroot/Petitboot kernel is currently based on the 4.19 series.
 
 Submitting a patch
 ------------------
