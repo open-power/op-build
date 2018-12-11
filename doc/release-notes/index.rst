@@ -3,6 +3,9 @@
 op-build Release Notes
 ======================
 
+v1.21
+-----
+
 .. toctree::
    :maxdepth: 1
 
@@ -11,8 +14,22 @@ op-build Release Notes
    v1.21
    v1.21.1
    v1.21.2
+
+v1.22
+-----
+
+.. toctree::
+   :maxdepth: 1
+
    v1.22-rc1
    v1.22
+
+v2.0
+----
+
+.. toctree::
+   :maxdepth: 1
+
    v2.0-rc1
    v2.0
    v2.0.1
@@ -26,6 +43,21 @@ op-build Release Notes
    v2.0.9
    v2.0.10
    v2.0.11
+
+v2.1
+----
+
+.. toctree::
+   :maxdepth: 1
+
    v2.1-rc1
    v2.1
+
+v2.2
+----
+
+ .. toctree::
+   :maxdepth: 1
+
    v2.2-rc1
+
