@@ -7,6 +7,7 @@ the 2.0.x series.
 It is recommended that v2.0.9 be used over any previous v2.0.x version on POWER9 systems due to the bug fixes contained within.
 
 The only update in this release is to skiboot. Skiboot v6.0.8 includes the following bug fixes:
+
 - i2c: Ensure ordering between i2c_request_send() and completion
 
   i2c_request_send loops waiting for a flag "uc.done" set by
