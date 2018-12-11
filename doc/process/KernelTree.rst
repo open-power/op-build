@@ -34,6 +34,15 @@ where N is the revision that counts up from 1 for the given upstream
 version number. These versions will be present as tags in the git
 repository hosted at https://github.com/open-power/linux.
 
+We aim to follow "the latest upstream release".
+
+For op-build stable trees, we follow the latest stable release of the
+kernel that particular op-build release was made with. Since op-build
+stable releases may outlast how long an upstream kernel is maintain for,
+we will move up the kernel version we use until the next LTS kernel.
+Once on an LTS kernel, an op-build stable release will stick with that
+version.
+
 Tree and patches
 ----------------
 
