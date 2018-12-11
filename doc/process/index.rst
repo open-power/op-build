@@ -5,3 +5,4 @@ Development Process
 
    CONTRIBUTING.md
    KernelTree.rst
+   building-with-ci
