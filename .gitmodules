@@ -2,3 +2,6 @@
 	path = buildroot
 	branch = 2018.08-op-build
 	url = https://github.com/open-power/buildroot
+[submodule "op-test"]
+	path = op-test
+	url = https://github.com/open-power/op-test-framework.git
