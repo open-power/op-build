@@ -1,0 +1,57 @@
+From a29f4165d48fc7b8a23dc07fef860f6246c61ce7 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Tue, 18 Dec 2018 14:16:56 +0300
+Subject: [PATCH] Add temperature sensor support for CPU cores
+
+IPMI protocol imposes limits on numbers of sensors identifiers (1 byte).
+This limitation doesn't allow us to use unique temperature sensor ID for
+each CPU core (4 CPU * 12 cores = 48 sensors).
+
+OCC uses temperature sensor ID as channel label, these labels are handled
+by phosphor-hwmon service to identify the core:
+
+     I2C               sysfs                   config.yaml
+OCC -----> BMC Kernel -------> Phosphor-hwmon -------------> DBus
+     ID                label                   label->core
+
+This patch makes OCC use own ID as channel label instead of using IPMI
+temperature sensor ID. The new identifier consists of constant prefix
+(0x0f) and core index:
+ID = 0x0f00 + INDEX(core)
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/occ/cmdh/cmdh_fsp_cmds.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/occ/cmdh/cmdh_fsp_cmds.c b/src/occ/cmdh/cmdh_fsp_cmds.c
+index 6276992..5e9d84d 100755
+--- a/src/occ/cmdh/cmdh_fsp_cmds.c
++++ b/src/occ/cmdh/cmdh_fsp_cmds.c
+@@ -53,6 +53,13 @@
+ #include "amec_wof.h"
+ #include <centaur_data.h>
+ 
++#define OCC_SENSOR_PREFIX 0x0f00
++
++static inline uint16_t occ_core_sensor_id(uint8_t k)
++{
++    return OCC_SENSOR_PREFIX | k;
++}
++
+ extern cent_sensor_flags_t G_dimm_temp_expired_bitmap;
+ 
+ // We need to have a small structure in non-Applet space to keep track
+@@ -393,7 +400,8 @@ ERRL_RC cmdh_poll_v10(cmdh_fsp_rsp_t * o_rsp_ptr)
+     {
+         if(CORE_PRESENT(k))
+         {
+-            l_tempSensorList[l_sensorHeader.count].id = G_amec_sensor_list[TEMP2MSP0C0 + k]->ipmi_sid;
++            // Set core label as a constant prefix with index
++            l_tempSensorList[l_sensorHeader.count].id = occ_core_sensor_id(k);
+             l_tempSensorList[l_sensorHeader.count].value = G_amec_sensor_list[TEMP2MSP0C0 + k]->sample;
+             l_sensorHeader.count++;
+         }
+-- 
+2.19.2
+
