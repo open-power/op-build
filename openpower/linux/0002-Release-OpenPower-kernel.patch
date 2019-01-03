@@ -5,19 +5,21 @@ Subject: [PATCH 2/2] Release OpenPower kernel
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
- Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Makefile | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 892ff14cbc9d..eb33670b9cf9 100644
+index 3b9e4658d31f..d836f4d1787c 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -2,7 +2,7 @@
+@@ -2,8 +2,9 @@
  VERSION = 4
- PATCHLEVEL = 19
- SUBLEVEL = 13
+ PATCHLEVEL = 20
+ SUBLEVEL = 3
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
- NAME = "People's Front"
+ NAME = Shy Crocodile
++NAME = "People's Front"
  
  # *DOCUMENTATION*
+ # To see a list of typical targets execute "make help"
