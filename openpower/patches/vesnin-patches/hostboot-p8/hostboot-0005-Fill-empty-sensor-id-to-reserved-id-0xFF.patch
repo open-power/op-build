@@ -1,8 +1,9 @@
-From a1f98d850d356001d37242ccf13f94114bd6378c Mon Sep 17 00:00:00 2001
-From: Artem Senichev <a.senichev@yadro.com>
-Date: Tue, 13 Mar 2018 15:44:05 +0300
-Subject: [PATCH] Fill empty sensor id to reserved id 0xFF
+From f03937aa32b79e8bde0fa5ff09a0e11e4750bb6f Mon Sep 17 00:00:00 2001
+From: Corey Swenson <cswenson@us.ibm.com>
+Date: Mon, 14 Jan 2019 12:46:22 -0600
+Subject: [PATCH] Vesnin patch
 
+Change-Id: I1116c92f9176d53630a9316312656c03f2a16723
 
 Hank Chang: This patch achieves the following goals:
 a. Auto set all empty sensors with reserved ID - 0xFF instead of being 0x0 in
@@ -20,15 +21,23 @@ Originally created by MSI (S188)
 
 Signed-off-by: Artem Senichev <a.senichev@yadro.com>
 ---
- src/usr/ipmi/ipmisensor.C              |  5 +----
- src/usr/targeting/common/processMrw.pl | 21 ++++++++++++++++++---
- 2 files changed, 19 insertions(+), 7 deletions(-)
+ src/usr/ipmiext/ipmisensor.C           |  6 ++----
+ src/usr/targeting/common/processMrw.pl | 25 ++++++++++++++++++++-----
+ 2 files changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/src/usr/ipmi/ipmisensor.C b/src/usr/ipmi/ipmisensor.C
-index 4aa1c9f4b..a5bded63a 100644
---- a/src/usr/ipmi/ipmisensor.C
-+++ b/src/usr/ipmi/ipmisensor.C
-@@ -216,14 +216,11 @@ namespace SENSOR
+diff --git a/src/usr/ipmiext/ipmisensor.C b/src/usr/ipmiext/ipmisensor.C
+index e3c6405..63a4196 100644
+--- a/src/usr/ipmiext/ipmisensor.C
++++ b/src/usr/ipmiext/ipmisensor.C
+@@ -6,6 +6,7 @@
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+ /* Contributors Listed Below - COPYRIGHT 2014,2019                        */
++/* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+ /* Licensed under the Apache License, Version 2.0 (the "License");        */
+@@ -214,14 +215,11 @@ namespace SENSOR
          }
          else
          {
@@ -45,9 +54,18 @@ index 4aa1c9f4b..a5bded63a 100644
  
          return l_err;
 diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
-index 8bfa7bddd..45d250872 100644
+index 8bfa7bd..66783c8 100644
 --- a/src/usr/targeting/common/processMrw.pl
 +++ b/src/usr/targeting/common/processMrw.pl
+@@ -6,7 +6,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2015,2017
++# Contributors Listed Below - COPYRIGHT 2015,2019
+ # [+] International Business Machines Corp.
+ #
+ #
 @@ -239,14 +239,29 @@ sub processIpmiSensors {
                  $sensor_name=$name."_".$name_suffix;
              }
@@ -81,6 +99,15 @@ index 8bfa7bddd..45d250872 100644
              my $str=sprintf(
                  " %30s | %10s |  0x%02X  | 0x%02X |    0x%02x   |" .
                  " %4s | %4d | %4d | %10s | %s\n",
+@@ -1428,7 +1443,7 @@ Options:
+     exit(1);
+ }
+ 
+-# eliminate extra whitespace 
++# eliminate extra whitespace
+ #    Input: string to chop
+ sub nowhitespace
+ {
 -- 
-2.14.1
+1.8.2.2
 
