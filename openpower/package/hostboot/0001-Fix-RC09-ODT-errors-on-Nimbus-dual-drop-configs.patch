@@ -1,0 +1,73 @@
+From daab9055723d6cde608b0ea9bb2318ebb0594e0e Mon Sep 17 00:00:00 2001
+From: Louis Stermole <stermole@us.ibm.com>
+Date: Fri, 4 Jan 2019 10:26:21 -0500
+Subject: [PATCH] Fix RC09 ODT errors on Nimbus dual-drop configs
+
+Change-Id: Icefa3c20102627e8819b8f8738bb143d7156d3bb
+CQ:SW452278
+Reviewed-on: http://rchgit01.rchland.ibm.com/gerrit1/70096
+Reviewed-by: Michael D. Pardeik <pardeik@us.ibm.com>
+Tested-by: FSP CI Jenkins <fsp-CI-jenkins+hostboot@us.ibm.com>
+Tested-by: Jenkins Server <pfd-jenkins+hostboot@us.ibm.com>
+Tested-by: Hostboot CI <hostboot-ci+hostboot@us.ibm.com>
+Reviewed-by: ANDRE A. MARIN <aamarin@us.ibm.com>
+Dev-Ready: Louis Stermole <stermole@us.ibm.com>
+Reviewed-by: Jennifer A. Stofer <stofer@us.ibm.com>
+---
+ .../p9/procedures/hwp/memory/p9_mss_eff_config.C      | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C b/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C
+index 6b078f9..7b40852 100755
+--- a/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C
++++ b/src/import/chips/p9/procedures/hwp/memory/p9_mss_eff_config.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
++/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -88,6 +88,8 @@ fapi2::ReturnCode p9_mss_eff_config( const fapi2::Target<fapi2::TARGET_TYPE_MCS>
+                   "Unable to decode VPD for %s", mss::c_str(i_target) );
+     }
+ 
++    // First we process the ODIC and ODT values since we need these initialized for both DIMM
++    // on a port if we're in a dual-drop config
+     for( const auto& l_spd : l_spd_facades )
+     {
+         const auto l_dimm = l_spd.get_dimm_target();
+@@ -96,7 +98,7 @@ fapi2::ReturnCode p9_mss_eff_config( const fapi2::Target<fapi2::TARGET_TYPE_MCS>
+         FAPI_TRY( mss::eff_dimm::factory( l_spd, l_eff_dimm),
+                   "Failed factory for %s",  mss::c_str(l_dimm));
+ 
+-        FAPI_INF("Running eff_config on %s", mss::c_str(l_dimm) );
++        FAPI_INF("Setting up ODIC and ODT attributes on %s", mss::c_str(l_dimm) );
+ 
+         FAPI_TRY(  l_eff_dimm->dram_odic(),
+                    "Failed dram_odic for %s", mss::c_str(l_dimm) );
+@@ -104,6 +106,19 @@ fapi2::ReturnCode p9_mss_eff_config( const fapi2::Target<fapi2::TARGET_TYPE_MCS>
+                    "Failed odt_wr for %s", mss::c_str(l_dimm) );
+         FAPI_TRY(  l_eff_dimm->odt_rd(),
+                    "Failed odt_rd for %s", mss::c_str(l_dimm) );
++    }
++
++    // Now we continue with the remainder of eff_config
++    for( const auto& l_spd : l_spd_facades )
++    {
++        const auto l_dimm = l_spd.get_dimm_target();
++
++        std::shared_ptr<mss::eff_dimm> l_eff_dimm;
++        FAPI_TRY( mss::eff_dimm::factory( l_spd, l_eff_dimm),
++                  "Failed factory for %s",  mss::c_str(l_dimm));
++
++        FAPI_INF("Running eff_config on %s", mss::c_str(l_dimm) );
++
+         FAPI_TRY( l_eff_dimm->rcd_mfg_id(),
+                   "Failed rcd_mfg_id for %s", mss::c_str(l_dimm) );
+         FAPI_TRY( l_eff_dimm->register_type(),
+-- 
+1.8.2.2
+
