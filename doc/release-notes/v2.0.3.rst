@@ -65,12 +65,12 @@ Package: hostboot
 
 `Repository <https://github.com/open-power/hostboot>`__
 
-.. _patches-1:
+.. _op-build-v2.0.3-patches-1:
 
 Patches
 ~~~~~~~
 
-.. _commits-1:
+.. _op-build-v2.0.3-commits-1:
 
 Commits
 ~~~~~~~
@@ -153,12 +153,12 @@ Package: occ
 
 `Repository <https://github.com/open-power/occ>`__
 
-.. _patches-2:
+.. _op-build-v2.0.3-patches-2:
 
 Patches
 ~~~~~~~
 
-.. _commits-2:
+.. _op-build-v2.0.3-commits-2:
 
 Commits
 ~~~~~~~
@@ -173,12 +173,12 @@ Package: sbe
 
 `Repository <https://github.com/open-power/sbe>`__
 
-.. _patches-3:
+.. _op-build-v2.0.3-patches-3:
 
 Patches
 ~~~~~~~
 
-.. _commits-3:
+.. _op-build-v2.0.3-commits-3:
 
 Commits
 ~~~~~~~
@@ -193,12 +193,12 @@ Package: skiboot
 
 `Repository <https://github.com/open-power/skiboot>`__
 
-.. _patches-4:
+.. _op-build-v2.0.3-patches-4:
 
 Patches
 ~~~~~~~
 
-.. _commits-4:
+.. _op-build-v2.0.3-commits-4:
 
 Commits
 ~~~~~~~
