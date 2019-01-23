@@ -1,0 +1,30 @@
+From 999e9c932864a8b924d0626893eb2fdbd4eec3d2 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Wed, 23 Jan 2019 15:22:56 +0300
+Subject: [PATCH] Add OEM LUN support for extended sensor inventory
+
+IPMI specification doesn't support more than 255 sensors due to
+1-byte sensorID limitation. LUN support (OEM LUN 1 and 3)
+allows to support up to 765 unique sensors.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/include/usr/ipmi/ipmiif.H | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/include/usr/ipmi/ipmiif.H b/src/include/usr/ipmi/ipmiif.H
+index 5c2444f26..9a07e6dda 100644
+--- a/src/include/usr/ipmi/ipmiif.H
++++ b/src/include/usr/ipmi/ipmiif.H
+@@ -94,7 +94,7 @@ namespace IPMI
+         // Note: these are also shifted left to make room for the LUN.
+         NETFUN_CHASSIS  = (0x00 << 2),
+         NETFUN_BRIDGE   = (0x02 << 2),
+-        NETFUN_SENSOR   = (0x04 << 2),
++        NETFUN_SENSOR   = (0x04 << 2) | 1, /* Set LUN1 for all sensor messages from host to BMC */
+         NETFUN_APP      = (0x06 << 2),
+         NETFUN_FIRMWARE = (0x08 << 2),
+         NETFUN_STORAGE  = (0x0a << 2),
+-- 
+2.20.1
+
