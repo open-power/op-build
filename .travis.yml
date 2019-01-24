@@ -11,15 +11,8 @@ addons:
   apt:
     packages:
       - python-pip
-      - latexmk
       - libalgorithm-diff-perl
-      - texlive
-      - texlive-latex-extra
-      - texlive-humanities
-      - texlive-generic-recommended
       - graphviz
-      - texlive-generic-extra
-
 
 language: python
 python:
@@ -28,7 +21,7 @@ install:
  - "pip install -r doc/requirements.txt"
 script:
   - bash openpower/scripts/update-defconfigs.sh
-  - cd doc/; make latexpdf html
+  - cd doc/; make html
 
 deploy:
   provider: pages
