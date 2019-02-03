@@ -25,7 +25,7 @@ ENV{DM_MULTIPATH_DEVICE_PATH}=="?*", GOTO="md_end"
 # anything here, just regular disks, and this also won't get any imsm
 # array members either)
 SUBSYSTEM=="block", ACTION=="add|change", ENV{ID_FS_TYPE}=="linux_raid_member", \
-	RUN+="/usr/sbin/mdadm -I --export $env{DEVNAME}"
+	RUN+="/sbin/mdadm -I --export $env{DEVNAME}"
 
 # Next, check to make sure the BIOS raid stuff wasn't turned off via cmdline
 IMPORT{cmdline}="noiswmd"
@@ -33,37 +33,37 @@ IMPORT{cmdline}="nodmraid"
 ENV{noiswmd}=="?*", GOTO="md_imsm_inc_end"
 ENV{nodmraid}=="?*", GOTO="md_imsm_inc_end"
 SUBSYSTEM=="block", ACTION=="add", ENV{ID_FS_TYPE}=="isw_raid_member", \
-	RUN+="/usr/sbin/mdadm -I $env{DEVNAME}"
+	RUN+="/sbin/mdadm -I $env{DEVNAME}"
 LABEL="md_imsm_inc_end"
 
 SUBSYSTEM=="block", ACTION=="remove", ENV{ID_PATH}=="?*", \
-	RUN+="/usr/sbin/mdadm -If $name --path $env{ID_PATH}"
+	RUN+="/sbin/mdadm -If $name --path $env{ID_PATH}"
 SUBSYSTEM=="block", ACTION=="remove", ENV{ID_PATH}!="?*", \
-	RUN+="/usr/sbin/mdadm -If $name"
+	RUN+="/sbin/mdadm -If $name"
 
 # Next make sure that this isn't a dm device we should skip for some reason
 ENV{DM_UDEV_RULES_VSN}!="?*", GOTO="dm_change_end"
 ENV{DM_UDEV_DISABLE_OTHER_RULES_FLAG}=="1", GOTO="dm_change_end"
 ENV{DM_SUSPENDED}=="1", GOTO="dm_change_end"
 KERNEL=="dm-*", SUBSYSTEM=="block", ENV{ID_FS_TYPE}=="linux_raid_member", \
-	ACTION=="change", RUN+="/usr/sbin/mdadm -I $env{DEVNAME}"
+	ACTION=="change", RUN+="/sbin/mdadm -I $env{DEVNAME}"
 LABEL="dm_change_end"
 
 # Finally catch any nested md raid arrays.  If we brought up an md raid
 # array that's part of another md raid array, it won't be ready to be used
 # until the change event that occurs when it becomes live
 KERNEL=="md*", SUBSYSTEM=="block", ENV{ID_FS_TYPE}=="linux_raid_member", \
-	ACTION=="change", RUN+="/usr/sbin/mdadm -I $env{DEVNAME}"
+	ACTION=="change", RUN+="/sbin/mdadm -I $env{DEVNAME}"
 
 # In case the initramfs only started some of the arrays in our container,
 # run incremental assembly on the container itself.  Note: we ran mdadm
 # on the container in 64-md-raid.rules, and that's how the MD_LEVEL
 # environment variable is already set.  If that disappears from the other
 # file, we will need to add this line into the middle of the next rule:
-#	IMPORT{program}="/usr/sbin/mdadm -D --export $tempnode", \
+#	IMPORT{program}="/sbin/mdadm -D --export $tempnode", \
 
 SUBSYSTEM=="block", ACTION=="add|change", KERNEL=="md*", \
-	ENV{MD_LEVEL}=="container", RUN+="/usr/sbin/mdadm -I $env{DEVNAME}"
+	ENV{MD_LEVEL}=="container", RUN+="/sbin/mdadm -I $env{DEVNAME}"
 
 
 LABEL="md_end"
