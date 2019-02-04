@@ -1,0 +1,52 @@
+From 55e1b7f6d598d172cbd65531c656f4630da762a1 Mon Sep 17 00:00:00 2001
+From: Maxim Polyakov <m.polyakov@yadro.com>
+Date: Fri, 18 Jan 2019 17:49:37 +0300
+Subject: [PATCH] core/direct-controls: Add sreset support for P8
+
+VESNIN server uses NMI SRESET signal to initiate memory dumping with
+kdump in case of crash of the host OS. It is not necessary to return
+control to the host's kernel since it has already crashed. This
+commit  allows for registration and handling of
+opal_signal_system_reset signal for POWER8 based systems.
+
+Signed-off-by: Maxim Polyakov <m.polyakov@yadro.com>
+---
+ core/direct-controls.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/core/direct-controls.c b/core/direct-controls.c
+index 04b93a1..b05e6bc 100644
+--- a/core/direct-controls.c
++++ b/core/direct-controls.c
+@@ -824,7 +824,7 @@ int64_t opal_signal_system_reset(int cpu_nr)
+ 	struct cpu_thread *cpu;
+ 	int64_t ret;
+ 
+-	if (proc_gen != proc_gen_p9)
++	if (proc_gen != proc_gen_p9 && proc_gen != proc_gen_p8)
+ 		return OPAL_UNSUPPORTED;
+ 
+ 	/*
+@@ -856,13 +856,15 @@ void direct_controls_init(void)
+ 	if (chip_quirk(QUIRK_MAMBO_CALLOUTS))
+ 		return;
+ 
+-	if (proc_gen != proc_gen_p9)
++	if (proc_gen != proc_gen_p9 && proc_gen != proc_gen_p8)
+ 		return;
+ 
+ 	/* DD1 has some sreset quirks we do not support */
+-	version = mfspr(SPR_PVR);
+-	if (is_power9n(version) && PVR_VERS_MAJ(version) == 1)
+-		return;
++	if (proc_gen == proc_gen_p9) {
++		version = mfspr(SPR_PVR);
++		if (is_power9n(version) && PVR_VERS_MAJ(version) == 1)
++			return;
++	}
+ 
+ 	opal_register(OPAL_SIGNAL_SYSTEM_RESET, opal_signal_system_reset, 1);
+ }
+-- 
+2.7.4
+
