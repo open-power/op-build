@@ -69,7 +69,7 @@ Package: hostboot
 
 `Repository <https://github.com/open-power/hostboot>`__
 
-.. _patches-1:
+.. _v2.0.11-patches-1:
 
 Patches
 ~~~~~~~
@@ -78,7 +78,7 @@ Patches
 -  `hostboot-0002-Revert-Mark-Read-Only-Partitions-as-Such.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-0002-Revert-Mark-Read-Only-Partitions-as-Such.patch>`__
 -  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
 
-.. _commits-1:
+.. _v2.0.11-commits-1:
 
 Commits
 ~~~~~~~
@@ -210,12 +210,12 @@ Package: occ
 
 `Repository <https://github.com/open-power/occ>`__
 
-.. _patches-2:
+.. _v2.0.11-patches-2:
 
 Patches
 ~~~~~~~
 
-.. _commits-2:
+.. _v2.0.11-commits-2:
 
 Commits
 ~~~~~~~
@@ -230,12 +230,12 @@ Package: sbe
 
 `Repository <https://github.com/open-power/sbe>`__
 
-.. _patches-3:
+.. _v2.0.11-patches-3:
 
 Patches
 ~~~~~~~
 
-.. _commits-3:
+.. _v2.0.11-commits-3:
 
 Commits
 ~~~~~~~
@@ -265,12 +265,12 @@ Package: skiboot
 
 `Repository <https://github.com/open-power/skiboot>`__
 
-.. _patches-4:
+.. _v2.0.11-patches-4:
 
 Patches
 ~~~~~~~
 
-.. _commits-4:
+.. _v2.0.11-commits-4:
 
 Commits
 ~~~~~~~

@@ -72,7 +72,7 @@ Patches
 -  `0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch <https://github.com/open-power/op-build/tree/v2.0.12-1-g8254d9d0ac3e/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch>`__
 -  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/v2.0.12-1-g8254d9d0ac3e/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
 
-.. _commits-1:
+.. _v2.0.12-commits-1:
 
 Commits
 ~~~~~~~
@@ -97,12 +97,12 @@ Package: occ
 
 `Repository <https://github.com/open-power/occ>`__
 
-.. _patches-1:
+.. _v2.0.12-patches-1:
 
 Patches
 ~~~~~~~
 
-.. _commits-2:
+.. _v2.0.12-commits-2:
 
 Commits
 ~~~~~~~
@@ -117,7 +117,7 @@ Package: petitboot
 
 `Repository <https://github.com/open-power/petitboot>`__
 
-.. _commits-3:
+.. _v2.0.12-commits-3:
 
 Commits
 ~~~~~~~
@@ -129,12 +129,12 @@ Samuel Mendoza-Jonas (2):
 -  `8b9d8bf7c983 <https://github.com/open-power/petitboot/commit/8b9d8bf7c983>`__
    discover/devmapper: Retry dm-device remove if busy
 
-.. _patches-2:
+.. _v2.0.12-patches-2:
 
 Patches
 ~~~~~~~
 
-.. _commits-4:
+.. _v2.0.12-commits-4:
 
 Commits
 ~~~~~~~
@@ -164,12 +164,12 @@ Package: witherspoon-xml
 
 `Repository <https://github.com/open-power/witherspoon-xml>`__
 
-.. _patches-3:
+.. _v2.0.12-patches-3:
 
 Patches
 ~~~~~~~
 
-.. _commits-5:
+.. _v2.0.12-commits-5:
 
 Commits
 ~~~~~~~
