@@ -26,3 +26,5 @@ op-build Release Notes
    v2.0.9
    v2.0.10
    v2.0.11
+   v2.0.12
+   v2.0.13
