@@ -1,0 +1,246 @@
+Release Notes for OpenPower Firmware v2.0.13
+============================================
+
+Updated Packages
+----------------
+
++--------------------+-------------------+-------------------+------------------------------------+
+| Package            | Old Version       | New Version       | Platforms                          |
++====================+===================+===================+====================================+
+| hcode              | hw123119a.op920   | hw020319a.op920   | witherspoon, p9dsu, zaius, romulus |
++--------------------+-------------------+-------------------+------------------------------------+
+| hostboot           | d2c0cb9a339b      | 753249ad9bd92     | witherspoon, p9dsu, zaius, romulus |
++--------------------+-------------------+-------------------+------------------------------------+
+| hostboot-binaries  | hw123119a.op920   | hw020319a.op920   | witherspoon, p9dsu, zaius,         |
+|                    |                   |                   | habanero, garrison, barreleye,     |
+|                    |                   |                   | firestone, palmetto, vesnin,       |
+|                    |                   |                   | romulus                            |
++--------------------+-------------------+-------------------+------------------------------------+
+| machine-xml        | dce824c12588      | 74b5ebb1875e      | witherspoon                        |
++--------------------+-------------------+-------------------+------------------------------------+
+| petitboot          | v1.7.4            | v1.7.5            | witherspoon, p9dsu, zaius,         |
+|                    |                   |                   | habanero, firenze, garrison,       |
+|                    |                   |                   | barreleye, openpower_mambo,        |
+|                    |                   |                   | witherspoon_dev, pseries,          |
+|                    |                   |                   | firestone, palmetto,               |
+|                    |                   |                   | openpower_p9_mambo, vesnin, zz,    |
+|                    |                   |                   | romulus                            |
++--------------------+-------------------+-------------------+------------------------------------+
+| sbe                | 7aa21f6c0b11      | 9515af0355bc      | witherspoon, p9dsu, zaius, romulus |
++--------------------+-------------------+-------------------+------------------------------------+
+| skiboot            | v6.0.15           | v6.0.16           | witherspoon, p9dsu, zaius,         |
+|                    |                   |                   | habanero, firenze, garrison,       |
+|                    |                   |                   | barreleye, openpower_mambo,        |
+|                    |                   |                   | witherspoon_dev, pseries,          |
+|                    |                   |                   | firestone, palmetto,               |
+|                    |                   |                   | openpower_p9_mambo, vesnin, zz,    |
+|                    |                   |                   | romulus                            |
++--------------------+-------------------+-------------------+------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+hostboot (8):
+
+-  `4e2905692e62 <https://github.com/open-power/hcode/commit/4e2905692e62>`__ Release tag
+   information updated for hw012519a.op920
+-  `0dff4759c894 <https://github.com/open-power/hcode/commit/0dff4759c894>`__ Release tag
+   information updated for hw012619a.op920
+-  `009de1f88dc7 <https://github.com/open-power/hcode/commit/009de1f88dc7>`__ Release tag
+   information updated for hw012719a.op920
+-  `c18d1df0d68c <https://github.com/open-power/hcode/commit/c18d1df0d68c>`__ Release tag
+   information updated for hw012819a.op920
+-  `44643c78452f <https://github.com/open-power/hcode/commit/44643c78452f>`__ Release tag
+   information updated for hw012919a.op920
+-  `447b84ac689f <https://github.com/open-power/hcode/commit/447b84ac689f>`__ Release tag
+   information updated for hw013019a.op920
+-  `fe34d27b5e45 <https://github.com/open-power/hcode/commit/fe34d27b5e45>`__ Release tag
+   information updated for hw013119a.op920
+-  `af8c4dbd803d <https://github.com/open-power/hcode/commit/af8c4dbd803d>`__ Release tag
+   information updated for hw020319a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _v2.0.13-patches-1:
+
+Patches
+~~~~~~~
+
+-  `0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch <https://github.com/open-power/op-build/tree/v2.0.13/openpower/package/hostboot/0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch>`__
+-  `0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch <https://github.com/open-power/op-build/tree/v2.0.13/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch>`__
+-  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/v2.0.13/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
+
+.. _v2.0.13-commits-1:
+
+Commits
+~~~~~~~
+
+Bill Hoffa (1):
+
+-  `025427c563db <https://github.com/open-power/hostboot/commit/025427c563db>`__ Add kernel debug
+   trace to Invalid IPC Message Errors
+
+Caleb Palmer (1):
+
+-  `7995cbcf6dc4 <https://github.com/open-power/hostboot/commit/7995cbcf6dc4>`__ PRD: Nimbus symbol
+   mark performance workaround
+
+Dan Crowell (3):
+
+-  `51206826999d <https://github.com/open-power/hostboot/commit/51206826999d>`__ Add msgsync to
+   doorbell wakeup logic to avoid weak consistency bug
+-  `dad96d18d5fb <https://github.com/open-power/hostboot/commit/dad96d18d5fb>`__ Add retry to slave
+   core wakeup path
+-  `753249ad9bd9 <https://github.com/open-power/hostboot/commit/753249ad9bd9>`__ Do not gard cores
+   on the initial core wakeup failure
+
+Daniel M. Crowell (1):
+
+-  `10dbf93a5d9a <https://github.com/open-power/hostboot/commit/10dbf93a5d9a>`__ Revert “Mask early
+   hang indicators from nmmu/vas unit”
+
+Ilya Smirnov (2):
+
+-  `0d34eb9e7224 <https://github.com/open-power/hostboot/commit/0d34eb9e7224>`__ Create an
+   LRDIMM_CAPABLE HB Config
+-  `831eab0a05a1 <https://github.com/open-power/hostboot/commit/831eab0a05a1>`__ Mark
+   IPC_DATA_INVALID Errors as Informational
+
+Jenny Huynh (2):
+
+-  `2f222c9181dd <https://github.com/open-power/hostboot/commit/2f222c9181dd>`__ Tune xbus
+   packet_delay_limit for various systems
+-  `55243e7dd02d <https://github.com/open-power/hostboot/commit/55243e7dd02d>`__ Mask early hang
+   indicators from nmmu/vas unit
+
+Stephen Glancy (1):
+
+-  `e0d1b03eb482 <https://github.com/open-power/hostboot/commit/e0d1b03eb482>`__ Default DDR4-3200
+   to 2666
+
+Tsung Yeung (1):
+
+-  `ece0f30d17f9 <https://github.com/open-power/hostboot/commit/ece0f30d17f9>`__ Default DDR4-2933
+   to 2666
+
+Zane Shelley (1):
+
+-  `2fcb5a926d82 <https://github.com/open-power/hostboot/commit/2fcb5a926d82>`__ PRD: buffer overrun
+   issue in PRD capture data
+
+Package: petitboot
+------------------
+
+`Repository <https://github.com/open-power/petitboot>`__
+
+.. _v2.0.13-patches-2:
+
+Patches
+~~~~~~~
+
+.. _v2.0.13-commits-2:
+
+Commits
+~~~~~~~
+
+Samuel Mendoza-Jonas (1):
+
+-  `47038255f6ec <https://github.com/open-power/petitboot/commit/47038255f6ec>`__ lib/url: Include
+   port in pb_url_to_string()
+
+Package: sbe
+------------
+
+`Repository <https://github.com/open-power/sbe>`__
+
+.. _v2.0.13-patches-3:
+
+Patches
+~~~~~~~
+
+.. _v2.0.13-commits-3:
+
+Commits
+~~~~~~~
+
+Jenny Huynh (1):
+
+-  `9515af0355bc <https://github.com/open-power/sbe/commit/9515af0355bc>`__ Mask early hang
+   indicators from nmmu/vas unit
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _v2.0.13-patches-4:
+
+Patches
+~~~~~~~
+
+.. _v2.0.13-commits-4:
+
+Commits
+~~~~~~~
+
+Deb McLemore (2):
+
+-  `035230125f9a <https://github.com/open-power/skiboot/commit/035230125f9a>`__ p9dsu: Fix p9dsu
+   default variant
+-  `7c3a512b4edc <https://github.com/open-power/skiboot/commit/7c3a512b4edc>`__ p9dsu: Fix p9dsu
+   slot tables
+
+Michael Neuling (1):
+
+-  `be332624c2c1 <https://github.com/open-power/skiboot/commit/be332624c2c1>`__ phb4: Generate
+   checkstop on AIB ECC corr/uncorr for DD2.0 parts
+
+Reza Arbab (1):
+
+-  `0d17c10fe4d6 <https://github.com/open-power/skiboot/commit/0d17c10fe4d6>`__ core/lock: Stop
+   drop_my_locks() from always causing abort
+
+Vasant Hegde (1):
+
+-  `9e22b74601cc <https://github.com/open-power/skiboot/commit/9e22b74601cc>`__ skiboot v6.0.16
+   release notes
+
+Package: witherspoon-xml
+------------------------
+
+`Repository <https://github.com/open-power/witherspoon-xml>`__
+
+.. _v2.0.13-patches-5:
+
+Patches
+~~~~~~~
+
+.. _v2.0.13-commits-5:
+
+Commits
+~~~~~~~
+
+Erich Hauptli (3):
+
+-  `c488a6234d09 <https://github.com/open-power/witherspoon-xml/commit/c488a6234d09>`__ Added value
+   to TPM FRU ID
+-  `dce824c12588 <https://github.com/open-power/witherspoon-xml/commit/dce824c12588>`__ Backing out
+   TPM FRU ID
+-  `74b5ebb1875e <https://github.com/open-power/witherspoon-xml/commit/74b5ebb1875e>`__ Merging
+   Master into op-build branch (#79)
+
+sannerd (1):
+
+-  `c8bca533fcea <https://github.com/open-power/witherspoon-xml/commit/c8bca533fcea>`__ Default
+   Spectre/Meltdown HW Inits to Kernel mode (#78)
