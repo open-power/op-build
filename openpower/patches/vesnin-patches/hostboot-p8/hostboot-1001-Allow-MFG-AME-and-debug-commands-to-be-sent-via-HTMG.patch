@@ -1,0 +1,297 @@
+From e35136dc41f30339cb9c8a6f27a5d8ebabc52391 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Wed, 6 Feb 2019 16:53:56 +0300
+Subject: [PATCH] Allow MFG, AME, and debug commands to be sent via HTMGT
+
+Backport of commit d02273fb506c99bb2951453feae27f6acc863a2f
+by Chris Cain <cjcain@us.ibm.com>
+Slightly adapted for master-p8 branch.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/usr/htmgt/htmgt_occcmd.C  | 203 +++++++++++++++-------------------
+ src/usr/htmgt/htmgt_occcmd.H  |   3 +
+ src/usr/htmgt/htmgt_utility.C |   3 +
+ 3 files changed, 95 insertions(+), 114 deletions(-)
+
+diff --git a/src/usr/htmgt/htmgt_occcmd.C b/src/usr/htmgt/htmgt_occcmd.C
+index 0887438e6..1741a2bed 100644
+--- a/src/usr/htmgt/htmgt_occcmd.C
++++ b/src/usr/htmgt/htmgt_occcmd.C
+@@ -78,11 +78,18 @@ namespace HTMGT
+             0x0000, TO_20SEC,  0x0090, OCC_TRACE_EXTENDED},
+         {OCC_CMD_RESET_PREP,           0x80,  OCC_CHECK_RSP_LENGTH_GREATER,
+             0x0000, TO_20SEC,  0x0190, OCC_TRACE_ALWAYS},
++        {OCC_CMD_DEBUG_PASS_THROUGH,   0xF0,  OCC_CHECK_RSP_LENGTH_NONE,
++            0x0000, TO_20SEC,  RD_MAX, OCC_TRACE_EXTENDED},
++        {OCC_CMD_AME_PASS_THROUGH,     0xF0,  OCC_CHECK_RSP_LENGTH_NONE,
++            0x0000, TO_20SEC,  RD_MAX, OCC_TRACE_EXTENDED},
+         {OCC_CMD_GET_FIELD_DEBUG_DATA, 0x80,  OCC_CHECK_RSP_LENGTH_GREATER,
+             0x0001, TO_20SEC,  RD_MAX, OCC_TRACE_NEVER},
++        {OCC_CMD_MFG_TEST,             0xF0,  OCC_CHECK_RSP_LENGTH_NONE,
++            0x0001, TO_20SEC,  RD_MAX, OCC_TRACE_ALWAYS},
+ 
+-        {OCC_CMD_END_OF_TABLE,         0x00,  OCC_CHECK_RSP_LENGTH_EQUALS,
+-            0x0000, 0x0000,    0x0000, OCC_TRACE_NEVER}
++        // If command not found, use this last entry
++        {OCC_CMD_END_OF_TABLE,         0xE0,  OCC_CHECK_RSP_LENGTH_NONE,
++            0x0000, TO_20SEC,  RD_MAX, OCC_TRACE_NEVER}
+     };
+ 
+ 
+@@ -243,36 +250,25 @@ namespace HTMGT
+         const uint8_t l_instance = iv_Occ->iv_instance;
+ 
+         const uint8_t l_cmd_index = getCmdIndex(iv_OccCmd.cmdType);
+-        if (OCC_CMD_END_OF_TABLE != cv_occCommandTable[l_cmd_index].cmdType)
++        switch(cv_occCommandTable[l_cmd_index].traceCmd)
+         {
+-            switch(cv_occCommandTable[l_cmd_index].traceCmd)
+-            {
+-                case OCC_TRACE_ALWAYS:
+-                    // Always trace command
+-                    break;
+-
+-                case OCC_TRACE_EXTENDED:
+-                    // Trace command when tracing enabled
+-                    o_cmdWasTraced = (G_debug_trace & DEBUG_TRACE_OCCCMD);
+-                    break;
+-
+-                case OCC_TRACE_NEVER:
+-                    // Never trace these cmds (unless full tracing enabled)
+-                    o_cmdWasTraced = (G_debug_trace&DEBUG_TRACE_OCCCMD_FULL);
+-                    break;
+-
+-                default:
+-                    if ((OCC_CMD_SETUP_CFG_DATA==iv_OccCmd.cmdType) &&
+-                        (iv_OccCmd.dataLength > 0) &&
+-                        ((iv_OccCmd.cmdData[0] ==
+-                          OCC_CFGDATA_PSTATE_SSTRUCT)))
+-                    {
+-                        // Dont trace Pstate data (unless full tracing)
+-                        o_cmdWasTraced = (G_debug_trace &
+-                                          DEBUG_TRACE_OCCCMD_FULL);
+-                    }
+-                    break;
+-            }
++            case OCC_TRACE_ALWAYS:
++                // Always trace command
++                break;
++
++            case OCC_TRACE_EXTENDED:
++                // Trace command when tracing enabled
++                o_cmdWasTraced = (G_debug_trace & DEBUG_TRACE_OCCCMD);
++                break;
++
++            case OCC_TRACE_NEVER:
++                // Never trace these cmds (unless full tracing enabled)
++                o_cmdWasTraced = (G_debug_trace&DEBUG_TRACE_OCCCMD_FULL);
++                break;
++
++            default:
++                // Do nothing
++                break;
+         }
+ 
+         if (o_cmdWasTraced)
+@@ -455,105 +451,84 @@ namespace HTMGT
+     errlHndl_t OccCmd::sendOccCmd()
+     {
+         errlHndl_t l_errlHndl = NULL;
+-        uint8_t l_cmd_index = 0;
+         iv_OccRsp.returnStatus = OCC_COMMAND_IN_PROGRESS;
+ 
+         if (iv_Occ != NULL)
+         {
+             const occStateId l_occState = iv_Occ->iv_state;
+-            l_cmd_index = getCmdIndex(iv_OccCmd.cmdType);
+-            if (OCC_CMD_END_OF_TABLE!=cv_occCommandTable[l_cmd_index].cmdType)
++            const bool cmdTraced = traceCommand();
++
++            // Only allow commands if comm has been established,
++            // or this is a poll command
++            const bool l_commEstablished = iv_Occ->iv_commEstablished;
++            if ( (true == l_commEstablished) ||
++                 ((false == l_commEstablished) &&
++                  (OCC_CMD_POLL == iv_OccCmd.cmdType)) )
+             {
+-                const bool cmdTraced = traceCommand();
+-
+-                // Only allow commands if comm has been established,
+-                // or this is a poll command
+-                const bool l_commEstablished = iv_Occ->iv_commEstablished;
+-                if ( (true == l_commEstablished) ||
+-                     ((false == l_commEstablished) &&
+-                      (OCC_CMD_POLL == iv_OccCmd.cmdType)) )
++                if (0 == iv_Occ->iv_exceptionLogged)
+                 {
+-                    if (0 == iv_Occ->iv_exceptionLogged)
++                    iv_RetryCmd = false;
++                    do
+                     {
+-                        iv_RetryCmd = false;
+-                        do
++                        // Send the command and receive the response
++                        l_errlHndl = writeOccCmd();
++
++                        // process response if OCC did not hit an exception
++                        if (0 == iv_Occ->iv_exceptionLogged)
+                         {
+-                            // Send the command and receive the response
+-                            l_errlHndl = writeOccCmd();
+-
+-                            // process response if OCC did not hit an exception
+-                            if (0 == iv_Occ->iv_exceptionLogged)
+-                            {
+-                                processOccResponse(l_errlHndl, cmdTraced);
+-                            }
+-
+-                            // skip retry if an exception was logged
+-                        } while ((iv_RetryCmd) &&
+-                                 (0 == iv_Occ->iv_exceptionLogged));
+-                    }
+-                    else
+-                    {
+-                        // OCC has already logged an exception, no need to send
+-                        TMGT_ERR("Skipping 0x%02X cmd since OCC has already "
+-                                 "logged an exception 0x%04X",
+-                                 iv_OccCmd.cmdType, iv_Occ->iv_exceptionLogged);
+-                        /*@
+-                         * @errortype
+-                         * @reasoncode HTMGT_RC_OCC_EXCEPTION
+-                         * @moduleid HTMGT_MOD_SEND_OCC_CMD
+-                         * @userdata1 OCC command
+-                         * @userdata2 comm established
+-                         * @userdata3 OCC state
+-                         * @userdata4 exception
+-                         * @devdesc Unable to send cmd to OCC due to exception
+-                         */
+-                        bldErrLog(l_errlHndl, HTMGT_MOD_SEND_OCC_CMD,
+-                                  HTMGT_RC_OCC_EXCEPTION,
+-                                  iv_OccCmd.cmdType, l_commEstablished,
+-                                  l_occState, iv_Occ->iv_exceptionLogged,
+-                                  ERRORLOG::ERRL_SEV_INFORMATIONAL);
+-                    }
++                            processOccResponse(l_errlHndl, cmdTraced);
++                        }
++
++                        // skip retry if an exception was logged
++                    } while ((iv_RetryCmd) &&
++                             (0 == iv_Occ->iv_exceptionLogged));
+                 }
+                 else
+                 {
+-                    // Ignore failure on GET_FIELD_DEBUG_DATA
+-                    if (OCC_CMD_GET_FIELD_DEBUG_DATA != iv_OccCmd.cmdType)
+-                    {
+-                        // Comm not established or command not supported
+-                        /*@
+-                         * @errortype
+-                         * @reasoncode HTMGT_RC_OCC_UNAVAILABLE
+-                         * @moduleid HTMGT_MOD_SEND_OCC_CMD
+-                         * @userdata1 OCC command
+-                         * @userdata2 comm established
+-                         * @userdata3 OCC state
+-                         * @userdata4 1
+-                         * @devdesc OCC comm not established or command is not
+-                         *          supported
+-                         */
+-                        bldErrLog(l_errlHndl, HTMGT_MOD_SEND_OCC_CMD,
+-                                  HTMGT_RC_OCC_UNAVAILABLE,
+-                                  iv_OccCmd.cmdType, l_commEstablished,
+-                                  l_occState, 1,
+-                                  ERRORLOG::ERRL_SEV_INFORMATIONAL);
+-                    }
++                    // OCC has already logged an exception, no need to send
++                    TMGT_ERR("Skipping 0x%02X cmd since OCC has already "
++                             "logged an exception 0x%04X",
++                             iv_OccCmd.cmdType, iv_Occ->iv_exceptionLogged);
++                    /*@
++                     * @errortype
++                     * @reasoncode HTMGT_RC_OCC_EXCEPTION
++                     * @moduleid HTMGT_MOD_SEND_OCC_CMD
++                     * @userdata1 OCC command
++                     * @userdata2 comm established
++                     * @userdata3 OCC state
++                     * @userdata4 exception
++                     * @devdesc Unable to send cmd to OCC exception
++                     */
++                    bldErrLog(l_errlHndl, HTMGT_MOD_SEND_OCC_CMD,
++                              HTMGT_RC_OCC_EXCEPTION,
++                              iv_OccCmd.cmdType, l_commEstablished,
++                              l_occState, iv_Occ->iv_exceptionLogged,
++                              ERRORLOG::ERRL_SEV_INFORMATIONAL);
+                 }
+             }
+             else
+             {
+-                TMGT_ERR("sendOccCmd: ignoring invalid command 0x%02X",
+-                         iv_OccCmd.cmdType);
+-                /*@
+-                 * @errortype
+-                 * @reasoncode HTMGT_RC_INVALID_DATA
+-                 * @moduleid HTMGT_MOD_SEND_OCC_CMD
+-                 * @userdata1 OCC command type
+-                 * @devdesc Ignoring invalid command
+-                 */
+-                bldErrLog(l_errlHndl, HTMGT_MOD_SEND_OCC_CMD,
+-                          HTMGT_RC_INVALID_DATA,
+-                          iv_OccCmd.cmdType, 0, 0, 0,
+-                          ERRORLOG::ERRL_SEV_INFORMATIONAL);
++                // Ignore failure on GET_FIELD_DEBUG_DATA
++                if (OCC_CMD_GET_FIELD_DEBUG_DATA != iv_OccCmd.cmdType)
++                {
++                    // Comm not established or command not supported
++                    /*@
++                     * @errortype
++                     * @reasoncode HTMGT_RC_OCC_UNAVAILABLE
++                     * @moduleid HTMGT_MOD_SEND_OCC_CMD
++                     * @userdata1 OCC command
++                     * @userdata2 comm established
++                     * @userdata3 OCC state
++                     * @userdata4 1
++                     * @devdesc OCC comm not established or command is not
++                     *          supported
++                     */
++                    bldErrLog(l_errlHndl, HTMGT_MOD_SEND_OCC_CMD,
++                              HTMGT_RC_OCC_UNAVAILABLE,
++                              iv_OccCmd.cmdType, l_commEstablished,
++                              l_occState, 1,
++                              ERRORLOG::ERRL_SEV_INFORMATIONAL);
++                }
+             }
+         }
+         else
+diff --git a/src/usr/htmgt/htmgt_occcmd.H b/src/usr/htmgt/htmgt_occcmd.H
+index a75dd5528..7c82c23de 100644
+--- a/src/usr/htmgt/htmgt_occcmd.H
++++ b/src/usr/htmgt/htmgt_occcmd.H
+@@ -75,7 +75,10 @@ namespace HTMGT
+         OCC_CMD_SETUP_CFG_DATA          = 0x21,
+         OCC_CMD_SET_POWER_CAP           = 0x22,
+         OCC_CMD_RESET_PREP              = 0x25,
++        OCC_CMD_DEBUG_PASS_THROUGH      = 0x40,
++        OCC_CMD_AME_PASS_THROUGH        = 0x41,
+         OCC_CMD_GET_FIELD_DEBUG_DATA    = 0x42,
++        OCC_CMD_MFG_TEST                = 0x53,
+ 
+         OCC_CMD_END_OF_TABLE            = 0xFF
+     };
+diff --git a/src/usr/htmgt/htmgt_utility.C b/src/usr/htmgt/htmgt_utility.C
+index e880d5a0c..434196804 100644
+--- a/src/usr/htmgt/htmgt_utility.C
++++ b/src/usr/htmgt/htmgt_utility.C
+@@ -108,7 +108,10 @@ namespace HTMGT
+             {OCC_CMD_SETUP_CFG_DATA, "SET_CFG_DATA"},
+             {OCC_CMD_SET_POWER_CAP, "SET_POWER_CAP"},
+             {OCC_CMD_RESET_PREP, "RESET_PREP"},
++            {OCC_CMD_DEBUG_PASS_THROUGH, "DEBUG_PASSTHRU"},
++            {OCC_CMD_AME_PASS_THROUGH, "AME_PASSTHRU"},
+             {OCC_CMD_GET_FIELD_DEBUG_DATA, "GET_FIELD_DEBUG_DATA"},
++            {OCC_CMD_MFG_TEST, "MFG_TEST"},
+             // OCC_CMD_END_OF_TABLE should be the last entry
+             {OCC_CMD_END_OF_TABLE, "Unknown Command"}
+         };
+-- 
+2.20.1
+
