@@ -1,0 +1,2 @@
+export ENV="/home/petituser/.shrc"
+/usr/libexec/petitboot/pb-console

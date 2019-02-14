@@ -1,0 +1,4 @@
+root ALL=(ALL) ALL
+%wheel ALL=(ALL) ALL
+Defaults targetpw
+Defaults timestamp_timeout=1

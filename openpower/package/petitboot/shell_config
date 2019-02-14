@@ -1,0 +1,15 @@
+#!bin/sh
+
+reset
+
+echo "Exiting petitboot. Type 'exit' to return."
+echo "You may run 'pb-sos' to gather diagnostic data"
+
+if [[ "$(id -u)" != "0" ]]; then
+	echo "" | sudo -S /bin/true 2&>1 >> /dev/null
+	if [[ $? = 0 ]]; then
+		echo "No password set, elevating shell"
+		sudo -i
+		exit
+	fi
+fi
