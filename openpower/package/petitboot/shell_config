@@ -10,6 +10,10 @@ if [[ "$(id -u)" != "0" ]]; then
 	if [[ $? = 0 ]]; then
 		echo "No password set, elevating shell"
 		sudo -i
+		sudo -K
 		exit
 	fi
+	export PS1='$ '
+else
+	export PS1='# '
 fi
