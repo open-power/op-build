@@ -8,7 +8,7 @@ echo "You may run 'pb-sos' to gather diagnostic data"
 if [[ "$(id -u)" != "0" ]]; then
 	echo "" | sudo -S /bin/true 2&>1 >> /dev/null
 	if [[ $? = 0 ]]; then
-		echo "No password set, elevating shell"
+		echo "No password set, running as root. You may set a password in the System Configuration screen."
 		sudo -i
 		sudo -K
 		exit
