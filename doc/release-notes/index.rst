@@ -62,3 +62,4 @@ v2.2
    :maxdepth: 1
 
    v2.2-rc1
+   v2.2-rc2
