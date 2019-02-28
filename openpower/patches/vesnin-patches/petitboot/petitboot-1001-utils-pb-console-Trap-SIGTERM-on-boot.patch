@@ -1,0 +1,49 @@
+From patchwork Mon Feb 25 04:10:51 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: utils/pb-console: Trap SIGTERM on boot
+X-Patchwork-Submitter: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+X-Patchwork-Id: 1047572
+Message-Id: <20190225041051.30911-1-sam@mendozajonas.com>
+To: petitboot@lists.ozlabs.org
+Cc: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Mon, 25 Feb 2019 15:10:51 +1100
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+List-Id: Petitboot bootloader development <petitboot.lists.ozlabs.org>
+
+On kexec all processes will be sent a SIGTERM and SIGKILL. By default
+there are messages on the console alerting the user to this, however in
+some implementations these messages are disabled. This can have the
+effect of the UI seemingly exiting to the shell on boot and hanging for
+a short while before the kexec actually jumps into the next kernel.
+Trap the SIGTERM sent to the pb-console parent process and print a short
+message to the screen instead of momentarily dropping to the shell and
+printing the usual help messages.
+
+While here also cleanup the shell help messages below which are now
+handled in the shell's .shrc file.
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+---
+ utils/pb-console | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/utils/pb-console b/utils/pb-console
+index ad601e2e..5ba98cc4 100644
+--- a/utils/pb-console
++++ b/utils/pb-console
+@@ -135,12 +135,11 @@ fi
+ dmesg -n 1
+ 
+ trap '' SIGINT
++trap 'reset; echo "SIGTERM received, booting..."; sleep 2' SIGTERM
+ 
+ while :
+ do
+ 	$ui $verbose_opt
+ 	reset
+-	echo "Exiting petitboot. Type 'exit' to return."
+-	echo "You may run 'pb-sos' to gather diagnostic data"
+ 	$shell
+ done
