@@ -133,14 +133,16 @@ function create_packages {
   tar chzf "${pkgdir}/pnor-${version}.tar.gz" -C ./output/images vesnin.pnor
 
   # Create debug package
-  local dbgdir="./output/staging/hostboot_build_images"
+  local dbgdir="./output/fw_debug"
+  [[ -e ${dbgdir} ]] || ln -sr "./output/staging/hostboot_build_images" "${dbgdir}"
   echo "Create MRW report..."
   (cd "${dbgdir}" && perl ./processMrw.pl -x ../openpower_mrw_scratch/vesnin.xml -r)
+  cp ./output/staging/openpower_mrw_scratch/vesnin.rpt "${dbgdir}"
   echo "Add debug files..."
   cp ./output/build/occ-p8-*/src/occStringFile "${dbgdir}"
   cp ./output/build/skiboot-*/skiboot.map "${dbgdir}"
   echo "Create debug package..."
-  tar chzf "${pkgdir}/pnor-${version}-debug.tar.gz" -C "${dbgdir}" .
+  tar chzf "${pkgdir}/pnor-${version}-debug.tar.gz" -C ./output fw_debug
 }
 
 # Main - script's entry point.
