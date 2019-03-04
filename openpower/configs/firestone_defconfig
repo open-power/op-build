@@ -1,5 +1,6 @@
 BR2_powerpc64le=y
 BR2_powerpc_power8=y
+BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_19=y
 BR2_BINUTILS_EXTRA_CONFIG_OPTIONS="--enable-targets=powerpc64-linux"
 BR2_GCC_VERSION_6_X=y
 BR2_EXTRA_GCC_CONFIG_OPTIONS="--enable-targets=powerpc64-linux --disable-libsanitizer"
