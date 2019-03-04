@@ -8,22 +8,21 @@
 set -eu
 
 # Constant build properties
-readonly VENDOR_NAME="yadro"
-readonly PLATFORM_NAME="vesnin"
-readonly CONFIG_NAME="vesnin_defconfig"
+[[ -n "${PLATFORM_NAME+x}" ]] || PLATFORM_NAME="vesnin"
+[[ -n "${CONFIG_NAME+x}" ]] || CONFIG_NAME="${PLATFORM_NAME}_defconfig"
 
 # Print help.
 function print_help {
   cat << EOF
 OpenPOWER firmware builder for VESNIN server.
 Copyright (c) 2019 YADRO.
-Usage: ${BASH_SOURCE[0]} [OPTION]
+Usage: ${BASH_SOURCE[0]} [options] -- [op-build arguments]
   -d DIR   Override path used for downloads cache.
-           By defult, the cache directory is placed inside the project
+           By default, the cache directory is resides inside the project
            root. If you want to use a common cache directory across different
            builds, this option is what you need.
 
-  -c DIR   If set, specified DIR will be used as the ccache directory,
+  -c DIR   If set, the specified DIR will be used as the ccache directory,
            it's highly recommended to set this option if you plan to
            rebuild the image. Using ccache significantly speed up the
            build process.
@@ -62,16 +61,15 @@ function print_version {
     local tag="$(git describe --abbrev=0)"
     if [[ ${tag} == ${PLATFORM_NAME}-* ]]; then
       local version="${tag}"
+      local patchlvl="$(git rev-list --count ${tag}..${branch})"
     else
       # Tag hasn't been set yet, use branch name as major version
-      local version="${PLATFORM_NAME}-${branch##*/}.0"
-      # Non tagged branch is not an officail build
+      local version="${branch##*/}.0"
+      local patchlvl="$(git rev-list --count master..${branch})"
       official=
     fi
-    local patchlvl="$(git rev-list --count master..${branch})"
     if [[ ${patchlvl} -ne 0 ]]; then
       version+="-p${patchlvl}"
-      # Any non-0 patchlevel is not a officail build
       official=
     fi
     version+="-g$(git rev-parse --short=7 HEAD)"
@@ -84,9 +82,12 @@ function print_version {
 # Build PNOR image.
 # param 1: path to downloads cache directory
 # param 2: path to ccache directory
+# param 3: op-build make arguments [optional]
 function build_image {
   local dlcache="$1"
   local ccache="$2"
+  shift 2
+  local opargs="$*"
 
   # Get buildroot as submodule
   if [[ ! -f ./buildroot/Makefile ]]; then
@@ -95,6 +96,10 @@ function build_image {
   fi
 
   source ./op-build-env
+
+  # Setup version string, op-build system automatically adds platform name,
+  # so we have to remove it from version string to avoid duplicates
+  export OPBUILD_VERSION="$(print_version | sed "s/^${PLATFORM_NAME}-//")"
 
   # Setup downloads cache
   if [[ -n "${dlcache}" ]]; then
@@ -108,9 +113,8 @@ function build_image {
   fi
 
   # Setup image's properties
-  export OPBUILD_VENDOR="${VENDOR_NAME}"
-  export OPBUILD_VERSION="$(print_version)"
-  export OPBUILD_PLATFORM="${PLATFORM_NAME}"
+  #export OPBUILD_VERSION="$(print_version)"
+  # export OPBUILD_PLATFORM="**${PLATFORM_NAME}**"
 
   echo "Build environment:"
   env | grep -P 'OPBUILD|BR2' | sort
@@ -118,7 +122,7 @@ function build_image {
   # Set build configuration
   op-build ${CONFIG_NAME}
   # Build the image
-  op-build
+  op-build ${opargs}
 }
 
 # Create distribution and debug packages.
@@ -150,6 +154,7 @@ function main {
   local dlcache=""
   local pkgdir=""
   local ccache=""
+  local opargs=""
 
   local opt
   while getopts "d:c:p:vh" opt; do
@@ -162,10 +167,12 @@ function main {
       *) print_help; exit 1;;
     esac
   done
+  shift $((OPTIND-1))
+  opargs="$*"
 
   # Check/change current directory, which must be root of the op-build
   if [[ ! -f ./op-build-env ]]; then
-    cd "$(realpath "$(dirname "${BASH_SOURCE[0]}/..")")"
+    cd "$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
     if [[ ! -f ./op-build-env ]]; then
       echo "Root directory of op-build not found!" >&2
       return 1
@@ -186,7 +193,7 @@ function main {
     return 1
   fi
 
-  time build_image "${dlcache}" "${ccache}"
+  time build_image "${dlcache}" "${ccache}" ${opargs}
   if [[ -n "${pkgdir}" ]]; then
     create_packages "${pkgdir}"
   fi
