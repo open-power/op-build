@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index abcd8ca4966f..640bf242781b 100644
+index b71076cecba9..0fc730790bfa 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 19
- SUBLEVEL = 1
+ SUBLEVEL = 26
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = "People's Front"
