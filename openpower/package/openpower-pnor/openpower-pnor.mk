@@ -70,7 +70,7 @@ OPENPOWER_VERSION_DIR = $(STAGING_DIR)/openpower_version
 OPENPOWER_MRW_SCRATCH_DIR = $(STAGING_DIR)/openpower_mrw_scratch
 OUTPUT_BUILD_DIR = $(STAGING_DIR)/../../../build/
 OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
-HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/../../../staging/hostboot_build_images/
+HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-*/skiboot.elf \
