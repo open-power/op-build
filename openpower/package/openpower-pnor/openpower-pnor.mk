@@ -9,7 +9,7 @@ OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode
+OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
 OPENPOWER_PNOR_DEPENDENCIES += hcode
@@ -50,10 +50,6 @@ ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_RELEASE=p9
 else
     OPENPOWER_RELEASE=p8
-endif
-
-ifeq ($(BR2_BUILD_PNOR_SQUASHFS),y)
-    OPENPOWER_PNOR_DEPENDENCIES += host-openpower-vpnor
 endif
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
@@ -166,11 +162,14 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_UPDATE_FILENAME) $(BINARIES_DIR); \
         fi
 
-        # If this is a VPNOR system, run the generate-squashfs command and
+        # If this is a VPNOR system, run the generate-tar command and
         # create a tarball
         if [ "$(BR2_BUILD_PNOR_SQUASHFS)" == "y" ]; then \
-            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
+            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
+        else \
+            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i static -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
+            $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(BINARIES_DIR); \
         fi
 
 	#Create Debug Tarball
