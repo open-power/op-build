@@ -198,12 +198,12 @@ Package: firestone-xml
 
 `Repository <https://github.com/open-power/firestone-xml>`__
 
-.. _patches-1:
+.. _patches-2.2-1:
 
 Patches
 ~~~~~~~
 
-.. _commits-1:
+.. _commits-2.2-1:
 
 Commits
 ~~~~~~~
@@ -218,12 +218,12 @@ Package: garrison-xml
 
 `Repository <https://github.com/open-power/garrison-xml>`__
 
-.. _patches-2:
+.. _patches-2.2-2:
 
 Patches
 ~~~~~~~
 
-.. _commits-2:
+.. _commits-2.2-2:
 
 Commits
 ~~~~~~~
@@ -238,12 +238,12 @@ Package: habanero-xml
 
 `Repository <https://github.com/open-power/habanero-xml>`__
 
-.. _patches-3:
+.. _patches-2.2-3:
 
 Patches
 ~~~~~~~
 
-.. _commits-3:
+.. _commits-2.2-3:
 
 Commits
 ~~~~~~~
@@ -263,12 +263,12 @@ Package: hcode
 
 `Repository <https://github.com/open-power/hcode>`__
 
-.. _patches-4:
+.. _patches-2.2-4:
 
 Patches
 ~~~~~~~
 
-.. _commits-4:
+.. _commits-2.2-4:
 
 Commits
 ~~~~~~~
@@ -1028,7 +1028,7 @@ Package: hostboot
 
 `Repository <https://github.com/open-power/hostboot>`__
 
-.. _patches-5:
+.. _patches-2.2-5:
 
 Patches
 ~~~~~~~
@@ -1037,7 +1037,7 @@ Patches
 -  `0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch>`__
 -  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
 
-.. _commits-5:
+.. _commits-2.2-5:
 
 Commits
 ~~~~~~~
@@ -3499,12 +3499,12 @@ Package: occ
 
 `Repository <https://github.com/open-power/occ>`__
 
-.. _patches-6:
+.. _patches-2.2-6:
 
 Patches
 ~~~~~~~
 
-.. _commits-6:
+.. _commits-2.2-6:
 
 Commits
 ~~~~~~~
@@ -3584,12 +3584,12 @@ Package: op-build
 
 `Repository <https://github.com/open-power/op-build>`__
 
-.. _patches-7:
+.. _patches-2.2-7:
 
 Patches
 ~~~~~~~
 
-.. _commits-7:
+.. _commits-2.2-7:
 
 Commits
 ~~~~~~~
@@ -3601,12 +3601,12 @@ Package: p9dsu-xml
 
 `Repository <https://github.com/open-power/p9dsu-xml>`__
 
-.. _patches-8:
+.. _patches-2.2-8:
 
 Patches
 ~~~~~~~
 
-.. _commits-8:
+.. _commits-2.2-8:
 
 Commits
 ~~~~~~~
@@ -3618,12 +3618,12 @@ Package: palmetto-xml
 
 `Repository <https://github.com/open-power/palmetto-xml>`__
 
-.. _patches-9:
+.. _patches-2.2-9:
 
 Patches
 ~~~~~~~
 
-.. _commits-9:
+.. _commits-2.2-9:
 
 Commits
 ~~~~~~~
@@ -3643,12 +3643,12 @@ Package: petitboot
 
 `Repository <https://github.com/open-power/petitboot>`__
 
-.. _patches-10:
+.. _patches-2.2-10:
 
 Patches
 ~~~~~~~
 
-.. _commits-10:
+.. _commits-2.2-10:
 
 Commits
 ~~~~~~~
@@ -3658,12 +3658,12 @@ Package: pnor
 
 `Repository <https://github.com/open-power/pnor>`__
 
-.. _patches-11:
+.. _patches-2.2-11:
 
 Patches
 ~~~~~~~
 
-.. _commits-11:
+.. _commits-2.2-11:
 
 Commits
 ~~~~~~~
@@ -3675,12 +3675,12 @@ Package: romulus-xml
 
 `Repository <https://github.com/open-power/romulus-xml>`__
 
-.. _patches-12:
+.. _patches-2.2-12:
 
 Patches
 ~~~~~~~
 
-.. _commits-12:
+.. _commits-2.2-12:
 
 Commits
 ~~~~~~~
@@ -3727,12 +3727,12 @@ Package: sbe
 
 `Repository <https://github.com/open-power/sbe>`__
 
-.. _patches-13:
+.. _patches-2.2-13:
 
 Patches
 ~~~~~~~
 
-.. _commits-13:
+.. _commits-2.2-13:
 
 Commits
 ~~~~~~~
@@ -4342,12 +4342,12 @@ Package: skiboot
 
 `Repository <https://github.com/open-power/skiboot>`__
 
-.. _patches-14:
+.. _patches-2.2-14:
 
 Patches
 ~~~~~~~
 
-.. _commits-14:
+.. _commits-2.2-14:
 
 Commits
 ~~~~~~~
@@ -5072,12 +5072,12 @@ Package: vesnin-xml
 
 `Repository <https://github.com/open-power/vesnin-xml>`__
 
-.. _patches-15:
+.. _patches-2.2-15:
 
 Patches
 ~~~~~~~
 
-.. _commits-15:
+.. _commits-2.2-15:
 
 Commits
 ~~~~~~~
@@ -5104,12 +5104,12 @@ Package: witherspoon-xml
 
 `Repository <https://github.com/open-power/witherspoon-xml>`__
 
-.. _patches-16:
+.. _patches-2.2-16:
 
 Patches
 ~~~~~~~
 
-.. _commits-16:
+.. _commits-2.2-16:
 
 Commits
 ~~~~~~~
@@ -5138,12 +5138,12 @@ Package: zaius-xml
 
 `Repository <https://github.com/open-power/zaius-xml>`__
 
-.. _patches-17:
+.. _patches-2.2-17:
 
 Patches
 ~~~~~~~
 
-.. _commits-17:
+.. _commits-2.2-17:
 
 Commits
 ~~~~~~~
