@@ -1,0 +1,53 @@
+From 1b447633543bc89794a8f65a9a96cb3d8462bc07 Mon Sep 17 00:00:00 2001
+From: Bill Hoffa <wghoffa@us.ibm.com>
+Date: Fri, 8 Mar 2019 15:37:48 -0600
+Subject: [PATCH] Add Processor Compatability Change
+
+   - Commit c47cddb pulled in a lot of serverwiz changes
+     that exposed a bug. While that gets sorted out
+     this is a simpler change outside of serverwiz to simply
+     set the new attribute value.
+---
+ witherspoon.xml | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/witherspoon.xml b/witherspoon.xml
+index 06e382a..671eb5d 100644
+--- a/witherspoon.xml
++++ b/witherspoon.xml
+@@ -3677,6 +3677,21 @@
+ 		</enumerator>
+ </enumerationType>
+ <enumerationType>
++        <id>PROC_COMPATIBILITY_REQ</id>
++                <enumerator>
++                <name>ALLOW_COMPATIBILITY</name>
++                <value>0</value>
++                </enumerator>
++                <enumerator>
++                <name>FORCED_NATIVE</name>
++                <value>2</value>
++                </enumerator>
++                <enumerator>
++                <name>FORCED_COMPATIBILITY</name>
++                <value>1</value>
++                </enumerator>
++</enumerationType>
++<enumerationType>
+ 	<id>PROC_EPS_TABLE_TYPE</id>
+ 		<enumerator>
+ 		<name>EPS_TYPE_HE</name>
+@@ -16961,6 +16976,10 @@
+ 				<field><id>reserved</id><value></value></field>
+ 		</default>
+ 	</attribute>
++        <attribute>
++                <id>PROC_COMPATIBILITY_REQ</id>
++                <default>FORCED_NATIVE</default>
++        </attribute>
+ 	<attribute>
+ 		<id>PROC_CHIP_MEM_TO_USE</id>
+ 		<default></default>
+-- 
+1.8.3.1
+
