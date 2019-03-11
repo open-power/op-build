@@ -1,0 +1,357 @@
+Release Notes for OpenPower Firmware v2.0.14
+============================================
+
+Updated Packages
+----------------
+
++------------------+------------------+-------------------+--------------------------------------+
+| Package          | Old Version      | New Version       | Platforms                            |
++==================+==================+===================+======================================+
+| hcode            | hw020319a.op920  | hw022419a.op920   | witherspoon, p9dsu, zaius, romulus   |
++------------------+------------------+-------------------+--------------------------------------+
+| hostboot         | 753249ad9bd9     | 879d21d3cd70      | witherspoon, p9dsu, zaius, romulus   |
++------------------+------------------+-------------------+--------------------------------------+
+| hostboot-binarie | hw020319a.op920  | hw022419a.op920   | witherspoon, p9dsu, zaius, habanero, |
+| s                |                  |                   | garrison, barreleye, firestone,      |
+|                  |                  |                   | palmetto, vesnin, romulus            |
++------------------+------------------+-------------------+--------------------------------------+
+| machine-xml      | 74b5ebb1875e     | 2d9c9f0ebce1      | witherspoon                          |
++------------------+------------------+-------------------+--------------------------------------+
+| occ              | 39d77452d00c     | 8fa385457a34      | witherspoon, p9dsu, zaius, zz,       |
+|                  |                  |                   | romulus                              |
++------------------+------------------+-------------------+--------------------------------------+
+| skiboot          | v6.0.16          | v6.0.18           | witherspoon, p9dsu, zaius, habanero, |
+|                  |                  |                   | firenze, garrison, barreleye,        |
+|                  |                  |                   | openpower_mambo, witherspoon_dev,    |
+|                  |                  |                   | pseries, firestone, palmetto,        |
+|                  |                  |                   | openpower_p9_mambo, vesnin, zz,      |
+|                  |                  |                   | romulus                              |
++------------------+------------------+-------------------+--------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+hostboot (21):
+
+-  `2172848cf283 <https://github.com/open-power/hcode/commit/2172848cf283>`__ Release tag
+   information updated for hw020419a.op920
+-  `00f61a077e44 <https://github.com/open-power/hcode/commit/00f61a077e44>`__ Release tag
+   information updated for hw020519a.op920
+-  `35bd55541bfa <https://github.com/open-power/hcode/commit/35bd55541bfa>`__ Release tag
+   information updated for hw020619a.op920
+-  `f6276913a4f4 <https://github.com/open-power/hcode/commit/f6276913a4f4>`__ Release tag
+   information updated for hw020719a.op920
+-  `26b2f1a3b2ef <https://github.com/open-power/hcode/commit/26b2f1a3b2ef>`__ Release tag
+   information updated for hw020819a.op920
+-  `4fb08ebfbe04 <https://github.com/open-power/hcode/commit/4fb08ebfbe04>`__ Release tag
+   information updated for hw020919a.op920
+-  `bb49f3c5a19a <https://github.com/open-power/hcode/commit/bb49f3c5a19a>`__ Release tag
+   information updated for hw021019a.op920
+-  `57ece14f413b <https://github.com/open-power/hcode/commit/57ece14f413b>`__ Release tag
+   information updated for hw021119a.op920
+-  `5172ed110220 <https://github.com/open-power/hcode/commit/5172ed110220>`__ Release tag
+   information updated for hw021219a.op920
+-  `2f4a909a646a <https://github.com/open-power/hcode/commit/2f4a909a646a>`__ Release tag
+   information updated for hw021319a.op920
+-  `e78ba0a2b89d <https://github.com/open-power/hcode/commit/e78ba0a2b89d>`__ Release tag
+   information updated for hw021419a.op920
+-  `67da000d72e9 <https://github.com/open-power/hcode/commit/67da000d72e9>`__ Release tag
+   information updated for hw021519a.op920
+-  `f398c01cab7b <https://github.com/open-power/hcode/commit/f398c01cab7b>`__ Release tag
+   information updated for hw021619a.op920
+-  `acd5701c7dbe <https://github.com/open-power/hcode/commit/acd5701c7dbe>`__ Release tag
+   information updated for hw021719a.op920
+-  `b67d5512af01 <https://github.com/open-power/hcode/commit/b67d5512af01>`__ Release tag
+   information updated for hw021819a.op920
+-  `732d24bdf26f <https://github.com/open-power/hcode/commit/732d24bdf26f>`__ Release tag
+   information updated for hw021919a.op920
+-  `1623463840ba <https://github.com/open-power/hcode/commit/1623463840ba>`__ Release tag
+   information updated for hw022019a.op920
+-  `ff08e55b5b6a <https://github.com/open-power/hcode/commit/ff08e55b5b6a>`__ Release tag
+   information updated for hw022119a.op920
+-  `48d2d4b83b76 <https://github.com/open-power/hcode/commit/48d2d4b83b76>`__ Release tag
+   information updated for hw022219a.op920
+-  `26bf384a68ee <https://github.com/open-power/hcode/commit/26bf384a68ee>`__ Release tag
+   information updated for hw022319a.op920
+-  `b2aa713cda5b <https://github.com/open-power/hcode/commit/b2aa713cda5b>`__ Release tag
+   information updated for hw022419a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _patches-2.0.14-1:
+
+Patches
+~~~~~~~
+
+-  `0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch>`__
+-  `0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch>`__
+-  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
+
+.. _commits-2.0.14-1:
+
+Commits
+~~~~~~~
+
+Chris Cain (1):
+
+-  `b61625064744 <https://github.com/open-power/hostboot/commit/b61625064744>`__ HTMGT: Change OCC
+   logs to info while recovery is still being attempted
+
+Corey Swenson (1):
+
+-  `3c093dc41a70 <https://github.com/open-power/hostboot/commit/3c093dc41a70>`__ Use virtual address
+   buffer to read mvpd rings
+
+Dan Crowell (2):
+
+-  `8a977a1bbb12 <https://github.com/open-power/hostboot/commit/8a977a1bbb12>`__ Move libconsole
+   into base image
+-  `39cba205cc2f <https://github.com/open-power/hostboot/commit/39cba205cc2f>`__ Force reboot
+   without visible errors for core wakeup failure
+
+Daniel M. Crowell (2):
+
+-  `394c3ff5002b <https://github.com/open-power/hostboot/commit/394c3ff5002b>`__ Revert “HW474117
+   WAT to allow firmware to disable bypass on port”
+-  `603a666e67c8 <https://github.com/open-power/hostboot/commit/603a666e67c8>`__ Revert “PRD: Nimbus
+   symbol mark performance workaround”
+
+Dean Sanner (1):
+
+-  `4c0019e57fc4 <https://github.com/open-power/hostboot/commit/4c0019e57fc4>`__ Find cpu struct
+   directly in doorbell interrupt handler
+
+Greg Still (1):
+
+-  `22261c1edce7 <https://github.com/open-power/hostboot/commit/22261c1edce7>`__ PM: fix cable pull
+   issue in clearing clock sync upon PM Complex Reset
+
+Jaymes Wilks (1):
+
+-  `00a5a36ed2c1 <https://github.com/open-power/hostboot/commit/00a5a36ed2c1>`__ Add TPM FRU
+   Inventory Record Data
+
+Nick Bofferding (3):
+
+-  `236d2178bd66 <https://github.com/open-power/hostboot/commit/236d2178bd66>`__ Enhance RAS for
+   case where boot firmware image is too big to load
+-  `d23603024bc4 <https://github.com/open-power/hostboot/commit/d23603024bc4>`__ Only allow key
+   transition in istep 10.2
+-  `879d21d3cd70 <https://github.com/open-power/hostboot/commit/879d21d3cd70>`__ Support parsing
+   call home informational eSELs with debug tooling
+
+Package: occ
+------------
+
+`Repository <https://github.com/open-power/occ>`__
+
+.. _patches-2.0.14-2:
+
+Patches
+~~~~~~~
+
+.. _commits-2.0.14-2:
+
+Commits
+~~~~~~~
+
+Chris Cain (1):
+
+-  `8fa385457a34 <https://github.com/open-power/occ/commit/8fa385457a34>`__ Add PGPE traces and data
+   to OCC logs
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _patches-2.0.14-3:
+
+Patches
+~~~~~~~
+
+.. _commits-2.0.14-3:
+
+Commits
+~~~~~~~
+
+Alexey Kardashevskiy (2):
+
+-  `84baad3ee52f <https://github.com/open-power/skiboot/commit/84baad3ee52f>`__ cpufeatures: Always
+   advertise POWER8NVL as DD2
+-  `4d761a3bf034 <https://github.com/open-power/skiboot/commit/4d761a3bf034>`__ hw/phb3/naples:
+   Disable D-states
+
+Andrew Jeffery (48):
+
+-  `d565ef89fbc9 <https://github.com/open-power/skiboot/commit/d565ef89fbc9>`__ libflash/test:
+   Generate header dependencies for tests
+-  `ef7e13706e40 <https://github.com/open-power/skiboot/commit/ef7e13706e40>`__ test-ipmi-hiomap:
+   Add ability to delay some IPMI messages
+-  `dab117481e66 <https://github.com/open-power/skiboot/commit/dab117481e66>`__ test-ipmi-hiomap:
+   Dump unexpected IPMI messages
+-  `cfaabaeb605d <https://github.com/open-power/skiboot/commit/cfaabaeb605d>`__ test-ipmi-hiomap:
+   Ensure the completion code is set
+-  `ea7d8f1ae801 <https://github.com/open-power/skiboot/commit/ea7d8f1ae801>`__ test-ipmi-hiomap:
+   Print some information on early
+-  `2c8497036812 <https://github.com/open-power/skiboot/commit/2c8497036812>`__
+   libflash/ipmi-hiomap: Fix leak of msg in callback
+-  `0875e9fed8d0 <https://github.com/open-power/skiboot/commit/0875e9fed8d0>`__
+   libflash/ipmi-hiomap: Overhaul error handling
+-  `0576b743bf18 <https://github.com/open-power/skiboot/commit/0576b743bf18>`__
+   libflash/ipmi-hiomap: Overhaul event handling
+-  `5117b2c56d65 <https://github.com/open-power/skiboot/commit/5117b2c56d65>`__
+   libflash/ipmi-hiomap: Remove unused close handling
+-  `bdf19fbcb226 <https://github.com/open-power/skiboot/commit/bdf19fbcb226>`__
+   libflash/ipmi-hiomap: Enforce message size for empty response
+-  `01ab517e8065 <https://github.com/open-power/skiboot/commit/01ab517e8065>`__ test-ipmi-hiomap:
+   Add protocol-persistent-error test
+-  `bb3f88bb5df6 <https://github.com/open-power/skiboot/commit/bb3f88bb5df6>`__ test-ipmi-hiomap:
+   Add read-one-block test
+-  `aeb4b5e9cab8 <https://github.com/open-power/skiboot/commit/aeb4b5e9cab8>`__ test-ipmi-hiomap:
+   Add read-two-blocks test
+-  `b3fa96125e20 <https://github.com/open-power/skiboot/commit/b3fa96125e20>`__ test-ipmi-hiomap:
+   Add event-before-read
+-  `cb87c68ac909 <https://github.com/open-power/skiboot/commit/cb87c68ac909>`__ test-ipmi-hiomap:
+   Add event-during-read test
+-  `4f47d648b62b <https://github.com/open-power/skiboot/commit/4f47d648b62b>`__ test-ipmi-hiomap:
+   Add write-one-block test
+-  `fd5420df2cc3 <https://github.com/open-power/skiboot/commit/fd5420df2cc3>`__ test-ipmi-hiomap:
+   Add write-two-blocks test
+-  `9f3d3d442d27 <https://github.com/open-power/skiboot/commit/9f3d3d442d27>`__ test-ipmi-hiomap:
+   Add event-before-write test
+-  `517028357911 <https://github.com/open-power/skiboot/commit/517028357911>`__ test-ipmi-hiomap:
+   Add event-during-write test
+-  `9ef913cd3f52 <https://github.com/open-power/skiboot/commit/9ef913cd3f52>`__ test-ipmi-hiomap:
+   Add erase-one-block test
+-  `54c3d1b7e709 <https://github.com/open-power/skiboot/commit/54c3d1b7e709>`__ test-ipmi-hiomap:
+   Add erase-two-blocks test
+-  `414f8d6c20e5 <https://github.com/open-power/skiboot/commit/414f8d6c20e5>`__ test-ipmi-hiomap:
+   Add event-before-erase test
+-  `372d6290f6ef <https://github.com/open-power/skiboot/commit/372d6290f6ef>`__ test-ipmi-hiomap:
+   Add event-during-erase
+-  `7722b3fab3ac <https://github.com/open-power/skiboot/commit/7722b3fab3ac>`__ test-ipmi-hiomap:
+   Add bad-sequence test
+-  `243b5e276691 <https://github.com/open-power/skiboot/commit/243b5e276691>`__ test-ipmi-hiomap:
+   Add action-error test
+-  `4591893d3dd2 <https://github.com/open-power/skiboot/commit/4591893d3dd2>`__ test-ipmi-hiomap:
+   Add get-flash-info test
+-  `59fef8a367d6 <https://github.com/open-power/skiboot/commit/59fef8a367d6>`__ test-ipmi-hiomap:
+   Add get-info-error test
+-  `fda66a4a84d7 <https://github.com/open-power/skiboot/commit/fda66a4a84d7>`__ test-ipmi-hiomap:
+   Add get-flash-info-error test
+-  `5ad9ac6f588a <https://github.com/open-power/skiboot/commit/5ad9ac6f588a>`__ test-ipmi-hiomap:
+   Add create-read-window-error test
+-  `203470f8524b <https://github.com/open-power/skiboot/commit/203470f8524b>`__ test-ipmi-hiomap:
+   Add create-write-window-error test
+-  `ddeb048bec98 <https://github.com/open-power/skiboot/commit/ddeb048bec98>`__ test-ipmi-hiomap:
+   Add mark-dirty-error test
+-  `70651e1a4d8d <https://github.com/open-power/skiboot/commit/70651e1a4d8d>`__ test-ipmi-hiomap:
+   Add flush-error test
+-  `f495309913ec <https://github.com/open-power/skiboot/commit/f495309913ec>`__ test-ipmi-hiomap:
+   Add ack-error test
+-  `634a61d0cad1 <https://github.com/open-power/skiboot/commit/634a61d0cad1>`__ test-ipmi-hiomap:
+   Add erase-error test
+-  `4d90d02baaa7 <https://github.com/open-power/skiboot/commit/4d90d02baaa7>`__ test-ipmi-hiomap:
+   Add ack-malformed tests
+-  `51248765629b <https://github.com/open-power/skiboot/commit/51248765629b>`__ test-ipmi-hiomap:
+   Add get-info-malformed tests
+-  `f7f20ebc477e <https://github.com/open-power/skiboot/commit/f7f20ebc477e>`__ test-ipmi-hiomap:
+   Add get-flash-info-malformed tests
+-  `a94951a93fd3 <https://github.com/open-power/skiboot/commit/a94951a93fd3>`__ test-ipmi-hiomap:
+   Add create-read-window-malformed tests
+-  `79fe8d1402a9 <https://github.com/open-power/skiboot/commit/79fe8d1402a9>`__ test-ipmi-hiomap:
+   Add create-write-window-malformed tests
+-  `6ae5477049f6 <https://github.com/open-power/skiboot/commit/6ae5477049f6>`__ test-ipmi-hiomap:
+   Add mark-dirty-malformed tests
+-  `7f809abfae39 <https://github.com/open-power/skiboot/commit/7f809abfae39>`__ test-ipmi-hiomap:
+   Add flush-malformed tests
+-  `e5033fce6b6f <https://github.com/open-power/skiboot/commit/e5033fce6b6f>`__ test-ipmi-hiomap:
+   Add erase-malformed tests
+-  `01208d393d40 <https://github.com/open-power/skiboot/commit/01208d393d40>`__ test-ipmi-hiomap:
+   Add protocol-recovery-failure-ack test
+-  `f328d44b13a5 <https://github.com/open-power/skiboot/commit/f328d44b13a5>`__ test-ipmi-hiomap:
+   Add protocol-recovery-failure-get-info test
+-  `2a8a9179abc4 <https://github.com/open-power/skiboot/commit/2a8a9179abc4>`__ test-ipmi-hiomap:
+   Add protocol-recovery-get-flash-info-failure test
+-  `9ec4f741dda4 <https://github.com/open-power/skiboot/commit/9ec4f741dda4>`__ test-ipmi-hiomap:
+   Add read-one-block-twice test
+-  `311991fe40bc <https://github.com/open-power/skiboot/commit/311991fe40bc>`__ test-ipmi-hiomap:
+   Add write-one-block-twice test
+-  `f4554864bef3 <https://github.com/open-power/skiboot/commit/f4554864bef3>`__ test-ipmi-hiomap:
+   Add erase-one-block-twice test
+
+Nicholas Piggin (1):
+
+-  `59d9ab63b397 <https://github.com/open-power/skiboot/commit/59d9ab63b397>`__ core/cpu: HID update
+   race
+
+Shilpasri G Bhat (1):
+
+-  `a3c884939561 <https://github.com/open-power/skiboot/commit/a3c884939561>`__ powercap: occ: Fix
+   the powercapping range allowed for user
+
+Stewart Smith (3):
+
+-  `1a90d5922fcf <https://github.com/open-power/skiboot/commit/1a90d5922fcf>`__ firmware-versions:
+   Add test case for parsing VERSION
+-  `cc7945c73469 <https://github.com/open-power/skiboot/commit/cc7945c73469>`__ hdata/test:
+   workaround dtc bugs
+-  `229ed05931b5 <https://github.com/open-power/skiboot/commit/229ed05931b5>`__ skiboot v6.0.17
+   release notes
+
+Vasant Hegde (10):
+
+-  `f23e2102374a <https://github.com/open-power/skiboot/commit/f23e2102374a>`__ hdata: Fix dtc
+   warnings
+-  `5a157d1e4293 <https://github.com/open-power/skiboot/commit/5a157d1e4293>`__ core/ipmi: Improve
+   error message
+-  `e5ee11f6e796 <https://github.com/open-power/skiboot/commit/e5ee11f6e796>`__ core/opal: Print PIR
+   value in exit path
+-  `ac9e1fdb6115 <https://github.com/open-power/skiboot/commit/ac9e1fdb6115>`__ ipmi/power: Fix
+   system reboot issue
+-  `0d8a56aee77c <https://github.com/open-power/skiboot/commit/0d8a56aee77c>`__ hw/bt: Fix message
+   retry handler
+-  `57b6b87a7810 <https://github.com/open-power/skiboot/commit/57b6b87a7810>`__ hw/bt: Add backend
+   interface to disable ipmi message retry option
+-  `53d0266881ba <https://github.com/open-power/skiboot/commit/53d0266881ba>`__ hw/bt: Introduce
+   separate list for synchronous messages
+-  `184f81559530 <https://github.com/open-power/skiboot/commit/184f81559530>`__ core/ipmi: Add ipmi
+   sync messages to top of the list
+-  `1d1a977916b6 <https://github.com/open-power/skiboot/commit/1d1a977916b6>`__ hw/bt: Do not
+   disable ipmi message retry during OPAL boot
+-  `b90de1aae03c <https://github.com/open-power/skiboot/commit/b90de1aae03c>`__ skiboot v6.0.18
+   release notes
+
+Package: witherspoon-xml
+------------------------
+
+`Repository <https://github.com/open-power/witherspoon-xml>`__
+
+.. _patches-2.0.14-4:
+
+Patches
+~~~~~~~
+
+.. _commits-2.0.14-4:
+
+Commits
+~~~~~~~
+
+Erich Hauptli (2):
+
+-  `bea477bf4f9a <https://github.com/open-power/witherspoon-xml/commit/bea477bf4f9a>`__ Fixing GPU
+   I2C Addresses
+-  `2d9c9f0ebce1 <https://github.com/open-power/witherspoon-xml/commit/2d9c9f0ebce1>`__ Adding in
+   TPM FRU info
