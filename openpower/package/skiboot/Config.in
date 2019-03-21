@@ -42,6 +42,9 @@ config BR2_SKIBOOT_CUSTOM_REPO_URL
 	string "URL of custom repository"
 	depends on BR2_SKIBOOT_CUSTOM_GIT
 
+config BR2_SKIBOOT_DEVICETREE
+	bool "Build device trees"
+
 endif
 
 endmenu
