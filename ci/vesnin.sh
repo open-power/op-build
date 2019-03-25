@@ -192,7 +192,7 @@ function main {
     return 1
   fi
 
-  #time build_image "${dlcache}" "${ccache}" ${opargs}
+  time build_image "${dlcache}" "${ccache}" ${opargs}
   if [[ -n "${pkgdir}" ]]; then
     create_packages "${pkgdir}"
   fi
