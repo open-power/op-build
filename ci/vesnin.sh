@@ -112,10 +112,6 @@ function build_image {
     export BR2_CCACHE_DIR="${ccache}"
   fi
 
-  # Setup image's properties
-  #export OPBUILD_VERSION="$(print_version)"
-  # export OPBUILD_PLATFORM="**${PLATFORM_NAME}**"
-
   echo "Build environment:"
   env | grep -P 'OPBUILD|BR2' | sort
 
@@ -137,16 +133,19 @@ function create_packages {
   tar chzf "${pkgdir}/pnor-${version}.tar.gz" -C ./output/images vesnin.pnor
 
   # Create debug package
-  local dbgdir="./output/fw_debug"
-  [[ -e ${dbgdir} ]] || ln -sr "./output/staging/hostboot_build_images" "${dbgdir}"
+  local hbbi_dir="./output/host/powerpc64le-buildroot-linux-gnu/sysroot/hostboot_build_images"
+  local dist_dir="./output/fw_debug"
+  [[ -e ${dist_dir} ]] || ln -sr "${hbbi_dir}" "${dist_dir}"
   echo "Create MRW report..."
-  (cd "${dbgdir}" && perl ./processMrw.pl -x ../openpower_mrw_scratch/vesnin.xml -r)
-  cp ./output/staging/openpower_mrw_scratch/vesnin.rpt "${dbgdir}"
+  pushd "${hbbi_dir}"
+  perl ./processMrw.pl -x ../openpower_mrw_scratch/vesnin.xml -r
+  mv ../openpower_mrw_scratch/vesnin.rpt .
+  popd
   echo "Add debug files..."
-  cp ./output/build/occ-p8-*/src/occStringFile "${dbgdir}"
-  cp ./output/build/skiboot-*/skiboot.map "${dbgdir}"
+  cp ./output/build/occ-p8-*/src/occStringFile "${dist_dir}"
+  cp ./output/build/skiboot-*/skiboot.map "${dist_dir}"
   echo "Create debug package..."
-  tar chzf "${pkgdir}/pnor-${version}-debug.tar.gz" -C ./output fw_debug
+  tar chzf "${pkgdir}/pnor-${version}-debug.tar.gz" -C "$(dirname "${dist_dir}")" "$(basename "${dist_dir}")"
 }
 
 # Main - script's entry point.
@@ -193,7 +192,7 @@ function main {
     return 1
   fi
 
-  time build_image "${dlcache}" "${ccache}" ${opargs}
+  #time build_image "${dlcache}" "${ccache}" ${opargs}
   if [[ -n "${pkgdir}" ]]; then
     create_packages "${pkgdir}"
   fi
