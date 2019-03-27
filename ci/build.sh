@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINERS="ubuntu1604 fedora27"
+CONTAINERS="ubuntu1804 fedora27"
 
 
 SDK_ONLY=0
@@ -104,7 +104,7 @@ do
 	  if [[ "$distro" == fedora27 ]]; then
 	    PROXY="RUN echo \"proxy=${http_proxy}\" >> /etc/dnf/dnf.conf"
 	  fi
-	  if [[ "$distro" == ubuntu1604 ]]; then
+	  if [[ "$distro" == ubuntu1804 ]]; then
 	    PROXY="RUN echo \"Acquire::http::Proxy \\"\"${http_proxy}/\\"\";\" > /etc/apt/apt.conf.d/000apt-cacher-ng-proxy"
 	  fi
         fi
