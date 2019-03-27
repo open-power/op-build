@@ -43,9 +43,12 @@ automatically download and build an appropriate toolchain as part of the build
 process, so you don't need to worry about setting up a
 cross-compiler. Cross-compiling from a x86-64 host is officially supported.
 
+The machine your building on will need Python 2.7, GCC 6.2 (or later), and
+a handful of other packages (see below).
+
 ### Dependencies for *64-bit* Ubuntu/Debian systems
 
-1. Install Ubuntu (>= 14.04) or Debian (>= 7.5) 64-bit.
+1. Install Ubuntu (>= 18.04) or Debian (>= 7.5) 64-bit.
 2. Enable Universe (Ubuntu only):
 
         sudo apt-get install software-properties-common
@@ -56,7 +59,7 @@ cross-compiler. Cross-compiling from a x86-64 host is officially supported.
           python language-pack-en texinfo \
           build-essential g++ git bison flex unzip \
           libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
-          wget bc
+          wget bc rsync
 
 ### Dependencies for *64-bit* Fedora systems
 
