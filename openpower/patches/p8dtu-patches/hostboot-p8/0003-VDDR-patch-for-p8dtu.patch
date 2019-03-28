@@ -2,6 +2,7 @@ From 783332cc9afcf3c8581760112162b650a9e01c7e Mon Sep 17 00:00:00 2001
 From: Jim Yuan <jim.yuan@supermicro.com>
 Date: Tue, 4 Oct 2016 16:07:44 -0700
 Subject: [PATCH 03/14] VDDR patch for p8dtu.
+Adds support for memory voltage control specific to the p8dtu platform.
 
 Signed-off-by: Jim Yuan <jim.yuan@supermicro.com>
 ---
