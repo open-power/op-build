@@ -134,17 +134,15 @@ function create_packages {
 
   # Create debug package
   local hbbi_dir="./output/host/powerpc64le-buildroot-linux-gnu/sysroot/hostboot_build_images"
+  echo "Create MRW report..."
+  perl -I "${hbbi_dir}" "${hbbi_dir}/processMrw.pl" -x "${hbbi_dir}/../openpower_mrw_scratch/vesnin.xml" -r
+  mv "${hbbi_dir}/../openpower_mrw_scratch/vesnin.rpt" "${hbbi_dir}"
+  echo "Add debug files..."
+  cp ./output/build/occ-p8-*/src/occStringFile "${hbbi_dir}"
+  cp ./output/build/skiboot-*/skiboot.map "${hbbi_dir}"
+  echo "Create debug package..."
   local dist_dir="./output/fw_debug"
   [[ -e ${dist_dir} ]] || ln -sr "${hbbi_dir}" "${dist_dir}"
-  echo "Create MRW report..."
-  pushd "${hbbi_dir}"
-  perl ./processMrw.pl -x ../openpower_mrw_scratch/vesnin.xml -r
-  mv ../openpower_mrw_scratch/vesnin.rpt .
-  popd
-  echo "Add debug files..."
-  cp ./output/build/occ-p8-*/src/occStringFile "${dist_dir}"
-  cp ./output/build/skiboot-*/skiboot.map "${dist_dir}"
-  echo "Create debug package..."
   tar chzf "${pkgdir}/pnor-${version}-debug.tar.gz" -C "$(dirname "${dist_dir}")" "$(basename "${dist_dir}")"
 }
 
