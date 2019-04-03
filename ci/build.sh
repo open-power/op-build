@@ -45,7 +45,7 @@ while getopts ":ab:hp:c:rs:S" opt; do
       echo ""
       echo "Example:DOCKER_PREFIX=sudo ./ci/build.sh -a"
       echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p firestone"
-      echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p garrison,palmetto,openpower_p9_mambo"
+      echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p garrison,palmetto,opal"
       exit 1
       ;;
     r)
