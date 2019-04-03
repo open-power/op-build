@@ -48,7 +48,7 @@ a handful of other packages (see below).
 
 ### Dependencies for *64-bit* Ubuntu/Debian systems
 
-1. Install Ubuntu (>= 18.04) or Debian (>= 7.5) 64-bit.
+1. Install Ubuntu (>= 18.04) or Debian (>= 9) 64-bit.
 2. Enable Universe (Ubuntu only):
 
         sudo apt-get install software-properties-common
@@ -63,7 +63,7 @@ a handful of other packages (see below).
 
 ### Dependencies for *64-bit* Fedora systems
 
-1. Install Fedora 25 64-bit (older Fedora should also work).
+1. Install Fedora (>= 25) 64-bit.
 2. Install the packages necessary for the build:
 
         sudo dnf install gcc-c++ flex bison git ctags cscope expat-devel patch \
