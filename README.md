@@ -29,8 +29,7 @@ To build an image for a Palmetto system:
 ```
 git clone --recursive git@github.com:open-power/op-build.git
 cd op-build
-. op-build-env
-op-build palmetto_defconfig && op-build
+./op-build palmetto_defconfig && ./op-build
 ```
 
 There are also default configurations for other platforms in
