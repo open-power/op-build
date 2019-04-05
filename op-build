@@ -1,0 +1,8 @@
+#!/bin/bash
+
+script_base="$(realpath $(dirname $0))"
+cd $script_base
+
+. op-build-env
+
+op-build $@
