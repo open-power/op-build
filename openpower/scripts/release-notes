@@ -142,6 +142,7 @@ foreach my $p (@common_platforms) {
     next if $p =~ /firenze/;
     next if $p =~ /^zz$/;
     next if $p =~ /mambo/;
+    next if $p =~ /opal/;
     next if $p =~ /redbud/;
     next if $p =~ /pseries/;
     next if $p =~ /witherspoon-redbud/;
