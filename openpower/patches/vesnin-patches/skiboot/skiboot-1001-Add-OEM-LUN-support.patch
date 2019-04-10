@@ -1,0 +1,30 @@
+From c21e4ab44a4e28ab574104f26bd3a925ffdc2a22 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Wed, 10 Apr 2019 14:58:25 +0300
+Subject: [PATCH] Add OEM LUN support
+
+IPMI specification doesn't support more than 255 sensors due to
+1-byte sensorID limitation. LUN support (OEM LUN 1 and 3)
+allows to support up to 765 unique sensors.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ core/ipmi.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/core/ipmi.c b/core/ipmi.c
+index 2bf3f4da..f4165ee9 100644
+--- a/core/ipmi.c
++++ b/core/ipmi.c
+@@ -54,6 +54,8 @@ void ipmi_init_msg(struct ipmi_msg *msg, int interface,
+ 	msg->backend = ipmi_backend;
+ 	msg->cmd = IPMI_CMD(code);
+ 	msg->netfn = IPMI_NETFN(code) << 2;
++	if (IPMI_NETFN(code) == IPMI_NETFN_SE) // LUN supoort for sensors
++		msg->netfn |= 1;
+ 	msg->req_size = req_size;
+ 	msg->resp_size = resp_size;
+ 	msg->complete = complete;
+-- 
+2.21.0
+
