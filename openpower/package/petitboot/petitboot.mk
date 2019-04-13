@@ -50,6 +50,9 @@ define PETITBOOT_POST_INSTALL
 		$(TARGET_DIR)/usr/sbin/
 	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/petitboot/petitboot-console-ui.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/
+        $(if $(BR2_PACKAGE_PETITBOOT_RESTRICT_USB), \
+		$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/petitboot/openpower.rules \
+			$(TARGET_DIR)/etc/udev/rules.d/)
 	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/petitboot/removable-event-poll.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/
 	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_OP_BUILD_PATH)/package/petitboot/63-md-raid-arrays.rules \

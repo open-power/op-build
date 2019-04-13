@@ -32,3 +32,11 @@ config BR2_PACKAGE_PETITBOOT_MTD
 	  Adds Petitboot support for MTD devices
 
 comment "Add support for accessing MTD devices"
+
+config BR2_PACKAGE_PETITBOOT_RESTRICT_USB
+        bool "petitboot-restrict-usb"
+        depends on BR2_PACKAGE_PETITBOOT
+        help
+          Adds Petitboot UDEV rule disabling USB devices
+
+comment "Disables Petitboot USB devices"

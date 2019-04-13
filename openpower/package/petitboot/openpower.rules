@@ -1,0 +1,6 @@
+# Rule to disable USB devices from being authorized
+# we want to leverage ancestry so use ATTRS first
+# query to see if the petitboot,usb-override=1 exists (grep -c == 1)
+# RESULT holds the shell command output, not the shell exit code
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{authorized_default}=="*", PROGRAM="/bin/sh -c '/usr/sbin/nvram --print-config | /bin/grep -c petitboot,usb-override=1 || true'", RESULT=="0", ATTR{authorized_default}="0"
+~
