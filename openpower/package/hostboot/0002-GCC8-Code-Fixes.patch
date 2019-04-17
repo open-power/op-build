@@ -1,0 +1,59 @@
+From 4d0708caf22cd2204d715e6f813b6c2179f412c6 Mon Sep 17 00:00:00 2001
+From: Luis Fernandez <Luis.Fernandez@ibm.com>
+Date: Tue, 18 Jun 2019 14:45:23 -0500
+Subject: [PATCH 2/2] GCC8 Code Fixes
+
+Code fix for when compiling with GCC8.
+
+Change-Id: I4d9f2f7ca070806992a19e5910c7d9ec33adb700
+---
+ .../lib/utils/mcbist/gen_mss_mcbist_address.H      | 26 +++++++++++-----------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/src/import/generic/memory/lib/utils/mcbist/gen_mss_mcbist_address.H b/src/import/generic/memory/lib/utils/mcbist/gen_mss_mcbist_address.H
+index b87cacb..992b1b2 100644
+--- a/src/import/generic/memory/lib/utils/mcbist/gen_mss_mcbist_address.H
++++ b/src/import/generic/memory/lib/utils/mcbist/gen_mss_mcbist_address.H
+@@ -162,14 +162,14 @@ class address
+         template< mss::mc_type MC = DEFAULT_MC_TYPE >
+         address( const ecc::trap_address<MC>& i_address )
+         {
+-            this->set_field<PORT      >(i_address.get_field<ecc::trap_address<MC>::PORT>());
+-            this->set_field<DIMM      >(i_address.get_field<ecc::trap_address<MC>::DIMM>());
+-            this->set_field<MRANK     >(i_address.get_field<ecc::trap_address<MC>::MRANK>());
+-            this->set_field<SRANK     >(i_address.get_field<ecc::trap_address<MC>::SRANK>());
+-            this->set_field<ROW       >(i_address.get_field<ecc::trap_address<MC>::ROW>());
+-            this->set_field<COL       >(i_address.get_field<ecc::trap_address<MC>::COL>());
+-            this->set_field<BANK      >(i_address.get_field<ecc::trap_address<MC>::BANK>());
+-            this->set_field<BANK_GROUP>(i_address.get_field<ecc::trap_address<MC>::BANK_GROUP>());
++            this->set_field<PORT      >(i_address.template get_field<ecc::trap_address<MC>::PORT>());
++            this->set_field<DIMM      >(i_address.template get_field<ecc::trap_address<MC>::DIMM>());
++            this->set_field<MRANK     >(i_address.template get_field<ecc::trap_address<MC>::MRANK>());
++            this->set_field<SRANK     >(i_address.template get_field<ecc::trap_address<MC>::SRANK>());
++            this->set_field<ROW       >(i_address.template get_field<ecc::trap_address<MC>::ROW>());
++            this->set_field<COL       >(i_address.template get_field<ecc::trap_address<MC>::COL>());
++            this->set_field<BANK      >(i_address.template get_field<ecc::trap_address<MC>::BANK>());
++            this->set_field<BANK_GROUP>(i_address.template get_field<ecc::trap_address<MC>::BANK_GROUP>());
+         }
+ 
+         ///
+@@ -180,11 +180,11 @@ class address
+         template< mss::mc_type MC = DEFAULT_MC_TYPE >
+         address( const ecc::fwms::address<MC>& i_address )
+         {
+-            this->set_field<DIMM      >(i_address.get_field<ecc::fwms::address<MC>::DIMM>());
+-            this->set_field<MRANK     >(i_address.get_field<ecc::fwms::address<MC>::MRANK>());
+-            this->set_field<SRANK     >(i_address.get_field<ecc::fwms::address<MC>::SRANK>());
+-            this->set_field<BANK_GROUP>(i_address.get_field<ecc::fwms::address<MC>::BANK_GROUP>());
+-            this->set_field<BANK      >(i_address.get_field<ecc::fwms::address<MC>::BANK>());
++            this->set_field<DIMM      >(i_address.template get_field<ecc::fwms::address<MC>::DIMM>());
++            this->set_field<MRANK     >(i_address.template get_field<ecc::fwms::address<MC>::MRANK>());
++            this->set_field<SRANK     >(i_address.template get_field<ecc::fwms::address<MC>::SRANK>());
++            this->set_field<BANK_GROUP>(i_address.template get_field<ecc::fwms::address<MC>::BANK_GROUP>());
++            this->set_field<BANK      >(i_address.template get_field<ecc::fwms::address<MC>::BANK>());
+         }
+ 
+         ///
+-- 
+1.8.2.2
+
