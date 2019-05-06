@@ -1,0 +1,216 @@
+From ba5eef2430e25143768974c538579acbd391a6dc Mon Sep 17 00:00:00 2001
+From: Luis Fernandez <Luis.Fernandez@ibm.com>
+Date: Thu, 25 Apr 2019 23:42:42 -0500
+Subject: [PATCH] Add 0.25MB to Bootloader Kernel, remove 0.25MB from Payload.
+
+---
+ p8Layouts/defaultPnorLayoutSingleSide.xml        | 10 +++++-----
+ p8Layouts/defaultPnorLayoutWithGoldenSide.xml    | 22 +++++++++++-----------
+ p8Layouts/defaultPnorLayoutWithoutGoldenSide.xml | 22 +++++++++++-----------
+ p9Layouts/axonePnorLayout_64.xml                 | 10 +++++-----
+ p9Layouts/defaultPnorLayout_64.xml               | 10 +++++-----
+ 5 files changed, 37 insertions(+), 37 deletions(-)
+
+diff --git a/p8Layouts/defaultPnorLayoutSingleSide.xml b/p8Layouts/defaultPnorLayoutSingleSide.xml
+index f4ca275..2ec16c4 100755
+--- a/p8Layouts/defaultPnorLayoutSingleSide.xml
++++ b/p8Layouts/defaultPnorLayoutSingleSide.xml
+@@ -192,18 +192,18 @@ Layout Description
+         <reprovision/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (0.75MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0x961000</physicalOffset>
+-        <physicalRegionSize>0x100000</physicalRegionSize>
++        <physicalRegionSize>0xC0000</physicalRegionSize>
+         <side>A</side>
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15MB)</description>
++        <description>Bootloader Kernel (15.25MB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+-        <physicalOffset>0xA61000</physicalOffset>
+-        <physicalRegionSize>0xF00000</physicalRegionSize>
++        <physicalOffset>0xA21000</physicalOffset>
++        <physicalRegionSize>0xF40000</physicalRegionSize>
+         <side>A</side>
+         <readOnly/>
+     </section>
+diff --git a/p8Layouts/defaultPnorLayoutWithGoldenSide.xml b/p8Layouts/defaultPnorLayoutWithGoldenSide.xml
+index 44a0580..1c302ca 100755
+--- a/p8Layouts/defaultPnorLayoutWithGoldenSide.xml
++++ b/p8Layouts/defaultPnorLayoutWithGoldenSide.xml
+@@ -194,18 +194,18 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (0.75MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0xCA9000</physicalOffset>
+-        <physicalRegionSize>0x100000</physicalRegionSize>
++        <physicalRegionSize>0xC0000</physicalRegionSize>
+         <side>A</side>
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15MB)</description>
++        <description>Bootloader Kernel (15.25MB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+-        <physicalOffset>0xDA9000</physicalOffset>
+-        <physicalRegionSize>0xF00000</physicalRegionSize>
++        <physicalOffset>0xD69000</physicalOffset>
++        <physicalRegionSize>0xF40000</physicalRegionSize>
+         <side>A</side>
+         <readOnly/>
+     </section>
+@@ -389,22 +389,22 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (0.75MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0x2C80000</physicalOffset>
+-        <physicalRegionSize>0x100000</physicalRegionSize>
++        <physicalRegionSize>0xC0000</physicalRegionSize>
+         <side>B</side>
+         <readOnly/>
+         <compressed>
+             <algorithm>xz</algorithm>
+-            <uncompressedSize>0x100000</uncompressedSize>
++            <uncompressedSize>0xC0000</uncompressedSize>
+         </compressed>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15MB)</description>
++        <description>Bootloader Kernel (15.25MB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+-        <physicalOffset>0x2D80000</physicalOffset>
+-        <physicalRegionSize>0xF00000</physicalRegionSize>
++        <physicalOffset>0x2D40000</physicalOffset>
++        <physicalRegionSize>0xF40000</physicalRegionSize>
+         <side>B</side>
+         <readOnly/>
+     </section>
+diff --git a/p8Layouts/defaultPnorLayoutWithoutGoldenSide.xml b/p8Layouts/defaultPnorLayoutWithoutGoldenSide.xml
+index 90646d4..63c1ef9 100755
+--- a/p8Layouts/defaultPnorLayoutWithoutGoldenSide.xml
++++ b/p8Layouts/defaultPnorLayoutWithoutGoldenSide.xml
+@@ -193,18 +193,18 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (0.75MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0xCA9000</physicalOffset>
+-        <physicalRegionSize>0x100000</physicalRegionSize>
++        <physicalRegionSize>0xC0000</physicalRegionSize>
+         <side>A</side>
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15MB)</description>
++        <description>Bootloader Kernel (15.25MB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+-        <physicalOffset>0xDA9000</physicalOffset>
+-        <physicalRegionSize>0xF00000</physicalRegionSize>
++        <physicalOffset>0xD69000</physicalOffset>
++        <physicalRegionSize>0xF40000</physicalRegionSize>
+         <side>A</side>
+         <readOnly/>
+     </section>
+@@ -387,22 +387,22 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (0.75MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0x2C80000</physicalOffset>
+-        <physicalRegionSize>0x100000</physicalRegionSize>
++        <physicalRegionSize>0xC0000</physicalRegionSize>
+         <side>B</side>
+         <readOnly/>
+         <compressed>
+             <algorithm>xz</algorithm>
+-            <uncompressedSize>0x100000</uncompressedSize>
++            <uncompressedSize>0xC0000</uncompressedSize>
+         </compressed>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15MB)</description>
++        <description>Bootloader Kernel (15.25MB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+-        <physicalOffset>0x2D80000</physicalOffset>
+-        <physicalRegionSize>0xF00000</physicalRegionSize>
++        <physicalOffset>0x2D40000</physicalOffset>
++        <physicalRegionSize>0xF40000</physicalRegionSize>
+         <side>B</side>
+         <readOnly/>
+     </section>
+diff --git a/p9Layouts/axonePnorLayout_64.xml b/p9Layouts/axonePnorLayout_64.xml
+index 4c2d576..ff5fde9 100644
+--- a/p9Layouts/axonePnorLayout_64.xml
++++ b/p9Layouts/axonePnorLayout_64.xml
+@@ -178,19 +178,19 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (0.75MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0x1F81000</physicalOffset>
+-        <physicalRegionSize>0x100000</physicalRegionSize>
++        <physicalRegionSize>0xC0000</physicalRegionSize>
+         <sha512Version/>
+         <side>sideless</side>
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15MB)</description>
++        <description>Bootloader Kernel (15.25MB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+-        <physicalOffset>0x2081000</physicalOffset>
+-        <physicalRegionSize>0xF00000</physicalRegionSize>
++        <physicalOffset>0x2041000</physicalOffset>
++        <physicalRegionSize>0xF40000</physicalRegionSize>
+         <side>sideless</side>
+         <sha512Version/>
+         <readOnly/>
+diff --git a/p9Layouts/defaultPnorLayout_64.xml b/p9Layouts/defaultPnorLayout_64.xml
+index c25a621..b5a5683 100644
+--- a/p9Layouts/defaultPnorLayout_64.xml
++++ b/p9Layouts/defaultPnorLayout_64.xml
+@@ -213,19 +213,19 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (0.75MB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0x1EC1000</physicalOffset>
+-        <physicalRegionSize>0x100000</physicalRegionSize>
++        <physicalRegionSize>0xC0000</physicalRegionSize>
+         <side>A</side>
+         <sha512Version/>
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15MB)</description>
++        <description>Bootloader Kernel (15.25MB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+-        <physicalOffset>0x1FC1000</physicalOffset>
+-        <physicalRegionSize>0xF00000</physicalRegionSize>
++        <physicalOffset>0x1F81000</physicalOffset>
++        <physicalRegionSize>0xF40000</physicalRegionSize>
+         <side>A</side>
+         <sha512Version/>
+         <readOnly/>
+-- 
+1.8.3.1
+
