@@ -17,6 +17,9 @@ HOSTBOOT_BINARIES_INSTALL_TARGET = NO
 NIMBUS_RING_FILE=p9n.hw.rings.bin
 NIMBUS_RING_OVERLAYS_FILE=p9n.hw.overlays.bin
 
+AXONE_RING_FILE=p9a.hw.rings.bin
+AXONE_RING_OVERLAYS_FILE=p9a.hw.overlays.bin
+
 #for P9 the hw_ref image is changing to not be padded with ECC.  However
 #all the other op-build files use the end name result.  Thus replace ".hdr.bin.ecc"
 #with ".bin"
@@ -31,6 +34,8 @@ define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
      $(INSTALL) -D $(@D)/$(NIMBUS_RING_FILE)  $(STAGING_DIR)/hostboot_binaries/
      $(INSTALL) -D $(@D)/$(NIMBUS_RING_OVERLAYS_FILE)  $(STAGING_DIR)/hostboot_binaries/
      $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_IONV_FILENAME)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(AXONE_RING_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(AXONE_RING_OVERLAYS_FILE)  $(STAGING_DIR)/hostboot_binaries/
 endef
 
 $(eval $(generic-package))
