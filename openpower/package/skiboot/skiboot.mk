@@ -43,7 +43,7 @@ define SKIBOOT_BUILD_CMDS
 		$(MAKE) $(SKIBOOT_MAKE_OPTS) -C $(@D) all
 
 	$(if $(BR2_SKIBOOT_DEVICETREE), \
-		$(MAKE) -C $(@D)/external/devicetree)
+		$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D)/external/devicetree)
 endef
 
 define SKIBOOT_INSTALL_IMAGES_CMDS
