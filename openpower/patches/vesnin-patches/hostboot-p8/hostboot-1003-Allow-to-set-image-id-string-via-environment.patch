@@ -1,0 +1,32 @@
+From 2189114b15fbeb56a56463da2f842ac9972df48f Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Wed, 15 May 2019 15:13:30 +0300
+Subject: [PATCH] Allow to set image id string via environment
+
+Hostboot's Image Id is the first text string that a customer sees
+when the host starts booting.
+By default, image id is the version of hostboot itself, but it can be
+changed to any other value by setting HOSTBOOT_IMAGEID environment
+variable.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/build/tools/addimgid | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/build/tools/addimgid b/src/build/tools/addimgid
+index 09fcf171b..c3edd74aa 100755
+--- a/src/build/tools/addimgid
++++ b/src/build/tools/addimgid
+@@ -37,7 +37,7 @@ $imgBase =~ s/.*\///;
+ 
+ my $PREFIX = $ENV{'CROSS_PREFIX'};
+ my $address = hex `${PREFIX}nm $src -C | grep $imageIdSym | colrm 17`;
+-my $imageId = $ENV{'HOSTBOOT_VERSION'};
++my $imageId = $ENV{'HOSTBOOT_IMAGEID'};
+ if ($imageId eq '')
+ {
+     $imageId = $ENV{'HOSTBOOT_P8_VERSION'};
+-- 
+2.21.0
+

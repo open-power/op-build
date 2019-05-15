@@ -107,6 +107,7 @@ function build_image {
   local ccache="$4"
   shift 4
   local optargs="$*"
+  local version="$(version_string ${machine})"
 
   # Get buildroot as submodule
   if [[ ! -f ${OPBUILD_ROOT}/buildroot/Makefile ]]; then
@@ -119,7 +120,10 @@ function build_image {
 
   # Setup version string, op-build system automatically adds machine name as a
   # platform, so we have to remove it from version string to avoid duplicates
-  cmd+=" OPBUILD_VERSION=$(version_string ${machine} | sed "s/^${machine}-//")"
+  cmd+=" OPBUILD_VERSION=${version#${machine}-}"
+
+  # Set Hostboot image id using the firmware version instead of hostboot one
+  cmd+=" HOSTBOOT_IMAGEID=${version}"
 
   # Set OpenPOWER build configuration directory
   cmd+=" BR2_EXTERNAL=${OPBUILD_ROOT}/openpower"
