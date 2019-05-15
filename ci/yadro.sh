@@ -119,7 +119,7 @@ function build_image {
 
   # Setup version string, op-build system automatically adds machine name as a
   # platform, so we have to remove it from version string to avoid duplicates
-  cmd+=" OPBUILD_VERSION=$(version_string ${machine} | sed 's/^${machine}-//')"
+  cmd+=" OPBUILD_VERSION=$(version_string ${machine} | sed "s/^${machine}-//")"
 
   # Set OpenPOWER build configuration directory
   cmd+=" BR2_EXTERNAL=${OPBUILD_ROOT}/openpower"
@@ -164,18 +164,29 @@ function create_packages {
   local dbg_dir="${output}/fw_debug"
   local sysroot="${output}/host/powerpc64le-buildroot-linux-gnu/sysroot"
   local hbi_dir="${sysroot}/hostboot_build_images"
+
   echo "Prepare debug directory..."
   rsync --archive --delete "${hbi_dir}/" "${dbg_dir}/"
+
   echo "Create MRW report..."
   local mrw_dir="${sysroot}/openpower_mrw_scratch"
   perl -I "${hbi_dir}" "${hbi_dir}/processMrw.pl" -x "${mrw_dir}/${machine}.xml" -r
   mv "${mrw_dir}/${machine}.rpt" "${dbg_dir}"
+
   echo "Add OCC strings file..."
-  local occ_strings="$(ls ${output}/build/occ-*/obj/occStringFile)"
-  [[ -n "${occ_strings}" ]] || occ_strings="$(ls ${output}/build/occ-*/src/occStringFile)"
+  local occ_strings="$(ls ${output}/build/occ-*/obj/occStringFile 2>/dev/null || true)"
+  if [[ -z "${occ_strings}" ]]; then
+    occ_strings="$(ls ${output}/build/occ-*/src/occStringFile 2>/dev/null || true)"
+    if [[ -z "${occ_strings}" ]]; then
+      echo "OCC strings file not found" >&2
+      return 1
+    fi
+  fi
+
   cp -fu "${occ_strings}" "${dbg_dir}"
   echo "Add skiboot map file..."
   cp -fu "$(ls ${output}/build/skiboot-*/skiboot.map)" "${dbg_dir}"
+
   echo "Create debug package..."
   mkdir -p "${pkgdir}"
   tar czf "${pkgdir}/opfw-${version}-debug.tar.gz" -C "$(dirname "${dbg_dir}")" "$(basename "${dbg_dir}")"
