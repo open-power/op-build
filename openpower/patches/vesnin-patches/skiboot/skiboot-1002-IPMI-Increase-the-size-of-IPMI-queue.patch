@@ -1,0 +1,33 @@
+From 76837bdb1935a128fe65a0fc293b9a47aac930f1 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Thu, 30 May 2019 14:09:38 +0300
+Subject: [PATCH] IPMI: Increase the size of IPMI queue
+
+Currently, BT IPMI implementation in skiboot does not allow sending
+multiple synchronous messages at the same time. Since we have massive
+PNOR I/O, sending a PCI list causes the system to freeze.
+
+Using asynchronous sending solves the problem, but default message queue
+is to small to fit all IPMI messages with PCI description.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ hw/bt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hw/bt.c b/hw/bt.c
+index a0ff0db4..26140501 100644
+--- a/hw/bt.c
++++ b/hw/bt.c
+@@ -62,7 +62,7 @@
+ #define POLL_TIMEOUT		10000
+ 
+ /* Maximum number of outstanding messages to allow in the queue. */
+-#define BT_MAX_QUEUE_LEN	10
++#define BT_MAX_QUEUE_LEN	48
+ 
+ /* How long (in seconds) before a message is timed out. */
+ #define BT_MSG_TIMEOUT		3
+-- 
+2.21.0
+

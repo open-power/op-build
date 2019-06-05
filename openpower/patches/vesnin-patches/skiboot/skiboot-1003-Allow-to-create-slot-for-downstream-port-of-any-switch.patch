@@ -1,0 +1,38 @@
+From 199d92102bb79cba07b944ff4b44d556bf9339e0 Mon Sep 17 00:00:00 2001
+From: Ilya Kuznetsov <ilya@yadro.com>
+Date: Mon, 10 Dec 2018 14:33:26 +0300
+Subject: [PATCH] Allow to create slot for downstream port of any switch
+
+System vendor may build systems with large PCIe tree with
+deeper switch topologies. Currenlty downstream ports slot
+creation is limited to one switch. Patch allows to use more
+by removing comparison to third parent.
+
+Signed-off-by: Ilya Kuznetsov <ilya@yadro.com>
+---
+ core/pcie-slot.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/core/pcie-slot.c b/core/pcie-slot.c
+index 45996342..64f2f8a2 100644
+--- a/core/pcie-slot.c
++++ b/core/pcie-slot.c
+@@ -548,13 +548,9 @@ struct pci_slot *pcie_slot_create_dynamic(struct phb *phb,
+ 	if (!phb || !pd || pd->slot)
+ 		return NULL;
+ 
+-	/* Try to create slot whose details aren't provided by platform.
+-	 * We only care the downstream ports of PCIe switch that connects
+-	 * to root port.
+-	 */
++	/* Try to create slot whose details aren't provided by platform. */
+ 	if (pd->dev_type != PCIE_TYPE_SWITCH_DNPORT ||
+-	    !pd->parent || !pd->parent->parent ||
+-	    pd->parent->parent->parent)
++	    !pd->parent || !pd->parent->parent)
+ 		return NULL;
+ 
+ 	ecap = pci_cap(pd, PCI_CFG_CAP_ID_EXP, false);
+-- 
+2.19.2
+
