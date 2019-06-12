@@ -21,7 +21,7 @@ it from this table and notify the person mentioned in the owner field.
 +===============================+=======================+========+============================+
 | AOC-SG-I2 NIC                 | IGB                   | Boston | maurosr@linux.vnet.ibm.com |
 +-------------------------------+-----------------------+--------+----------------------------+
-| Broadcom NetExtreme II        | BNX2X                 |        |                            |
+| Broadcom NetExtreme II        | BNX2X                 | Witherspoon, Romulus, Palmetto |                            |
 +-------------------------------+-----------------------+--------+----------------------------+
 | Mellanox ConnectX-4           | MLX5_CORE_EN          |        |                            |
 +-------------------------------+-----------------------+--------+----------------------------+
