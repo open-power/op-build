@@ -154,6 +154,18 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
         help
             String used to define name of openpower targeting binary file, ecc protected
 
+config BR2_OCMBFW_FILENAME
+        string "Name of the OCMBFW Update original file"
+        default "ocmbfw.bin"
+        help
+            String used to define name of OCBMFW Update original file (before any processing occurs)
+
+config BR2_OCMBFW_PROCESSED_FILENAME
+        string "Name of OCMBFW Update binary processed file"
+        default "ocmbfw.bin.ecc"
+        help
+            String used to define the name of the OCMBFW update binary file after processing, ecc protected
+
 config BR2_OPENPOWER_PNOR_XZ_ENABLED
         bool "Enable xz compression in PNOR payloads"
         default n

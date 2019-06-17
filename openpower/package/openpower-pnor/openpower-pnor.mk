@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= bc08dd1ec4a746545be488e60cbc2d11dc06a35b
+OPENPOWER_PNOR_VERSION ?= 43fc2ebbae0f6082520f70b021f958661ee5c994
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -129,6 +129,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -payload_filename $(BR2_SKIBOOT_LID_XZ_NAME) \
             -binary_dir $(BINARIES_DIR) \
             -bootkernel_filename $(LINUX_IMAGE_NAME) \
+	    -ocmbfw_original_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_FILENAME) \
+	    -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
             -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
             $(XZ_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) \
 
@@ -151,6 +153,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -targeting_RW_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME).unprotected \
             -wofdata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_WOFDATA_BINARY_FILENAME) \
             -memddata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_MEMDDATA_BINARY_FILENAME) \
+            -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
