@@ -129,12 +129,17 @@ EOF
 	if [ -d "$SDK_CACHE" ]; then
 	    SDK_DIR=$SDK_CACHE/$(toolchain_hash)-$distro
 	    if [ ! -d "$SDK_DIR" ]; then
-		chmod +x ci/build-sdk.sh
-		run_docker openpower/op-build-$distro "./ci/build-sdk.sh $distro witherspoon_defconfig"
-		mv output-$distro-witherspoon_defconfig $SDK_DIR
-		$SDK_DIR/host/relocate-sdk.sh
+      		chmod +x ci/build-sdk.sh
+          mkdir $SDK_DIR/p8/
+          mkdir $SDK_DIR/p9/
+          run_docker openpower/op-build-$distro "./ci/build-sdk.sh $distro habanero_defconfig"
+      		run_docker openpower/op-build-$distro "./ci/build-sdk.sh $distro witherspoon_defconfig"
+          mv output-$distro-habanero_defconfig $SDK_DIR/p8/
+          mv output-$distro-witherspoon_defconfig $SDK_DIR/p9/
+          $SDK_DIR/p8/host/relocate-sdk.sh
+          $SDK_DIR/p9/host/relocate-sdk.sh
 	    fi
-	    sdk_args="-s $SDK_DIR/host"
+	    sdk_args="-s $SDK_DIR"
 	else
 	    sdk_args=""
 	fi
