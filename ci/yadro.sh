@@ -70,8 +70,13 @@ function version_string {
       exit 1
     fi
     local tag="$(${GIT} describe --abbrev=0)"
+    local descr=""
     if [[ ${tag} =~ ${machine}-v[0-9]+\.[0-9]+ ]]; then
       local ver_num="${tag##*-}"
+      ver_num="${ver_num%%_*}"
+      if [[ ${tag} =~ _ ]]; then
+        descr="-${tag#*_}"
+      fi
       local patchlvl="$(${GIT} rev-list --count ${tag}..${branch})"
     else
       # Tag hasn't been set yet, use branch name as major version
@@ -79,7 +84,7 @@ function version_string {
       local patchlvl="$(${GIT} rev-list --count master..${branch})"
     fi
     # Construct version string
-    local version="${machine}-${ver_num}"
+    local version="${machine}-${ver_num}${descr}"
     if [[ ${patchlvl} -ne 0 ]]; then
       version+="-p${patchlvl}"
     fi
