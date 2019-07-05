@@ -69,5 +69,6 @@ a handful of other packages (see below).
           zlib-devel zlib-static texinfo perl-bignum "perl(XML::Simple)" \
           "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" \
           "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" libxml2-devel \
-          which wget unzip tar cpio python bzip2 bc findutils ncurses-devel
+          which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
+          openssl-devel
 
