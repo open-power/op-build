@@ -31,7 +31,9 @@ from recommonmark.parser import CommonMarkParser
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.intersphinx',
-    'sphinx.ext.githubpages']
+              'sphinx.ext.githubpages',
+              'sphinxcontrib.youtube',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

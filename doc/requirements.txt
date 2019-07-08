@@ -1,3 +1,4 @@
 # Pinned due to https://github.com/sphinx-doc/sphinx/issues/5419
 sphinx==1.7.9
 recommonmark
+sphinxcontrib.youtube

@@ -51,3 +51,68 @@ HCODE_
 .. _Linux: https://github.com/open-power/linux
 .. _Petitboot: https://github.com/open-power/petitboot/
 .. _HCODE: https://github.com/open-power/hcode
+
+Introductory Videos
+-------------------
+
+There are a number of good recorded presentations from various conferences
+around the world that have overviews and deep dives into various parts of
+the firmware stack.
+
+Here, we present technical presentations that may be useful in learning
+about topics relevant to OpenPOWER firmware development.
+
+For broader OpenPOWER topics, check out the following channels:
+
+- `OpenPOWER Foundation` <https://github.com/open-power/op-build/pull/2983>`_
+
+Introductory
+^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=a4XGvssR-ag
+.. youtube:: https://www.youtube.com/watch?v=hcLhKjxa-40
+
+Secure Boot
+^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=hwB1bkXQep4
+
+Interfaces and standards
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=2TroT3ORw0s
+
+OpenCAPI
+^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=h3pLBDCqY-I
+
+.. youtube:: https://www.youtube.com/watch?v=K4dhx0ctjkQ
+
+XIVE Interrupt Controller
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=s88beMQWkks
+
+Petitboot
+^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=4JbDb4bRBK4
+.. youtube:: https://www.youtube.com/watch?v=oxmMJMibZQ8
+
+Booting Faster
+^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=fTLsS_QZ8us
+
+Testing
+^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=znEM2xqJhBU
+
+Bringup and customisation
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=v73Nw7NDxYI
+
+.. youtube:: https://www.youtube.com/watch?v=dBEBQQYP_eI
