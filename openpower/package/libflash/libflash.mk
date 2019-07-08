@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBFLASH_VERSION = v6.3
+LIBFLASH_VERSION = v6.4-rc1
 LIBFLASH_SITE = $(call github,open-power,skiboot,$(LIBFLASH_VERSION))
 
 LIBFLASH_INSTALL_STAGING = YES
@@ -51,7 +51,7 @@ define LIBFLASH_INSTALL_TARGET_CMDS
 		DESTDIR=$(TARGET_DIR) $(LIBFLASH_MAKE_ENV) \
 		       -C $(@D)/external/pflash install)
 	$(if $(BR2_PACKAGE_OPAL_GARD),
-		$(INSTALL) $(@D)/external/gard/gard $(TARGET_DIR)/usr/bin/opal-gard)
+		$(INSTALL) $(@D)/external/gard/opal-gard $(TARGET_DIR)/usr/bin/opal-gard)
 endef
 
 define HOST_LIBFLASH_INSTALL_CMDS
