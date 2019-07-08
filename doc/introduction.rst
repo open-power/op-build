@@ -12,6 +12,8 @@ Buildroot_
   image. `op-build` is a "Buildroot overlay". We build a kernel and initramfs
   using buildroot to run the Petitboot boot loader in. We maintain a branch
   with a minimum number of patches on top of upstream buildroot.
+op-build_
+  A buildroot overlay that assembles OpenPOWER Firmware images.
 SBE_
   the Self Boot Engine is the first unit inside the POWER processor to start
   executing. It's job is to set up a core and load Hostboot.
@@ -36,11 +38,16 @@ Petitboot_
   The bootloader. It is a normal user-space process running on Linux that
   searches the system for disks and network devices that it can boot the
   OS from.
+HCODE_
+  Firmware for the power management PPE. Implements heavy lifting for deeper
+  STOP states.
 
 .. _Buildroot: https://github.com/open-power/buildroot
+.. _op-build: https://github.com/open-power/op-build
 .. _SBE: https://github.com/open-power/sbe
 .. _OCC: https://github.com/open-power/occ
 .. _Hostboot: https://github.com/open-power/hostboot
 .. _skiboot: https://open-power.github.io/skiboot/
 .. _Linux: https://github.com/open-power/linux
 .. _Petitboot: https://github.com/open-power/petitboot/
+.. _HCODE: https://github.com/open-power/hcode
