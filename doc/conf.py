@@ -165,5 +165,5 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('https://docs.python.org/', None),
    'skiboot': ('https://open-power.github.io/skiboot/doc/', None),
-   'op-test': ('https://open-power.github.io/op-test-framework/', None),
+   'op-test': ('https://open-power.github.io/op-test/', None),
 }
