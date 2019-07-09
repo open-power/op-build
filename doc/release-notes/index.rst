@@ -76,3 +76,12 @@ v2.3
    v2.3-rc1 
    v2.3-rc2
    v2.3
+   v2.3.1
+
+v2.4
+----
+
+ .. toctree::
+    :maxdepth: 1
+
+    v2.4-rc1
