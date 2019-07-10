@@ -1,0 +1,62 @@
+From 0b84f341f7b0bc1dc40b5fa2fc332b8180a11040 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Wed, 10 Jul 2019 15:34:14 +0300
+Subject: [PATCH] Reset watchdog in ISTEP 21.1 host_runtime_setup
+
+Step 21.1 take a long time to complete all initialization procedures,
+especially in manufacturing mode.
+This patch adds watchdog reset call for the longest-running operations,
+such as activating OCC, building a device tree and invalidating a cache.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/usr/hwpf/hwp/start_payload/start_payload.C | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/usr/hwpf/hwp/start_payload/start_payload.C b/src/usr/hwpf/hwp/start_payload/start_payload.C
+index 5d7865a12..57d9a188b 100644
+--- a/src/usr/hwpf/hwp/start_payload/start_payload.C
++++ b/src/usr/hwpf/hwp/start_payload/start_payload.C
+@@ -92,6 +92,8 @@
+ 
+ #include    <hwpf/hwpf_reasoncodes.H>
+ 
++#include    <ipmi/ipmiwatchdog.H>
++
+ //  Uncomment these files as they become available:
+ // #include    "host_start_payload/host_start_payload.H"
+ 
+@@ -325,6 +327,9 @@ void*    call_host_runtime_setup( void    *io_pArgs )
+ #endif
+         if(l_activateOCC)
+         {
++            l_err = IPMIWATCHDOG::resetWatchDogTimer();
++            if (l_err)
++                break;
+             l_err = HBOCC::activateOCCs();
+             if (l_err)
+             {
+@@ -345,6 +350,10 @@ void*    call_host_runtime_setup( void    *io_pArgs )
+ 
+         if( is_sapphire_load() && (!INITSERVICE::spBaseServicesEnabled()) )
+         {
++            l_err = IPMIWATCHDOG::resetWatchDogTimer();
++            if (l_err)
++                break;
++
+             // Update the VPD switches for golden side boot
+             // Must do this before building the devtree
+             l_err = VPD::goldenSwitchUpdate();
+@@ -364,6 +373,9 @@ void*    call_host_runtime_setup( void    *io_pArgs )
+                 break;
+             }
+ 
++            l_err = IPMIWATCHDOG::resetWatchDogTimer();
++            if (l_err)
++                break;
+             // Invalidate the VPD cache for golden side boot
+             // Also invalidate in manufacturing mode
+             // Must do this after building the devtree
+-- 
+2.22.0
+
