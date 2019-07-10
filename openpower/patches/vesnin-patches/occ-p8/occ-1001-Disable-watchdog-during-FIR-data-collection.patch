@@ -1,0 +1,38 @@
+From f33ffe54876dcf5272ee3fc54fc7e1cf9c4fe965 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Wed, 19 Jun 2019 13:59:17 +0300
+Subject: [PATCH] Disable watchdog during FIR data collection
+
+FIR data collection and writing takes longer than the
+watchdog allows. In such cases, FIRDATA partition on the
+PNOR flash may contain incomplete data with ECC error.
+If OCC hangs during this operation, BMC watchdog will
+reboot the system.
+
+Resolves https://github.com/open-power/occ/issues/24
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/occ/main.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/occ/main.c b/src/occ/main.c
+index 0412c6b..8dfbed6 100755
+--- a/src/occ/main.c
++++ b/src/occ/main.c
+@@ -834,8 +834,12 @@ void Main_thread_routine(void *private)
+             // FIR collection
+             if (OCC_IS_FIR_MASTER() && pnor_access_allowed())
+             {
++                // Disabling watchdog gives the procedure enough time to
++                // collect and write FIR data.
++                DISABLE_WDOG;
+                 fir_data_collect();
+                 L_fir_collection_completed = TRUE;
++                ENABLE_WDOG;
+             }
+ 
+             G_fir_collection_required = FALSE;
+-- 
+2.22.0
+
