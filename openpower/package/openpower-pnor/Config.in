@@ -156,7 +156,7 @@ config BR2_OPENPOWER_TARGETING_ECC_FILENAME
 
 config BR2_OCMBFW_FILENAME
         string "Name of the OCMBFW Update original file"
-        default "ocmbfw.bin"
+        default "signed_app_fw.mem"
         help
             String used to define name of OCBMFW Update original file (before any processing occurs)
 
