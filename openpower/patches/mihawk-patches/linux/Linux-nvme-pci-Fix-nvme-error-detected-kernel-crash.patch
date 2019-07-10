@@ -1,0 +1,14 @@
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 75539f7..2a96431 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -2456,6 +2456,9 @@ static pci_ers_result_t nvme_error_detected(struct pci_dev *pdev,
+ {
+ 	struct nvme_dev *dev = pci_get_drvdata(pdev);
+ 
++	if (!dev)
++		return PCI_ERS_RESULT_NEED_RESET;
++
+ 	/*
+ 	 * A frozen channel requires a reset. When detected, this method will
+ 	 * shutdown the controller to quiesce. The controller will be restarted
