@@ -1,0 +1,286 @@
+Release Notes for OpenPower Firmware v2.0.16
+============================================
+
+op-build v2.0.16 was released on July 10th 2019, it replaces v2.0.15 as the latest stable version in the
+v2.0.y series.
+
+Updated Packages
+----------------
+
++---------------------+------------------+------------------+-----------------------------------------------+
+| Package             | Old Version      | New Version      | Platforms                                     |
++=====================+==================+==================+===============================================+
+| busybox             | 1.29.0           | 1.29.3           | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| dtc                 | 1.4.4            | 1.4.7            | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| elfutils            | 0.169            | 0.174            | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| ethtool             | 4.15             | 4.16             | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| glibc               | glibc-2.27-57-g6 | glibc-2.28-69-g1 | p9dsu_dev, witherspoon, p9dsu, zaius,         |
+|                     | c99e37f6fb6      | e5c5303a522      | habanero, firenze, garrison, barreleye,       |
+|                     |                  |                  | openpower_mambo, witherspoon_dev, pseries,    |
+|                     |                  |                  | firestone, palmetto, openpower_p9_mambo,      |
+|                     |                  |                  | vesnin, zz, romulus                           |
++---------------------+------------------+------------------+-----------------------------------------------+
+| hcode               | hw031819a.op920  | hw040919a.op920  | witherspoon, p9dsu, zaius, romulus            |
++---------------------+------------------+------------------+-----------------------------------------------+
+| hostboot            | c00d44a9ad03     | 8591ded70260     | witherspoon, p9dsu, zaius, romulus            |
++---------------------+------------------+------------------+-----------------------------------------------+
+| hostboot-binaries   | hw031819a.op920  | hw040919a.op920  | witherspoon, p9dsu, zaius, habanero,          |
+|                     |                  |                  | garrison, barreleye, firestone, palmetto,     |
+|                     |                  |                  | vesnin, romulus                               |
++---------------------+------------------+------------------+-----------------------------------------------+
+| kmod                | 24               | 25               | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| linux               | 4.17.12          | 4.19.57          | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| linux-firmware      | 65b1c68c63f9     | 44d4fca9922a     | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, zz, romulus                         |
++---------------------+------------------+------------------+-----------------------------------------------+
+| linux-headers       | 4.17.12          | 4.19.57          | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| lvm2                | 2.02.173         | 2.02.180         | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| machine-xml         | 19a516499e10     | c5c35cb575ed     | garrison                                      |
++---------------------+------------------+------------------+-----------------------------------------------+
+| skiboot             | v6.0.19          | v6.0.20          | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+| util-linux          | 2.32             | 2.32.1           | witherspoon, p9dsu, zaius, habanero, firenze, |
+|                     |                  |                  | garrison, barreleye, openpower_mambo,         |
+|                     |                  |                  | witherspoon_dev, pseries, firestone,          |
+|                     |                  |                  | palmetto, vesnin, zz, romulus                 |
++---------------------+------------------+------------------+-----------------------------------------------+
+
+New Packages
+------------
+
++-----------------------------------+-----------------------------------+-----------------------------------+
+| Package                           | Version                           | Platforms                         |
++===================================+===================================+===================================+
+| libaio                            | 0.3.111                           | witherspoon,p9dsu,zaius,habanero, |
+|                                   |                                   | firenze,garrison,barreleye,openpo |
+|                                   |                                   | wer_mambo,witherspoon_dev,pseries |
+|                                   |                                   | ,firestone,palmetto,vesnin,zz,rom |
+|                                   |                                   | ulus                              |
++-----------------------------------+-----------------------------------+-----------------------------------+
+
+Package: garrison-xml
+---------------------
+
+`Repository <https://github.com/open-power/garrison-xml>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+Joel Stanley (1):
+
+-  `1a7255c95008 <https://github.com/open-power/garrison-xml/commit/1a7255c95008>`__ Fix IBSCOM_MCS_BASE_ADDR
+   value
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+.. _v2.0.16-patches-1:
+
+Patches
+~~~~~~~
+
+.. _v2.0.16-commits-1:
+
+Commits
+~~~~~~~
+
+hostboot (22):
+
+-  `662625844b91 <https://github.com/open-power/hcode/commit/662625844b91>`__ Release tag information updated
+   for hw031919a.op920
+-  `a850f50a0433 <https://github.com/open-power/hcode/commit/a850f50a0433>`__ Release tag information updated
+   for hw032019a.op920
+-  `ddc3338e020c <https://github.com/open-power/hcode/commit/ddc3338e020c>`__ Release tag information updated
+   for hw032119a.op920
+-  `51655a2e44b9 <https://github.com/open-power/hcode/commit/51655a2e44b9>`__ Release tag information updated
+   for hw032219a.op920
+-  `f857afc4c02c <https://github.com/open-power/hcode/commit/f857afc4c02c>`__ Release tag information updated
+   for hw032319a.op920
+-  `003ce3fa1578 <https://github.com/open-power/hcode/commit/003ce3fa1578>`__ Release tag information updated
+   for hw032419a.op920
+-  `cf71a916dbe4 <https://github.com/open-power/hcode/commit/cf71a916dbe4>`__ Release tag information updated
+   for hw032519a.op920
+-  `bf22b001b1a5 <https://github.com/open-power/hcode/commit/bf22b001b1a5>`__ Release tag information updated
+   for hw032619a.op920
+-  `e023ce198067 <https://github.com/open-power/hcode/commit/e023ce198067>`__ Release tag information updated
+   for hw032719a.op920
+-  `d2ba8f999f00 <https://github.com/open-power/hcode/commit/d2ba8f999f00>`__ Release tag information updated
+   for hw032819a.op920
+-  `a7fb2f87578c <https://github.com/open-power/hcode/commit/a7fb2f87578c>`__ Release tag information updated
+   for hw032919a.op920
+-  `41759882e94d <https://github.com/open-power/hcode/commit/41759882e94d>`__ Release tag information updated
+   for hw033019a.op920
+-  `e453d5fbeb7b <https://github.com/open-power/hcode/commit/e453d5fbeb7b>`__ Release tag information updated
+   for hw033119a.op920
+-  `80b345329a3d <https://github.com/open-power/hcode/commit/80b345329a3d>`__ Release tag information updated
+   for hw040119a.op920
+-  `8155f1b7d1b6 <https://github.com/open-power/hcode/commit/8155f1b7d1b6>`__ Release tag information updated
+   for hw040219a.op920
+-  `c3b99ec9f029 <https://github.com/open-power/hcode/commit/c3b99ec9f029>`__ Release tag information updated
+   for hw040319a.op920
+-  `ae61756b99d9 <https://github.com/open-power/hcode/commit/ae61756b99d9>`__ Release tag information updated
+   for hw040419a.op920
+-  `51398795e34f <https://github.com/open-power/hcode/commit/51398795e34f>`__ Release tag information updated
+   for hw040519a.op920
+-  `d9513d8e6920 <https://github.com/open-power/hcode/commit/d9513d8e6920>`__ Release tag information updated
+   for hw040619a.op920
+-  `e666d76d557c <https://github.com/open-power/hcode/commit/e666d76d557c>`__ Release tag information updated
+   for hw040719a.op920
+-  `6cd3c8d037ab <https://github.com/open-power/hcode/commit/6cd3c8d037ab>`__ Release tag information updated
+   for hw040819a.op920
+-  `f09b4f140279 <https://github.com/open-power/hcode/commit/f09b4f140279>`__ Release tag information updated
+   for hw040919a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _v2.0.16-patches-2:
+
+Patches
+~~~~~~~
+
+.. _v2.0.16-commits-2:
+
+Commits
+~~~~~~~
+
+Bill Hoffa (2):
+
+-  `e3199030c431 <https://github.com/open-power/hostboot/commit/e3199030c431>`__ Modify IPMI Timeout Value
+-  `c9d1f3e3e115 <https://github.com/open-power/hostboot/commit/c9d1f3e3e115>`__ Restore Timebase on Master
+   Core Threads 1-3 after Sleep/Winkle
+
+Caleb Palmer (1):
+
+-  `5b0de295ed7c <https://github.com/open-power/hostboot/commit/5b0de295ed7c>`__ Revert “Revert”PRD: Nimbus
+   symbol mark performance workaround""
+
+Chen Du (1):
+
+-  `c824d6f2e1a2 <https://github.com/open-power/hostboot/commit/c824d6f2e1a2>`__ Get ring override failing
+
+Dan Crowell (1):
+
+-  `d7b076ba12f6 <https://github.com/open-power/hostboot/commit/d7b076ba12f6>`__ Add sequence id to IPMI
+   timeout traces
+
+Ilya Smirnov (2):
+
+-  `78ccbc76dbed <https://github.com/open-power/hostboot/commit/78ccbc76dbed>`__ Flush Errlmanager Queue
+   Before Fetching Gard Records
+-  `387ed5acb388 <https://github.com/open-power/hostboot/commit/387ed5acb388>`__ Remove Redundant LPC Bus
+   Check
+
+Jennifer A. Stofer (1):
+
+-  `8591ded70260 <https://github.com/open-power/hostboot/commit/8591ded70260>`__ Revert “Revert”HW474117 WAT
+   to allow firmware to disable bypass on port""
+
+Louis Stermole (1):
+
+-  `e904aaee7381 <https://github.com/open-power/hostboot/commit/e904aaee7381>`__ Add workaround for Nimbus
+   symbol mark performance hw bug
+
+Nick Bofferding (1):
+
+-  `3df3c9b61e4c <https://github.com/open-power/hostboot/commit/3df3c9b61e4c>`__ Only display ERRL user
+   details callouts/strings when dumping error to console
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _v2.0.16-patches-3:
+
+Patches
+~~~~~~~
+
+.. _v2.0.16-commits-3:
+
+Commits
+~~~~~~~
+
+Andrew Jeffery (1):
+
+-  `f8f9d5ece92d <https://github.com/open-power/skiboot/commit/f8f9d5ece92d>`__ core/flash: Retry requests as
+   necessary in flash_load_resource()
+
+Mahesh Salgaonkar (2):
+
+-  `ee8837ade2a4 <https://github.com/open-power/skiboot/commit/ee8837ade2a4>`__ Fix hang in
+   pnv_platform_error_reboot path due to TOD failure.
+-  `0cbc866dae11 <https://github.com/open-power/skiboot/commit/0cbc866dae11>`__ opal/hmi: Initialize the hmi
+   event with old value of TFMR.
+
+Nicholas Piggin (1):
+
+-  `68acaf102a15 <https://github.com/open-power/skiboot/commit/68acaf102a15>`__ core/lock: don’t set
+   bust_locks on lock error
+
+Oliver O’Halloran (2):
+
+-  `effc8a898634 <https://github.com/open-power/skiboot/commit/effc8a898634>`__ hw/xscom: Enable sw xstop by
+   default on p9
+-  `749ce5cf1916 <https://github.com/open-power/skiboot/commit/749ce5cf1916>`__ pci/iov: Remove skiboot VF
+   tracking
+
+Vasant Hegde (7):
+
+-  `65a36d64be2a <https://github.com/open-power/skiboot/commit/65a36d64be2a>`__ core/ipmi: Print correct netfn
+   value
+-  `ebe0de9aeb47 <https://github.com/open-power/skiboot/commit/ebe0de9aeb47>`__ libflash/ipmi-hiomap: Fix
+   blocks count issue
+-  `82c778a378c3 <https://github.com/open-power/skiboot/commit/82c778a378c3>`__ test-ipmi-hiomap: Assert if
+   size is zero
+-  `067695735641 <https://github.com/open-power/skiboot/commit/067695735641>`__ test-ipmi-hiomap: Add
+   write-one-byte test
+-  `c6b0245a6ac5 <https://github.com/open-power/skiboot/commit/c6b0245a6ac5>`__ test-ipmi-hiomap: Fix
+   lpc-read-success
+-  `bdd077a2256b <https://github.com/open-power/skiboot/commit/bdd077a2256b>`__ test-ipmi-hiomap: Add
+   read-one-byte test
+-  `a2dabb70693b <https://github.com/open-power/skiboot/commit/a2dabb70693b>`__ skiboot v6.0.20 release notes
