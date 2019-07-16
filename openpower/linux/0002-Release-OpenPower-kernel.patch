@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
-Date: Tue, 25 Jun 2019 14:32:27 +0930
+Date: Tue, 16 Jul 2019 11:40:02 +0930
 Subject: [PATCH 2/2] Release OpenPower kernel
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
@@ -9,15 +9,15 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 46a0ae537182..eb11583f17cf 100644
+index d8f5dbfd6b76..ebb67da77d7c 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 5
- PATCHLEVEL = 1
- SUBLEVEL = 16
+ PATCHLEVEL = 2
+ SUBLEVEL = 1
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
- NAME = Shy Crocodile
+ NAME = Bobtail Squid
  
  # *DOCUMENTATION*
