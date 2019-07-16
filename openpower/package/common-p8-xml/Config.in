@@ -1,4 +1,0 @@
-config BR2_PACKAGE_COMMON_P8_XML
-        bool "Common P8 XML files"
-        default y if BR2_PACKAGE_HOSTBOOT_P8
-        select BR2_PACKAGE_OPENPOWER_MRW

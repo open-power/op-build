@@ -20,19 +20,6 @@ HOSTBOOT_BINARIES_INSTALL_TARGET = NO
 # -- P9 uses the 'hcode' package to build the BR2_HOSTBOOT_BINARY_WINK_FILENAME
 
 ###################################
-# P8:
-ifeq ($(BR2_OPENPOWER_POWER8),y)
-define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
-     $(INSTALL) -D $(@D)/cvpd.bin  $(STAGING_DIR)/hostboot_binaries/cvpd.bin
-     $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_WINK_FILENAME) $(STAGING_DIR)/hostboot_binaries/
-     $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_IONV_FILENAME)  $(STAGING_DIR)/hostboot_binaries/
-     $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) $(STAGING_DIR)/hostboot_binaries/
-     $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_SBE_FILENAME)  $(STAGING_DIR)/hostboot_binaries/
-     $(INSTALL) -D $(@D)/gpu_gpe1.bin  $(STAGING_DIR)/hostboot_binaries/gpu_gpe1.bin
-endef
-endif
-
-###################################
 # P9:
 ifeq ($(BR2_OPENPOWER_POWER9),y)
 
