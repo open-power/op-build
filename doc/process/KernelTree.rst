@@ -1,7 +1,7 @@
 op-build Linux Kernel
 =====================
 
-The skiroot/Petitboot kernel is currently based on the 4.19 series.
+The skiroot/Petitboot kernel is currently based on the 5.1 series.
 
 Submitting a patch
 ------------------
@@ -13,7 +13,8 @@ If you require a patch added to the firmware, follow these steps:
 2. Send a pull request or a ``git format-patch`` formatted patch series
    to openpower-firmware@lists.ozlabs.org, and cc joel@jms.id.au. Be
    sure to use ``--suppress-cc=sob`` when generating the patches so we
-   don’t spam the community. The current tree is based on 4.15-stable.
+   don’t spam the community. The current tree is based on 5.1-stable
+   (although we will always move to the latest stable kernel ASAP).
 
 Bug fixes
 ---------
@@ -57,6 +58,10 @@ the op-build Buildroot overlay, and placed in
 op-build then fetches the upstream tarball and applies these patches.
 This way we don’t have to clone an entire tree when doing an op-build
 build.
+
+All patches are to head upstream *first*. There is a zero chance that
+op-build will carry kernel patches for any time greater than "until the
+next kernel release", and even then, only in *exceptional* circumstances.
 
 Patches in the tree
 -------------------

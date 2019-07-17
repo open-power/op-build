@@ -31,7 +31,9 @@ from recommonmark.parser import CommonMarkParser
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.intersphinx',
-    'sphinx.ext.githubpages']
+              'sphinx.ext.githubpages',
+              'sphinxcontrib.youtube',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -163,5 +165,5 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('https://docs.python.org/', None),
    'skiboot': ('https://open-power.github.io/skiboot/doc/', None),
-   'op-test': ('https://open-power.github.io/op-test-framework/', None),
+   'op-test': ('https://open-power.github.io/op-test/', None),
 }

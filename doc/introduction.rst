@@ -12,6 +12,8 @@ Buildroot_
   image. `op-build` is a "Buildroot overlay". We build a kernel and initramfs
   using buildroot to run the Petitboot boot loader in. We maintain a branch
   with a minimum number of patches on top of upstream buildroot.
+op-build_
+  A buildroot overlay that assembles OpenPOWER Firmware images.
 SBE_
   the Self Boot Engine is the first unit inside the POWER processor to start
   executing. It's job is to set up a core and load Hostboot.
@@ -36,11 +38,81 @@ Petitboot_
   The bootloader. It is a normal user-space process running on Linux that
   searches the system for disks and network devices that it can boot the
   OS from.
+HCODE_
+  Firmware for the power management PPE. Implements heavy lifting for deeper
+  STOP states.
 
 .. _Buildroot: https://github.com/open-power/buildroot
+.. _op-build: https://github.com/open-power/op-build
 .. _SBE: https://github.com/open-power/sbe
 .. _OCC: https://github.com/open-power/occ
 .. _Hostboot: https://github.com/open-power/hostboot
 .. _skiboot: https://open-power.github.io/skiboot/
 .. _Linux: https://github.com/open-power/linux
 .. _Petitboot: https://github.com/open-power/petitboot/
+.. _HCODE: https://github.com/open-power/hcode
+
+Introductory Videos
+-------------------
+
+There are a number of good recorded presentations from various conferences
+around the world that have overviews and deep dives into various parts of
+the firmware stack.
+
+Here, we present technical presentations that may be useful in learning
+about topics relevant to OpenPOWER firmware development.
+
+For broader OpenPOWER topics, check out the following channels:
+
+- `OpenPOWER Foundation` <https://github.com/open-power/op-build/pull/2983>`_
+
+Introductory
+^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=a4XGvssR-ag
+.. youtube:: https://www.youtube.com/watch?v=hcLhKjxa-40
+
+Secure Boot
+^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=hwB1bkXQep4
+
+Interfaces and standards
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=2TroT3ORw0s
+
+OpenCAPI
+^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=h3pLBDCqY-I
+
+.. youtube:: https://www.youtube.com/watch?v=K4dhx0ctjkQ
+
+XIVE Interrupt Controller
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=s88beMQWkks
+
+Petitboot
+^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=4JbDb4bRBK4
+.. youtube:: https://www.youtube.com/watch?v=oxmMJMibZQ8
+
+Booting Faster
+^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=fTLsS_QZ8us
+
+Testing
+^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=znEM2xqJhBU
+
+Bringup and customisation
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. youtube:: https://www.youtube.com/watch?v=v73Nw7NDxYI
+
+.. youtube:: https://www.youtube.com/watch?v=dBEBQQYP_eI
