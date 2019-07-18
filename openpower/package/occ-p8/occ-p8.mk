@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OCC_P8_VERSION ?= a2856b77a618e35f597e3e472868a2617eec67fa
+OCC_P8_VERSION ?= 28b9f6edc698d19ccb721beaf8de8b786c11f990
 OCC_P8_SITE ?= $(call github,open-power,occ,$(OCC_P8_VERSION))
 OCC_P8_LICENSE = Apache-2.0
 
