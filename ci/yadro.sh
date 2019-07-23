@@ -177,7 +177,7 @@ function create_packages {
   perl -I "${hbi_dir}" "${hbi_dir}/processMrw.pl" -x "${mrw_dir}/${machine}.xml" -r
   mv "${mrw_dir}/${machine}.rpt" "${dbg_dir}"
   echo "Add HB MRW file..."
-  cp -fu "${mrw_dir}/*.mrw.xml" "${dbg_dir}"
+  cp -fu ${mrw_dir}/*.mrw.xml ${dbg_dir} || true
 
   echo "Add OCC strings file..."
   local occ_strings="$(ls ${output}/build/occ-*/obj/occStringFile 2>/dev/null || true)"
