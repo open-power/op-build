@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINERS="ubuntu1804 fedora29"
+CONTAINERS="ubuntu1804 fedora30"
 
 
 SDK_ONLY=0
@@ -101,7 +101,7 @@ do
 		HTTPS_PROXY_ENV="ENV https_proxy $HTTPS_PROXY"
 	fi
 	if [[ -n "$http_proxy" ]]; then
-	  if [[ "$distro" == fedora29 ]]; then
+	  if [[ "$distro" == fedora30 ]]; then
 	    PROXY="RUN echo \"proxy=${http_proxy}\" >> /etc/dnf/dnf.conf"
 	  fi
 	  if [[ "$distro" == ubuntu1804 ]]; then
