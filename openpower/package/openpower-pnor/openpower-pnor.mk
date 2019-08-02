@@ -129,7 +129,9 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -payload_filename $(BR2_SKIBOOT_LID_XZ_NAME) \
             -binary_dir $(BINARIES_DIR) \
             -bootkernel_filename $(LINUX_IMAGE_NAME) \
-	    -ocmbfw_original_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_FILENAME) \
+	    -ocmbfw_version $(BR2_OCMB_EXPLORER_FW_VERSION) \
+	    -ocmbfw_url $(BR2_OCMB_EXPLORER_FW_URL) \
+	    -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_FILENAME) \
 	    -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
             -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
             $(XZ_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) \
