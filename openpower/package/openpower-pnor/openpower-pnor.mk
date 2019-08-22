@@ -69,11 +69,11 @@ OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
-               $(OUTPUT_BUILD_DIR)/skiboot-*/skiboot.elf \
-               $(OUTPUT_BUILD_DIR)/skiboot-*/skiboot.map \
-               $(OUTPUT_BUILD_DIR)/linux-*/.config \
-               $(OUTPUT_BUILD_DIR)/linux-*/vmlinux \
-               $(OUTPUT_BUILD_DIR)/linux-*/System.map \
+               $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
+               $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.map \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/.config \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/vmlinux \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/System.map \
                $(OUTPUT_IMAGES_DIR)/zImage.epapr
 
 
