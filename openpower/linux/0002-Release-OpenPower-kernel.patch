@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index cfc667fe9959..67e8c2fb4ac6 100644
+index a3b26dcfc5c8..39a517b938f6 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 5
  PATCHLEVEL = 2
- SUBLEVEL = 9
+ SUBLEVEL = 11
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Bobtail Squid
