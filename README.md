@@ -68,7 +68,7 @@ a handful of other packages (see below).
         sudo dnf install gcc-c++ flex bison git ctags cscope expat-devel patch \
           zlib-devel zlib-static texinfo perl-bignum "perl(XML::Simple)" \
           "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" \
-          "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" libxml2-devel \
-          which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
-          openssl-devel
+          "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" "perl(ExtUtils::MakeMaker)" \
+          libxml2-devel which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
+          openssl-devel make libxslt vim-common
 
