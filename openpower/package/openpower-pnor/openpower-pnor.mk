@@ -48,8 +48,6 @@ endif
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_RELEASE=p9
-else
-    OPENPOWER_RELEASE=p8
 endif
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
@@ -83,9 +81,7 @@ FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
 OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
-ifeq ($(BR2_PACKAGE_HOSTBOOT_P8),y)
-OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p8 occ-p8
-endif
+
 ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
 OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
 endif
@@ -100,9 +96,7 @@ ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_VERSIONED_SUBPACKAGES += sbe hcode
 endif
 
-ifeq ($(BR2_PACKAGE_OCC_P8),y)
-    OCC_BIN_FILENAME=$(BR2_OCC_P8_BIN_FILENAME)
-else
+ifeq ($(BR2_PACKAGE_OCC),y)
     OCC_BIN_FILENAME=$(BR2_OCC_BIN_FILENAME)
 endif
 

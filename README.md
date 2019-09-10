@@ -33,8 +33,7 @@ cd op-build
 ```
 
 There are also default configurations for other platforms in
-`openpower/configs/`. Current POWER8 platforms include Habanero,
-Firestone, and Garrison. Current POWER9 platforms include Witherspoon,
+`openpower/configs/`. Current POWER9 platforms include Witherspoon,
 Boston (p9dsu), Romulus, and Zaius.
 
 Buildroot/op-build supports both native and cross-compilation - it will
