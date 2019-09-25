@@ -1,0 +1,31 @@
+config BR2_PACKAGE_OP_TEST
+        bool "op-test"
+        default y if (BR2_OPENPOWER_PLATFORM)
+        help
+            Include op-test in the Host debug tools tarball.
+
+if BR2_PACKAGE_OP_TEST
+
+choice
+	prompt "op-test version"
+	default BR2_OP_TEST_LATEST_VERSION
+
+config BR2_OP_TEST_LATEST_VERSION
+	bool "Use latest op-test master"
+
+config BR2_OP_TEST_CUSTOM_VERSION
+	bool "Custom op-test version"
+
+endchoice
+
+config BR2_OP_TEST_CUSTOM_VERSION_VALUE
+	string "op-test version"
+	depends on BR2_OP_TEST_CUSTOM_VERSION
+
+config BR2_OP_TEST_VERSION
+	string
+	default "df857a3d43fb85ff7529fff10ee1872f6ce4a6a9" if BR2_OP_TEST_LATEST_VERSION
+	default BR2_OP_TEST_CUSTOM_VERSION_VALUE           if BR2_OP_TEST_CUSTOM_VERSION
+
+endif
+
