@@ -67,6 +67,10 @@ OPENPOWER_MRW_SCRATCH_DIR = $(STAGING_DIR)/openpower_mrw_scratch
 OUTPUT_BUILD_DIR = $(STAGING_DIR)/../../../build/
 OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
+# See Open-Power's Hostboot repo, file: src/build/buildpnor/PnorUtils.pm,
+# function: loadPnorLayout(); at the end of that function the generated XML file
+# is concatenated with "WithOffsets.xml"
+GENERATED_PNOR_LAYOUT_FILES = $(shell find "$(OPENPOWER_PNOR_SCRATCH_DIR)" -maxdepth 1 -name "*WithOffsets.xml")
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
@@ -74,8 +78,8 @@ FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/.config \
                $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/vmlinux \
                $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/System.map \
-               $(OUTPUT_IMAGES_DIR)/zImage.epapr
-
+               $(OUTPUT_IMAGES_DIR)/zImage.epapr \
+               $(GENERATED_PNOR_LAYOUT_FILES)
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
 OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
