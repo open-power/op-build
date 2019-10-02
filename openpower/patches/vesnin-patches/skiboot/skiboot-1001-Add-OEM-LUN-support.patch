@@ -1,30 +1,69 @@
-From c21e4ab44a4e28ab574104f26bd3a925ffdc2a22 Mon Sep 17 00:00:00 2001
+From a7320f292a9fad1c3aa14c7a215d4af230fd11a2 Mon Sep 17 00:00:00 2001
 From: Artem Senichev <a.senichev@yadro.com>
-Date: Wed, 10 Apr 2019 14:58:25 +0300
+Date: Wed, 2 Oct 2019 19:10:28 +0300
 Subject: [PATCH] Add OEM LUN support
 
 IPMI specification doesn't support more than 255 sensors due to
-1-byte sensorID limitation. LUN support (OEM LUN 1 and 3)
-allows to support up to 765 unique sensors.
+1-byte sensor ID limitation. Using LUN (OEM LUN 1 and 3) allows to
+support up to 765 unique sensors.
+Additionally, we have to patch opal_ipmi_send() function to prevent
+removing LUN identifier from IPMI messages. This function is part of
+OPAL API, called by IPMI driver of host's linux kernel.
 
 Signed-off-by: Artem Senichev <a.senichev@yadro.com>
 ---
- core/ipmi.c | 2 ++
- 1 file changed, 2 insertions(+)
+ core/ipmi-opal.c | 7 +++++++
+ core/ipmi.c      | 5 +++++
+ 2 files changed, 12 insertions(+)
 
+diff --git a/core/ipmi-opal.c b/core/ipmi-opal.c
+index 796508ca..063cf0b1 100644
+--- a/core/ipmi-opal.c
++++ b/core/ipmi-opal.c
+@@ -29,6 +29,7 @@ static int64_t opal_ipmi_send(uint64_t interface,
+ 			      struct opal_ipmi_msg *opal_ipmi_msg, uint64_t msg_len)
+ {
+ 	struct ipmi_msg *msg;
++	uint8_t netfn;
+ 
+ 	if (opal_ipmi_msg->version != OPAL_IPMI_MSG_FORMAT_VERSION_1) {
+ 		prerror("OPAL IPMI: Incorrect version\n");
+@@ -44,6 +45,9 @@ static int64_t opal_ipmi_send(uint64_t interface,
+ 	prlog(PR_TRACE, "opal_ipmi_send(cmd: 0x%02x netfn: 0x%02x len: 0x%02llx)\n",
+ 	       opal_ipmi_msg->cmd, opal_ipmi_msg->netfn >> 2, msg_len);
+ 
++	// save LUN
++	netfn = opal_ipmi_msg->netfn;
++
+ 	msg = ipmi_mkmsg(interface,
+ 			 IPMI_CODE(opal_ipmi_msg->netfn >> 2, opal_ipmi_msg->cmd),
+ 			 opal_send_complete, NULL, opal_ipmi_msg->data,
+@@ -51,6 +55,9 @@ static int64_t opal_ipmi_send(uint64_t interface,
+ 	if (!msg)
+ 		return OPAL_RESOURCE;
+ 
++	// restore LUN
++	msg->netfn = netfn;
++
+ 	msg->complete = opal_send_complete;
+ 	msg->error = opal_send_complete;
+ 	return ipmi_queue_msg(msg);
 diff --git a/core/ipmi.c b/core/ipmi.c
-index 2bf3f4da..f4165ee9 100644
+index 566300e1..9360e03a 100644
 --- a/core/ipmi.c
 +++ b/core/ipmi.c
-@@ -54,6 +54,8 @@ void ipmi_init_msg(struct ipmi_msg *msg, int interface,
+@@ -45,6 +45,11 @@ void ipmi_init_msg(struct ipmi_msg *msg, int interface,
  	msg->backend = ipmi_backend;
  	msg->cmd = IPMI_CMD(code);
  	msg->netfn = IPMI_NETFN(code) << 2;
-+	if (IPMI_NETFN(code) == IPMI_NETFN_SE) // LUN supoort for sensors
-+		msg->netfn |= 1;
++	if (IPMI_NETFN(code) == IPMI_NETFN_SE) // LUN support for sensors
++	{
++		const uint8_t OPFW_SENSOR_LUN = 1;
++		msg->netfn |= OPFW_SENSOR_LUN;
++	}
  	msg->req_size = req_size;
  	msg->resp_size = resp_size;
  	msg->complete = complete;
 -- 
-2.21.0
+2.23.0
 
