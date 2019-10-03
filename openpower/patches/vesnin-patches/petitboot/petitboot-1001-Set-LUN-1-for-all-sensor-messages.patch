@@ -1,0 +1,33 @@
+From 7cd0511c1584d55db02b6e52a808719942e5411b Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Thu, 3 Oct 2019 10:44:47 +0300
+Subject: [PATCH] Set LUN 1 for all sensor messages
+
+Fix error with incorrect OS status reporting (OperatingSystem.Status).
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ discover/ipmi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/discover/ipmi.c b/discover/ipmi.c
+index ae02bb0..3221091 100644
+--- a/discover/ipmi.c
++++ b/discover/ipmi.c
+@@ -50,6 +50,13 @@ static int ipmi_send(struct ipmi *ipmi, uint8_t netfn, uint8_t cmd,
+ 	addr.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
+ 	addr.channel = IPMI_BMC_CHANNEL;
+ 
++	// set LUN for all sensor messages
++	if (netfn == IPMI_NETFN_SE)
++	{
++		const uint8_t OPFW_SENSOR_LUN = 1;
++		addr.lun = OPFW_SENSOR_LUN;
++	}
++
+ 	memset(&req, 0, sizeof(req));
+ 	req.addr = (unsigned char *)&addr;
+ 	req.addr_len = sizeof(addr);
+-- 
+2.23.0
+
