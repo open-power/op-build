@@ -1,0 +1,36 @@
+From e34aaa2b68ec05f85f3d47ef37bdbd2aa5a162ae Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Mon, 7 Oct 2019 15:58:41 -0500
+Subject: [PATCH] Temporarily disabled install directive in SBE distribute
+
+Change-Id: I3f54da025cde5944b098ced69be43995c495ec66
+---
+ src/build/sbeOpDistribute.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/build/sbeOpDistribute.py b/src/build/sbeOpDistribute.py
+index 32b0cff..373edb7 100755
+--- a/src/build/sbeOpDistribute.py
++++ b/src/build/sbeOpDistribute.py
+@@ -3,7 +3,7 @@
+ #
+ # $Source: src/build/sbeOpDistribute.py $
+ #
+-# OpenPOWER sbe Project
++# OpenPOWER HostBoot Project
+ #
+ # Contributors Listed Below - COPYRIGHT 2017,2019
+ # [+] International Business Machines Corp.
+@@ -103,7 +103,8 @@ def main(argv):
+             # Copy sbe raw binary to scratch folder
+             run_system_cmd('cp '+sbe_binary_dir+'/'+basename+'.bin'+' '+scratch_dir+'/'+basename+'.bin')
+             # Add HW ref image
+-            run_system_cmd('p9_ipl_build '+scratch_dir+'/'+basename+'.bin '+hw_ref_image+' 0x'+ecLevel)
++            #TODO: This is currently not working in p10 op-build
++            # run_system_cmd('p9_ipl_build '+scratch_dir+'/'+basename+'.bin '+hw_ref_image+' 0x'+ecLevel)
+             #add pnor header
+             run_system_cmd("env echo -en VERSION\\\\0 > "+scratch_dir+"/"+basename+".sha.bin")
+             run_system_cmd("sha512sum "+scratch_dir+"/"+basename+".bin | awk '{print $1}' | xxd -pr -r >> "+scratch_dir+"/"+basename+".sha.bin")
+-- 
+1.8.2.2
+

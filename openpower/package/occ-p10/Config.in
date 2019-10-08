@@ -1,0 +1,16 @@
+config BR2_PACKAGE_OCC_P10
+        bool "OCC for P10"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER10)
+        select BR2_CPP
+        help
+            Project to build OCC for P10
+
+if BR2_PACKAGE_OCC_P10
+
+config BR2_OCC_P10_BIN_FILENAME
+    string "Name of OCC P10 image file"
+    default "occ.bin"
+    help
+        String used to define name of the OCC binary image file
+
+endif

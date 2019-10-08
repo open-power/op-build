@@ -1,7 +1,7 @@
 config BR2_OPENPOWER_PLATFORM
     bool "Enables only one openPower platform"
     default n
-    depends on ((BR2_OPENPOWER_POWER8 || BR2_OPENPOWER_POWER9) && !(BR2_OPENPOWER_POWER8 && BR2_OPENPOWER_POWER9))
+    depends on ((BR2_OPENPOWER_POWER8 || BR2_OPENPOWER_POWER9 || BR2_OPENPOWER_POWER10) && !(BR2_OPENPOWER_POWER8 && BR2_OPENPOWER_POWER9) && !(BR2_OPENPOWER_POWER8 && BR2_OPENPOWER_POWER10) && !(BR2_OPENPOWER_POWER9 && BR2_OPENPOWER_POWER10) && !(BR2_OPENPOWER_POWER8 && BR2_OPENPOWER_POWER9 && BR2_OPENPOWER_POWER10))
 
 config BR2_OPENPOWER_POWER8
     bool "Enables the OpenPower p8 platform"
@@ -10,5 +10,10 @@ config BR2_OPENPOWER_POWER8
 
 config BR2_OPENPOWER_POWER9
     bool "Enables the OpenPower p9 platform"
+    default n
+    depends on BR2_powerpc64 || BR2_powerpc64le
+
+config BR2_OPENPOWER_POWER10
+    bool "Enables the OpenPower p10 platform"
     default n
     depends on BR2_powerpc64 || BR2_powerpc64le
