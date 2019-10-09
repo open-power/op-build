@@ -160,9 +160,9 @@ function create_packages {
 
   # Create distribution package
   echo "Create distribution package..."
-  local pnor_img="${output}/images/${machine}.pnor"
-  chmod a-x "${pnor_img}"
-  tar chzf "${pkgdir}/opfw-${version}.tar.gz" -C "$(dirname "${pnor_img}")" "$(basename "${pnor_img}")"
+  local pkg_dist="${pkgdir}/opfw-${version}.tar.gz"
+  cp -f "${output}/images/${machine}.pnor.static.tar.gz" "${pkg_dist}"
+  chmod a-x "${pkg_dist}"
 
   # Create debug package
   local dbg_dir="${output}/fw_debug"
@@ -188,8 +188,8 @@ function create_packages {
       return 1
     fi
   fi
-
   cp -fu "${occ_strings}" "${dbg_dir}"
+
   echo "Add skiboot map file..."
   cp -fu "$(ls ${output}/build/skiboot-*/skiboot.map)" "${dbg_dir}"
 
