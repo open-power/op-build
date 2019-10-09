@@ -1,0 +1,2216 @@
+From c69095d5359b800068c258819014f0bb684046f6 Mon Sep 17 00:00:00 2001
+From: Roland Veloz <rveloz@us.ibm.com>
+Date: Fri, 6 Sep 2019 13:52:32 -0500
+Subject: [PATCH] P10 MRW parsing: Changes to the parser scripts
+
+This commit deals with refactoring and modularizing the processMrw.pl
+and Targets.pm scripts.  This commit is not about the artifact that
+gets produced by these files but the act of parsing an MRW file.
+
+Change-Id: I359afeebd9aa00ec6db2857a03ba0d9684c0858e
+RTC: 215164
+---
+ src/usr/targeting/common/Targets.pm    |  637 +++++++++++------
+ src/usr/targeting/common/processMrw.pl | 1183 +++++++++++++++++++++-----------
+ 2 files changed, 1218 insertions(+), 602 deletions(-)
+
+diff --git a/src/usr/targeting/common/Targets.pm b/src/usr/targeting/common/Targets.pm
+index dfd65d6..fb0bcbb 100644
+--- a/src/usr/targeting/common/Targets.pm
++++ b/src/usr/targeting/common/Targets.pm
+@@ -91,10 +91,29 @@ my %maxInstance = (
+     "SMPGROUP"      => 8,
+     "OMIC"          => 6,
+ );
++
++#--------------------------------------------------
++# @brief The constructor for the object Target
++#--------------------------------------------------
+ sub new
+ {
+     my $class = shift;
+     my $self  = {
++        # The following data are associated with the
++        # user command line options
++        build           => "hb",  # default to HB
++        force           => 0,
++        serverwiz_file  => "",    # input xml file
++        serverwiz_dir   => "",    # directory of input xml file
++        debug           => 0,
++        system_config   => "",
++        output_file     => "",
++        version         => 0,
++        report          => 0,
++        run_self_test   => 0,     # run internal test
++
++        # The following data are associated with the
++        # xml itself
+         xml          => undef,
+         data         => undef,
+         targeting    => undef,
+@@ -103,13 +122,11 @@ sub new
+         UNIT_COUNTS  => undef,
+         huid_idx     => undef,
+         mru_idx      => undef,
+-        force        => 0,
+-        debug        => 0,
+-        version      => "",
+         xml_version  => 0,
+         errorsExist  => 0,
+         NUM_PROCS    => 0,
+         TOP_LEVEL    => "",
++        TOP_LEVEL_HANDLE    => undef,
+         TOPOLOGY     => undef,
+         report_log   => "",
+         vpd_num      => 0,
+@@ -388,6 +405,162 @@ sub storeGroups
+     }
+ }
+ 
++#--------------------------------------------------
++# @brief Initialize a handle to the target instance.
++#
++# @details This method locates where the target instance
++#          resides and caches it for fast retrieval.
++#
++# @post A handle to the target instance is cached or exit
++#       stating that the target instance cannot be found.
++#
++# @param [in] $self - The global target object.
++#--------------------------------------------------
++sub initializeTargetInstanceHandle
++{
++    my $self = shift;
++
++    if ( (!defined $self->{TARGET_INST_HANDLE}) ||
++         ($self->{TARGET_INST_HANDLE} eq "") )
++    {
++        # Find the location of where target instances reside
++        my $targetInstances = $self->{xml}->{'targetInstance'};
++        if (!defined $targetInstances)
++        {
++            # Check one more level for the target instances
++            $targetInstances = $self->{xml}->{'targetInstances'}
++                                           ->{'targetInstance'};
++        }
++
++        # If can't find the target instances, then state so and exit
++        if (!defined $targetInstances)
++        {
++            die "No target instances defined\n";
++        }
++
++        $self->setTargetInstanceHandle($targetInstances);
++    } # end if ( (!defined $self->{TARGET_INST_HANDLE}) ||  ...
++}
++
++#--------------------------------------------------
++# @brief Return a handle to the target instances.
++#
++# @details This method will initialize the target instances
++#          if has not been already initialized.
++#
++# @param [in] $self - The global target object.
++#
++# @return - A handle to the target instance.
++#--------------------------------------------------
++sub getTargetInstanceHandle
++{
++    my $self = shift;
++
++    # If handle to target instances is not already cached, then initialize it
++    if ( (!defined $self->{TARGET_INST_HANDLE}) ||
++         ($self->{TARGET_INST_HANDLE} eq "") )
++    {
++        $self->initializeTargetInstanceHandle();
++    }
++
++    return ($self->{TARGET_INST_HANDLE});
++}
++
++#--------------------------------------------------
++# @brief Set the target instance handle to the given target handle
++#
++# @param [in] $self - The global target object.
++# @param [in] $targetHndl - The value the target instance handle is set to.
++#--------------------------------------------------
++sub setTargetInstanceHandle
++{
++    my $self = shift;
++    my $targetHndl = shift;
++
++    # Dynamically create and cache a handle to the target instance
++    $self->{TARGET_INST_HANDLE} = $targetHndl;
++}
++
++#--------------------------------------------------
++# @brief Initialize the top level target.
++#
++# @details This method locate the top level target
++#          and cache it for fast retrieval.
++#
++# @post The top level target is cached or exit stating that
++#       top level target not found.
++#
++# @param [in] $self - The global target object.
++#--------------------------------------------------
++sub initalizeTopLevel
++{
++    my $self = shift;
++
++    # If the top level target instance has not been found and set,
++    # then find that target and set top level to it
++    if ((!defined $self->{TOP_LEVEL}) || ($self->{TOP_LEVEL} eq ""))
++    {
++        # Get a handle to the target instances
++        my $targetInstancesHandle = $self->getTargetInstanceHandle();
++
++        # Find the system target which is the top level target
++        foreach my $target (keys(%{$targetInstancesHandle}))
++        {
++            # If target is of type 'SYS' then we found the top level target
++            if ($targetInstancesHandle->{$target}->{attribute}
++                                      ->{TYPE}->{default} eq "SYS")
++            {
++                # Set the top level target and search no more
++                $self->setTopLevel($target);
++                # YOU SHALL NOT PASS!!!
++                last;
++            }
++        }
++
++        # If unable to find top level target, then state so and exit
++        if ((!defined $self->{TOP_LEVEL}) || ($self->{TOP_LEVEL} eq ""))
++        {
++            die "Unable to find system top level target\n";
++        }
++    } # end if ((!defined $self->{TOP_LEVEL}) || ($self->{TOP_LEVEL} eq ""))
++}
++
++#--------------------------------------------------
++# @brief Return the top level target.
++#
++# @details This method will initialize the top level
++#          target if has not been already initialized.
++#
++# @param [in] $self - The global target object.
++#
++# @return - The top level target.
++#--------------------------------------------------
++sub getTopLevel
++{
++    my $self = shift;
++
++    # If the top level target is not already cached, then initialize it
++    if ((!defined $self->{TOP_LEVEL}) || ($self->{TOP_LEVEL} eq ""))
++    {
++        $self->initalizeTopLevel();
++    }
++    return ($self->{TOP_LEVEL});
++}
++
++#--------------------------------------------------
++# @brief Set the top level target to the given target.
++#
++# @param [in] $self - The global target object.
++# @param [in] $target - The value the top level target is set to.
++#--------------------------------------------------
++sub setTopLevel
++{
++    my $self = shift;
++    my $target = shift;
++
++    $self->{TOP_LEVEL} = $target;
++}
++
+ ####################################################
+ ## build target hierarchy recursively
+ ##
+@@ -422,34 +595,23 @@ sub buildHierarchy
+     my $self   = shift;
+     my $target = shift;
+ 
+-    my $instance_path = $self->{data}->{INSTANCE_PATH};
+-    if (!defined $instance_path)
+-    {
+-        $instance_path = "";
+-    }
+-    my $baseptr = $self->{xml}->{'targetInstance'};
+-    if ($self->{xml_version} == 1)
+-    {
+-        $baseptr = $self->{xml}->{'targetInstances'}->{'targetInstance'};
+-    }
++    # Get a handle to the target instances
++    my $targetInstanceRef = $self->getTargetInstanceHandle();
++
++    # If caller did not provide a target, then use the top level target
+     if ($target eq "")
+     {
+-        ## find system target
+-        foreach my $t (keys(%{$baseptr}))
+-        {
+-            if ($baseptr->{$t}->{attribute}->{TYPE}->{default} eq "SYS")
+-            {
+-                $self->{TOP_LEVEL} = $t;
+-                $target = $t;
+-            }
+-        }
++        $target = $self->getTopLevel();
+     }
+-    if ($target eq "")
++
++    my $instance_path = $self->{data}->{INSTANCE_PATH};
++    if (!defined $instance_path)
+     {
+-        die "Unable to find system top level target\n";
++        $instance_path = "";
+     }
++
+     my $old_path        = $instance_path;
+-    my $target_xml      = $baseptr->{$target};
++    my $target_xml      = $targetInstanceRef->{$target};
+     my $affinity_target = $target;
+     my $key             = $instance_path . "/" . $target;
+ 
+@@ -466,7 +628,6 @@ sub buildHierarchy
+     $self->{data}->{INSTANCE_PATH} = $old_path . "/" . $target;
+ 
+     ## copy attributes
+-
+     foreach my $attribute (keys %{ $target_xml->{attribute} })
+     {
+         my $value = $target_xml->{attribute}->{$attribute}->{default};
+@@ -2448,192 +2609,6 @@ sub findDestConnections
+ 
+ }
+ 
+-sub setEepromAttributesForAxone
+-{
+-    my $self      = shift;
+-    my $targetObj = shift;
+-    # Expects ocmb target
+-    my $target    = shift;
+-
+-    my %connections;
+-    my $num=0;
+-
+-    my $eeprom_name = "EEPROM_VPD_PRIMARY_INFO";
+-    my $fapi_name = "FAPI_I2C_CONTROL_INFO";
+-    # SPD contains data for EEPROM_VPD_PRIMARY_INFO and FAPI_I2C_CONTROL_INFO
+-    # SPD is the child of ocmb's parent, so get ocmb's parent
+-    # then look for the SPD child
+-    # With the resulting info, we populate pmic0, pmic1, ocmb, and dimm
+-    my $target_parent = $self->getTargetParent($target);
+-
+-    # Need to store pmic targets because they get parsed before we
+-    # do calculations for engine, port, and muxBusSelector
+-    # pmics need these values, so we store them until we need them later
+-    my $address = 0;
+-    my @pmic_array;
+-    foreach my $child (@{ $self->getTargetChildren($target_parent) })
+-    {
+-        my $type = $self->getTargetType($child);
+-        if ($type eq "chip-spd-device")
+-        {
+-            my $offset = $self->getAttribute($child, "BYTE_ADDRESS_OFFSET");
+-            my $memory_size = $self->getAttribute($child, "MEMORY_SIZE_IN_KB");
+-            my $cycle_time = $self->getAttribute($child, "WRITE_CYCLE_TIME");
+-            my $page_size = $self->getAttribute($child, "WRITE_PAGE_SIZE");
+-
+-            # Populate EEPROM for ocmb
+-            $targetObj->setAttributeField($target, $eeprom_name, "byteAddrOffset",
+-                $offset);
+-            $targetObj->setAttributeField($target, $eeprom_name, "maxMemorySizeKB",
+-                $memory_size);
+-            $targetObj->setAttributeField($target, $eeprom_name, "writeCycleTime",
+-                $cycle_time);
+-            $targetObj->setAttributeField($target, $eeprom_name, "writePageSize",
+-                $page_size);
+-
+-            # Populate EEPROM for dimm
+-            $targetObj->setAttributeField($target_parent, $eeprom_name, "byteAddrOffset",
+-                $offset);
+-            $targetObj->setAttributeField($target_parent, $eeprom_name, "maxMemorySizeKB",
+-                $memory_size);
+-            $targetObj->setAttributeField($target_parent, $eeprom_name, "writeCycleTime",
+-                $cycle_time);
+-            $targetObj->setAttributeField($target_parent, $eeprom_name, "writePageSize",
+-                $page_size);
+-
+-            # spd only child is i2c-slave, which contains devAddr info
+-            foreach my $i2c_slave (@{ $self->getTargetChildren($child) })
+-            {
+-                $address = $self->getAttribute($i2c_slave, "I2C_ADDRESS");
+-                # Populate EEPROM for dimm
+-                $targetObj->setAttributeField($target_parent, $eeprom_name, "devAddr",
+-                    $address);
+-
+-                # Populate EEPROM for ocmb
+-                $targetObj->setAttributeField($target, $eeprom_name, "devAddr",
+-                    $address);
+-            }
+-        }
+-        elsif ($type eq "chip-vreg-generic")
+-        {
+-            push(@pmic_array, $child);
+-            foreach my $i2c_slave (@{ $self->getTargetChildren($child) })
+-            {
+-                $type = $self->getTargetType($i2c_slave);
+-                # pmic has child i2c_slave which contains the device address
+-                if ($type eq "unit-i2c-slave")
+-                {
+-                    $address = $self->getAttribute($i2c_slave, "I2C_ADDRESS");
+-
+-                    # Populate FAPI for pmic
+-                    $targetObj->setAttributeField($child, $fapi_name, "devAddr",
+-                        $address);
+-                    last;
+-                }
+-            }
+-        }
+-        elsif ($type eq "chip-ocmb")
+-        {
+-            foreach my $i2c_slave (@{ $self->getTargetChildren($child) })
+-            {
+-                # ocmb has multiple i2c-slaves, so we query with instance_name
+-                my $instance_name = $self->getInstanceName($i2c_slave);
+-                if ($instance_name eq "i2c-ocmb")
+-                {
+-                    $address = $self->getAttribute($i2c_slave, "I2C_ADDRESS");
+-
+-                    # Populate FAPI for ocmb
+-                    $targetObj->setAttributeField($target, $fapi_name, "devAddr",
+-                        $address);
+-                    last;
+-                }
+-            }
+-        }
+-    }
+-
+-    # Get data from i2c-master-omi, which connects to the i2c_mux PCA9847
+-    my $conn = $self->findConnectionsByDirection($target, "I2C", "", 1);
+-    if ($conn ne "")
+-    {
+-        # There exists multiple i2c bus connections with chip-ocmb
+-        # They are all the same connections so we just take the first one
+-        # The mux channel has the i2cMuxBusSelector
+-        my $conn_source = @{$conn->{CONN}}[0]->{SOURCE};
+-        my $mux = $self->getAttribute($conn_source, "MUX_CHANNEL");
+-
+-        # Parent PCA9848 determines the mux path
+-        my $parent = $self->getTargetParent($conn_source);
+-        my $parent_pos = $self->getAttribute($parent, "POSITION");
+-        my $i2c_mux_path = "physical:sys-0/node-0/i2c_mux-$parent_pos";
+-
+-        # pmics and ocmb all grab FRU_ID from parent dimm
+-        my $fru = $self->getAttribute($target_parent, "FRU_ID");
+-
+-        my $master_i2c = $self->findConnectionsByDirection($self->getTargetParent($conn_source), "I2C", "", 1);
+-        if ($master_i2c ne "")
+-        {
+-            # There exists multiple i2c bus connections with the PCA9847 i2c_mux
+-            # They are all the same connections so we just take the first one
+-            $master_i2c = @{$master_i2c->{CONN}}[0];
+-            # i2c-master-omi source which has data we need
+-            my $source = $master_i2c->{SOURCE};
+-            my $dest = $master_i2c->{DEST};
+-            my $engine = $self->getAttribute($source, "I2C_ENGINE");
+-            my $port = $self->getAttribute($source, "I2C_PORT");
+-
+-            # Populate FAPI for ocmb
+-            $self->setAttributeField($target, $fapi_name, "engine",
+-                $engine);
+-            $self->setAttributeField($target, $fapi_name, "port",
+-                $port);
+-            $self->setAttributeField($target, $fapi_name, "i2cMuxBusSelector",
+-                $mux);
+-            $self->setAttributeField($target, $fapi_name, "i2cMuxPath",
+-                $i2c_mux_path);
+-            $self->setAttribute($target, "FRU_ID",
+-                $fru);
+-
+-            # Populate EEPROM for ocmb
+-            $self->setAttributeField($target, $eeprom_name, "i2cMuxPath",
+-                $i2c_mux_path);
+-            $self->setAttributeField($target, $eeprom_name, "engine",
+-                $engine);
+-            $self->setAttributeField($target, $eeprom_name, "port",
+-                $port);
+-            $self->setAttributeField($target, $eeprom_name, "i2cMuxBusSelector",
+-                $mux);
+-
+-
+-            # Populate FAPI for pmics
+-            foreach my $pmic (@pmic_array)
+-            {
+-                $self->setAttributeField($pmic, $fapi_name, "engine",
+-                    $engine);
+-                $self->setAttributeField($pmic, $fapi_name, "port",
+-                    $port);
+-                $self->setAttributeField($pmic, $fapi_name, "i2cMuxBusSelector",
+-                    $mux);
+-                $self->setAttributeField($pmic, $fapi_name, "i2cMuxPath",
+-                    $i2c_mux_path);
+-                $self->setAttribute($pmic, "FRU_ID",
+-                    $fru);
+-            }
+-
+-            # Populate EEPROM for dimm
+-            $self->setAttributeField($target_parent, $eeprom_name, "engine",
+-                $engine);
+-            $self->setAttributeField($target_parent, $eeprom_name, "port",
+-                $port);
+-            $self->setAttributeField($target_parent, $eeprom_name, "i2cMuxBusSelector",
+-                $mux);
+-            $self->setAttributeField($target_parent, $eeprom_name, "i2cMuxPath",
+-                $i2c_mux_path);
+-            $self->setAttribute($target_parent, "FRU_ID",
+-                $fru);
+-        }
+-    }
+-}
+-
+ # Find connections from/to $target (and it's children)
+ # $to_this_target indicates the direction to find.
+ sub findConnectionsByDirection
+@@ -2792,6 +2767,41 @@ sub getTargetType
+     return $target_ptr->{TARGET}->{type};
+ }
+ 
++
++#--------------------------------------------------
++# @brief Checks the given target for given attribute
++#
++# @details Will check the target for the given attribute.
++#          If attribute does not exist for target then
++#          return 0 (false), else if attribute does exist
++#          for target then return 1 (true).  This methods
++#          does not check the validity of the attribute
++#          or it's value.
++#
++# @param [in] $self - The global target object.
++# @param [in] $target - target to locate attribute on
++# @param [in] $attribut - attribute to locate
++#
++# @return true if attribute found, else false
++#--------------------------------------------------
++sub doesAttributeExistForTarget
++{
++    my $self       = shift;
++    my $target     = shift;
++    my $attribute  = shift;
++
++    my $target_ptr = $self->getTarget($target);
++
++    # If can't locate attribute for target then return back 0 (false)
++    if (!defined($target_ptr->{ATTRIBUTES}->{$attribute}))
++    {
++        return 0;
++    }
++
++    # Attribute for target was found, return back 1 (true)
++    return 1;
++}
++
+ ## checks if attribute is value
+ ## must be defined and have a non-empty value
+ sub isBadAttribute
+@@ -2818,6 +2828,7 @@ sub isBadAttribute
+     {
+         return 1;
+     }
++
+     return 0;
+ }
+ 
+@@ -2864,6 +2875,7 @@ sub getAttribute
+     my $target     = shift;
+     my $attribute  = shift;
+     my $target_ptr = $self->getTarget($target);
++
+     if (!defined($target_ptr->{ATTRIBUTES}->{$attribute}->{default}))
+     {
+         printf("ERROR: getAttribute(%s,%s) | Attribute not defined\n",
+@@ -3296,6 +3308,207 @@ sub writeReportFile
+     close R;
+ }
+ 
++#--------------------------------------------------
++# @brief Populates the EEPROM attributes for DDIMS
++#
++# @param [in] $self - The global target object.
++# @param [in] $target - An OCMB target
++#--------------------------------------------------
++sub setEepromAttributesForDDIMs
++{
++    my $self      = shift;
++    my $target    = shift;  # Expects ocmb target
++
++    my %connections;
++    my $num=0;
++
++    my $eeprom_name = "EEPROM_VPD_PRIMARY_INFO";
++    my $fapi_name = "FAPI_I2C_CONTROL_INFO";
++    # SPD contains data for EEPROM_VPD_PRIMARY_INFO and FAPI_I2C_CONTROL_INFO
++    # SPD is the child of ocmb's parent, so get ocmb's parent
++    # then look for the SPD child
++    # With the resulting info, we populate pmic0, pmic1, ocmb, and dimm
++    my $target_parent = $self->getTargetParent($target);
++
++    # Need to store pmic targets because they get parsed before we
++    # do calculations for engine, port, etc
++    # pmics need these values, so we store them until we need them later
++    my $address = 0;
++    my @pmic_array;
++    foreach my $child (@{ $self->getTargetChildren($target_parent) })
++    {
++        my $type = $self->getTargetType($child);
++        if ($type eq "chip-spd-device")
++        {
++            my $offset = $self->getAttribute($child, "BYTE_ADDRESS_OFFSET");
++            my $memory_size = $self->getAttribute($child, "MEMORY_SIZE_IN_KB");
++            my $cycle_time = $self->getAttribute($child, "WRITE_CYCLE_TIME");
++            my $page_size = $self->getAttribute($child, "WRITE_PAGE_SIZE");
++
++            # Populate EEPROM for ocmb
++            $self->setAttributeField($target, $eeprom_name, "byteAddrOffset",
++                $offset);
++            $self->setAttributeField($target, $eeprom_name, "maxMemorySizeKB",
++                $memory_size);
++            $self->setAttributeField($target, $eeprom_name, "writeCycleTime",
++                $cycle_time);
++            $self->setAttributeField($target, $eeprom_name, "writePageSize",
++                $page_size);
++
++            # Populate EEPROM for dimm
++            $self->setAttributeField($target_parent, $eeprom_name, "byteAddrOffset",
++                $offset);
++            $self->setAttributeField($target_parent, $eeprom_name, "maxMemorySizeKB",
++                $memory_size);
++            $self->setAttributeField($target_parent, $eeprom_name, "writeCycleTime",
++                $cycle_time);
++            $self->setAttributeField($target_parent, $eeprom_name, "writePageSize",
++                $page_size);
++
++            # spd only child is i2c-slave, which contains devAddr info
++            foreach my $i2c_slave (@{ $self->getTargetChildren($child) })
++            {
++                $address = $self->getAttribute($i2c_slave, "I2C_ADDRESS");
++                # Populate EEPROM for dimm
++                $self->setAttributeField($target_parent, $eeprom_name, "devAddr",
++                    $address);
++
++                # Populate EEPROM for ocmb
++                $self->setAttributeField($target, $eeprom_name, "devAddr",
++                    $address);
++            }
++        } # end if ($type eq "chip-spd-device") ...
++        elsif ($type eq "chip-vreg-generic")
++        {
++            push(@pmic_array, $child);
++            foreach my $i2c_slave (@{ $self->getTargetChildren($child) })
++            {
++                $type = $self->getTargetType($i2c_slave);
++                # pmic has child i2c_slave which contains the device address
++                if ($type eq "unit-i2c-slave")
++                {
++                    $address = $self->getAttribute($i2c_slave, "I2C_ADDRESS");
++
++                    # Populate FAPI for pmic
++                    $self->setAttributeField($child, $fapi_name, "devAddr",
++                        $address);
++                    last;
++                }
++            }
++        } # end elsif ($type eq "chip-vreg-generic")
++        elsif ($type eq "chip-ocmb")
++        {
++            foreach my $i2c_slave (@{ $self->getTargetChildren($child) })
++            {
++                # ocmb has multiple i2c-slaves, so we query with instance_name
++                my $instance_name = $self->getInstanceName($i2c_slave);
++                if ($instance_name eq "i2c-ocmb")
++                {
++                    $address = $self->getAttribute($i2c_slave, "I2C_ADDRESS");
++
++                    # Populate FAPI for ocmb
++                    $self->setAttributeField($target, $fapi_name, "devAddr",
++                        $address);
++                    last;
++                }
++            }
++        } # end elsif ($type eq "chip-ocmb")
++    } # end foreach my $child ...
++
++        # Get data from i2c-master-omi, which connects to the i2c_mux PCA9847
++    my $conn = $self->findConnectionsByDirection($target, "I2C", "", 1);
++    if ($conn ne "")
++    {
++        # There exists multiple i2c bus connections with chip-ocmb
++        # They are all the same connections so we just take the first one
++        # The mux channel has the i2cMuxBusSelector
++        my $conn_source = @{$conn->{CONN}}[0]->{SOURCE};
++# TODO FIX ROLAND
++# Will fix later in the process
++# ROLAND causing errors:
++# ERROR: getAttribute(/sys-0/node-0/nisqually-0/proc_socket-0/godel-0/power10-0/i2c-master-op3b,MUX_CHANNEL) | Attribute not defined
++# I only found MUX_CHANNEL on attributes /sys-0/node-0/nisqually-0/PCA9849-[0-7]/PCA9849.i2cm-[0..3]
++#
++#        my $mux = $self->getAttribute($conn_source, "MUX_CHANNEL");
++        my $mux = 0;
++
++        # Parent PCA9848 determines the mux path
++        my $parent = $self->getTargetParent($conn_source);
++        my $parent_pos = $self->getAttribute($parent, "POSITION");
++        my $i2c_mux_path = "physical:sys-0/node-0/i2c_mux-$parent_pos";
++
++        # pmics and ocmb all grab FRU_ID from parent dimm
++        my $fru = $self->getAttribute($target_parent, "FRU_ID");
++
++        my $master_i2c = $self->findConnectionsByDirection($self->getTargetParent($conn_source), "I2C", "", 1);
++        if ($master_i2c ne "")
++        {
++            # There exists multiple i2c bus connections with the PCA9847 i2c_mux
++            # They are all the same connections so we just take the first one
++            $master_i2c = @{$master_i2c->{CONN}}[0];
++            # i2c-master-omi source which has data we need
++            my $source = $master_i2c->{SOURCE};
++            my $dest = $master_i2c->{DEST};
++            my $engine = $self->getAttribute($source, "I2C_ENGINE");
++            my $port = $self->getAttribute($source, "I2C_PORT");
++
++            # Populate FAPI for ocmb
++            $self->setAttributeField($target, $fapi_name, "engine",
++                $engine);
++            $self->setAttributeField($target, $fapi_name, "port",
++                $port);
++            $self->setAttributeField($target, $fapi_name, "i2cMuxBusSelector",
++                $mux);
++            $self->setAttributeField($target, $fapi_name, "i2cMuxPath",
++                $i2c_mux_path);
++            $self->setAttribute($target, "FRU_ID",
++                $fru);
++
++            # Populate EEPROM for ocmb
++            $self->setAttributeField($target, $eeprom_name, "i2cMuxPath",
++                $i2c_mux_path);
++            $self->setAttributeField($target, $eeprom_name, "engine",
++                $engine);
++            $self->setAttributeField($target, $eeprom_name, "port",
++                $port);
++            $self->setAttributeField($target, $eeprom_name, "i2cMuxBusSelector",
++                $mux);
++
++            # Populate FAPI for pmics
++            foreach my $pmic (@pmic_array)
++            {
++                $self->setAttributeField($pmic, $fapi_name, "engine",
++                    $engine);
++                $self->setAttributeField($pmic, $fapi_name, "port",
++                    $port);
++                $self->setAttributeField($pmic, $fapi_name, "i2cMuxBusSelector",
++                    $mux);
++                $self->setAttributeField($pmic, $fapi_name, "i2cMuxPath",
++                    $i2c_mux_path);
++                $self->setAttribute($pmic, "FRU_ID",
++                    $fru);
++            }
++
++            # Populate EEPROM for dimm
++            $self->setAttributeField($target_parent, $eeprom_name, "engine",
++                $engine);
++            $self->setAttributeField($target_parent, $eeprom_name, "port",
++                $port);
++            $self->setAttributeField($target_parent, $eeprom_name, "i2cMuxBusSelector",
++                $mux);
++            $self->setAttributeField($target_parent, $eeprom_name, "i2cMuxPath",
++                $i2c_mux_path);
++            $self->setAttribute($target_parent, "FRU_ID",
++                $fru);
++        } # end if ($master_i2c  ne "")
++    } # end if ($conn ne "")
++}
++
++#--------------------------------------------------
++# @brief The end of the executable elements of this PERL module
++#
++# @details Don't forget to return the true value from this file
++#--------------------------------------------------
+ 1;
+ 
+ =head1 NAME
+diff --git a/src/usr/targeting/common/processMrw.pl b/src/usr/targeting/common/processMrw.pl
+index 7a63791..cd84b14 100755
+--- a/src/usr/targeting/common/processMrw.pl
++++ b/src/usr/targeting/common/processMrw.pl
+@@ -24,6 +24,9 @@
+ #
+ # IBM_PROLOG_END_TAG
+ 
++###############################################################################
++# Include these libraries
++###############################################################################
+ use strict;
+ use XML::Simple;
+ use Data::Dumper;
+@@ -32,112 +35,168 @@ use Math::BigInt;
+ use Getopt::Long;
+ use File::Basename;
+ 
+-use constant HZ_PER_KHZ=>1000;
+-use constant MAX_MCS_PER_PROC => 4; # 4 MCS per Nimbus
+ 
++###############################################################################
++# Define some global constants
++###############################################################################
+ my $VERSION = "1.0.0";
++my $targetObj = Targets->new;
+ 
+-my $force           = 0;
+-my $serverwiz_file  = "";
+-my $version         = 0;
+-my $debug           = 0;
+-my $report          = 0;
+-my $sdr_file        = "";
+-my $build           = "hb";
+-my $system_config   = "";
+-my $output_filename = "";
+-
+-# Map the OMI instance to its corresponding OMIC parent
+-my %omi_map         = (4  => "omic-0",
+-                       5  => "omic-0",
+-                       6  => "omic-0",
+-                       7  => "omic-1",
+-                       2  => "omic-1",
+-                       3  => "omic-1",
+-                       0  => "omic-2",
+-                       1  => "omic-2",
+-                       12 => "omic-0",
+-                       13 => "omic-0",
+-                       14 => "omic-0",
+-                       15 => "omic-1",
+-                       10 => "omic-1",
+-                       11 => "omic-1",
+-                       8  => "omic-2",
+-                       9  => "omic-2");
++# Define a true an false keyword
++use constant { true => 1, false => 0 };
++
++use constant HZ_PER_KHZ=>1000;
++use constant MAX_MCS_PER_PROC => 4; # 4 MCS per Nimbus
+ 
+ # TODO RTC:170860 - Remove this after dimm connector defines VDDR_ID
+-my $num_voltage_rails_per_proc = 1;
+-
+-GetOptions(
+-    "build=s" => \$build,
+-    "f"   => \$force,             # numeric
+-    "x=s" => \$serverwiz_file,    # string
+-    "d"   => \$debug,
+-    "c=s" => \$system_config,      #string
+-    "o=s" => \$output_filename,   #string
+-    "v"   => \$version,
+-    "r"   => \$report,
+-  )                               # flag
+-  or printUsage();
+-
+-if ($version == 1)
+-{
+-    die "\nprocessMrw.pl\tversion $VERSION\n";
+-}
++my $NUM_VOLTAGE_RAILS_PER_PROC = 1;
+ 
+-if ($serverwiz_file eq "")
+-{
+-    printUsage();
+-}
++## Used to setup GPU sensors on processors
++# key: OBUS slot target,
++# value: (GPU#, Function, Temp, MemTemp IPMI name/ids,
++my %GPU_SENSORS;
+ 
+-$XML::Simple::PREFERRED_PARSER = 'XML::Parser';
++# key: OBUS slot string
++# value: processor target string
++my %SLOT_TO_PROC;
+ 
+-my $targetObj = Targets->new;
+-if ($force == 1)
++our %hwsvmrw_plugins;
++
++###############################################################################
++# The starting point for this script
++###############################################################################
++main($targetObj);
++
++sub main
+ {
+-    $targetObj->{force} = 1;
++    my $targetObj = shift;
++
++    # Extract the caller's options off the command and validate.
++    # Will exit if options are not valid.
++    getAndValidateCallerInputOptions();
++
++
++    # Run tests if asked to do so
++    if ($targetObj->{run_self_test} == 1)
++    {
++        runTests($targetObj);
++        return 0;
++    }
++
++    # Load the XML and process the file, extracting targets and associating
++    # attributes, with their data, to the targets
++    loadXmlFile();
++
++    if ($targetObj->{build} eq "fsp")
++    {
++        doFspBuild();
++    }
++
++    # Process the targets - set some needed attribute values
++    processTargets();
++
++    # Check for errors in the targets
++    errorCheckTheTargets($targetObj);
++
++    # Write the results of processing the targets to an XML file
++    writeResultsToXml($targetObj);
+ }
+-if ($debug == 1)
++
++###############################################################################
++# Supporting subroutines
++###############################################################################
++#--------------------------------------------------
++# @brief Extract caller's command line options
++#
++# @details Extract caller's command line options and
++#          validate them.  If valid then store in the
++#          global Target object for easy retrieval.
++#          If options are not valid, then print
++#          usage statement and exit script.
++#--------------------------------------------------
++sub getAndValidateCallerInputOptions
+ {
+-    $targetObj->{debug} = 1;
+-}
++    # Local variables, and their defaults, to cache the command line options to
++    my $build           = "hb";
++    my $force           = 0;
++    my $serverwiz_file  = "";
++    my $debug           = 0;
++    my $system_config   = "";
++    my $output_file     = "";
++    my $version         = 0;
++    my $report          = 0;
++    my $run_self_test   = 0;
++
++    # Grab the user's command line options.  If options not recognized
++    # print usage statement and exit script.
++    GetOptions(
++        "build=s" => \$build,      # string
++        "f"   => \$force,          # numeric
++        "x=s" => \$serverwiz_file, # string
++        "d"   => \$debug,          # flag
++        "c=s" => \$system_config,  # string
++        "o=s" => \$output_file,    # string
++        "v"   => \$version,        # flag
++        "r"   => \$report,         # flag
++        "t"   => \$run_self_test,  # flag
++      )
++      or printUsage();
++
++    # Display current version of file
++    if ($version == 1)
++    {
++        die "\nprocessMrw.pl\tversion $VERSION\n";
++    }
++
++    # If caller did not specify an input file, then print usage and die
++    if ($serverwiz_file eq "")
++    {
++        printUsage();
++    }
++
++    # Save the caller's input options to global storage for easy retrieval
++    $targetObj->{build} = $build;
++    $targetObj->{force} = $force;
++    $targetObj->{serverwiz_file} = $serverwiz_file;
++    $targetObj->{serverwiz_dir} = dirname($serverwiz_file);
++    $targetObj->{debug} = $debug;
++    $targetObj->{system_config} = $system_config;
++    $targetObj->{output_file} = $output_file;
++    $targetObj->setVersion($VERSION);
++    $targetObj->{report} = $report;
++    $targetObj->{run_self_test} = $run_self_test;
++
++} # end getAndValidateCallerInputOptions
++
++# loadXmlFile
++sub loadXmlFile
++{
++    $XML::Simple::PREFERRED_PARSER = 'XML::Parser';
++    $targetObj->loadXML($targetObj->{serverwiz_file});
+ 
+-$targetObj->setVersion($VERSION);
+-my $xmldir = dirname($serverwiz_file);
+-$targetObj->loadXML($serverwiz_file);
++    my $str=sprintf(
++        " %30s | %10s | %6s | %4s | %9s | %4s | %4s | %4s | %10s | %s\n",
++        "Sensor Name","FRU Name","Ent ID","Type","Evt Type","ID","Inst","FRU",
++        "HUID","Target");
++
++    $targetObj->writeReport($str);
++    my $str=sprintf(
++        " %30s | %10s | %6s | %4s | %9s | %4s | %4s | %4s | %10s | %s\n",
++        "------------------------------","----------",
++        "------","----","---------","----","----","----","----------",
++        "----------");
++
++    $targetObj->writeReport($str);
++} # end loadXmlFile
+ 
+-our %hwsvmrw_plugins;
+ # FSP-specific functions
+-if ($build eq "fsp")
++sub doFspBuild
+ {
+     eval ("use processMrw_fsp; return 1;");
+     processMrw_fsp::return_plugins();
+-}
+-
+-my $str=sprintf(
+-    " %30s | %10s | %6s | %4s | %9s | %4s | %4s | %4s | %10s | %s\n",
+-    "Sensor Name","FRU Name","Ent ID","Type","Evt Type","ID","Inst","FRU",
+-    "HUID","Target");
++} # end doFspBuild
+ 
+-$targetObj->writeReport($str);
+-my $str=sprintf(
+-    " %30s | %10s | %6s | %4s | %9s | %4s | %4s | %4s | %10s | %s\n",
+-    "------------------------------","----------",
+-    "------","----","---------","----","----","----","----------",
+-    "----------");
+-
+-$targetObj->writeReport($str);
+-
+-########################
+-## Used to setup GPU sensors on processors
+-my %G_gpu_sensors;
+-# key: obusslot target,
+-# value: (GPU#, Function, Temp, MemTemp IPMI name/ids,
+ 
+-my %G_slot_to_proc;
+-# key: obusslot string
+-# value: processor target string
+-#########################
+ 
+ # convert a number string into a bit-position number
+ # example:  "0x02" -->  0b0100 = 4
+@@ -151,7 +210,7 @@ sub numToBitPositionNum
+     return $newNum;
+ }
+ 
+-# Used to populate G_gpu_sensors hash of array references
++# Used to populate GPU_SENSORS hash of array references
+ #
+ # Each array reference will be composed of 3 sensors +
+ # board cfg ID which together makes up a GPU.
+@@ -167,7 +226,7 @@ sub addSensorToGpuSensors
+     my $GPU_SENSORS_TEMP_OFFSET = 2;
+     my $GPU_SENSORS_MEM_TEMP_OFFSET = 4;
+ 
+-    my $rSensorArray = $G_gpu_sensors{$obusslot_str};
++    my $rSensorArray = $GPU_SENSORS{$obusslot_str};
+     unless ($rSensorArray) {
+         $rSensorArray = [ "0xFFFF","0xFF","0xFFFF","0xFF",
+                           "0xFFFF","0xFF","0x00" ];
+@@ -192,11 +251,11 @@ sub addSensorToGpuSensors
+         $rSensorArray->[$GPU_SENSORS_TEMP_OFFSET+1] = $sensorID;
+     }
+ 
+-    $G_gpu_sensors{$obusslot_str} = $rSensorArray;
++    $GPU_SENSORS{$obusslot_str} = $rSensorArray;
+ }
+ 
+ 
+-# Populates the G_slot_to_proc hash and updates the cfgID in G_gpu_sensors
++# Populates the SLOT_TO_PROC hash and updates the cfgID in GPU_SENSORS
+ # This is how we map the obusslot to the GPU sensors
+ sub addObusCfgToGpuSensors
+ {
+@@ -205,14 +264,14 @@ sub addObusCfgToGpuSensors
+ 
+     my $foundSlot = 0;
+ 
+-    $G_slot_to_proc{$obusslot_str} = $proc_target;
++    $SLOT_TO_PROC{$obusslot_str} = $proc_target;
+ 
+-    foreach my $obusslot (keys %G_gpu_sensors)
++    foreach my $obusslot (keys %GPU_SENSORS)
+     {
+         if ($obusslot =~ m/$obusslot_str/)
+         {
+             # Add in the cfg number
+-            my $rSensorArray = $G_gpu_sensors{$obusslot_str};
++            my $rSensorArray = $GPU_SENSORS{$obusslot_str};
+             $rSensorArray->[$GPU_SENSORS_OBUS_CFG_OFFSET] =
+                  sprintf("0x%02X",
+                         (oct($rSensorArray->[$GPU_SENSORS_OBUS_CFG_OFFSET]) |
+@@ -225,10 +284,10 @@ sub addObusCfgToGpuSensors
+     {
+         print STDOUT sprintf("%s:%d ", __FILE__,__LINE__);
+         print STDOUT "Found obus slot ($obusslot_str - processor $proc_target)".
+-                     " not in G_gpu_sensors hash\n";
++                     " not in GPU_SENSORS hash\n";
+ 
+         my $cfg_bit_num = numToBitPositionNum($cfg);
+-        $G_gpu_sensors{$obusslot_str} =
++        $GPU_SENSORS{$obusslot_str} =
+             ["0xFFFF","0xFF","0xFFFF","0xFF","0xFFFF",
+              "0xFF", sprintf("0x02X",oct($cfg_bit_num))];
+     }
+@@ -273,17 +332,207 @@ sub isMultiTpmSystem
+ }
+ 
+ #--------------------------------------------------
+-## loop through all targets and do stuff
+-my @targets = sort keys %{ $targetObj->getAllTargets() };
+-my $isMultiTpmSys = isMultiTpmSystem(\@targets);
+-foreach my $target (@targets)
++# @brief Loop through all targets and set attributes as needed
++#
++# @param [in] $targetObj - The global target object.
++#--------------------------------------------------
++sub processTargets
++{
++    my @targets = sort keys %{ $targetObj->getAllTargets() };
++    my $isMultiTpmSys = isMultiTpmSystem(\@targets);
++    foreach my $target (@targets)
++{
++        my $type = $targetObj->getType($target);
++        if ($type eq "SYS")
++        {
++            processSystem($targetObj, $target);
++
++            my $maxComputeNodes  = get_max_compute_nodes($targetObj , $target);
++            $targetObj->setAttribute($target, "MAX_COMPUTE_NODES_PER_SYSTEM", $maxComputeNodes);
++
++            #handle enumeration changes
++            my $enum_val = $targetObj->getAttribute($target,"PROC_FABRIC_PUMP_MODE");
++            if ( $enum_val =~ /MODE1/i)
++            {
++                $targetObj->setAttribute($target,"PROC_FABRIC_PUMP_MODE","CHIP_IS_NODE");
++            }
++            elsif ( $enum_val =~ /MODE2/i)
++            {
++                $targetObj->setAttribute($target,"PROC_FABRIC_PUMP_MODE","CHIP_IS_GROUP");
++            }
++        }
++        elsif ($type eq "PROC")
++        {
++            processProcessor($targetObj, $target);
++            if ($targetObj->{build} eq "fsp")
++            {
++                do_plugin("fsp_proc", $targetObj, $target);
++            }
++        }
++        elsif ($type eq "APSS")
++        {
++            processApss($targetObj, $target);
++        }
++
++        # @TODO RTC: 189374 Remove multiple TPMs filter when all platforms' MRW
++        # supports dynamically determining the processor driving it.
++        elsif (($type eq "TPM") && $isMultiTpmSys)
++        {
++            processTpm($targetObj, $target);
++        }
++        elsif ($type eq "POWER_SEQUENCER")
++        {
++            my $target_type = $targetObj->getTargetType($target);
++
++            # Strip off the chip- part of the target type name
++            $target_type =~ s/chip\-//g;
++
++            # Currently only UCD9090 and UCD90120A on FSP systems are supported.
++            # All other UCD types are skipped.
++            if (($target_type eq "UCD9090")
++                || ($target_type eq "UCD90120A"))
++            {
++                processUcd($targetObj, $target);
++            }
++        }
++        elsif ($type eq "OCMB_CHIP")
++        {
++            processOcmbChip($targetObj, $target);
++        }
++
++        # Once processing of the target type is complete, remove
++        # deprecated and un-needed attributes for this type
++        pruneTargetAttributes($targetObj, $target, $type);
++
++        processIpmiSensors($targetObj,$target);
++    }  # end foreach my $target (@targets)
++
++
++    if ($targetObj->{build} eq "fsp")
++    {
++        processMrw_fsp::loadFSP($targetObj);
++    }
++} # end processTargets
++
++#--------------------------------------------------
++# @brief Check the processed targets for errors
++#
++# @param [in] $targetObj - The global target object.
++#--------------------------------------------------
++sub errorCheckTheTargets
+ {
+-    my $type = $targetObj->getType($target);
++    my $targetObj = shift;
++
++# TODO FIX ROLAND
++# Will fix later in the process
++# check topology
++# ROLAND Having issues with the topology:
++# ERROR: Fabric topology invalid.  2 targets have same FABRIC_TOPOLOGY_ID (0x0)
++# Once resolved, add this check back in
++# The MRW XML has 2 procs: power10-0 of type chip-processor-power10 and
++#                          power10-1 of type chip-processor-power10 and
++# In the loadXmlFile method, it produces 4 procs, 2 on a socket:
++#  '/sys-0/node-0/nisqually-0/proc_socket-0/godel-0/power10-0';
++#  '/sys-0/node-0/nisqually-0/proc_socket-1/godel-0/power10-0';
++#  '/sys-0/node-0/nisqually-0/proc_socket-0/godel-0/power10-1';
++#  '/sys-0/node-0/nisqually-0/proc_socket-1/godel-0/power10-1';
++#     For both power10-0 procs it uses topologoy ID 0
++#     For both power10-1 procs it uses topologoy ID 1
++#       So this end up in duplicates being used
++
++#    foreach my $n (keys %{$targetObj->{TOPOLOGY}})
++#    {
++#        if ($targetObj->{TOPOLOGY}->{$n} > 1)
++#        {
++#            print "ERROR: Fabric topology invalid.  2 targets have same ".
++#                  "FABRIC_TOPOLOGY_ID ($n)\n";
++#            $targetObj->myExit(3);
++#        }
++#    }
++
++    foreach my $target (keys %{ $targetObj->getAllTargets() })
++    {
++    # TODO FIX ROLAND
++    # Will fix later in the process
++    # ROLAND Having issues with power10-0 so wrapped errorCheck with if statement:
++    # ERROR: EEPROM_VPD_PRIMARY_INFO/devAddr attribute is invalid (Target=/sys-0/node-0/nisqually-0/proc_socket-0/godel-0/power10-0)
++    #	I2C connection to target is not defined
++    ## Once resolved, will remove if statement
++        if ($target != "/sys-0/node-0/nisqually-0/proc_socket-0/godel-0/power10-0")
++        {
++            errorCheck($targetObj, $target);
++        }
++    }
++} # end sub errorCheckTheTargets
++
++#--------------------------------------------------
++# @brief Write out the results to an XML file
++#
++# @param [in] $targetObj - The global target object.
++#--------------------------------------------------
++sub writeResultsToXml
++{
++    my $targetObj = shift;
++
++    my $xml_fh;
++    my $filename;
++    my $config_str = $targetObj->{system_config};
++
++    #If user did not specify the output filename, then build one up by using
++    #config and build parameters
++    if ($targetObj->{output_file} eq "")
++    {
++        if ($config_str ne "")
++        {
++            $config_str = "_" . $config_str;
++        }
++
++        $filename = $targetObj->{serverwiz_dir} . "/" . $targetObj->getSystemName() . $config_str . "_" . $targetObj->{build} . ".mrw.xml";
++    }
++    else
++    {
++        $filename = $targetObj->{output_file};
++    }
++
++    print "Creating XML: $filename\n";
++    open($xml_fh, ">$filename") || die "Unable to create: $filename";
++
++    $targetObj->printXML($xml_fh, "top", $targetObj->{build});
++    close $xml_fh;
++    if (!$targetObj->{errorsExist})
++    {
++        ## optionally print out report
++        if ($targetObj->{report})
++        {
++            print "Writing report to: ".$targetObj->{report_filename}."\n";
++            $targetObj->writeReportFile();
++        }
++        print "MRW created successfully!\n";
++    }
++} # end sub writeResultsToXml
++
++#--------------------------------------------------
++# @brief Remove attributes associated with target.
++#        Either because they have been deprecated
++#        or simply not used/needed.
++# @param[in] $targetObj - The global target object
++#                         blob
++# @param[in] $target - The target to remove attributes
++#                      from
++# @param[in] $type -   The type of the target
++#
++# TODO RTC: 178351 Remove depricated Attribute from HB XML
++# these are obsolete
++#
++#--------------------------------------------------
++sub pruneTargetAttributes
++{
++    my $targetObj = shift;
++    my $target    = shift;
++    my $type      = shift;
++
+     if ($type eq "SYS")
+     {
+-        processSystem($targetObj, $target);
+-        #TODO RTC: 178351 Remove depricated Attribute from HB XML
+-        #these are obsolete
+         $targetObj->deleteAttribute($target,"FUSED_CORE_MODE");
+         $targetObj->deleteAttribute($target,"MRW_CDIMM_MASTER_I2C_TEMP_SENSOR_ENABLE");
+         $targetObj->deleteAttribute($target,"MRW_CDIMM_SPARE_I2C_TEMP_SENSOR_ENABLE");
+@@ -302,31 +551,9 @@ foreach my $target (@targets)
+         $targetObj->deleteAttribute($target,"SYSTEM_WOF_ENABLED");
+         $targetObj->deleteAttribute($target,"VDM_ENABLE");
+         $targetObj->deleteAttribute($target,"CHIP_HAS_SBE");
+-
+-        my $maxComputeNodes  = get_max_compute_nodes($targetObj , $target);
+-        $targetObj->setAttribute($target, "MAX_COMPUTE_NODES_PER_SYSTEM", $maxComputeNodes);
+-
+-        #handle enumeration changes
+-        my $enum_val = $targetObj->getAttribute($target,"PROC_FABRIC_PUMP_MODE");
+-        if ( $enum_val =~ /MODE1/i)
+-        {
+-            $targetObj->setAttribute($target,"PROC_FABRIC_PUMP_MODE","CHIP_IS_NODE");
+-        }
+-        elsif ( $enum_val =~ /MODE2/i)
+-        {
+-            $targetObj->setAttribute($target,"PROC_FABRIC_PUMP_MODE","CHIP_IS_GROUP");
+-        }
+-
+     }
+     elsif ($type eq "PROC")
+     {
+-        processProcessor($targetObj, $target);
+-        if ($build eq "fsp")
+-        {
+-            do_plugin("fsp_proc", $targetObj, $target);
+-        }
+-        #TODO RTC: 178351 Remove depricated Attribute from HB XML
+-        #these are obsolete
+         $targetObj->deleteAttribute($target,"CHIP_HAS_SBE");
+         $targetObj->deleteAttribute($target,"FSI_GP_REG_SCOM_ACCESS");
+         $targetObj->deleteAttribute($target,"I2C_SLAVE_ADDRESS");
+@@ -349,18 +576,8 @@ foreach my $target (@targets)
+         $targetObj->deleteAttribute($target,"PROC_SECURITY_SETUP_VECTOR");
+         $targetObj->deleteAttribute($target,"SBE_SEEPROM_I2C_ADDRESS_BYTES");
+     }
+-    elsif ($type eq "APSS")
+-    {
+-        processApss($targetObj, $target);
+-    }
+-    elsif ($type eq "MEMBUF")
+-    {
+-        processMembuf($targetObj, $target);
+-        $targetObj->deleteAttribute($target,"CEN_MSS_VREF_CAL_CNTL");
+-    }
+     elsif ($type eq "PHB")
+     {
+-        #TODO RTC: 178351 Remove depricated Attribute from HB XML
+         $targetObj->deleteAttribute($target,"DEVICE_ID");
+         $targetObj->deleteAttribute($target,"HDDW_ORDER");
+         $targetObj->deleteAttribute($target,"MAX_POWER");
+@@ -376,91 +593,7 @@ foreach my $target (@targets)
+         $targetObj->deleteAttribute($target,"SLOT_NAME");
+         $targetObj->deleteAttribute($target,"VENDOR_ID");
+     }
+-    # @TODO RTC: 189374 Remove multiple TPMs filter when all platforms' MRW
+-    # supports dynamically determining the processor driving it.
+-    elsif (($type eq "TPM") && $isMultiTpmSys)
+-    {
+-        processTpm($targetObj, $target);
+-    }
+-    elsif ($type eq "POWER_SEQUENCER")
+-    {
+-        my $target_type = $targetObj->getTargetType($target);
+-
+-        # Strip off the chip- part of the target type name
+-        $target_type =~ s/chip\-//g;
+-
+-        # Currently only UCD9090 and UCD90120A on FSP systems are supported.
+-        # All other UCD types are skipped.
+-        if (($target_type eq "UCD9090")
+-            || ($target_type eq "UCD90120A"))
+-        {
+-            processUcd($targetObj, $target);
+-        }
+-    }
+-    elsif ($type eq "OCMB_CHIP")
+-    {
+-        processOcmbChip($targetObj, $target);
+-    }
+-
+-    processIpmiSensors($targetObj,$target);
+-}
+-
+-if ($build eq "fsp")
+-{
+-    processMrw_fsp::loadFSP($targetObj);
+-}
+-## check topology
+-foreach my $n (keys %{$targetObj->{TOPOLOGY}}) {
+-    if ($targetObj->{TOPOLOGY}->{$n} > 1) {
+-        print "ERROR: Fabric topology invalid.  2 targets have same ".
+-              "FABRIC_TOPOLOGY_ID ($n)\n";
+-        $targetObj->myExit(3);
+-    }
+-}
+-## check for errors
+-foreach my $target (keys %{ $targetObj->getAllTargets() })
+-{
+-    errorCheck($targetObj, $target);
+-}
+-
+-#--------------------------------------------------
+-## write out final XML
+-my $xml_fh;
+-my $filename;
+-my $config_str = $system_config;
+-
+-#If user did not specify the output filename, then build one up by using
+-#config and build parameters
+-if ($output_filename eq "")
+-{
+-    if ($config_str ne "")
+-    {
+-        $config_str = "_" . $config_str;
+-    }
+-
+-    $filename = $xmldir . "/" . $targetObj->getSystemName() . $config_str . "_" . $build . ".mrw.xml";
+-}
+-else
+-{
+-    $filename = $output_filename;
+-}
+-
+-print "Creating XML: $filename\n";
+-open($xml_fh, ">$filename") || die "Unable to create: $filename";
+-
+-$targetObj->printXML($xml_fh, "top", $build);
+-close $xml_fh;
+-if (!$targetObj->{errorsExist})
+-{
+-    ## optionally print out report
+-    if ($report)
+-    {
+-        print "Writing report to: ".$targetObj->{report_filename}."\n";
+-        $targetObj->writeReportFile();
+-    }
+-    print "MRW created successfully!\n";
+-}
+-
++}  # end pruneTargetAttributes
+ 
+ #--------------------------------------------------
+ #--------------------------------------------------
+@@ -493,7 +626,7 @@ sub processSystem
+     my $system_name = $targetObj->getAttribute($target,"SYSTEM_NAME");
+     if ($system_name =~ /ZAIUS/i)
+     {
+-        $num_voltage_rails_per_proc = 2;
++        $NUM_VOLTAGE_RAILS_PER_PROC = 2;
+     }
+ 
+     # TODO RTC:182764 -- right now there is no support for CDIMMs. So,
+@@ -940,9 +1073,9 @@ sub processUcd
+ }
+ 
+ #--------------------------------------------------
+-## Processor
+-##
+-
++# @brief Process processors
++#
++#--------------------------------------------------
+ sub processProcessor
+ {
+     my $targetObj = shift;
+@@ -998,7 +1131,6 @@ sub processProcessor
+         }
+     }
+ 
+-
+     # I2C arrays
+     my @engine = ();
+     my @port = ();
+@@ -1051,11 +1183,11 @@ sub processProcessor
+             #   contain this information and this can be removed
+             my $socket_pos =  $targetObj->getAttribute($socket_target,
+                                   "POSITION");
+-            if ($num_voltage_rails_per_proc > 1)
++            if ($NUM_VOLTAGE_RAILS_PER_PROC > 1)
+             {
+                 my $mcbist_pos = $targetObj->getAttribute($child, "CHIP_UNIT");
+                 $targetObj->setAttribute($child, "VDDR_ID",
+-                         $socket_pos*$num_voltage_rails_per_proc + $mcbist_pos);
++                         $socket_pos*$NUM_VOLTAGE_RAILS_PER_PROC + $mcbist_pos);
+             }
+             else
+             {
+@@ -1097,16 +1229,16 @@ sub processProcessor
+ 
+     # Add GPU sensors to processor
+     my @aGpuSensors = ();
+-    foreach my $obusslot (sort keys %G_gpu_sensors)
++    foreach my $obusslot (sort keys %GPU_SENSORS)
+     {
+         # find matching obusslot to processor
+-        my $proc_target = $G_slot_to_proc{$obusslot};
++        my $proc_target = $SLOT_TO_PROC{$obusslot};
+ 
+         # if a processor target is found and it is the same as this target
+         if ($proc_target && ($target =~ m/$proc_target/))
+         {
+             # Add this GPU's sensors to the processor's array of GPU sensors
+-            push (@aGpuSensors, @{ $G_gpu_sensors{$obusslot} });
++            push (@aGpuSensors, @{ $GPU_SENSORS{$obusslot} });
+         }
+     }
+     if (@aGpuSensors)
+@@ -1216,10 +1348,11 @@ sub processProcessor
+                              $targetObj->getAttribute($target,
+                                                       "FABRIC_CHIP_ID"));
+ 
+-    processMembufVpdAssociation($targetObj,$target);
++
+     #TODO RTC: 191762 -- Need a generic way to source FABRIC_GROUP_ID and
+     #FABRIC_CHIP_ID from the MRW and select the right value in processMRW
+     #based on the system configuration we are compiling for.
++    my $system_config = $targetObj->{system_config};
+     if ($system_config eq "w")
+     {
+         my $huid_str = $targetObj->getAttribute($target, "HUID");
+@@ -1412,36 +1545,21 @@ sub processI2cSpeeds
+     $targetObj->setAttribute($target,"I2C_BUS_SPEED_ARRAY",$bus_speed_attr);
+ }
+ 
+-################################
+-## Setup address map
+-
++#--------------------------------------------------
++# @brief Setup address map
++#--------------------------------------------------
+ sub setupBars
+ {
+     my $targetObj = shift;
+     my $target = shift;
+-    #--------------------------------------------------
+-    ## Setup BARs
+-
+-    #The topology ID is a 4 bit value that must be converted to
+-    #a 5-bit topology index before we can use it to calculate the
+-    #address offset.
+-    #The conversion method depends on the topology mode.
+-    my $topoId = $targetObj->getAttribute($target, "PROC_FABRIC_TOPOLOGY_ID");
+-    my $topoMode = $targetObj->getAttribute($target, "PROC_FABRIC_TOPOLOGY_MODE");
+-
+-    #Assume topo mode 1 (GGCC -> 0GGCC)
+-    my $topoIndex = $topoId;
+-
+-    #Check for topo mode 0
+-    if ($topoMode == 0)
+-    {
+-        # GGGC -> GGG0C
+-        $topoIndex = (($topoIndex & 0xE) << 1) | ($topoIndex & 0x1);
+-    }
+ 
+-    #keep track of which topology ID's have been used
++    # Keep track of which topology ID's have been used
++    my $topoId = getTopologyId($targetObj, $target);
+     $targetObj->{TOPOLOGY}->{$topoId}++;
+ 
++    # Get the topology index
++    my $topologyIndex = getTopologyIndex($targetObj, $target);
++
+     #P10 has a defined memory map for all configurations,
+     #these are the base addresses for topology ID 0 (group0-chip0).
+     my %bars=(  "FSP_BASE_ADDR"             => 0x0006030100000000,
+@@ -1466,9 +1584,147 @@ sub setupBars
+     {
+         my $i_base = Math::BigInt->new($bars{$bar});
+         my $value=sprintf("0x%016s",substr((
+-                        $i_base+$topoIndexOffset*$topoIndex)->as_hex(),2));
++                        $i_base+$topoIndexOffset*$topologyIndex)->as_hex(),2));
+         $targetObj->setAttribute($target,$bar,$value);
+     }
++}  # end setupBars
++
++#--------------------------------------------------
++# @brief Retrieve the fabric topolgy mode
++#
++# @details The fabric topology mode, attribute PROC_FABRIC_TOPOLOGY_MODE,
++#          is an attribute of the top level target (sys-0), but retrieving
++#          the value from the attribute returns a string (MODE0 or MODE1).
++#          This string is used to get the actual value, tied that mode,
++#          within the enumeration types.
++#
++# @param[in] $targetObj - The global target object, needed to get topology mode
++#
++# @return the numerical value of the topology mode in base 10
++#--------------------------------------------------
++sub getTopologyMode
++{
++    my $targetObj = shift;
++
++    use constant TOPOLOGY_MODE_ATTRIBUTE => "PROC_FABRIC_TOPOLOGY_MODE";
++
++    # Get topology mode from top level target
++    # Need to prepend "/" to the returned top level target because targets
++    # are mapped slightly different in the TARGETS hash vs the xml hash.
++    my $topologoyMode = $targetObj->getAttribute("/".$targetObj->{TOP_LEVEL},
++                                                 TOPOLOGY_MODE_ATTRIBUTE);
++
++    # Return the value of the mode as defined in
++    # enumeration type PROC_FABRIC_TOPOLOGY_MODE
++    # Convert the value from hex to base 10
++    return hex($targetObj->{xml}->{enumerationTypes}->{enumerationType}
++                      ->{PROC_FABRIC_TOPOLOGY_MODE}
++                      ->{enumerator}->{$topologoyMode}->{value});
++}
++
++#--------------------------------------------------
++# @brief Convert the topology ID to a topology index.
++#
++# @details  The topology ID is a 4 bit value that will be converted to a 5 bit
++#           topology index. The topology index is an index into the topology
++#           table.
++#           The conversion method depends on the topology mode.
++#                Mode      ID      index
++#               MODE 0 => GGGC --> GGG0C
++#               MODE 1 => GGCC --> GG0CC
++#
++# @param[in] $topologyId - The topology ID to convert to an index
++# @param[in] $topologyMode - The topology mode that determines the conversion
++#                            method. Needs to be a base 10 numeral value.
++#
++# @return a toplogy index, that is a base 10 numeral value.
++#--------------------------------------------------
++sub convertTopologyIdToIndex
++{
++    my $topologyId = shift;
++    my $topologyMode = shift;
++
++    use constant TOPOLOGY_MODE_1 => 1;
++
++    # Assume topology mode 0 (GGGC -> GGG0C)
++    my $groupMask = 0xE; # Use 0xE, 1110b, to extract 'GGG' from 'GGGC'
++    my $chipMask = 0x1;  # Use 0x1, 0001b, to extract 'C' from 'GGGC'
++
++    # If topology mode 1 (GGCC -> GG0CC)
++    if (TOPOLOGY_MODE_1 == $topologyMode)
++    {
++        $groupMask = 0xC; # Use 0xC, 1100b, to extract 'GG' from 'GGCC'
++        $chipMask = 0x3;  # Use 0x3, 0011b, to extract 'CC' from 'GGCC'
++    }
++
++    # Set topology index to topology ID before doing conversion
++    my $topologyIndex = $topologyId;
++
++    ## Turn the 4 bit topology ID into a 5 bit index
++    ## convert GGGC to GGG0C
++    ##      OR GGCC to GG0CC
++    # If group mask equal to 0xE (mode 0) then extract 'GGG' from 'GGGC':
++    #  1) GGGC & 0xE (1110b) returns GGG0 then shift to left (<< 1) to get GGG00
++    #  2) extract C from GGGC: GGGC & 0x1 (0001b) returns C
++    # If group mask equal to 0xC (mode 1) then extract 'GG' from 'GGCC':
++    #  1) GGCC & 0xC (1100b) returns GG00 then shift to left (<< 1) to get GG000
++    #  2) extract CC from GGCC: GGCC & 0x3 (0011b) returns CC
++    # Bitwise 'OR' 1 and 2 together to produce a 5 bit index value: GGG0C OR GG0CC
++    #    Index     =                  1                  'OR'               2
++    $topologyIndex = (($topologyIndex & $groupMask) << 1) | ($topologyIndex & $chipMask);
++
++    return ($topologyIndex);
++}
++
++#--------------------------------------------------
++# @brief Get the topology ID from processor
++#
++#
++# @param[in] $targetObj - The global target object, needed to get topology mode
++# @param[in] $processorTarget - The processor target, has the attribute topology ID
++#
++# @return topology ID, that is a base 10 numeral value.
++#--------------------------------------------------
++sub getTopologyId
++{
++    my $targetObj = shift;
++    my $processorTarget = shift;
++
++    use constant TOPOLOGY_ID_ATTRIBUTE => "PROC_FABRIC_TOPOLOGY_ID";
++
++    # Get the topology ID from the processor.
++    # Convert hex value to base 10 numerical value
++    return hex($targetObj->getAttribute($processorTarget,
++                                        TOPOLOGY_ID_ATTRIBUTE));
++
++}
++
++#--------------------------------------------------
++# @brief Get the topology index, an index into the topology table.
++#
++# @details The topology index needs to be calculated using the topology mode
++#          and the topology ID.  @see convertTopologyIdToIndex for
++#          more details
++#
++# @param[in] $targetObj - The global target object, needed to get topology mode
++# @param[in] $processorTarget - The processor target has the attribute topology ID
++#
++# @return a topology index, that is base 10 numeral value.
++#--------------------------------------------------
++sub getTopologyIndex
++{
++    my $targetObj = shift;
++    my $processorTarget = shift;
++
++    # Get the topology mode: MODE 0 (0) or MODE 1 (1)
++    my $topologyMode = getTopologyMode($targetObj);
++
++    # Get the topology ID from the processor.
++    my $topologyId = getTopologyId($targetObj, $processorTarget);
++
++    # Convert the topology ID to a topology index. The conversion method is
++    # based on the topology mode.
++    return (convertTopologyIdToIndex($topologyId, $topologyMode));
+ }
+ 
+ #--------------------------------------------------
+@@ -1572,10 +1828,14 @@ sub processEq
+         $targetObj->log($target,
+             "Processing EQ child: $child Type: $child_type");
+ 
+-        if ($child_type eq "EX")
++        if ($child_type eq "EQ")
+         {
+             processEx($targetObj, $child, $chip_unit);
+         }
++        elsif ($child_type eq "FC")
++        {
++            processFc($targetObj, $child, $chip_unit);
++        }
+     }
+ 
+     my $value = sprintf("0x%x",
+@@ -1584,6 +1844,35 @@ sub processEq
+     $targetObj->setAttribute( $target, "CHIPLET_ID", $value);
+ }
+ 
++## FC
++sub processFc
++{
++    my $targetObj        = shift;
++    my $target           = shift;
++    my $parent_chip_unit = shift;
++
++    foreach my $child (@{ $targetObj->getTargetChildren($target) })
++    {
++        my $child_type = $targetObj->getType($child);
++
++        $targetObj->log($target,
++            "Processing EX child: $child Type: $child_type");
++
++        if ($child_type eq "CORE")
++        {
++            processCore($targetObj, $child);
++        }
++    }
++
++    my $value = sprintf("0x%x",
++                        Targets::PERVASIVE_PARENT_EQ_OFFSET
++                        + $parent_chip_unit);
++
++    $targetObj->setAttribute( $target, "CHIPLET_ID", $value);
++}
++
++
++
+ ## EX
+ sub processEx
+ {
+@@ -1672,9 +1961,9 @@ sub processMcbist
+ ##
+ sub processMc
+ {
+-    # NOTE: OMI_INBAND_BAR_BASE_ADDR_OFFSET will be set for the MC                         
+-    # targets via a specific child OMI Target. View the                                    
+-    # processOmi function for further details.                                             
++    # NOTE: OMI_INBAND_BAR_BASE_ADDR_OFFSET will be set for the MC
++    # targets via a specific child OMI Target. View the
++    # processOmi function for further details.
+     my $targetObj    = shift;
+     my $target       = shift;
+ 
+@@ -1751,8 +2040,28 @@ sub processMcc
+ ##
+ sub processOmi
+ {
+-    my $mrwObj   = shift;
+-    my $omitarg      = shift;
++    my $mrwObj  = shift;
++    my $omitarg = shift;
++
++# TODO This may need to be updated if layout is different
++# ROLAND investigate this
++    # Map the OMI instance to its corresponding OMIC parent
++    my %omi_map = (4  => "omic-0",
++                   5  => "omic-0",
++                   6  => "omic-0",
++                   7  => "omic-1",
++                   2  => "omic-1",
++                   3  => "omic-1",
++                   0  => "omic-2",
++                   1  => "omic-2",
++                   12 => "omic-0",
++                   13 => "omic-0",
++                   14 => "omic-0",
++                   15 => "omic-1",
++                   10 => "omic-1",
++                   11 => "omic-1",
++                   8  => "omic-2",
++                   9  => "omic-2");
+ 
+     use integer;
+     # There are a total of eight OMI units on an MC unit. So, to
+@@ -1834,15 +2143,15 @@ sub processOmic
+ }
+ 
+ #--------------------------------------------------
+-## OCMB_CHIP
+-##
+-##
++# @brief OCMB_CHIP
++#
++#--------------------------------------------------
+ sub processOcmbChip
+ {
+     my $targetObj    = shift;
+     my $target       = shift;
+ 
+-    $targetObj->setEepromAttributesForAxone($targetObj, $target);
++    $targetObj->setEepromAttributesForDDIMs($target);
+ }
+ 
+ #-------------------------------------------------g
+@@ -2032,6 +2341,7 @@ sub processXbus
+         #For example, in wrap config, CONFIG_APPLY is expected to have "w"
+         #If "w" is not there, then we skip the connection and mark peers
+         #as NULL
++        my $system_config = $targetObj->{system_config};
+         if (($system_config eq $wrap_config && $config =~ /$wrap_config/) ||
+            ($system_config ne $wrap_config && $config =~ /$default_config/))
+         {
+@@ -2098,7 +2408,7 @@ sub processAbus
+     # A-bus connection has to be conisdered or not
+     # If user has passed 2N as argument, then we consider only those
+     # A-bus connections where token "2" is present
+-
++    my $system_config = $targetObj->{system_config};
+     if($system_config eq "2N" && $config =~ /$twonode/)
+     {
+         #Looking for Abus connections pertaining to 2 node system only
+@@ -2634,123 +2944,6 @@ sub processOcc
+     $targetObj->setAttribute($target,"OCC_MASTER_CAPABLE",$master_capable);
+ }
+ 
+-sub processMembufVpdAssociation
+-{
+-    my $targetObj = shift;
+-    my $target    = shift;
+-
+-    my $vpds=$targetObj->findConnections($target,"I2C","VPD");
+-    if ($vpds ne "" ) {
+-        my $vpd = $vpds->{CONN}->[0];
+-        my $membuf_assocs=$targetObj->findConnections($vpd->{DEST_PARENT},
+-                          "LOGICAL_ASSOCIATION","MEMBUF");
+-
+-        if ($membuf_assocs ne "") {
+-            foreach my $membuf_assoc (@{$membuf_assocs->{CONN}}) {
+-                my $membuf_target = $membuf_assoc->{DEST_PARENT};
+-                setEepromAttributes($targetObj,
+-                       "EEPROM_VPD_PRIMARY_INFO",$membuf_target,$vpd);
+-                my $index = $targetObj->getBusAttribute($membuf_assoc->{SOURCE},
+-                                $membuf_assoc->{BUS_NUM}, "ISDIMM_MBVPD_INDEX");
+-                $targetObj->setAttribute(
+-                            $membuf_target,"ISDIMM_MBVPD_INDEX",$index);
+-                $targetObj->setAttribute($membuf_target,
+-                            "VPD_REC_NUM",$targetObj->{vpd_num});
+-            }
+-        }
+-        my $group_assocs=$targetObj->findConnections($vpd->{DEST_PARENT},
+-                          "LOGICAL_ASSOCIATION","CARD");
+-
+-        if ($group_assocs ne "") {
+-            foreach my $group_assoc (@{$group_assocs->{CONN}}) {
+-                my $mb_target = $group_assoc->{DEST_PARENT};
+-                my $group_target = $targetObj->getTargetParent($mb_target);
+-                $targetObj->setAttribute($group_target,
+-                            "VPD_REC_NUM",$targetObj->{vpd_num});
+-            }
+-        }
+-        $targetObj->{vpd_num}++;
+-    }
+-}
+-
+-#--------------------------------------------------
+-## MEMBUF
+-##
+-## Finds I2C connections to DIMM and creates EEPROM attributes
+-## FYI:  I had to handle DMI busses in framework because they
+-## define affinity path
+-sub processMembuf
+-{
+-    my $targetObj = shift;
+-    my $membufTarg    = shift;
+-    if ($targetObj->isBadAttribute($membufTarg, "PHYS_PATH", ""))
+-    {
+-        ##dmi is probably not connected.  will get caught in error checking
+-        return;
+-    }
+-
+-    processMembufVpdAssociation($targetObj,$membufTarg);
+-
+-    ## find port mapping
+-    my %dimm_portmap;
+-    foreach my $child (@{$targetObj->getTargetChildren($membufTarg)})
+-    {
+-         if ($targetObj->getType($child) eq "MBA")
+-         {
+-             # find this MBA's position relative to the membuf
+-             my $mba_num = $targetObj->getAttribute($child,"MBA_NUM");
+-             # follow the DDR4 bus connection to find the 'ddr' targets
+-             my $ddrs = $targetObj->findConnections($child,"DDR4","");
+-
+-             if($ddrs eq "")
+-             {
+-                # on multi node system there is a possibility that either
+-                # DDR4 or DDR3 dimms are connected under a node
+-                my $ddrs = $targetObj->findConnections($child,"DDR3","");
+-             }
+-
+-             if ($ddrs ne "")
+-             {
+-                 foreach my $ddr (@{$ddrs->{CONN}})
+-                 {
+-                       my $port_num = $targetObj->getDimmPort($ddr->{SOURCE});
+-                       my $dimm_num = $targetObj->getDimmPos($ddr->{SOURCE});
+-                       my $map = oct("0b".$mba_num.$port_num.$dimm_num);
+-                       $dimm_portmap{$ddr->{DEST_PARENT}} = $map;
+-                 }
+-             }
+-         }
+-    }
+-
+-
+-    ## Process MEMBUF to DIMM I2C connections
+-    my @addr_map=('0','0','0','0','0','0','0','0');
+-    my $dimms=$targetObj->findConnections($membufTarg,"I2C","SPD");
+-    if ($dimms ne "") {
+-        foreach my $dimm (@{$dimms->{CONN}}) {
+-            my $dimm_target = $targetObj->getTargetParent($dimm->{DEST_PARENT});
+-            setEepromAttributes($targetObj,
+-                       "EEPROM_VPD_PRIMARY_INFO",$dimm_target,
+-                       $dimm);
+-
+-            my $field=getI2cMapField($targetObj,$dimm_target,$dimm);
+-            my $map = $dimm_portmap{$dimm_target};
+-
+-            if ($map eq "") {
+-                print "ERROR: $dimm_target doesn't map to a dimm/port\n";
+-                $targetObj->myExit(3);
+-            }
+-            $addr_map[$map] = $field;
+-        }
+-    }
+-    $targetObj->setAttribute($membufTarg,
+-            "MRW_MEM_SENSOR_CACHE_ADDR_MAP","0x".join("",@addr_map));
+-
+-    ## Update bus speeds
+-    processI2cSpeeds($targetObj,$membufTarg);
+-
+-    processPowerRails($targetObj, $membufTarg);
+-}
+ 
+ sub getI2cMapField
+ {
+@@ -2794,7 +2987,7 @@ sub getI2cMapField
+     return $hexfield;
+ }
+ 
+-#------------------------------------------------------------------------------
++#--------------------------------------------------
+ # I2C
+ #
+ sub processI2C
+@@ -3253,7 +3446,9 @@ sub get_max_compute_nodes
+ }
+ 
+ #--------------------------------------------------
+-## ERROR checking
++# @brief Error checking
++#
++#--------------------------------------------------
+ sub errorCheck
+ {
+     my $targetObj = shift;
+@@ -3363,9 +3558,9 @@ Options:
+              2N = special 2 node config with extra ABUS links
+              w = Special MST wrap config
+         -o = output filename
+-        -s [SDR XML file] = import SDRs
+         -r = create report and save to [system_name].rpt
+-        -v = version
++        -v = display current version
++        -t = run self test
+ ";
+     exit(1);
+ }
+@@ -3380,8 +3575,216 @@ sub do_plugin
+     {
+         $hwsvmrw_plugins{$step}(@_);
+     }
+-    elsif ($debug && ($build eq "fsp"))
++    elsif ($targetObj->{debug} && ($targetObj->{build} eq "fsp"))
++    {
++        print STDERR "build is $targetObj->{build} but no plugin for $step\n";
++    }
++}
++
++###############################################################################
++# Self tests
++###############################################################################
++#--------------------------------------------------
++# @brief The main procedure to run the tests
++#
++# @param[in] $targetObj - The global target object
++#--------------------------------------------------
++sub runTests
++{
++    print "\nRunning tests: \n\n";
++    my $targetObj = shift;
++
++    # Load the XML and process the file, extracting targets and associating
++    # attributes, with their data, to the targets
++    loadXmlFile();
++
++    # Process the targets, setting the targets attributes.
++    processTargets();
++
++    # Each one of the test build on each other, if one fails then no point in
++    # running the other
++    testGetTopologyMode($targetObj)   &&
++    testTopologyIdToTopologyIndex()   &&
++    testGetTopologyIndex($targetObj);
++}
++
++#--------------------------------------------------
++# @brief Test the method that gets the topology mode.
++#
++# @param[in] $targetObj - The global target object
++#
++# @return true if test passed, false other wise
++#--------------------------------------------------
++sub testGetTopologyMode
++{
++    print ">> Running testgetTopologyMode \n";
++    my $targetObj = shift;
++
++    my $testPassed = true;
++
++    use constant TOPOLOGY_MODE_ATTRIBUTE => "PROC_FABRIC_TOPOLOGY_MODE";
++    use constant TOPOLOGY_MODES => qw/ MODE0 MODE1 /;
++    my @topologyModes = (TOPOLOGY_MODES);
++
++    # Cache the current mode to restore later
++    my $persistMode = $targetObj->getAttribute("/".$targetObj->{TOP_LEVEL},
++                                               TOPOLOGY_MODE_ATTRIBUTE);
++
++    # Test getting the topology mode
++    foreach my $topologyMode (@topologyModes)
+     {
+-        print STDERR "build is $build but no plugin for $step\n";
++        $targetObj->setAttribute("/".$targetObj->{TOP_LEVEL},
++                                 TOPOLOGY_MODE_ATTRIBUTE,
++                                 $topologyMode);
++        my $topologyModeNumber = chop($topologyMode);
++        if (getTopologyMode($targetObj) != $topologyModeNumber)
++        {
++
++            $testPassed = false;
++            print "ERROR: Expected topology mode '$topologyModeNumber' but got " .
++                   getTopologyMode($targetObj) . "\n";
++        }
+     }
++
++    # Restore mode
++    $targetObj->setAttribute("/".$targetObj->{TOP_LEVEL},
++                             TOPOLOGY_MODE_ATTRIBUTE,
++                             $persistMode);
++
++    print "<< Running testgetTopologyMode: test " .
++          getPassFailString($testPassed) . "\n";
++
++    return $testPassed;
+ }
++
++#--------------------------------------------------
++# @brief Tests the conversion method that converts the topology ID,
++#        with given topology mode, to the topology index.
++#
++# @return true if test passed, false other wise
++#--------------------------------------------------
++sub testTopologyIdToTopologyIndex
++{
++    print ">> Running testTopologyIdToTopologyIndex \n";
++
++    my $testPassed = true;
++
++    # The different values expected when mode is 0 or 1
++    use constant TOPOLOGY_MODE_0_ARRAY => qw/ 0 1 4 5 8 9 12 13 16 17 20 21 24 25 28 29 /;
++    use constant TOPOLOGY_MODE_1_ARRAY => qw/ 0 1 2 3 8 9 10 11 16 17 18 19 24 25 26 27 /;
++
++    # The different topology modes
++    use constant TOPOLOGY_MODES => qw/ MODE0 MODE1 /;
++    my @topologyModes = (TOPOLOGY_MODES);
++
++    # Default with mode 0
++    my @toplogyModeArray = (TOPOLOGY_MODE_0_ARRAY);
++
++    # Test the conversion on the different IDs and modes
++    for my $topologyMode (@topologyModes)
++    {
++        my $topologyModeNumber = chop($topologyMode);
++        if (1 == $topologyModeNumber)
++        {
++            @toplogyModeArray = (TOPOLOGY_MODE_1_ARRAY);
++        }
++
++        # Needed variable
++        my $topologyIndex = 0;
++
++        # Iterate thru each permutation of the topology ID and
++        # test conversion to index
++        for (my $topologyId = 0; $topologyId < 16; ++$topologyId)
++        {
++            $topologyIndex = convertTopologyIdToIndex($topologyId,
++                                                      $topologyModeNumber);
++            if ($topologyIndex != $toplogyModeArray[$topologyId])
++            {
++                $testPassed = false;
++                print "ERROR: conversion on topology Id($topologyId) with ";
++                print "topology mode($topologyMode) returned ";
++                print "topology index($topologyIndex), but expected ";
++                print "topology index($toplogyModeArray[$topologyId]) \n";
++            }
++        }  # end for (my $topologyId = 0 ...
++    } # end foreach my $topologyMode (@topologyModes)
++
++    print "<< Running testTopologyIdToTopologyIndex: test " .
++          getPassFailString($testPassed) . "\n";
++
++    return $testPassed;
++}
++
++#--------------------------------------------------
++# @brief Test the method that gets the topology index based
++#        based on the current processors within the MRW XML
++#
++# @param[in] $targetObj - The global target object
++#
++# @return true if test passed, false other wise
++#--------------------------------------------------
++sub testGetTopologyIndex
++{
++    my $targetObj = shift;
++
++    my $testPassed = true;
++
++    my $system_name = $targetObj->getAttribute('/sys-0',"SYSTEM_NAME");
++    if ($system_name =~ /RAINIER/i)
++    {
++        print ">> Running testGetTopologyIndex \n";
++
++        # The different procs available
++        use constant PROC_0 => "/sys-0/node-0/nisqually-0/proc_socket-0/godel-0/power10-0";
++        use constant PROC_1 => "/sys-0/node-0/nisqually-0/proc_socket-0/godel-0/power10-1";
++
++        # Get processor 1's index
++        my $processorTarget = PROC_0;
++        my $topologyIndex = getTopologyIndex($targetObj, $processorTarget);
++
++        # For the current MRW, proc 0 has index 0 with mode 0
++        my $expectedTopologyIndex = 0;
++        if ($topologyIndex != $expectedTopologyIndex)
++        {
++            $testPassed = false;
++            my @fullProc = split(/\//, $processorTarget);
++            print "ERROR: retrieved topology index $topologyIndex for processor " .
++                   "@fullProc[-1] but expected $expectedTopologyIndex \n";
++        }
++
++        # Get processor 2's index
++        $processorTarget = PROC_1;
++        $topologyIndex = getTopologyIndex($targetObj, $processorTarget);
++
++        # For the current MRW, proc 1 has index 4 with mode 0
++        $expectedTopologyIndex = 4;
++        if ($topologyIndex != $expectedTopologyIndex)
++        {
++            $testPassed = false;
++            my @fullProc = split(/\//, $processorTarget);
++            print "ERROR: retrieved topology index $topologyIndex for processor " .
++                   "@fullProc[-1] but expected $expectedTopologyIndex \n";
++        }
++
++        print "<< Running testGetTopologyIndex: test " .
++              getPassFailString($testPassed) . "\n";
++
++    } # end if ($system_name =~ /RAINIER/i)
++
++    return $testPassed;
++}
++
++sub getPassFailString
++{
++    my $passFailBoolean = shift;
++    my $failPassString = "passed";
++
++    if ($passFailBoolean == false)
++    {
++        $failPassString = "failed";
++    }
++
++    return $failPassString;
++}
++
++
+-- 
+1.8.2.2
+

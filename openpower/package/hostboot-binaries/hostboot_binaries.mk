@@ -55,5 +55,26 @@ define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
 endef
 endif
 
+###################################
+# P10:
+ifeq ($(BR2_OPENPOWER_POWER10),y)
+
+# TODO: Update for P10
+NIMBUS_RING_FILE=p9n.hw.rings.bin
+NIMBUS_RING_OVERLAYS_FILE=p9n.hw.overlays.bin
+AXONE_RING_FILE=p9a.hw.rings.bin
+AXONE_RING_OVERLAYS_FILE=p9a.hw.overlays.bin
+
+define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
+     $(INSTALL) -D $(@D)/cvpd.bin  $(STAGING_DIR)/hostboot_binaries/cvpd.bin
+     $(INSTALL) -D $(@D)/gpu_gpe1.bin  $(STAGING_DIR)/hostboot_binaries/gpu_gpe1.bin
+     $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_IONV_FILENAME)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(NIMBUS_RING_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(NIMBUS_RING_OVERLAYS_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(AXONE_RING_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(AXONE_RING_OVERLAYS_FILE)  $(STAGING_DIR)/hostboot_binaries/
+endef
+endif
 
 $(eval $(generic-package))

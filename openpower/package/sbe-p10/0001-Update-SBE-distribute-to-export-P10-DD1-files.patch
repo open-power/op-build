@@ -1,0 +1,37 @@
+From b0a445addc19754ebea92ea3ee46185a3716267a Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Thu, 3 Oct 2019 13:22:58 -0500
+Subject: [PATCH] Update SBE distribute to export P10 DD1 files
+
+Change-Id: I8bda043e0fe69187923abcfb1e79dd4de98e98ae
+---
+ src/build/sbeOpDistribute.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/build/sbeOpDistribute.py b/src/build/sbeOpDistribute.py
+index 14546d9..32b0cff 100755
+--- a/src/build/sbeOpDistribute.py
++++ b/src/build/sbeOpDistribute.py
+@@ -5,7 +5,7 @@
+ #
+ # OpenPOWER sbe Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2017,2018
++# Contributors Listed Below - COPYRIGHT 2017,2019
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -26,8 +26,8 @@ import os
+ import sys
+ import getopt
+ 
+-CHIPID = 'p9n'
+-p9n_EC = {'21':'DD2', '22':'DD2', '23':'DD2'}
++CHIPID = 'p10'
++p9n_EC = {'10':'DD1'}
+ 
+ def usage():
+     print "usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>"
+-- 
+1.8.2.2
+

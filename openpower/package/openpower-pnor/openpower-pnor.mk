@@ -4,15 +4,20 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= bdfd0d08a7a04b1326553f570d35e778eda9db81
-OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
+OPENPOWER_PNOR_VERSION ?= e75dcb184995fd60f1add131681e4df9dc671eff
+
+# TODO: WORKAROUND: Need to reenable next line and comment out the two lines
+# after that, when code is propagated to a public repo
+#OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
+OPENPOWER_PNOR_SITE = https://github.ibm.com/open-power/pnor.git
+OPENPOWER_PNOR_SITE_METHOD=git
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
 OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
-OPENPOWER_PNOR_DEPENDENCIES += hcode
+    OPENPOWER_PNOR_DEPENDENCIES += hcode
 endif
 
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
@@ -46,7 +51,9 @@ ifneq ($(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE),"")
 SIGN_MODE_ARG=-sign_mode $(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE)
 endif
 
-ifeq ($(BR2_OPENPOWER_POWER9),y)
+ifeq ($(BR2_OPENPOWER_POWER10),y)
+    OPENPOWER_RELEASE=p10
+else ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_RELEASE=p9
 else
     OPENPOWER_RELEASE=p8
@@ -79,12 +86,16 @@ FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
 OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
+
 ifeq ($(BR2_PACKAGE_HOSTBOOT_P8),y)
-OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p8 occ-p8
+    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p8 occ-p8
+else ifeq ($(BR2_PACKAGE_HOSTBOOT_P10),y)
+    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p10 occ-p10 sbe-p10 hcode-p10
+	OPENPOWER_PNOR_DEPENDENCIES += hostboot-p10 occ-p10 sbe-p10 hcode-p10
+else ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
+    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
 endif
-ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
-OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
-endif
+
 OPENPOWER_VERSIONED_SUBPACKAGES += linux petitboot machine-xml hostboot-binaries capp-ucode
 OPENPOWER_PNOR = openpower-pnor
 
@@ -93,7 +104,9 @@ ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_VERSIONED_SUBPACKAGES += sbe hcode
 endif
 
-ifeq ($(BR2_PACKAGE_OCC_P8),y)
+ifeq ($(BR2_PACKAGE_OCC_P10),y)
+    OCC_BIN_FILENAME=$(BR2_OCC_P10_BIN_FILENAME)
+else ifeq ($(BR2_PACKAGE_OCC_P8),y)
     OCC_BIN_FILENAME=$(BR2_OCC_P8_BIN_FILENAME)
 else
     OCC_BIN_FILENAME=$(BR2_OCC_BIN_FILENAME)
