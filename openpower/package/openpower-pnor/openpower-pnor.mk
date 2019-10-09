@@ -9,7 +9,7 @@ OPENPOWER_PNOR_VERSION ?= e75dcb184995fd60f1add131681e4df9dc671eff
 # TODO: WORKAROUND: Need to reenable next line and comment out the two lines
 # after that, when code is propagated to a public repo
 #OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
-OPENPOWER_PNOR_SITE = https://github.ibm.com/open-power/pnor.git
+OPENPOWER_PNOR_SITE = git@github.ibm.com:open-power/pnor.git
 OPENPOWER_PNOR_SITE_METHOD=git
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0

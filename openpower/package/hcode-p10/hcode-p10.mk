@@ -8,7 +8,7 @@ HCODE_P10_VERSION = $(call qstrip,$(BR2_HCODE_P10_VERSION))
 HCODE_P10_SITE = $(call github,open-power,hcode,$(HCODE_P10_VERSION))
 # TODO: Need to comment out above line and enable next two lines
 # once buildable P10 HCODE is available in GHE
-#HCODE_P10_SITE = https://github.ibm.com/open-power/hcode.git
+#HCODE_P10_SITE = git@github.ibm.com:open-power/hcode.git
 #HCODE_P10_SITE_METHOD=git
 HCODE_P10_LICENSE = Apache-2.0
 

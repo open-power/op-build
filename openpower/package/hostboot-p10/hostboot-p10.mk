@@ -8,7 +8,7 @@ HOSTBOOT_P10_VERSION = $(call qstrip,$(BR2_HOSTBOOT_P10_VERSION))
 # TODO: WORKAROUND: Need to reenable next line and comment out the two lines
 # after that, when code is propagated to a public repo
 #HOSTBOOT_P10_SITE ?= $(call github,open-power,hostboot,$(HOSTBOOT_P10_VERSION))
-HOSTBOOT_P10_SITE = https://github.ibm.com/open-power/hostboot.git
+HOSTBOOT_P10_SITE = git@github.ibm.com:open-power/hostboot.git
 HOSTBOOT_P10_SITE_METHOD=git
 
 HOSTBOOT_P10_LICENSE = Apache-2.0
