@@ -1,0 +1,66 @@
+From 197260c2474f92946fc6258f766b701fc2c2a321 Mon Sep 17 00:00:00 2001
+From: Maxim Polyakov <m.polyakov@yadro.com>
+Date: Thu, 17 Oct 2019 16:57:27 +0300
+Subject: [PATCH] core/opal: Fix reg format for flash@0 node in DT
+
+Since the "ibm,opal" node doesn`t refer to any "bus",
+the "#address-cells" and "#size-cells" being zero is correct.
+However, in this case, the “reg” property that determines the
+size of the flash memory in the child node “flash@0” has an
+invalid format. For this reason, the FWTS on the Linux host
+displays the following warning:
+
+   /ibm,opal/flash@0:reg: property has invalid length (8
+   bytes) (#address-cells == 0, #size-cells == 0)
+
+The "#address-cells" and "#size-cells" are set to 1 to fix
+this problem temporarily. However, in the future, need to
+add some property that contains the size of the flash device
+instead of "reg".
+
+Resolve:
+[*] https://github.com/open-power/skiboot/issues/47
+[*] https://j.yadro.com/browse/SRV-553
+[*] https://j.yadro.com/browse/SRV-632
+
+Resolve: https://github.com/open-power/skiboot/issues/47
+Signed-off-by: Maxim Polyakov <m.polyakov@yadro.com>
+---
+ core/opal.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/core/opal.c b/core/opal.c
+index 3a2fbb9..b148421 100644
+--- a/core/opal.c
++++ b/core/opal.c
+@@ -406,8 +406,25 @@ void add_opal_node(void)
+ 		(uint64_t)(cpu_max_pir + 1) * STACK_SIZE) - SKIBOOT_BASE;
+ 
+ 	opal_node = dt_new_check(dt_root, "ibm,opal");
+-	dt_add_property_cells(opal_node, "#address-cells", 0);
+-	dt_add_property_cells(opal_node, "#size-cells", 0);
++	/*
++	 * Since the "ibm,opal" node doesn`t refer to any "bus",
++	 * the "#address-cells" and "#size-cells" being zero is correct.
++	 * However, in this case, the “reg” property that determines the
++	 * size of the flash memory in the child node “flash@0” has an
++	 * invalid format. For this reason, the FWTS on the Linux host
++	 * displays the following warning:
++	 *
++	 *    /ibm,opal/flash@0:reg: property has invalid length (8
++	 *    bytes) (#address-cells == 0, #size-cells == 0)
++	 *
++	 * The "#address-cells" and "#size-cells" are set to 1 to fix
++	 * this problem temporarily.
++	 *
++	 * TODO: need to add some property that contains the size of
++	 * the flash device instead of "reg"
++	 */
++	dt_add_property_cells(opal_node, "#address-cells", 1);
++	dt_add_property_cells(opal_node, "#size-cells", 1);
+ 
+ 	if (proc_gen < proc_gen_p9)
+ 		dt_add_property_strings(opal_node, "compatible", "ibm,opal-v2",
+-- 
+2.7.4
+
