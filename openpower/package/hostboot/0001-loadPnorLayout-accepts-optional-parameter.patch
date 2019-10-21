@@ -1,0 +1,208 @@
+From c4100b7113a6ec9b70678f683107e7700a8a42da Mon Sep 17 00:00:00 2001
+From: Luis Fernandez <Luis.Fernandez@ibm.com>
+Date: Fri, 18 Oct 2019 15:53:23 -0500
+Subject: [PATCH] loadPnorLayout accepts optional parameter to place edited xml
+ layout file.
+
+Change-Id: I7b9ee0f7ad33ad88be58598ddf594765eabe29ea
+---
+ src/build/buildpnor/PnorUtils.pm     | 33 +++++++++++++++++++--------------
+ src/build/buildpnor/buildpnor.pl     |  9 ++++++++-
+ src/build/buildpnor/genPnorImages.pl |  6 +++++-
+ src/build/mkrules/hbfw/img/makefile  | 16 +++++++++++-----
+ 4 files changed, 43 insertions(+), 21 deletions(-)
+
+diff --git a/src/build/buildpnor/PnorUtils.pm b/src/build/buildpnor/PnorUtils.pm
+index 7011910..c889893 100644
+--- a/src/build/buildpnor/PnorUtils.pm
++++ b/src/build/buildpnor/PnorUtils.pm
+@@ -54,7 +54,8 @@ use constant PAGE_SIZE => 4096;
+ ################################################################################
+ sub loadPnorLayout
+ {
+-    my ($i_pnorFile, $i_pnorLayoutRef, $i_physicalOffsets, $i_testRun) = @_;
++    my ($i_pnorFile, $i_pnorLayoutRef, $i_physicalOffsets, $i_testRun,
++        $i_outputLayoutLocation) = @_;
+     my $this_func = (caller(0))[3];
+ 
+     unless(-e $i_pnorFile)
+@@ -255,21 +256,25 @@ sub loadPnorLayout
+         checkForOverlap($i_pnorLayoutRef);
+     }
+ 
+-    # write xml with offsets to new file
+-    my $filename = basename($i_pnorFile, ".xml");
+-    $filename = "${filename}WithOffsets.xml";
+-
+-    # writing to new file with error handling
+-    eval
++    # Write xml with offsets to new file if $i_outputLayoutLocation
++    # argument is supplied
++    if (defined $i_outputLayoutLocation && $i_outputLayoutLocation ne "")
+     {
+-        print XMLout($xml, RootName => "pnor", OutputFile => $filename);
+-        1;
++        my $filename = basename($i_pnorFile, ".xml");
++        $filename = "${i_outputLayoutLocation}/${filename}WithOffsets.xml";
++
++        # writing to new file with error handling
++        eval
++        {
++            print XMLout($xml, RootName => "pnor", OutputFile => $filename);
++            1;
++        }
++        or do
++        {
++            my $err = $@;
++            die "ERROR: $this_func: Failed to create new XML file with corrected offsets, error = $err";
++        };
+     }
+-    or do
+-    {
+-        my $err = $@;
+-        die "ERROR: $this_func: Failed to create new XML file with corrected offsets, error = $err";
+-    };
+ 
+     return 0;
+ }
+diff --git a/src/build/buildpnor/buildpnor.pl b/src/build/buildpnor/buildpnor.pl
+index aae33fc..e39cf8b 100755
+--- a/src/build/buildpnor/buildpnor.pl
++++ b/src/build/buildpnor/buildpnor.pl
+@@ -56,6 +56,7 @@ my %SideOptions = (
+         B => "B",
+         sideless => "sideless",
+     );
++my $editedLayoutLocation = "";
+ 
+ if ($#ARGV < 0) {
+     usage();
+@@ -95,6 +96,10 @@ for (my $i=0; $i < $#ARGV + 1; $i++)
+     elsif($ARGV[$i] =~ /--test/) {
+         $testRun = 1;
+     }
++    elsif($ARGV[$i] =~ /--editedLayoutLocation/) {
++        $editedLayoutLocation = $ARGV[++$i];
++        trace(2, "Location where the edited layout file will be placed");
++    }
+     else {
+         traceErr("Unrecognized Input: $ARGV[$i]");
+         exit 1;
+@@ -112,7 +117,8 @@ if (-e $pnorBinName)
+ }
+ 
+ #Load PNOR Layout XML file
+-loadPnorLayout($pnorLayoutFile, \%pnorLayout, \%PhysicalOffsets, $testRun);
++loadPnorLayout($pnorLayoutFile, \%pnorLayout, \%PhysicalOffsets, $testRun,
++    $editedLayoutLocation);
+ 
+ #Verify all the section files exist
+ verifyFilesExist(\%pnorLayout, \%binFiles);
+@@ -621,6 +627,7 @@ print <<"ENDUSAGE";
+     --fpartCmd          invoke string for executing the fpart tool
+     --fcpCmd            invoke string for executing the fcp tool
+     --test              Output test-only sections.
++    --editedLayoutLocation <directory>      Location to place edited layout file
+ 
+   Current Limitations:
+       --TOC Records must be 4 or 8 bytes in length
+diff --git a/src/build/buildpnor/genPnorImages.pl b/src/build/buildpnor/genPnorImages.pl
+index 798c114..11d906a 100755
+--- a/src/build/buildpnor/genPnorImages.pl
++++ b/src/build/buildpnor/genPnorImages.pl
+@@ -126,6 +126,7 @@ my $sign_mode = $DEVELOPMENT;
+ my $hwKeyHashFile = "";
+ my $hb_standalone="";
+ my $buildType="";
++my $editedLayoutLocation="";
+ 
+ # @TODO RTC 170650: Set default to 0 after all environments provide external
+ # control over this policy, plus remove '!' from 'lab-security-override'
+@@ -148,6 +149,7 @@ GetOptions("binDir:s" => \$bin_dir,
+            "lab-security-override!" => \$labSecurityOverride,
+            "emit-eccless" => \$emitEccless,
+            "build-type:s" => \$buildType,
++           "editedLayoutLocation:s" => \$editedLayoutLocation,
+            "help" => \$help);
+ 
+ if ($help)
+@@ -391,7 +393,8 @@ if ($build_all && $secureboot)
+ }
+ 
+ #Load PNOR Layout XML file
+-loadPnorLayout($pnorLayoutFile, \%pnorLayout, \%PhysicalOffsets, $testRun);
++loadPnorLayout($pnorLayoutFile, \%pnorLayout, \%PhysicalOffsets, $testRun,
++    $editedLayoutLocation);
+ 
+ # Generate final images for each system's bin files.
+ foreach my $binFilesCSV (@systemBinFiles)
+@@ -1307,6 +1310,7 @@ print <<"ENDUSAGE";
+                                       switch (separated with a space and not
+                                       including the single quotes). OpenPower is
+                                       the default.
++    --editedLayoutLocation <directory>      Location to place edited layout file
+ 
+   Current Limitations:
+     - Issues with dependency on ENGD build for certain files such as SBE. This is why [--build-all | --install-all ] are used.
+diff --git a/src/build/mkrules/hbfw/img/makefile b/src/build/mkrules/hbfw/img/makefile
+index 1a7c536..d3a7608 100755
+--- a/src/build/mkrules/hbfw/img/makefile
++++ b/src/build/mkrules/hbfw/img/makefile
+@@ -65,6 +65,7 @@ SBEI_OBJPATH  = ${HBFW_OBJPATH:S/hbfw\/img/sbei\/sbfw\/img/g}
+ ENGD_WOFPATH  = ${HBFW_OBJPATH:S/hbfw\/img/engd\/wofdata/g}
+ ENGD_MEMDPATH = ${HBFW_OBJPATH:S/hbfw\/img/engd\/memd/g}
+ HBFW_SIMPATH  = ${HBFW_OBJPATH:S/img/simics/g}
++EDITED_LAYOUT_PATH = ${DUMMY:!pwd!}
+ #################################################
+ # Copy Hostboot binary images to obj dir to be grabbed
+ # during build flash pass and consumption by HWSV.
+@@ -227,12 +228,14 @@ GEN_STANDALONE_BIN_FILES = ${GEN_COMMON_BIN_FILES},TEST=EMPTY,TESTRO=EMPTY,TESTL
+     DEFAULT_PARAMS = --build-all --emit-eccless ${TARGET_TEST:b--test} ${HB_STANDALONE:b--hb-standalone} \
+                      ${CONFIG_SECUREBOOT:b--secureboot} --systemBinFiles ${GEN_DEFAULT_BIN_FILES} \
+                      --pnorLayout ${PNOR_LAYOUT} ${KEY_TRANSITION_PARAMS} ${CORRUPT_PARAMS} \
+-                     --hwKeyHashFile ${IMPRINT_HW_KEY_HASH}
++                     --hwKeyHashFile ${IMPRINT_HW_KEY_HASH} \
++		     --editedLayoutLocation ${EDITED_LAYOUT_PATH}
+ .else
+     PNOR_LAYOUT = ${pnorLayoutFake.xml:P}
+     # Parameters passed into GEN_PNOR_IMAGE_SCRIPT.
+     GEN_DEFAULT_BIN_FILES = HBI=${HBI_IMG},HBEL=EMPTY,MVPD=${${VPO_FAKE_MVPD}:P},DJVPD=${${VPO_FAKE_DJVPD}:P},FIRDATA=EMPTY,MEMD=EMPTY
+-    DEFAULT_PARAMS = --systemBinFiles ${GEN_DEFAULT_BIN_FILES} --pnorLayout ${PNOR_LAYOUT}
++    DEFAULT_PARAMS = --systemBinFiles ${GEN_DEFAULT_BIN_FILES} --pnorLayout ${PNOR_LAYOUT} \
++		     --editedLayoutLocation ${EDITED_LAYOUT_PATH}
+ .endif
+ 
+ # rule to update hostboot image tags for custom CFM image, only enabled
+@@ -465,7 +468,8 @@ ZZ2UGEN4_HBD_FINAL_IMG = ZZ-2U-GEN4.HBD.bin
+                              --systemBinFiles ${GEN_ZZ2U_BIN_FILES} \
+                              --systemBinFiles ${GEN_ZZGEN4_BIN_FILES} \
+                              --systemBinFiles ${GEN_ZZ2UGEN4_BIN_FILES} \
+-                             --hwKeyHashFile ${IMPRINT_HW_KEY_HASH}
++                             --hwKeyHashFile ${IMPRINT_HW_KEY_HASH} \
++			     --editedLayoutLocation ${EDITED_LAYOUT_PATH}
+ .else
+     # Parameters passed into GEN_PNOR_IMAGE_SCRIPT.
+     GEN_NIMBUS_BIN_FILES = NIMBUS:HCODE=${${NIMBUS_HCODE_IMG}:P},HBD=${${NIMBUS_VPO_HBD_IMG}:P},CENHWIMG=EMPTY
+@@ -476,7 +480,8 @@ ZZ2UGEN4_HBD_FINAL_IMG = ZZ-2U-GEN4.HBD.bin
+                              --systemBinFiles ${GEN_NIMBUS_BIN_FILES} \
+                              --systemBinFiles ${GEN_CUMULUS_BIN_FILES} \
+                              --systemBinFiles ${GEN_AXONE_BIN_FILES} \
+-                             --systemBinFiles ${GEN_CUMULUS_CDIMM_BIN_FILES}
++                             --systemBinFiles ${GEN_CUMULUS_CDIMM_BIN_FILES} \
++			     --editedLayoutLocation ${EDITED_LAYOUT_PATH}
+ .endif
+ 
+ gen_system_specific_images_bypass_cache : dump-secureboot-config
+@@ -566,7 +571,8 @@ ${IMAGE_TARGET}: ${IMAGE_LAYOUT} ${IMAGE_BINS} ${PNOR_BUILD_SCRIPT}
+ 			${FAKEPNOR} == ${IMAGE_TARGET})
+ 		${PNOR_BUILD_SCRIPT} --pnorOutBin ${IMAGE_TARGET} \
+ 			${TARGET_TEST:b--test} --pnorLayout ${IMAGE_LAYOUT} \
+-			${IMAGE_BIN_OPTION} --fpartCmd "fpart" --fcpCmd "fcp"
++			${IMAGE_BIN_OPTION} --fpartCmd "fpart" --fcpCmd "fcp" \
++			--editedLayoutLocation ${EDITED_LAYOUT_PATH}
+ 	.endif
+ .endif
+ 
+-- 
+1.8.2.2
+

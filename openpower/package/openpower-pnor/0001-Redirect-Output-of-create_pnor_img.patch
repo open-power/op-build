@@ -1,0 +1,65 @@
+From f64c81769cca179fa02feea53d8dea5e25fc1239 Mon Sep 17 00:00:00 2001
+From: Luis Fernandez <Luis.Fernandez@ibm.com>
+Date: Mon, 14 Oct 2019 00:24:04 -0500
+Subject: [PATCH] Redirect Output of create_pnor_image.pl
+
+build_pnor_command in create_pnor_image.pl
+generates an XML file that ends up under buildroot.
+This commit makes sure that the new file ends
+up in the PNOR scratch directory.
+
+Signed-off-by: Luis Fernandez <Luis.Fernandez@ibm.com>
+---
+ create_pnor_image.pl | 5 +++--
+ update_image.pl      | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/create_pnor_image.pl b/create_pnor_image.pl
+index debcf76..be913f5 100755
+--- a/create_pnor_image.pl
++++ b/create_pnor_image.pl
+@@ -150,7 +150,7 @@ print "scratch_dir = $scratch_dir\n";
+ print "pnor_data_dir = $pnor_data_dir\n";
+ 
+ my $build_pnor_command = "$hb_image_dir/buildpnor.pl";
+-$build_pnor_command .= " --pnorOutBin $pnor_filename --pnorLayout $xml_layout_file";
++$build_pnor_command .= " --pnorOutBin $pnor_filename --pnorLayout $xml_layout_file --editedLayoutLocation $scratch_dir";
+ 
+ # Process HBD section and possibly HBD_RW section
+ if (checkForPnorPartition("HBD_RW", $parsed_pnor_layout))
+@@ -229,7 +229,8 @@ if ($release eq "p8"){
+ }
+ $build_pnor_command .= " --fpartCmd \"fpart\"";
+ $build_pnor_command .= " --fcpCmd \"fcp\"";
+-print "###############################";
++
++print "Running command build_pnor_command \n";
+ run_command("$build_pnor_command");
+ 
+ #END MAIN
+diff --git a/update_image.pl b/update_image.pl
+index 2df38e5..d636fef 100755
+--- a/update_image.pl
++++ b/update_image.pl
+@@ -410,7 +410,7 @@ sub processConvergedSections {
+             print "WARNING: OCMBFW binary not found, generating blank binary (w/ valid header) instead\n";
+             #Create blank 4k image
+             run_command("dd if=/dev/zero of=$ocmbfw_original_filename bs=1024 count=4");
+-        
++
+             #Add header to blank image
+             my $date = `date`;
+             run_command("$hb_image_dir/pkgOcmbFw.pl --unpackagedBin $ocmbfw_original_filename --packagedBin $ocmbfw_original_filename.header --timestamp \"$date\" --vendorVersion \"$ocmbfw_version\" --vendorUrl \"$ocmbfw_url\"");
+@@ -493,7 +493,8 @@ sub processConvergedSections {
+                       . "--systemBinFiles $system_bin_files "
+                       . "--pnorLayout $pnor_layout "
+                       . "$securebootArg $keyTransitionArg $signModeArg "
+-                      . "--hwKeyHashFile $hb_image_dir/imprintHwKeyHash";
++                      . "--hwKeyHashFile $hb_image_dir/imprintHwKeyHash "
++                      . "--editedLayoutLocation $scratch_dir ";
+ 
+         # Print context not visible in the actual command
+         if($debug)
+-- 
+1.8.2.2
+
