@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Hari Bathini <hbathini@linux.ibm.com>
 Date: Wed, 9 Oct 2019 10:45:26 +0530
-Subject: [PATCH 3/6] powerpc/fadump: improve how crashed kernel's memory is
+Subject: [PATCH 3/7] powerpc/fadump: improve how crashed kernel's memory is
  reserved
 
 The size parameter to fadump_reserve_crash_area() function is not needed
