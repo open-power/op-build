@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: James Smart <jsmart2021@gmail.com>
 Date: Wed, 14 Aug 2019 16:56:43 -0700
-Subject: [PATCH 6/7] scsi: lpfc: Fix oops when fewer hdwqs than cpus
+Subject: [PATCH 6/8] scsi: lpfc: Fix oops when fewer hdwqs than cpus
 
 When tearing down the adapter for a reset, online/offline, or driver
 unload, the queue free routine would hit a GPF oops.  This only occurs on
