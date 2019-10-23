@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Hari Bathini <hbathini@linux.ibm.com>
 Date: Wed, 9 Oct 2019 10:45:34 +0530
-Subject: [PATCH 4/7] powerpc/fadump: add support to preserve crash data on
+Subject: [PATCH 4/8] powerpc/fadump: add support to preserve crash data on
  FADUMP disabled kernel
 
 Add a new kernel config option, CONFIG_PRESERVE_FA_DUMP that ensures
