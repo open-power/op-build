@@ -1,0 +1,48 @@
+#!/bin/bash
+# Witherspoon-specific firmware whitelist file
+
+# Scan the /lib/firmware directory of the target and delete any firmware
+# binaries that are not in our whitelist
+
+# A whitelist of entire directories or specific binary files. The trailing
+# slash is required.
+whitelist=(     'acenic/'
+                'bnx2/'
+                'bnx2x/bnx2x-e2-7.13.11.0.fw'
+                'cxgb4/t4fw-1.16.63.0.bin'
+                'cxgb4/t4fw.bin'
+                'cxgb3/'
+                'qed/qed_init_values_zipped-8.37.2.0.bin'
+                'ql2500_fw.bin'
+                'radeon/BTC_rlc.bin'
+                'radeon/CAICOS_mc.bin'
+                'radeon/CAICOS_me.bin'
+                'radeon/CAICOS_pfp.bin'
+                'radeon/CAICOS_smc.bin'
+                'radeon/SUMO_uvd.bin')
+
+if [ -z "${TARGET_DIR}" ] ; then
+        echo "TARGET_DIR not defined, setting to $1"
+        TARGET_DIR=$1
+fi
+
+files=$(find ${TARGET_DIR}/lib/firmware/*)
+for file in ${files};
+do
+        if [ -d  $file ] ; then
+                continue
+        fi
+
+        found=0
+        for item in ${whitelist[@]};
+        do
+                if [ "${file/${item}}" != "${file}" ] ; then
+                        found=1
+                        break
+                fi
+        done
+
+        if [ "${found}" -ne "1" ] ; then
+                rm -v ${file}
+        fi
+done
