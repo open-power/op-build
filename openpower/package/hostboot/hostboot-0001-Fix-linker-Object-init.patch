@@ -1,0 +1,48 @@
+From 065f6c39d63d1de2f99315461beaad9abb547f75 Mon Sep 17 00:00:00 2001
+From: Corey Swenson <cswenson@us.ibm.com>
+Date: Sun, 27 Oct 2019 21:28:37 -0500
+Subject: [PATCH] Fix linker Object init
+
+Builds on Ubuntu are failing with hbibl.bin size error.
+Traced back to linker struct Object constructor missing
+the init of sfpr section.
+
+Change-Id: I9ad7ab90f02d403dc0237831736cc615e73738e6
+---
+ src/build/linker/linker.C | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/build/linker/linker.C b/src/build/linker/linker.C
+index ba498d8..6a8854d 100644
+--- a/src/build/linker/linker.C
++++ b/src/build/linker/linker.C
+@@ -112,6 +112,8 @@ struct Section
+     size_t size;
+ 
+     bfd_byte* data;
++
++    Section() : name(""), vma_offset(0), size(0), data(NULL) {}
+ };
+ 
+ /**
+@@ -204,7 +206,7 @@ struct Object
+         /**
+          * CTOR default
+          */
+-        Object() : image(NULL), text(), rodata(), data(), offset(0),
++        Object() : image(NULL), text(), rodata(), data(), sfpr(), offset(0),
+                    base_addr(0), iv_output(NULL), tls_module(-1) {}
+ 
+ 
+@@ -214,7 +216,7 @@ struct Object
+          * @param[in] i_out : output FILE handle
+          */
+         Object(unsigned long i_baseAddr, FILE* i_out)
+-            : image(NULL), text(), rodata(), data(), offset(0),
++            : image(NULL), text(), rodata(), data(), sfpr(), offset(0),
+               base_addr(i_baseAddr), iv_output(i_out), tls_module(-1) {}
+ };
+ 
+-- 
+1.8.2.2
+
