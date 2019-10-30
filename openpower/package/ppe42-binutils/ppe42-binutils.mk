@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PPE42_BINUTILS_VERSION ?= ded0eff199fa1d9bd8be5a78935e8f023a2c5fad
+PPE42_BINUTILS_VERSION ?= c615a89c5beb032cbb00bf0c3e670319b2bbd4f5
 PPE42_BINUTILS_SITE ?= $(call github,open-power,ppe42-binutils,$(PPE42_BINUTILS_VERSION))
 PPE42_BINUTILS_LICENSE = GPLv3+
 
