@@ -8,8 +8,7 @@ OCC_P10_VERSION = $(call qstrip,$(BR2_OCC_P10_VERSION))
 # TODO: WORKAROUND: Need to reenable next line and comment out the two lines
 # after that, when code is propagated to a public repo
 #OCC_P10_SITE ?= $(call github,open-power,occ,$(OCC_P10_VERSION))
-OCC_P10_SITE = git@github.ibm.com:open-power/occ.git
-OCC_P10_SITE_METHOD=git
+OCC_P10_SITE ?= git@github.ibm.com:open-power/occ.git
 
 OCC_P10_LICENSE = Apache-2.0
 
