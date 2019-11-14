@@ -9,6 +9,7 @@ SBE_P10_VERSION = $(call qstrip,$(BR2_SBE_P10_VERSION))
 # after that, when code is propagated to a public repo
 #SBE_P10_SITE ?= $(call github,open-power,sbe,$(SBE_P10_VERSION))
 SBE_P10_SITE ?= git@github.ibm.com:open-power/sbe.git
+SBE_P10_SITE_METHOD ?= git
 
 SBE_P10_LICENSE = Apache-2.0
 SBE_P10_DEPENDENCIES = host-ppe42-gcc hcode-p10
