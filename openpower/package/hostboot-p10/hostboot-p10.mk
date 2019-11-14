@@ -31,7 +31,7 @@ define HOSTBOOT_P10_BUILD_CMDS
 endef
 
 define HOSTBOOT_P10_INSTALL_IMAGES_CMDS
-        cd $(@D) && source ./env.bash && $(@D)/src/build/tools/hbDistribute --openpower $(STAGING_DIR)/hostboot_build_images/
+        cd $(@D) && $(HOSTBOOT_P10_ENV_VARS) source ./env.bash && $(@D)/src/build/tools/hbDistribute --openpower $(STAGING_DIR)/hostboot_build_images/
 endef
 
 $(eval $(generic-package))
