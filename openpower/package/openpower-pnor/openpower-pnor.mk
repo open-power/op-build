@@ -185,6 +185,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         if [ "$(BR2_BUILD_PNOR_SQUASHFS)" == "y" ]; then \
             PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
+            cd $(STAGING_DIR)/pnor/; PATH=$(HOST_DIR)/usr/sbin:$(PATH) $(HOST_DIR)/usr/bin/generate-ubi $(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar; \
+            $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).ubi.mtd $(BINARIES_DIR); \
         else \
             PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i static -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(BINARIES_DIR); \
