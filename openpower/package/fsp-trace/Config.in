@@ -1,0 +1,31 @@
+config BR2_PACKAGE_FSP_TRACE
+        bool "fsp_trace"
+        default y if (BR2_OPENPOWER_PLATFORM)
+        help
+            Project to build fsp-trace tool
+
+if BR2_PACKAGE_FSP_TRACE
+
+choice
+	prompt "FSP-Trace version"
+	default BR2_FSP_TRACE_LATEST_VERSION
+
+config BR2_FSP_TRACE_LATEST_VERSION
+	bool "Use latest FSP_TRACE master"
+
+config BR2_FSP_TRACE_CUSTOM_VERSION
+	bool "Custom FSP_TRACE version"
+
+endchoice
+
+config BR2_FSP_TRACE_CUSTOM_VERSION_VALUE
+	string "FSP_TRACE version"
+	depends on BR2_FSP_TRACE_CUSTOM_VERSION
+
+config BR2_FSP_TRACE_VERSION
+	string
+	default "cf0bd9b36c0d8cb091a471973493d1370330c7d1" if BR2_FSP_TRACE_LATEST_VERSION
+	default BR2_FSP_TRACE_CUSTOM_VERSION_VALUE \
+		if BR2_FSP_TRACE_CUSTOM_VERSION
+
+endif
