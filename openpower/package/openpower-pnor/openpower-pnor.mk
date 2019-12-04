@@ -74,6 +74,7 @@ OPENPOWER_MRW_SCRATCH_DIR = $(STAGING_DIR)/openpower_mrw_scratch
 OUTPUT_BUILD_DIR = $(STAGING_DIR)/../../../build/
 OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
+FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
@@ -81,6 +82,7 @@ FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/.config \
                $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/vmlinux \
                $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/System.map \
+	       $(FSP_TRACE_IMAGES_DIR)/fsp-trace \
                $(OUTPUT_IMAGES_DIR)/zImage.epapr
 
 
