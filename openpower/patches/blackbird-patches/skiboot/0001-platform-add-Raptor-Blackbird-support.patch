@@ -1,4 +1,4 @@
-From 376bed3fbe902138b92e95d9da58bb5e1509072e Mon Sep 17 00:00:00 2001
+From 2a4f8f6f67d1e0748bd20b4f721607ce7855ad30 Mon Sep 17 00:00:00 2001
 From: Stewart Smith <stewart@flamingspork.com>
 Date: Sun, 8 Dec 2019 19:06:25 -0800
 Subject: [PATCH] platform: add Raptor Blackbird support
@@ -6,19 +6,16 @@ Subject: [PATCH] platform: add Raptor Blackbird support
 Based off the Raptor patch:
 https://git.raptorcs.com/git/blackbird-skiboot/commit/?id=c81f9d66592dc2a7cf7f6c59c3def5cee0638c1f
 
-Notable changes are slot names matching what's silkscreened on the board.
-See https://i1.wp.com/www.flamingspork.com/blog/wp-content/uploads/2019/12/IMG_4006-scaled.jpg
-for a photo of the actual board.
-
-I haven't included the port 80h bit as I haven't worked out how to probe that from the BMC to test.
-
-Boot tested, seems good.
+Notable changes:
+- slot names matching what's silkscreened on the board
+- We communicate with the IPL observer
+  - Including indicating IPL is done, which makes fan control kick in.
 
 Signed-off-by: Stewart Smith <stewart@flamingspork.com>
 ---
  platforms/astbmc/Makefile.inc |  3 +-
- platforms/astbmc/blackbird.c  | 66 +++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+), 1 deletion(-)
+ platforms/astbmc/blackbird.c  | 77 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 79 insertions(+), 1 deletion(-)
  create mode 100644 platforms/astbmc/blackbird.c
 
 diff --git a/platforms/astbmc/Makefile.inc b/platforms/astbmc/Makefile.inc
@@ -37,10 +34,10 @@ index fd4eaeac..e0f8760d 100644
  $(ASTBMC): $(ASTBMC_OBJS:%=$(PLATDIR)/astbmc/%)
 diff --git a/platforms/astbmc/blackbird.c b/platforms/astbmc/blackbird.c
 new file mode 100644
-index 00000000..8817b8c5
+index 00000000..2d12c63c
 --- /dev/null
 +++ b/platforms/astbmc/blackbird.c
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,77 @@
 +// SPDX-License-Identifier: Apache-2.0
 +/* Copyright 2017 IBM Corp.
 + * Copyright 2018-2019 Raptor Engineering, LLC
@@ -53,6 +50,7 @@ index 00000000..8817b8c5
 +#include <chip.h>
 +#include <ipmi.h>
 +#include <psi.h>
++#include <lpc.h>
 +
 +#include "astbmc.h"
 +
@@ -92,6 +90,15 @@ index 00000000..8817b8c5
 +	return true;
 +}
 +
++static void blackbird_exit(void)
++{
++	/* Let the IPL Observer know that we're done */
++	lpc_probe_write(OPAL_LPC_IO, 0x81, 0xfe, 1);
++	lpc_probe_write(OPAL_LPC_IO, 0x82, 0xfe, 1);
++
++	astbmc_exit();
++}
++
 +DECLARE_PLATFORM(blackbird) = {
 +	.name			= "Blackbird",
 +	.probe			= blackbird_probe,
@@ -104,8 +111,9 @@ index 00000000..8817b8c5
 +	.cec_power_down         = astbmc_ipmi_power_down,
 +	.cec_reboot             = astbmc_ipmi_reboot,
 +	.elog_commit		= ipmi_elog_commit,
-+	.exit			= astbmc_exit,
++	.exit			= blackbird_exit,
 +	.terminate		= ipmi_terminate,
++	.op_display		= op_display_lpc,
 +};
 -- 
 2.23.0
