@@ -1,0 +1,43 @@
+From c2e38f9b90820fd4e1fbe45d9a69e5ad2c8dca47 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@flamingspork.com>
+Date: Tue, 7 Apr 2020 21:34:14 -0700
+Subject: [PATCH] memd_creation.pl: glob on *.rvpd to allow README in
+ memd_binaries
+
+Latest blackbird-xml from Raptor has memd_binaries/README which
+the glob of * would grab and try and parse.
+
+So, don't try and treat it as a MEMD file.
+
+Signed-off-by: Stewart Smith <stewart@flamingspork.com>
+---
+ src/build/buildpnor/memd_creation.pl | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/build/buildpnor/memd_creation.pl b/src/build/buildpnor/memd_creation.pl
+index c4f551b03..ee58d206a 100755
+--- a/src/build/buildpnor/memd_creation.pl
++++ b/src/build/buildpnor/memd_creation.pl
+@@ -6,8 +6,9 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2017,2018
++# Contributors Listed Below - COPYRIGHT 2017,2020
+ # [+] International Business Machines Corp.
++# [+] Stewart Smith
+ #
+ #
+ # Licensed under the Apache License, Version 2.0 (the "License");
+@@ -66,7 +67,7 @@ pod2usage(-verbose => 2) if $man;
+ if($memd_dir)
+ {
+     print "Reading files from $memd_dir\n";
+-    @memd_files = glob($memd_dir . '/*');
++    @memd_files = glob($memd_dir . '/*.rvpd');
+ }
+ elsif(@memd_files)
+ {
+-- 
+2.25.2
+
