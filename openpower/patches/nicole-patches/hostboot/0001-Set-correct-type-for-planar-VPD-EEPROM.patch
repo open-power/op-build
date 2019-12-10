@@ -1,0 +1,58 @@
+From a460e050d01399d0b6ef01a5a4b770cd1e2f8aff Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Tue, 10 Dec 2019 18:49:49 +0300
+Subject: [PATCH] Set correct type for planar VPD EEPROM
+
+Nicole platform has 32KiB EEPROM (planar VPD), connected to Proc 0,
+Engine 2, Port 0, Address 0x50.
+
+To read/write the VPD on a host, it is required to have the correct
+"compatible" property in the Linux kernel device tree.
+This property is populated by Skiboot and its value is based on the
+I2C device type from HDAT structures of Hostboot.
+
+The current Hostboot implementation sets the type for all EEPROMs to
+HDAT_I2C_DEVICE_TYPE_SEEPROM regardless of the I2C_TYPE attribute in
+a machine xml.
+As a result, the Linux kernel loads the "atmel,24c128" driver for
+these EEPROMs, which limits their size to 16KiB.
+
+This patch forces Hostboot to set the I2C type of planar VPD's EEPROM
+to "atmel,24c256" (32KiB).
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ src/usr/i2c/i2c.C | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/src/usr/i2c/i2c.C b/src/usr/i2c/i2c.C
+index 226b96acf..8fbc5a6a0 100755
+--- a/src/usr/i2c/i2c.C
++++ b/src/usr/i2c/i2c.C
+@@ -5443,8 +5443,21 @@ void getDeviceInfo( TARGETING::Target* i_i2cMaster,
+                 l_currentDI.slavePort = 0xFF;
+                 l_currentDI.busFreqKhz = (l_eep->busFreq)
+                     / FREQ_CONVERSION::HZ_PER_KHZ;
+-                l_currentDI.deviceType =
+-                    TARGETING::HDAT_I2C_DEVICE_TYPE_SEEPROM;
++
++                // Nicole platform has 32KiB EEPROM (PLANAR VPD),
++                // connected to Proc 0, Engine 2, Port 0, Address 0x50.
++                if (TARGETING::get_huid(l_eep->i2cMaster) == 0x50000 &&
++                    l_currentDI.engine == 2 &&
++                    l_currentDI.masterPort == 0 &&
++                    l_currentDI.addr == (0x50 << 1))
++                {
++                    l_currentDI.deviceType = TARGETING::HDAT_I2C_DEVICE_TYPE_SEEPROM_Atmel28c256;
++                }
++                else
++                {
++                    l_currentDI.deviceType = TARGETING::HDAT_I2C_DEVICE_TYPE_SEEPROM;
++                }
++
+                 switch(l_eep->device)
+                 {
+                     case EEPROM::VPD_PRIMARY:
+-- 
+2.24.0
+
