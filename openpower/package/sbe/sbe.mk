@@ -22,7 +22,7 @@ endef
 
 define SBE_INSTALL_IMAGES_CMDS
 	$(INSTALL) -D $(@D)/images/p9_ipl_build  $(HOST_DIR)/usr/bin/
-	python $(@D)/src/build/sbeOpDistribute.py --sbe_binary_dir=$(STAGING_DIR)/sbe_binaries --img_dir=$(@D)/images --sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME)
+	$(@D)/src/build/sbeOpDistribute.py --sbe_binary_dir=$(STAGING_DIR)/sbe_binaries --img_dir=$(@D)/images --sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME)
 	cp $(@D)/src/build/sbeOpDistribute.py $(STAGING_DIR)/sbe_binaries/
 endef
 

@@ -1,0 +1,256 @@
+From 702497438bcf387d77a1460181ff2e5fc0817b7b Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@flamingspork.com>
+Date: Fri, 13 Dec 2019 00:48:28 -0800
+Subject: [PATCH] Force Python2 for scripts
+
+Signed-off-by: Stewart Smith <stewart@flamingspork.com>
+---
+ src/boot/sbeCompression.py                   | 2 +-
+ src/build/Makefile                           | 4 ++--
+ src/build/buildInfo.py                       | 2 +-
+ src/build/parsAndCutElf.py                   | 2 +-
+ src/build/sbeOpDistribute.py                 | 1 +
+ src/build/security/securityRegListGen.py     | 1 +
+ src/build/updateBuildTag.py                  | 2 +-
+ src/test/testcases/testExecutorCntrlTimer.py | 2 +-
+ src/test/testcases/testExecutorMemory.py     | 2 +-
+ src/test/testcases/testExecutorPSU.py        | 2 +-
+ src/test/testcases/testExecutorPutRing.py    | 2 +-
+ src/test/testcases/testExecutorStopTimer.py  | 2 +-
+ src/test/testcases/testPSUSetFFDCAddr.py     | 2 +-
+ src/test/testcases/testPSUUserUtil.py        | 2 +-
+ src/test/testcases/testPSUUtil.py            | 2 +-
+ src/test/testcases/testRegistry.py           | 2 +-
+ src/tools/debug/sbe-debug.py                 | 2 +-
+ src/tools/utils/CommitSbeImageToCMVC.py      | 2 +-
+ src/tools/utils/sbeCmvcUtility.py            | 2 +-
+ src/tools/utils/sbePatchUtility.py           | 2 +-
+ src/tools/utils/sbePrime.py                  | 2 +-
+ 21 files changed, 22 insertions(+), 20 deletions(-)
+ mode change 100644 => 100755 src/build/security/securityRegListGen.py
+
+diff --git a/src/boot/sbeCompression.py b/src/boot/sbeCompression.py
+index 74988e26..9cf69611 100755
+--- a/src/boot/sbeCompression.py
++++ b/src/boot/sbeCompression.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/build/Makefile b/src/build/Makefile
+index ea5d620d..0fbb6fbb 100644
+--- a/src/build/Makefile
++++ b/src/build/Makefile
+@@ -244,7 +244,7 @@ report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
+ 
+ # Create build Info file
+ buildInfo:
+-	python buildInfo.py $(GENFILES_DIR)
++	./buildInfo.py $(GENFILES_DIR)
+ 
+ buildtag:
+ 	./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_NAME)
+@@ -321,7 +321,7 @@ ppe_trace_bin:
+ 
+ # generate whitelist and blacklist security algorithm
+ security: $(OBJDIR)
+-	python $(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
++	$(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
+ 
+ # Build hwp_error_info.H.  If the script fails then print the contents of
+ # the header and then delete whatever garbage the script left to force it to
+diff --git a/src/build/buildInfo.py b/src/build/buildInfo.py
+index e71d287c..3698c68b 100755
+--- a/src/build/buildInfo.py
++++ b/src/build/buildInfo.py
+@@ -1,4 +1,4 @@
+-#! /usr/bin/python
++#! /usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/build/parsAndCutElf.py b/src/build/parsAndCutElf.py
+index 2413f4c5..f89e5809 100755
+--- a/src/build/parsAndCutElf.py
++++ b/src/build/parsAndCutElf.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/build/sbeOpDistribute.py b/src/build/sbeOpDistribute.py
+index 98024205..b4840b63 100755
+--- a/src/build/sbeOpDistribute.py
++++ b/src/build/sbeOpDistribute.py
+@@ -1,3 +1,4 @@
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/build/security/securityRegListGen.py b/src/build/security/securityRegListGen.py
+old mode 100644
+new mode 100755
+index 4703c9be..774d5a8e
+--- a/src/build/security/securityRegListGen.py
++++ b/src/build/security/securityRegListGen.py
+@@ -1,3 +1,4 @@
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/build/updateBuildTag.py b/src/build/updateBuildTag.py
+index 6a49c8ce..84c21a28 100755
+--- a/src/build/updateBuildTag.py
++++ b/src/build/updateBuildTag.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testExecutorCntrlTimer.py b/src/test/testcases/testExecutorCntrlTimer.py
+index 96e6809d..bf6efeea 100644
+--- a/src/test/testcases/testExecutorCntrlTimer.py
++++ b/src/test/testcases/testExecutorCntrlTimer.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testExecutorMemory.py b/src/test/testcases/testExecutorMemory.py
+index aec0375e..04b86fdc 100644
+--- a/src/test/testcases/testExecutorMemory.py
++++ b/src/test/testcases/testExecutorMemory.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testExecutorPSU.py b/src/test/testcases/testExecutorPSU.py
+index c01287b4..5dac382e 100644
+--- a/src/test/testcases/testExecutorPSU.py
++++ b/src/test/testcases/testExecutorPSU.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testExecutorPutRing.py b/src/test/testcases/testExecutorPutRing.py
+index 4585d7f5..bcfae70d 100644
+--- a/src/test/testcases/testExecutorPutRing.py
++++ b/src/test/testcases/testExecutorPutRing.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testExecutorStopTimer.py b/src/test/testcases/testExecutorStopTimer.py
+index 1cc62053..cb8d8f8d 100644
+--- a/src/test/testcases/testExecutorStopTimer.py
++++ b/src/test/testcases/testExecutorStopTimer.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testPSUSetFFDCAddr.py b/src/test/testcases/testPSUSetFFDCAddr.py
+index 5e64c6c6..55c097e8 100644
+--- a/src/test/testcases/testPSUSetFFDCAddr.py
++++ b/src/test/testcases/testPSUSetFFDCAddr.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testPSUUserUtil.py b/src/test/testcases/testPSUUserUtil.py
+index d6eac4af..12d73277 100644
+--- a/src/test/testcases/testPSUUserUtil.py
++++ b/src/test/testcases/testPSUUserUtil.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testPSUUtil.py b/src/test/testcases/testPSUUtil.py
+index 0255b38f..cf469c5f 100644
+--- a/src/test/testcases/testPSUUtil.py
++++ b/src/test/testcases/testPSUUtil.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/test/testcases/testRegistry.py b/src/test/testcases/testRegistry.py
+index f0a481ce..aa3d2586 100644
+--- a/src/test/testcases/testRegistry.py
++++ b/src/test/testcases/testRegistry.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/tools/debug/sbe-debug.py b/src/tools/debug/sbe-debug.py
+index 5d53b408..da0cd494 100755
+--- a/src/tools/debug/sbe-debug.py
++++ b/src/tools/debug/sbe-debug.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/tools/utils/CommitSbeImageToCMVC.py b/src/tools/utils/CommitSbeImageToCMVC.py
+index c177e72f..9ff4fbd7 100755
+--- a/src/tools/utils/CommitSbeImageToCMVC.py
++++ b/src/tools/utils/CommitSbeImageToCMVC.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/tools/utils/sbeCmvcUtility.py b/src/tools/utils/sbeCmvcUtility.py
+index 405503e2..eae1572a 100755
+--- a/src/tools/utils/sbeCmvcUtility.py
++++ b/src/tools/utils/sbeCmvcUtility.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/tools/utils/sbePatchUtility.py b/src/tools/utils/sbePatchUtility.py
+index bbb6d883..d72ba79f 100644
+--- a/src/tools/utils/sbePatchUtility.py
++++ b/src/tools/utils/sbePatchUtility.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+diff --git a/src/tools/utils/sbePrime.py b/src/tools/utils/sbePrime.py
+index 8f522bda..3ea96eae 100755
+--- a/src/tools/utils/sbePrime.py
++++ b/src/tools/utils/sbePrime.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+-- 
+2.23.0
+

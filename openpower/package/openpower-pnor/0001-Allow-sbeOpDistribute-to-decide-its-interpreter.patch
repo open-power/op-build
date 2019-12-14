@@ -1,0 +1,26 @@
+From 052e1bb0a65be6b948cc6cf0790eadee57fdad7c Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@flamingspork.com>
+Date: Fri, 13 Dec 2019 08:17:24 -0800
+Subject: [PATCH] Allow sbeOpDistribute to decide its interpreter
+
+Signed-off-by: Stewart Smith <stewart@flamingspork.com>
+---
+ update_image.pl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/update_image.pl b/update_image.pl
+index d636fef..09d9594 100755
+--- a/update_image.pl
++++ b/update_image.pl
+@@ -278,7 +278,7 @@ if ($release eq "p9") {
+ if ($release eq "p9") {
+     my $hw_ref_image = $wink_binary_filename;
+     $hw_ref_image =~ s/.hdr.bin.ecc//;
+-    run_command("python $sbe_binary_dir/sbeOpDistribute.py --install --buildSbePart $hb_image_dir/buildSbePart.pl --hw_ref_image $hcode_dir/$hw_ref_image.bin --sbe_binary_filename $sbe_binary_filename --scratch_dir $scratch_dir --sbe_binary_dir $sbe_binary_dir");
++    run_command("$sbe_binary_dir/sbeOpDistribute.py --install --buildSbePart $hb_image_dir/buildSbePart.pl --hw_ref_image $hcode_dir/$hw_ref_image.bin --sbe_binary_filename $sbe_binary_filename --scratch_dir $scratch_dir --sbe_binary_dir $sbe_binary_dir");
+ }
+ else {
+     run_command("cp $hb_binary_dir/$sbe_binary_filename $scratch_dir/");
+-- 
+2.23.0
+
