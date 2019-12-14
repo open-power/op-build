@@ -1,0 +1,26 @@
+From 006b374298a5dde68022094c17d7088994c135f1 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@flamingspork.com>
+Date: Sat, 14 Dec 2019 11:13:11 -0800
+Subject: [PATCH 2/2] Release OpenPower kernel
+
+Signed-off-by: Stewart Smith <stewart@flamingspork.com>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 07998b60d56c..e5f121f1980f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -2,7 +2,7 @@
+ VERSION = 5
+ PATCHLEVEL = 4
+ SUBLEVEL = 3
+-EXTRAVERSION =
++EXTRAVERSION = -openpower1
+ NAME = Kleptomaniac Octopus
+ 
+ # *DOCUMENTATION*
+-- 
+2.23.0
+
