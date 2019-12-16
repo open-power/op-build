@@ -4,8 +4,13 @@
 #
 ################################################################################
 
-LIBFLASH_VERSION = v6.5-61-g66ab3cbd
+ifeq ($(BR2_SKIBOOT_CUSTOM_GIT),y)
+LIBFLASH_SITE = $(call qstrip,$(BR2_SKIBOOT_CUSTOM_REPO_URL))
+LIBFLASH_SITE_METHOD = git
+else
+LIBFLASH_VERSION = $(call qstrip,$(BR2_SKIBOOT_VERSION))
 LIBFLASH_SITE = $(call github,open-power,skiboot,$(LIBFLASH_VERSION))
+endif
 
 LIBFLASH_INSTALL_STAGING = YES
 LIBFLASH_INSTALL_TARGET = YES
