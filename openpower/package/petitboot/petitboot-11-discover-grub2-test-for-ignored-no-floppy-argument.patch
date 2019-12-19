@@ -1,0 +1,41 @@
+From 919578c645428d925e052a3b52087f404dceb8bd Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Fri, 1 Nov 2019 07:18:08 +0800
+Subject: [PATCH 12/23] discover/grub2: test for (ignored) --no-floppy argument
+
+--no-floppy is used almost everywhere, so add it to the tests. The code
+will already ignore unknown arguments, but ensure that this works OK.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 76e97c5d9dab40236a589cd96a69967d3ef17cab)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ test/parser/test-grub2-search-args.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/test/parser/test-grub2-search-args.c b/test/parser/test-grub2-search-args.c
+index ffce853..0eb5762 100644
+--- a/test/parser/test-grub2-search-args.c
++++ b/test/parser/test-grub2-search-args.c
+@@ -9,8 +9,10 @@
+ search a
+ search --set=v1 b
+ search --set v2 c
++search --set=v3 --no-floppy d
++search --no-floppy --set=v4 e
+ 
+-menuentry $root$v1$v2 {
++menuentry $root$v1$v2$v3$v4 {
+     linux /vmlinux
+ }
+ 
+@@ -29,5 +31,5 @@ void run_test(struct parser_test *test)
+ 
+ 	check_boot_option_count(ctx, 1);
+ 	opt = get_boot_option(ctx, 0);
+-	check_name(opt, "abc");
++	check_name(opt, "abcde");
+ }
+-- 
+2.17.1
+

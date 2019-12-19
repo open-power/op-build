@@ -1,0 +1,245 @@
+From c8c71334ccb75e42c58bf8e4267910dd558761f1 Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Mon, 4 Nov 2019 14:58:01 +0800
+Subject: [PATCH 13/23] discover/grub2: Add support for UUID and label for
+ 'search' command
+
+This change adds support for searching by UUID and filesystem label.
+We still fall back to passthrough if the UUID is not found, but we now
+resolve to device ID strings.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 1580c6557d4e703348edb0dda83814f8972e9f3d)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/builtins.c             | 55 +++++++++++++++++++++++++--
+ test/parser/Makefile.am               |  2 +
+ test/parser/test-grub2-search-label.c | 47 +++++++++++++++++++++++
+ test/parser/test-grub2-search-uuid.c  | 55 +++++++++++++++++++++++++++
+ 4 files changed, 156 insertions(+), 3 deletions(-)
+ create mode 100644 test/parser/test-grub2-search-label.c
+ create mode 100644 test/parser/test-grub2-search-uuid.c
+
+diff --git a/discover/grub2/builtins.c b/discover/grub2/builtins.c
+index 720e3e9..9841648 100644
+--- a/discover/grub2/builtins.c
++++ b/discover/grub2/builtins.c
+@@ -115,6 +115,21 @@ static const struct option search_options[] = {
+ 		.has_arg = required_argument,
+ 		.val = 's',
+ 	},
++	{
++		.name = "file",
++		.has_arg = no_argument,
++		.val = 'f',
++	},
++	{
++		.name = "label",
++		.has_arg = no_argument,
++		.val = 'l',
++	},
++	{
++		.name = "fs-uuid",
++		.has_arg = no_argument,
++		.val = 'u',
++	},
+ 	{ 0 },
+ };
+ 
+@@ -122,13 +137,23 @@ static int builtin_search(struct grub2_script *script,
+ 		void *data __attribute__((unused)),
+ 		int argc, char *argv[])
+ {
+-	const char *env_var, *spec;
++	const char *env_var, *spec, *res;
++	struct discover_device *dev;
++	enum {
++		LOOKUP_UUID = 'u',
++		LOOKUP_LABEL = 'l',
++		LOOKUP_FILE = 'f',
++	} lookup_type;
+ 
+ 	env_var = "root";
+ 	optind = 0;
+ 
++	/* Default to UUID, for backwards compat with earlier petitboot
++	 * versions. This argument is non-optional in GRUB. */
++	lookup_type = LOOKUP_UUID;
++
+ 	for (;;) {
+-		int c = getopt_long(argc, argv, ":", search_options, NULL);
++		int c = getopt_long(argc, argv, ":flu", search_options, NULL);
+ 		if (c == -1)
+ 			break;
+ 
+@@ -136,6 +161,11 @@ static int builtin_search(struct grub2_script *script,
+ 		case 's':
+ 			env_var = optarg;
+ 			break;
++		case LOOKUP_UUID:
++		case LOOKUP_LABEL:
++		case LOOKUP_FILE:
++			lookup_type = c;
++			break;
+ 		case '?':
+ 		case ':':
+ 			break;
+@@ -149,8 +179,27 @@ static int builtin_search(struct grub2_script *script,
+ 		return -1;
+ 
+ 	spec = argv[optind];
++	res = NULL;
++
++	switch (lookup_type) {
++	case LOOKUP_UUID:
++		dev = device_lookup_by_uuid(script->ctx->handler,
++				spec);
++		res = dev ? dev->device->id : spec;
++		break;
++	case LOOKUP_LABEL:
++		dev = device_lookup_by_label(script->ctx->handler,
++				spec);
++		if (dev)
++			res = dev->device->id;
++		break;
++	case LOOKUP_FILE:
++		/* not yet implemented */
++		break;
++	}
+ 
+-	script_env_set(script, env_var, spec);
++	if (res)
++		script_env_set(script, env_var, res);
+ 
+ 	return 0;
+ }
+diff --git a/test/parser/Makefile.am b/test/parser/Makefile.am
+index 8e972cd..846ed5b 100644
+--- a/test/parser/Makefile.am
++++ b/test/parser/Makefile.am
+@@ -28,6 +28,8 @@ parser_TESTS = \
+ 	test/parser/test-grub2-single-line-if \
+ 	test/parser/test-grub2-pos-param \
+ 	test/parser/test-grub2-search-args \
++	test/parser/test-grub2-search-uuid \
++	test/parser/test-grub2-search-label \
+ 	test/parser/test-grub2-load-env \
+ 	test/parser/test-grub2-save-env \
+ 	test/parser/test-grub2-save-env-dash-f \
+diff --git a/test/parser/test-grub2-search-label.c b/test/parser/test-grub2-search-label.c
+new file mode 100644
+index 0000000..b9ee034
+--- /dev/null
++++ b/test/parser/test-grub2-search-label.c
+@@ -0,0 +1,47 @@
++/* check for grub2 search command, searching by partition label */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++# valid label
++search --set=v1 --label testlabel
++
++v2=prev
++# invalid label: does not alter v2
++search --set=v2 --label invalidlabel
++
++menuentry $v1 {
++    linux /vmlinux
++}
++
++menuentry $v2 {
++    linux /vmlinux
++}
++
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++	struct discover_device *dev;
++
++	ctx = test->ctx;
++
++	dev = test_create_device(test, "testdev");
++	dev->label = "testlabel";
++	device_handler_add_device(test->handler, dev);
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	check_boot_option_count(ctx, 2);
++
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, "testdev");
++
++	opt = get_boot_option(ctx, 1);
++	check_name(opt, "prev");
++}
+diff --git a/test/parser/test-grub2-search-uuid.c b/test/parser/test-grub2-search-uuid.c
+new file mode 100644
+index 0000000..7eacd1d
+--- /dev/null
++++ b/test/parser/test-grub2-search-uuid.c
+@@ -0,0 +1,55 @@
++/* check for grub2 search command, searching by FS UUID */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++# valid UUID
++search --set=v1 --fs-uuid ee0cc6fa-1dba-48f2-8f5b-19e4b8de8c37
++
++# invalid UUID: will fall back to passing the UUID through
++search --set=v2 --fs-uuid 92b0da57-6e04-4e54-960b-85e6bb060433
++
++# no 'type' argument defaults to UUID search
++search --set=v3 ee0cc6fa-1dba-48f2-8f5b-19e4b8de8c37
++
++menuentry $v1 {
++    linux /vmlinux
++}
++
++menuentry $v2 {
++    linux /vmlinux
++}
++
++menuentry $v3 {
++    linux /vmlinux
++}
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++	struct discover_device *dev;
++
++	ctx = test->ctx;
++
++	dev = test_create_device(test, "testdev");
++	dev->uuid = "ee0cc6fa-1dba-48f2-8f5b-19e4b8de8c37";
++	device_handler_add_device(test->handler, dev);
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	check_boot_option_count(ctx, 3);
++
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, dev->device->id);
++
++	opt = get_boot_option(ctx, 1);
++	check_name(opt, "92b0da57-6e04-4e54-960b-85e6bb060433");
++
++	opt = get_boot_option(ctx, 2);
++	check_name(opt, dev->device->id);
++}
+-- 
+2.17.1
+

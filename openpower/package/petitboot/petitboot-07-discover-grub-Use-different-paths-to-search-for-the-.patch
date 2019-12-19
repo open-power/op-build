@@ -1,0 +1,208 @@
+From af2b124573b071acfdf3cd2f50f32d708898ef17 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Tue, 12 Jun 2018 12:18:33 +0200
+Subject: [PATCH 08/23] discover/grub: Use different paths to search for the
+ BLS directory
+
+Currenlty the BLS fragments are only searched in the /loader/entries
+directory, but this assumes that there is a boot partition mounted
+in /boot. This may not always be the case, /boot may not be a mount
+point and just a directory inside the root partition.
+
+To cover this case, Petitboot tries to find a GRUB 2 config file in
+different paths. So let's do the same for the BLS files directory.
+
+Also change some of the unit tests to use /boot/loader/entries as a
+BLS directory instead of /loader/entries.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 6d06f0dbe1195cd8be7d3c54d02012ff16466d0c)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/blscfg.c                       | 22 ++++++++++++++++---
+ .../test-grub2-blscfg-default-filename.c      |  8 ++++---
+ test/parser/test-grub2-blscfg-default-index.c | 14 +++++++-----
+ test/parser/test-grub2-blscfg-default-title.c |  8 ++++---
+ test/parser/test-grub2-blscfg-multiple-bls.c  |  2 ++
+ test/parser/test-grub2-blscfg-opts-config.c   |  2 ++
+ test/parser/test-grub2-blscfg-opts-grubenv.c  |  2 ++
+ 7 files changed, 43 insertions(+), 15 deletions(-)
+
+diff --git a/discover/grub2/blscfg.c b/discover/grub2/blscfg.c
+index 7709324..8ab016b 100644
+--- a/discover/grub2/blscfg.c
++++ b/discover/grub2/blscfg.c
+@@ -15,7 +15,11 @@
+ #include "discover/parser-conf.h"
+ #include "discover/parser.h"
+ 
+-#define BLS_DIR "/loader/entries"
++static const char *const bls_dirs[] = {
++	"/loader/entries",
++	"/boot/loader/entries",
++	NULL
++};
+ 
+ struct bls_state {
+ 	struct discover_boot_option *opt;
+@@ -195,8 +199,10 @@ int builtin_blscfg(struct grub2_script *script,
+ 	struct conf_context *conf;
+ 	struct bls_state *state;
+ 	char *buf, *filename;
++	const char * const *dir;
+ 	const char *blsdir;
+ 	int n, len, rc = -1;
++	struct stat statbuf;
+ 
+ 	conf = talloc_zero(dc, struct conf_context);
+ 	if (!conf)
+@@ -209,7 +215,17 @@ int builtin_blscfg(struct grub2_script *script,
+ 
+ 	blsdir = script_env_get(script, "blsdir");
+ 	if (!blsdir)
+-		blsdir = BLS_DIR;
++		for (dir = bls_dirs; *dir; dir++)
++			if (!parser_stat_path(dc, dc->device, *dir, &statbuf)) {
++				blsdir = *dir;
++				break;
++			}
++
++	if (!blsdir) {
++		device_handler_status_dev_info(dc->handler, dc->device,
++					       _("BLS directory wasn't found"));
++		goto err;
++	}
+ 
+ 	n = parser_scandir(dc, blsdir, &bls_entries, bls_filter, bls_sort);
+ 	if (n <= 0)
+@@ -249,7 +265,7 @@ int builtin_blscfg(struct grub2_script *script,
+ 	if (n > 0) {
+ 		device_handler_status_dev_info(dc->handler, dc->device,
+ 					       _("Scanning %s failed"),
+-					       BLS_DIR);
++					       blsdir);
+ 		do {
+ 			free(bls_entries[n]);
+ 		} while (n-- > 0);
+diff --git a/test/parser/test-grub2-blscfg-default-filename.c b/test/parser/test-grub2-blscfg-default-filename.c
+index fb74059..80a0e22 100644
+--- a/test/parser/test-grub2-blscfg-default-filename.c
++++ b/test/parser/test-grub2-blscfg-default-filename.c
+@@ -10,11 +10,13 @@ void run_test(struct parser_test *test)
+ 	struct discover_boot_option *opt;
+ 	struct discover_context *ctx;
+ 
++	test_add_dir(test, test->ctx->device, "/boot/loader/entries");
++
+ 	test_add_file_string(test, test->ctx->device,
+-			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
++			     "/boot/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
+ 			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
+-			     "linux /vmlinuz-4.15.2-302.fc28.x86_64\n"
+-			     "initrd /initramfs-4.15.2-302.fc28.x86_64.img\n"
++			     "linux /boot/vmlinuz-4.15.2-302.fc28.x86_64\n"
++			     "initrd /boot/initramfs-4.15.2-302.fc28.x86_64.img\n"
+ 			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
+ 
+ 	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
+diff --git a/test/parser/test-grub2-blscfg-default-index.c b/test/parser/test-grub2-blscfg-default-index.c
+index 4ef3e2e..b792d86 100644
+--- a/test/parser/test-grub2-blscfg-default-index.c
++++ b/test/parser/test-grub2-blscfg-default-index.c
+@@ -17,18 +17,20 @@ void run_test(struct parser_test *test)
+ 	struct discover_boot_option *opt;
+ 	struct discover_context *ctx;
+ 
++	test_add_dir(test, test->ctx->device, "/boot/loader/entries");
++
+ 	test_add_file_string(test, test->ctx->device,
+-			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-300.fc28.x86_64.conf",
++			     "/boot/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-300.fc28.x86_64.conf",
+ 			     "title Fedora (4.15.2-300.fc28.x86_64) 28 (Twenty Eight)\n"
+-			     "linux /vmlinuz-4.15.2-300.fc28.x86_64\n"
+-			     "initrd /initramfs-4.15.2-300.fc28.x86_64.img\n"
++			     "linux /boot/vmlinuz-4.15.2-300.fc28.x86_64\n"
++			     "initrd /boot/initramfs-4.15.2-300.fc28.x86_64.img\n"
+ 			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n\n");
+ 
+ 	test_add_file_string(test, test->ctx->device,
+-			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.14.18-300.fc28.x86_64.conf",
++			     "/boot/loader/entries/6c063c8e48904f2684abde8eea303f41-4.14.18-300.fc28.x86_64.conf",
+ 			     "title Fedora (4.14.18-300.fc28.x86_64) 28 (Twenty Eight)\n"
+-			     "linux /vmlinuz-4.14.18-300.fc28.x86_64\n"
+-			     "initrd /initramfs-4.14.18-300.fc28.x86_64.img\n"
++			     "linux /boot/vmlinuz-4.14.18-300.fc28.x86_64\n"
++			     "initrd /boot/initramfs-4.14.18-300.fc28.x86_64.img\n"
+ 			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
+ 
+ 	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
+diff --git a/test/parser/test-grub2-blscfg-default-title.c b/test/parser/test-grub2-blscfg-default-title.c
+index 94acf80..778dcc0 100644
+--- a/test/parser/test-grub2-blscfg-default-title.c
++++ b/test/parser/test-grub2-blscfg-default-title.c
+@@ -11,6 +11,8 @@ void run_test(struct parser_test *test)
+ 	struct discover_boot_option *opt;
+ 	struct discover_context *ctx;
+ 
++	test_add_dir(test, test->ctx->device, "/boot/loader/entries");
++
+ 	test_add_file_string(test, test->ctx->device,
+ 			     "/boot/grub2/grubenv",
+ 			     "# GRUB Environment Block\n"
+@@ -18,10 +20,10 @@ void run_test(struct parser_test *test)
+ 			     "kernelopts=root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
+ 
+ 	test_add_file_string(test, test->ctx->device,
+-			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
++			     "/boot/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
+ 			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
+-			     "linux /vmlinuz-4.15.2-302.fc28.x86_64\n"
+-			     "initrd /initramfs-4.15.2-302.fc28.x86_64.img\n"
++			     "linux /boot/vmlinuz-4.15.2-302.fc28.x86_64\n"
++			     "initrd /boot/initramfs-4.15.2-302.fc28.x86_64.img\n"
+ 			     "options $kernelopts\n");
+ 
+ 	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
+diff --git a/test/parser/test-grub2-blscfg-multiple-bls.c b/test/parser/test-grub2-blscfg-multiple-bls.c
+index 8fd218c..94f40d1 100644
+--- a/test/parser/test-grub2-blscfg-multiple-bls.c
++++ b/test/parser/test-grub2-blscfg-multiple-bls.c
+@@ -9,6 +9,8 @@ void run_test(struct parser_test *test)
+ 	struct discover_boot_option *opt;
+ 	struct discover_context *ctx;
+ 
++	test_add_dir(test, test->ctx->device, "/loader/entries");
++
+ 	test_add_file_string(test, test->ctx->device,
+ 			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
+ 			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
+diff --git a/test/parser/test-grub2-blscfg-opts-config.c b/test/parser/test-grub2-blscfg-opts-config.c
+index 856aae2..fdce229 100644
+--- a/test/parser/test-grub2-blscfg-opts-config.c
++++ b/test/parser/test-grub2-blscfg-opts-config.c
+@@ -10,6 +10,8 @@ void run_test(struct parser_test *test)
+ 	struct discover_boot_option *opt;
+ 	struct discover_context *ctx;
+ 
++	test_add_dir(test, test->ctx->device, "/loader/entries");
++
+ 	test_add_file_string(test, test->ctx->device,
+ 			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
+ 			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
+diff --git a/test/parser/test-grub2-blscfg-opts-grubenv.c b/test/parser/test-grub2-blscfg-opts-grubenv.c
+index c77c589..544a5de 100644
+--- a/test/parser/test-grub2-blscfg-opts-grubenv.c
++++ b/test/parser/test-grub2-blscfg-opts-grubenv.c
+@@ -10,6 +10,8 @@ void run_test(struct parser_test *test)
+ 	struct discover_boot_option *opt;
+ 	struct discover_context *ctx;
+ 
++	test_add_dir(test, test->ctx->device, "/loader/entries");
++
+ 	test_add_file_string(test, test->ctx->device,
+ 			     "/boot/grub2/grubenv",
+ 			     "# GRUB Environment Block\n"
+-- 
+2.17.1
+

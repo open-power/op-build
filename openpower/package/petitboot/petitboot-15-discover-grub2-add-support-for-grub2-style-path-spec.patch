@@ -1,0 +1,340 @@
+From 46ffd51a477d374396e1fceac7b851693e03af5f Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Mon, 11 Nov 2019 17:10:30 +0800
+Subject: [PATCH 16/23] discover/grub2: add support for grub2-style path
+ specifiers in resources
+
+This change incorporates the grub2-style (device)/path specifiers in the
+grub2 parser's resource code. This allows the boot option paths to use
+device-specific references.
+
+Device names are looked-up using the UUID and kernel IDs, but with the
+lookup logic specific to a new function (grub2_lookup_device), so that
+can be extended in a future change.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 9fc2ac627df17ddc8e7c2735053aeb9e1252ff6e)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/blscfg.c          | 19 +++----
+ discover/grub2/builtins.c        | 15 ++----
+ discover/grub2/grub2.c           | 56 +++++++++++++++-----
+ discover/grub2/grub2.h           |  5 +-
+ test/parser/Makefile.am          |  1 +
+ test/parser/test-grub2-devpath.c | 88 ++++++++++++++++++++++++++++++++
+ 6 files changed, 147 insertions(+), 37 deletions(-)
+ create mode 100644 test/parser/test-grub2-devpath.c
+
+diff --git a/discover/grub2/blscfg.c b/discover/grub2/blscfg.c
+index bc3dc88..deb6429 100644
+--- a/discover/grub2/blscfg.c
++++ b/discover/grub2/blscfg.c
+@@ -166,7 +166,6 @@ static void bls_finish(struct conf_context *conf)
+ 	struct discover_context *dc = conf->dc;
+ 	struct discover_boot_option *opt = state->opt;
+ 	struct boot_option *option = opt->option;
+-	const char *root;
+ 	char *filename;
+ 
+ 	if (!state->image) {
+@@ -192,23 +191,21 @@ static void bls_finish(struct conf_context *conf)
+ 	else
+ 		option->name = talloc_strdup(option, state->image);
+ 
+-	root = script_env_get(state->script, "root");
+-
+-	opt->boot_image = create_grub2_resource(opt, conf->dc->device,
+-						root, state->image);
++	opt->boot_image = create_grub2_resource(state->script, opt,
++						state->image);
+ 
+ 	if (state->initrd)
+-		opt->initrd = create_grub2_resource(opt, conf->dc->device,
+-						    root, state->initrd);
++		opt->initrd = create_grub2_resource(state->script, opt,
++						    state->initrd);
+ 
+ 	if (state->dtb)
+-		opt->dtb = create_grub2_resource(opt, conf->dc->device,
+-						 root, state->dtb);
++		opt->dtb = create_grub2_resource(state->script, opt,
++						 state->dtb);
+ 
+ 	char* args_sigfile_default = talloc_asprintf(opt,
+ 		"%s.cmdline.sig", state->image);
+-	opt->args_sig_file = create_grub2_resource(opt, conf->dc->device,
+-						root, args_sigfile_default);
++	opt->args_sig_file = create_grub2_resource(state->script, opt,
++						args_sigfile_default);
+ 	talloc_free(args_sigfile_default);
+ 
+ 	option->is_default = option_is_default(state, option);
+diff --git a/discover/grub2/builtins.c b/discover/grub2/builtins.c
+index 9841648..ca13880 100644
+--- a/discover/grub2/builtins.c
++++ b/discover/grub2/builtins.c
+@@ -46,7 +46,6 @@ static int builtin_linux(struct grub2_script *script,
+ 		int argc, char *argv[])
+ {
+ 	struct discover_boot_option *opt = script->opt;
+-	const char *root;
+ 	int i;
+ 
+ 	if (!opt) {
+@@ -61,10 +60,7 @@ static int builtin_linux(struct grub2_script *script,
+ 		return -1;
+ 	}
+ 
+-	root = script_env_get(script, "root");
+-
+-	opt->boot_image = create_grub2_resource(opt, script->ctx->device,
+-						root, argv[1]);
++	opt->boot_image = create_grub2_resource(script, opt, argv[1]);
+ 	opt->option->boot_args = NULL;
+ 
+ 	if (argc > 2)
+@@ -77,8 +73,8 @@ static int builtin_linux(struct grub2_script *script,
+ 
+ 	char* args_sigfile_default = talloc_asprintf(opt,
+ 		"%s.cmdline.sig", argv[1]);
+-	opt->args_sig_file = create_grub2_resource(opt, script->ctx->device,
+-						root, args_sigfile_default);
++	opt->args_sig_file = create_grub2_resource(script, opt,
++						args_sigfile_default);
+ 	talloc_free(args_sigfile_default);
+ 	return 0;
+ }
+@@ -88,7 +84,6 @@ static int builtin_initrd(struct grub2_script *script,
+ 		int argc, char *argv[])
+ {
+ 	struct discover_boot_option *opt = script->opt;
+-	const char *root;
+ 
+ 	if (!opt) {
+ 		pb_log("grub2 syntax error: 'initrd' statement outside "
+@@ -102,9 +97,7 @@ static int builtin_initrd(struct grub2_script *script,
+ 		return -1;
+ 	}
+ 
+-	root = script_env_get(script, "root");
+-	opt->initrd = create_grub2_resource(opt, script->ctx->device,
+-						root, argv[1]);
++	opt->initrd = create_grub2_resource(script, opt, argv[1]);
+ 
+ 	return 0;
+ }
+diff --git a/discover/grub2/grub2.c b/discover/grub2/grub2.c
+index 3873720..a08a320 100644
+--- a/discover/grub2/grub2.c
++++ b/discover/grub2/grub2.c
+@@ -33,13 +33,35 @@ static const char *const grub2_conf_files[] = {
+ 	NULL
+ };
+ 
++static struct discover_device *grub2_lookup_device(
++		struct device_handler *handler, const char *desc)
++{
++	struct discover_device *dev;
++
++	if (!desc || !*desc)
++		return NULL;
++
++	dev = device_lookup_by_id(handler, desc);
++	if (dev)
++		return dev;
++
++	/* for now, only lookup by UUID */
++	dev = device_lookup_by_uuid(handler, desc);
++	if (dev)
++		return dev;
++
++	return NULL;
++}
++
+ /* we use slightly different resources for grub2 */
+-struct resource *create_grub2_resource(struct discover_boot_option *opt,
+-		struct discover_device *orig_device,
+-		const char *root, const char *path)
++struct resource *create_grub2_resource(struct grub2_script *script,
++		struct discover_boot_option *opt,
++		const char *path)
+ {
++	struct discover_device *dev;
+ 	struct grub2_file *file;
+ 	struct resource *res;
++	const char *root;
+ 
+ 	if (strstr(path, "://")) {
+ 		struct pb_url *url = pb_url_parse(opt, path);
+@@ -47,18 +69,29 @@ struct resource *create_grub2_resource(struct discover_boot_option *opt,
+ 			return create_url_resource(opt, url);
+ 	}
+ 
++	file = grub2_parse_file(script, path);
++	if (!file)
++		return NULL;
++
+ 	res = talloc(opt, struct resource);
++	root = script_env_get(script, "root");
+ 
+-	if (root) {
+-		file = talloc(res, struct grub2_file);
++	if (!file->dev && root && strlen(root))
+ 		file->dev = talloc_strdup(file, root);
+-		file->path = talloc_strdup(file, path);
+ 
+-		res->resolved = false;
+-		res->info = file;
++	/* if we don't have a device specified, or the lookup succeeds now,
++	 * then we can resolve the resource right away */
++	if (file->dev)
++		dev = grub2_lookup_device(script->ctx->handler, file->dev);
++	else
++		dev = script->ctx->device;
+ 
+-	} else
+-		resolve_resource_against_device(res, orig_device, path);
++	if (dev) {
++		resolve_resource_against_device(res, dev, file->path);
++	} else {
++		res->resolved = false;
++		res->info = talloc_steal(opt, file);
++	}
+ 
+ 	return res;
+ }
+@@ -71,8 +104,7 @@ bool resolve_grub2_resource(struct device_handler *handler,
+ 
+ 	assert(!res->resolved);
+ 
+-	dev = device_lookup_by_uuid(handler, file->dev);
+-
++	dev = grub2_lookup_device(handler, file->dev);
+ 	if (!dev)
+ 		return false;
+ 
+diff --git a/discover/grub2/grub2.h b/discover/grub2/grub2.h
+index 8c4839b..ef32d4b 100644
+--- a/discover/grub2/grub2.h
++++ b/discover/grub2/grub2.h
+@@ -191,9 +191,8 @@ void script_register_function(struct grub2_script *script,
+ void register_builtins(struct grub2_script *script);
+ 
+ /* resources */
+-struct resource *create_grub2_resource(struct discover_boot_option *opt,
+-		struct discover_device *orig_device,
+-		const char *root, const char *path);
++struct resource *create_grub2_resource(struct grub2_script *script,
++		struct discover_boot_option *opt, const char *path);
+ 
+ bool resolve_grub2_resource(struct device_handler *handler,
+ 		struct resource *res);
+diff --git a/test/parser/Makefile.am b/test/parser/Makefile.am
+index 846ed5b..7ddb01f 100644
+--- a/test/parser/Makefile.am
++++ b/test/parser/Makefile.am
+@@ -30,6 +30,7 @@ parser_TESTS = \
+ 	test/parser/test-grub2-search-args \
+ 	test/parser/test-grub2-search-uuid \
+ 	test/parser/test-grub2-search-label \
++	test/parser/test-grub2-devpath \
+ 	test/parser/test-grub2-load-env \
+ 	test/parser/test-grub2-save-env \
+ 	test/parser/test-grub2-save-env-dash-f \
+diff --git a/test/parser/test-grub2-devpath.c b/test/parser/test-grub2-devpath.c
+new file mode 100644
+index 0000000..d1d00f1
+--- /dev/null
++++ b/test/parser/test-grub2-devpath.c
+@@ -0,0 +1,88 @@
++/* check grub2 device+path string parsing */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++# local
++menuentry a {
++	linux /vmlinux
++}
++
++# local, specified by root env var
++root=00000000-0000-0000-0000-000000000001
++menuentry b {
++	linux /vmlinux
++}
++
++# remote, specified by root env var
++root=00000000-0000-0000-0000-000000000002
++menuentry c {
++	linux /vmlinux
++}
++
++# local, full dev+path spec
++menuentry d {
++	linux (00000000-0000-0000-0000-000000000001)/vmlinux
++}
++
++# remote, full dev+path spec
++menuentry e {
++	linux (00000000-0000-0000-0000-000000000002)/vmlinux
++}
++
++# invalid: incomplete dev+path spec
++menuentry f {
++	linux (00000000-0000-0000-0000-000000000001
++}
++
++# invalid: no path
++menuentry g {
++	linux (00000000-0000-0000-0000-000000000001)
++}
++
++
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_device *dev1, *dev2;
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	ctx = test->ctx;
++
++	/* set local uuid */
++	dev1 = test->ctx->device;
++	dev1->uuid = "00000000-0000-0000-0000-000000000001";
++
++	dev2 = test_create_device(test, "extdev");
++	dev2->uuid = "00000000-0000-0000-0000-000000000002";
++	device_handler_add_device(ctx->handler, dev2);
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	check_boot_option_count(ctx, 5);
++
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, "a");
++	check_resolved_local_resource(opt->boot_image, dev1, "/vmlinux");
++
++	opt = get_boot_option(ctx, 1);
++	check_name(opt, "b");
++	check_resolved_local_resource(opt->boot_image, dev1, "/vmlinux");
++
++	opt = get_boot_option(ctx, 2);
++	check_name(opt, "c");
++	check_resolved_local_resource(opt->boot_image, dev2, "/vmlinux");
++
++	opt = get_boot_option(ctx, 3);
++	check_name(opt, "d");
++	check_resolved_local_resource(opt->boot_image, dev1, "/vmlinux");
++
++	opt = get_boot_option(ctx, 4);
++	check_name(opt, "e");
++	check_resolved_local_resource(opt->boot_image, dev2, "/vmlinux");
++}
+-- 
+2.17.1
+

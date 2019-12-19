@@ -1,0 +1,156 @@
+From 3ba42b328a6074b950ed33e01e3ae09c982eedbf Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Tue, 17 Apr 2018 19:09:00 +0200
+Subject: [PATCH 06/23] discover/grub: Allow to set a default index for BLS
+ entries
+
+When the BLS support was added, the conclusion was that default indexes
+didn't apply for BLS snippets. But for GRUB 2 the indexes refers to the
+boot menu entries in memory, regardless of how these were generated.
+
+Since in GRUB 2 is valid to set a default index even for menu entries
+generated from BLS fragments, allow this to also be done in Petitboot.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit c41ffccdaf16b0820904c5dd2e5d7612bfbefc65)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/blscfg.c                       | 17 +++++--
+ test/parser/Makefile.am                       |  1 +
+ test/parser/test-grub2-blscfg-default-index.c | 45 +++++++++++++++++++
+ 3 files changed, 59 insertions(+), 4 deletions(-)
+ create mode 100644 test/parser/test-grub2-blscfg-default-index.c
+
+diff --git a/discover/grub2/blscfg.c b/discover/grub2/blscfg.c
+index 5fde217..2e60f5e 100644
+--- a/discover/grub2/blscfg.c
++++ b/discover/grub2/blscfg.c
+@@ -20,6 +20,7 @@
+ struct bls_state {
+ 	struct discover_boot_option *opt;
+ 	struct grub2_script *script;
++	unsigned int idx;
+ 	const char *filename;
+ 	const char *title;
+ 	const char *version;
+@@ -81,19 +82,25 @@ static void bls_process_pair(struct conf_context *conf, const char *name,
+ 	}
+ }
+ 
+-static bool option_is_default(struct grub2_script *script,
++static bool option_is_default(struct bls_state *state,
+ 			      struct boot_option *option)
+ {
++	unsigned int idx;
+ 	const char *var;
++	char *end;
+ 
+-	var = script_env_get(script, "default");
++	var = script_env_get(state->script, "default");
+ 	if (!var)
+ 		return false;
+ 
+ 	if (!strcmp(var, option->id))
+ 		return true;
+ 
+-	return !strcmp(var, option->name);
++	if (!strcmp(var, option->name))
++		return true;
++
++	idx = strtoul(var, &end, 10);
++	return end != var && *end == '\0' && idx == state->idx;
+ }
+ 
+ static void bls_finish(struct conf_context *conf)
+@@ -141,7 +148,7 @@ static void bls_finish(struct conf_context *conf)
+ 		opt->dtb = create_grub2_resource(opt, conf->dc->device,
+ 						 root, state->dtb);
+ 
+-	option->is_default = option_is_default(state->script, option);
++	option->is_default = option_is_default(state, option);
+ 
+ 	list_add_tail(&state->script->options, &opt->list);
+ 	state->script->n_options++;
+@@ -176,6 +183,7 @@ int builtin_blscfg(struct grub2_script *script,
+ 		int argc __attribute__((unused)),
+ 		char *argv[] __attribute__((unused)))
+ {
++	unsigned int current_idx = script->n_options;
+ 	struct discover_context *dc = script->ctx;
+ 	struct dirent **bls_entries;
+ 	struct conf_context *conf;
+@@ -217,6 +225,7 @@ int builtin_blscfg(struct grub2_script *script,
+ 
+ 		state->script = script;
+ 		state->filename = filename;
++		state->idx = current_idx++;
+ 		conf->parser_info = state;
+ 
+ 		rc = parser_request_file(dc, dc->device, filename, &buf, &len);
+diff --git a/test/parser/Makefile.am b/test/parser/Makefile.am
+index 15be09d..2fc19fa 100644
+--- a/test/parser/Makefile.am
++++ b/test/parser/Makefile.am
+@@ -41,6 +41,7 @@ parser_TESTS = \
+ 	test/parser/test-grub2-test-file-ops \
+ 	test/parser/test-grub2-single-yocto \
+ 	test/parser/test-grub2-blscfg-default-filename \
++	test/parser/test-grub2-blscfg-default-index \
+ 	test/parser/test-grub2-blscfg-default-title \
+ 	test/parser/test-grub2-blscfg-multiple-bls \
+ 	test/parser/test-grub2-blscfg-opts-config \
+diff --git a/test/parser/test-grub2-blscfg-default-index.c b/test/parser/test-grub2-blscfg-default-index.c
+new file mode 100644
+index 0000000..4ef3e2e
+--- /dev/null
++++ b/test/parser/test-grub2-blscfg-default-index.c
+@@ -0,0 +1,45 @@
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++set default=2
++menuentry 'title Fedora (4.15-9-304.fc28.x86_64) 28 (Twenty Eight)' {
++	linux   /vmlinuz-4.15-9-301.fc28.x86_64
++}
++
++menuentry 'title Fedora (4.15.6-300.fc28.x86_64) 28 (Twenty Eight)' {
++	linux   /vmlinuz-4.15.6-300.fc28.x86_64
++}
++blscfg
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-300.fc28.x86_64.conf",
++			     "title Fedora (4.15.2-300.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.15.2-300.fc28.x86_64\n"
++			     "initrd /initramfs-4.15.2-300.fc28.x86_64.img\n"
++			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n\n");
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.14.18-300.fc28.x86_64.conf",
++			     "title Fedora (4.14.18-300.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.14.18-300.fc28.x86_64\n"
++			     "initrd /initramfs-4.14.18-300.fc28.x86_64.img\n"
++			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	opt = get_boot_option(ctx, 2);
++
++	check_name(opt, "Fedora (4.15.2-300.fc28.x86_64) 28 (Twenty Eight)");
++
++	check_is_default(opt);
++}
+-- 
+2.17.1
+

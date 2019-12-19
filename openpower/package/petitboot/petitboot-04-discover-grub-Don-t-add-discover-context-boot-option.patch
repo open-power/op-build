@@ -1,0 +1,33 @@
+From 000a914853db08b496fa25054bce1b087b24ae77 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Tue, 17 Apr 2018 19:08:59 +0200
+Subject: [PATCH 05/23] discover/grub: Don't add discover context boot options
+ in blscfg handler
+
+Instead of adding a boot option explicitly, just add it to the grub script
+boot option list and increment the number of options. That way BLS entries
+will be known by the grub script handler and can check if is a valid index.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+---
+ discover/grub2/blscfg.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/discover/grub2/blscfg.c b/discover/grub2/blscfg.c
+index 02ac621..5fde217 100644
+--- a/discover/grub2/blscfg.c
++++ b/discover/grub2/blscfg.c
+@@ -143,7 +143,8 @@ static void bls_finish(struct conf_context *conf)
+ 
+ 	option->is_default = option_is_default(state->script, option);
+ 
+-	discover_context_add_boot_option(dc, opt);
++	list_add_tail(&state->script->options, &opt->list);
++	state->script->n_options++;
+ 
+ 	device_handler_status_dev_info(dc->handler, dc->device,
+ 				       _("Created menu entry from BLS file %s"),
+-- 
+2.17.1
+

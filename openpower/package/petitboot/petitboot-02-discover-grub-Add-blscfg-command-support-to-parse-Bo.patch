@@ -1,0 +1,686 @@
+From 331663759206bb32e0ed1e68207deb3e78d816f7 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Thu, 22 Mar 2018 09:41:23 +0100
+Subject: [PATCH 03/23] discover/grub: Add blscfg command support to parse
+ BootLoaderSpec files
+
+The BootLoaderSpec (BLS) defines a file format for boot configurations,
+so bootloaders can parse these files and create their boot menu entries
+by using the information provided by them [0].
+
+This allow to configure the boot items as drop-in files in a directory
+instead of having to parse and modify a bootloader configuration file.
+
+The GRUB 2 bootloader provides a blscfg command that parses these files
+and creates menu entries using this information. Add support for it.
+
+[0]: https://www.freedesktop.org/wiki/Specifications/BootLoaderSpec/
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 91ce1a8f8863d8f740188236f138421d17292d6c)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/Makefile.am                    |   1 +
+ discover/grub2/blscfg.c                       | 241 ++++++++++++++++++
+ discover/grub2/builtins.c                     |   9 +-
+ discover/grub2/script.c                       |   2 +-
+ discover/parser.c                             |  16 ++
+ discover/parser.h                             |   8 +
+ test/parser/Makefile.am                       |   5 +
+ .../test-grub2-blscfg-default-filename.c      |  29 +++
+ test/parser/test-grub2-blscfg-default-title.c |  36 +++
+ test/parser/test-grub2-blscfg-multiple-bls.c  |  44 ++++
+ test/parser/test-grub2-blscfg-opts-config.c   |  29 +++
+ test/parser/test-grub2-blscfg-opts-grubenv.c  |  34 +++
+ test/parser/utils.c                           |  59 +++++
+ 13 files changed, 511 insertions(+), 2 deletions(-)
+ create mode 100644 discover/grub2/blscfg.c
+ create mode 100644 test/parser/test-grub2-blscfg-default-filename.c
+ create mode 100644 test/parser/test-grub2-blscfg-default-title.c
+ create mode 100644 test/parser/test-grub2-blscfg-multiple-bls.c
+ create mode 100644 test/parser/test-grub2-blscfg-opts-config.c
+ create mode 100644 test/parser/test-grub2-blscfg-opts-grubenv.c
+
+diff --git a/discover/grub2/Makefile.am b/discover/grub2/Makefile.am
+index 130ede8..b240106 100644
+--- a/discover/grub2/Makefile.am
++++ b/discover/grub2/Makefile.am
+@@ -15,6 +15,7 @@
+ noinst_PROGRAMS += discover/grub2/grub2-parser.ro
+ 
+ discover_grub2_grub2_parser_ro_SOURCES = \
++	discover/grub2/blscfg.c \
+ 	discover/grub2/builtins.c \
+ 	discover/grub2/env.c \
+ 	discover/grub2/grub2.h \
+diff --git a/discover/grub2/blscfg.c b/discover/grub2/blscfg.c
+new file mode 100644
+index 0000000..0f69f7e
+--- /dev/null
++++ b/discover/grub2/blscfg.c
+@@ -0,0 +1,241 @@
++
++#define _GNU_SOURCE
++
++#include <assert.h>
++#include <stdlib.h>
++#include <string.h>
++#include <dirent.h>
++
++#include <log/log.h>
++#include <file/file.h>
++#include <talloc/talloc.h>
++#include <i18n/i18n.h>
++
++#include "grub2.h"
++#include "discover/parser-conf.h"
++#include "discover/parser.h"
++
++#define BLS_DIR "/loader/entries"
++
++struct bls_state {
++	struct discover_boot_option *opt;
++	struct grub2_script *script;
++	const char *filename;
++	const char *title;
++	const char *version;
++	const char *machine_id;
++	const char *image;
++	const char *initrd;
++	const char *dtb;
++};
++
++static void bls_process_pair(struct conf_context *conf, const char *name,
++			     char *value)
++{
++	struct bls_state *state = conf->parser_info;
++	struct discover_boot_option *opt = state->opt;
++	struct boot_option *option = opt->option;
++	const char *boot_args;
++
++	if (streq(name, "title")) {
++		state->title = talloc_strdup(state, value);
++		return;
++	}
++
++	if (streq(name, "version")) {
++		state->version = talloc_strdup(state, value);
++		return;
++	}
++
++	if (streq(name, "machine-id")) {
++		state->machine_id = talloc_strdup(state, value);
++		return;
++	}
++
++	if (streq(name, "linux")) {
++		state->image = talloc_strdup(state, value);
++		return;
++	}
++
++	if (streq(name, "initrd")) {
++		state->initrd = talloc_strdup(state, value);
++		return;
++	}
++
++	if (streq(name, "devicetree")) {
++		state->dtb = talloc_strdup(state, value);
++		return;
++	}
++
++	if (streq(name, "options")) {
++		if (value[0] == '$') {
++			boot_args = script_env_get(state->script, value + 1);
++			if (!boot_args)
++				return;
++
++			option->boot_args = talloc_strdup(opt, boot_args);
++		} else {
++			option->boot_args = talloc_strdup(opt, value);
++		}
++		return;
++	}
++}
++
++static bool option_is_default(struct grub2_script *script,
++			      struct boot_option *option)
++{
++	const char *var;
++
++	var = script_env_get(script, "default");
++	if (!var)
++		return false;
++
++	if (!strcmp(var, option->id))
++		return true;
++
++	return !strcmp(var, option->name);
++}
++
++static void bls_finish(struct conf_context *conf)
++{
++	struct bls_state *state = conf->parser_info;
++	struct discover_context *dc = conf->dc;
++	struct discover_boot_option *opt = state->opt;
++	struct boot_option *option = opt->option;
++	const char *root;
++	char *filename;
++
++	if (!state->image) {
++		device_handler_status_dev_info(dc->handler, dc->device,
++					       _("linux field not found in %s"),
++					       state->filename);
++		return;
++	}
++
++	filename = basename(state->filename);
++	filename[strlen(filename) - strlen(".conf")] = '\0';
++
++	option->id = talloc_strdup(option, filename);
++
++	if (state->title)
++		option->name = talloc_strdup(option, state->title);
++	else if (state->machine_id && state->version)
++		option->name = talloc_asprintf(option, "%s %s",
++					       state->machine_id,
++					       state->version);
++	else if (state->version)
++		option->name = talloc_strdup(option, state->version);
++	else
++		option->name = talloc_strdup(option, state->image);
++
++	root = script_env_get(state->script, "root");
++
++	opt->boot_image = create_grub2_resource(opt, conf->dc->device,
++						root, state->image);
++
++	if (state->initrd)
++		opt->initrd = create_grub2_resource(opt, conf->dc->device,
++						    root, state->initrd);
++
++	if (state->dtb)
++		opt->dtb = create_grub2_resource(opt, conf->dc->device,
++						 root, state->dtb);
++
++	option->is_default = option_is_default(state->script, option);
++
++	discover_context_add_boot_option(dc, opt);
++
++	device_handler_status_dev_info(dc->handler, dc->device,
++				       _("Created menu entry from BLS file %s"),
++				       state->filename);
++}
++
++static int bls_filter(const struct dirent *ent)
++{
++	int offset = strlen(ent->d_name) - strlen(".conf");
++
++	if (offset < 0)
++		return 0;
++
++	return strncmp(ent->d_name + offset, ".conf", strlen(".conf")) == 0;
++}
++
++static int bls_sort(const struct dirent **ent_a, const struct dirent **ent_b)
++{
++	return strverscmp((*ent_b)->d_name, (*ent_a)->d_name);
++}
++
++int builtin_blscfg(struct grub2_script *script,
++		void *data __attribute__((unused)),
++		int argc __attribute__((unused)),
++		char *argv[] __attribute__((unused)));
++
++int builtin_blscfg(struct grub2_script *script,
++		void *data __attribute__((unused)),
++		int argc __attribute__((unused)),
++		char *argv[] __attribute__((unused)))
++{
++	struct discover_context *dc = script->ctx;
++	struct dirent **bls_entries;
++	struct conf_context *conf;
++	struct bls_state *state;
++	char *buf, *filename;
++	int n, len, rc = -1;
++
++	conf = talloc_zero(dc, struct conf_context);
++	if (!conf)
++		return rc;
++
++	conf->dc = dc;
++	conf->get_pair = conf_get_pair_space;
++	conf->process_pair = bls_process_pair;
++	conf->finish = bls_finish;
++
++	n = parser_scandir(dc, BLS_DIR, &bls_entries, bls_filter, bls_sort);
++	if (n <= 0)
++		goto err;
++
++	while (n--) {
++		filename = talloc_asprintf(dc, BLS_DIR"/%s",
++					   bls_entries[n]->d_name);
++		if (!filename)
++			break;
++
++		state = talloc_zero(conf, struct bls_state);
++		if (!state)
++			break;
++
++		state->opt = discover_boot_option_create(dc, dc->device);
++		if (!state->opt)
++			break;
++
++		state->script = script;
++		state->filename = filename;
++		conf->parser_info = state;
++
++		rc = parser_request_file(dc, dc->device, filename, &buf, &len);
++		if (rc)
++			break;
++
++		conf_parse_buf(conf, buf, len);
++
++		talloc_free(buf);
++		talloc_free(state);
++		talloc_free(filename);
++		free(bls_entries[n]);
++	}
++
++	if (n > 0) {
++		device_handler_status_dev_info(dc->handler, dc->device,
++					       _("Scanning %s failed"),
++					       BLS_DIR);
++		do {
++			free(bls_entries[n]);
++		} while (n-- > 0);
++	}
++
++	free(bls_entries);
++err:
++	talloc_free(conf);
++	return rc;
++}
+diff --git a/discover/grub2/builtins.c b/discover/grub2/builtins.c
+index c16b639..e42821a 100644
+--- a/discover/grub2/builtins.c
++++ b/discover/grub2/builtins.c
+@@ -330,7 +330,10 @@ extern int builtin_load_env(struct grub2_script *script,
+ int builtin_save_env(struct grub2_script *script,
+ 		void *data __attribute__((unused)),
+ 		int argc, char *argv[]);
+-
++int builtin_blscfg(struct grub2_script *script,
++		void *data __attribute__((unused)),
++		int argc __attribute__((unused)),
++		char *argv[] __attribute__((unused)));
+ 
+ static struct {
+ 	const char *name;
+@@ -380,6 +383,10 @@ static struct {
+ 		.name = "save_env",
+ 		.fn = builtin_save_env,
+ 	},
++	{
++		.name = "blscfg",
++		.fn = builtin_blscfg,
++	}
+ };
+ 
+ static const char *nops[] = {
+diff --git a/discover/grub2/script.c b/discover/grub2/script.c
+index ed81a20..1a802b9 100644
+--- a/discover/grub2/script.c
++++ b/discover/grub2/script.c
+@@ -103,7 +103,7 @@ static bool is_delim(char c)
+ }
+ 
+ static bool option_is_default(struct grub2_script *script,
+-		struct discover_boot_option *opt, const char *id)
++			      struct discover_boot_option *opt, const char *id)
+ {
+ 	unsigned int default_idx;
+ 	const char *var;
+diff --git a/discover/parser.c b/discover/parser.c
+index 5598f96..9fe1925 100644
+--- a/discover/parser.c
++++ b/discover/parser.c
+@@ -128,6 +128,22 @@ out:
+ 	return -1;
+ }
+ 
++int parser_scandir(struct discover_context *ctx, const char *dirname,
++		   struct dirent ***files, int (*filter)(const struct dirent *),
++		   int (*comp)(const struct dirent **, const struct dirent **))
++{
++	char *path;
++	int n;
++
++	path = talloc_asprintf(ctx, "%s%s", ctx->device->mount_path, dirname);
++	if (!path)
++		return -1;
++
++	n = scandir(path, files, filter, comp);
++	talloc_free(path);
++	return n;
++}
++
+ void iterate_parsers(struct discover_context *ctx)
+ {
+ 	struct p_item* i;
+diff --git a/discover/parser.h b/discover/parser.h
+index fc165c5..bff52e3 100644
+--- a/discover/parser.h
++++ b/discover/parser.h
+@@ -5,6 +5,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <dirent.h>
+ 
+ #include "device-handler.h"
+ 
+@@ -76,5 +77,12 @@ int parser_request_url(struct discover_context *ctx, struct pb_url *url,
+ int parser_stat_path(struct discover_context *ctx,
+ 		struct discover_device *dev, const char *path,
+ 		struct stat *statbuf);
++/* Function used to list the files on a directory. The dirname should
++ * be relative to the discover context device mount path. It returns
++ * the number of files returned in files or a negative value on error.
++ */
++int parser_scandir(struct discover_context *ctx, const char *dirname,
++		   struct dirent ***files, int (*filter)(const struct dirent *),
++		   int (*comp)(const struct dirent **, const struct dirent **));
+ 
+ #endif /* _PARSER_H */
+diff --git a/test/parser/Makefile.am b/test/parser/Makefile.am
+index 8c01ec8..15be09d 100644
+--- a/test/parser/Makefile.am
++++ b/test/parser/Makefile.am
+@@ -40,6 +40,11 @@ parser_TESTS = \
+ 	test/parser/test-grub2-parser-error \
+ 	test/parser/test-grub2-test-file-ops \
+ 	test/parser/test-grub2-single-yocto \
++	test/parser/test-grub2-blscfg-default-filename \
++	test/parser/test-grub2-blscfg-default-title \
++	test/parser/test-grub2-blscfg-multiple-bls \
++	test/parser/test-grub2-blscfg-opts-config \
++	test/parser/test-grub2-blscfg-opts-grubenv \
+ 	test/parser/test-kboot-single \
+ 	test/parser/test-yaboot-empty \
+ 	test/parser/test-yaboot-single \
+diff --git a/test/parser/test-grub2-blscfg-default-filename.c b/test/parser/test-grub2-blscfg-default-filename.c
+new file mode 100644
+index 0000000..fb74059
+--- /dev/null
++++ b/test/parser/test-grub2-blscfg-default-filename.c
+@@ -0,0 +1,29 @@
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++set default=6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64
++blscfg
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
++			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.15.2-302.fc28.x86_64\n"
++			     "initrd /initramfs-4.15.2-302.fc28.x86_64.img\n"
++			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	opt = get_boot_option(ctx, 0);
++
++	check_is_default(opt);
++}
+diff --git a/test/parser/test-grub2-blscfg-default-title.c b/test/parser/test-grub2-blscfg-default-title.c
+new file mode 100644
+index 0000000..94acf80
+--- /dev/null
++++ b/test/parser/test-grub2-blscfg-default-title.c
+@@ -0,0 +1,36 @@
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++load_env
++set default=${saved_entry}
++blscfg
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_add_file_string(test, test->ctx->device,
++			     "/boot/grub2/grubenv",
++			     "# GRUB Environment Block\n"
++			     "saved_entry=Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "kernelopts=root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
++			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.15.2-302.fc28.x86_64\n"
++			     "initrd /initramfs-4.15.2-302.fc28.x86_64.img\n"
++			     "options $kernelopts\n");
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	opt = get_boot_option(ctx, 0);
++
++	check_is_default(opt);
++}
+diff --git a/test/parser/test-grub2-blscfg-multiple-bls.c b/test/parser/test-grub2-blscfg-multiple-bls.c
+new file mode 100644
+index 0000000..8fd218c
+--- /dev/null
++++ b/test/parser/test-grub2-blscfg-multiple-bls.c
+@@ -0,0 +1,44 @@
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++blscfg
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
++			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.15.2-302.fc28.x86_64\n"
++			     "initrd /initramfs-4.15.2-302.fc28.x86_64.img\n"
++			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n\n");
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.14.18-300.fc28.x86_64.conf",
++			     "title Fedora (4.14.18-300.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.14.18-300.fc28.x86_64\n"
++			     "initrd /initramfs-4.14.18-300.fc28.x86_64.img\n"
++			     "options root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	check_boot_option_count(ctx, 2);
++	opt = get_boot_option(ctx, 0);
++
++	check_name(opt, "Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)");
++	check_resolved_local_resource(opt->boot_image, ctx->device,
++			"/vmlinuz-4.15.2-302.fc28.x86_64");
++
++	opt = get_boot_option(ctx, 1);
++
++	check_name(opt, "Fedora (4.14.18-300.fc28.x86_64) 28 (Twenty Eight)");
++	check_resolved_local_resource(opt->initrd, ctx->device,
++			"/initramfs-4.14.18-300.fc28.x86_64.img");
++}
+diff --git a/test/parser/test-grub2-blscfg-opts-config.c b/test/parser/test-grub2-blscfg-opts-config.c
+new file mode 100644
+index 0000000..856aae2
+--- /dev/null
++++ b/test/parser/test-grub2-blscfg-opts-config.c
+@@ -0,0 +1,29 @@
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++set kernelopts=root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root
++blscfg
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
++			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.15.2-302.fc28.x86_64\n"
++			     "initrd /initramfs-4.15.2-302.fc28.x86_64.img\n"
++			     "options $kernelopts\n");
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	opt = get_boot_option(ctx, 0);
++
++	check_args(opt, "root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root");
++}
+diff --git a/test/parser/test-grub2-blscfg-opts-grubenv.c b/test/parser/test-grub2-blscfg-opts-grubenv.c
+new file mode 100644
+index 0000000..c77c589
+--- /dev/null
++++ b/test/parser/test-grub2-blscfg-opts-grubenv.c
+@@ -0,0 +1,34 @@
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++load_env
++blscfg
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_add_file_string(test, test->ctx->device,
++			     "/boot/grub2/grubenv",
++			     "# GRUB Environment Block\n"
++			     "kernelopts=root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root\n");
++
++	test_add_file_string(test, test->ctx->device,
++			     "/loader/entries/6c063c8e48904f2684abde8eea303f41-4.15.2-302.fc28.x86_64.conf",
++			     "title Fedora (4.15.2-302.fc28.x86_64) 28 (Twenty Eight)\n"
++			     "linux /vmlinuz-4.15.2-302.fc28.x86_64\n"
++			     "initrd /initramfs-4.15.2-302.fc28.x86_64.img\n"
++			     "options $kernelopts\n");
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	opt = get_boot_option(ctx, 0);
++
++	check_args(opt, "root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root");
++}
+diff --git a/test/parser/utils.c b/test/parser/utils.c
+index 47779c8..394efb3 100644
+--- a/test/parser/utils.c
++++ b/test/parser/utils.c
+@@ -309,6 +309,65 @@ int parser_replace_file(struct discover_context *ctx,
+ 	return 0;
+ }
+ 
++int parser_scandir(struct discover_context *ctx, const char *dirname,
++		   struct dirent ***files, int (*filter)(const struct dirent *)
++		   __attribute__((unused)),
++		   int (*comp)(const struct dirent **, const struct dirent **)
++		   __attribute__((unused)))
++{
++	struct parser_test *test = ctx->test_data;
++	struct test_file *f;
++	char *filename;
++	struct dirent **dirents = NULL, **new_dirents;
++	int n = 0, namelen;
++
++	list_for_each_entry(&test->files, f, list) {
++		if (f->dev != ctx->device)
++			continue;
++
++		filename = strrchr(f->name, '/');
++		if (!filename)
++			continue;
++
++		namelen = strlen(filename);
++
++		if (strncmp(f->name, dirname, strlen(f->name) - namelen))
++			continue;
++
++		if (!dirents) {
++			dirents = malloc(sizeof(struct dirent *));
++		} else {
++			new_dirents = realloc(dirents, sizeof(struct dirent *)
++					      * (n + 1));
++			if (!new_dirents)
++				goto err_cleanup;
++
++			dirents = new_dirents;
++		}
++
++		dirents[n] = malloc(sizeof(struct dirent) + namelen + 1);
++
++		if (!dirents[n])
++			goto err_cleanup;
++
++		strcpy(dirents[n]->d_name, filename + 1);
++		n++;
++	}
++
++	*files = dirents;
++
++	return n;
++
++err_cleanup:
++	do {
++		free(dirents[n]);
++	} while (n-- > 0);
++
++	free(dirents);
++
++	return -1;
++}
++
+ struct load_url_result *load_url_async(void *ctx, struct pb_url *url,
+ 		load_url_complete async_cb, void *async_data,
+ 		waiter_cb stdout_cb, void *stdout_data)
+-- 
+2.17.1
+
