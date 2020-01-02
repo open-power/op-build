@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@jms.id.au>
+Date: Thu, 2 Jan 2020 17:32:11 +1100
+Subject: [PATCH 3/4] powerpc/config: Enable secuity features in skiroot
+
+This turns on HARDENED_USERCOPY with HARDENED_USERCOPY_PAGESPAN, and
+FORTIFY_SOURCE.
+
+It also enables SECURITY_LOCKDOWN_LSM with _EARLY and
+LOCK_DOWN_KERNEL_FORCE_CONFIDENTIALITY options enabled.
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ arch/powerpc/configs/skiroot_defconfig | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/configs/skiroot_defconfig b/arch/powerpc/configs/skiroot_defconfig
+index 1e18454083ff..bbd30eb1482e 100644
+--- a/arch/powerpc/configs/skiroot_defconfig
++++ b/arch/powerpc/configs/skiroot_defconfig
+@@ -33,7 +33,6 @@ CONFIG_JUMP_LABEL=y
+ CONFIG_STRICT_KERNEL_RWX=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+-CONFIG_MODULE_SIG=y
+ CONFIG_MODULE_SIG_FORCE=y
+ CONFIG_MODULE_SIG_SHA512=y
+ CONFIG_PARTITION_ADVANCED=y
+@@ -278,6 +277,18 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ASCII=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_NLS_UTF8=y
++CONFIG_ENCRYPTED_KEYS=y
++CONFIG_SECURITY=y
++CONFIG_HARDENED_USERCOPY=y
++# CONFIG_HARDENED_USERCOPY_FALLBACK is not set
++CONFIG_HARDENED_USERCOPY_PAGESPAN=y
++CONFIG_FORTIFY_SOURCE=y
++CONFIG_SECURITY_LOCKDOWN_LSM=y
++CONFIG_SECURITY_LOCKDOWN_LSM_EARLY=y
++CONFIG_LOCK_DOWN_KERNEL_FORCE_CONFIDENTIALITY=y
++# CONFIG_INTEGRITY is not set
++CONFIG_LSM="yama,loadpin,safesetid,integrity"
++# CONFIG_CRYPTO_HW is not set
+ CONFIG_CRC16=y
+ CONFIG_CRC_ITU_T=y
+ CONFIG_LIBCRC32C=y
