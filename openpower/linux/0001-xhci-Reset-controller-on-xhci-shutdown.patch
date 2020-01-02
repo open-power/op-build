@@ -10,18 +10,20 @@ Signed-off-by: Brian King <brking@linux.vnet.ibm.com>
 Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
- drivers/usb/host/xhci.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/host/xhci.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 270e45058272..2f21be5d8f32 100644
+index 73ad81eb2a8e..b9a6a80317ea 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -793,6 +793,7 @@ static void xhci_shutdown(struct usb_hcd *hcd)
- 	/* Yet another workaround for spurious wakeups at shutdown with HSW */
- 	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
- 		pci_set_power_state(to_pci_dev(hcd->self.sysdev), PCI_D3hot);
+@@ -789,6 +789,9 @@ void xhci_shutdown(struct usb_hcd *hcd)
+ 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
+ 			"xhci_shutdown completed - status = %x",
+ 			readl(&xhci->op_regs->status));
++
++	/* TI XHCI controllers do not come back after kexec without this hack */
 +	pci_reset_function_locked(to_pci_dev(hcd->self.sysdev));
  }
+ EXPORT_SYMBOL_GPL(xhci_shutdown);
  
- #ifdef CONFIG_PM
