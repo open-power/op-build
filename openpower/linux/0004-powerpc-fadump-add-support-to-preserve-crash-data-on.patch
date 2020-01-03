@@ -89,7 +89,7 @@ index 17d9b6acaf63..0401a6ffde0c 100644
 +#endif
  #endif
 diff --git a/arch/powerpc/kernel/Makefile b/arch/powerpc/kernel/Makefile
-index 56dfa7a2a6f2..ce70e7776cfd 100644
+index 61527f1d4d05..fdeb81a28eb7 100644
 --- a/arch/powerpc/kernel/Makefile
 +++ b/arch/powerpc/kernel/Makefile
 @@ -78,7 +78,9 @@ obj-$(CONFIG_EEH)              += eeh.o eeh_pe.o eeh_dev.o eeh_cache.o \
