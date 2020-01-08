@@ -59,19 +59,8 @@ endef
 endif
 
 ###################################
-# P10 Workaround
-ifeq ($(BR2_HOSTBOOT_BINARIES_USE_HCODE_BIN),y)
-
-HCODE_BIN_FILE=p10.ref_image.bin
-
-define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
-    $(INSTALL) -D $(@D)/gpu_gpe1.bin  $(STAGING_DIR)/hostboot_binaries/gpu_gpe1.bin
-    $(INSTALL) -D $(@D)/$(HCODE_BIN_FILE) $(STAGING_DIR)/hostboot_binaries/$(HCODE_BIN_FILE)
-    $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_IONV_FILENAME)  $(STAGING_DIR)/hostboot_binaries/
-    $(INSTALL) -D $(@D)/$(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) $(STAGING_DIR)/hostboot_binaries/
-endef
-
-else ifeq ($(BR2_OPENPOWER_POWER10),y)
+# P10:
+ifeq ($(BR2_OPENPOWER_POWER10),y)
 
 P10_RING_DYNAMIC_FILE=p10.hw.dynamic.bin
 P10_RING_OVERLAYS_FILE=p10.hw.overlays.bin
