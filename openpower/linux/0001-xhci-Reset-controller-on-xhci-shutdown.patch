@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Brian King <brking@linux.vnet.ibm.com>
 Date: Wed, 25 Oct 2017 10:42:59 +1100
-Subject: [PATCH 1/8] xhci: Reset controller on xhci shutdown
+Subject: [PATCH 1/4] xhci: Reset controller on xhci shutdown
 
 Fixes kexec boot. Without a hard reset, some USB chips will fail to
 initialize in a kexec booted kernel.
@@ -10,18 +10,20 @@ Signed-off-by: Brian King <brking@linux.vnet.ibm.com>
 Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
 ---
- drivers/usb/host/xhci.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/host/xhci.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index ee9d2e0fc53a..e2ced6c34620 100644
+index 9b3b1b16eafb..2a3aa1509d40 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -793,6 +793,7 @@ static void xhci_shutdown(struct usb_hcd *hcd)
- 	/* Yet another workaround for spurious wakeups at shutdown with HSW */
- 	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
- 		pci_set_power_state(to_pci_dev(hcd->self.sysdev), PCI_D3hot);
+@@ -789,6 +789,9 @@ void xhci_shutdown(struct usb_hcd *hcd)
+ 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
+ 			"xhci_shutdown completed - status = %x",
+ 			readl(&xhci->op_regs->status));
++
++	/* TI XHCI controllers do not come back after kexec without this hack */
 +	pci_reset_function_locked(to_pci_dev(hcd->self.sysdev));
  }
+ EXPORT_SYMBOL_GPL(xhci_shutdown);
  
- #ifdef CONFIG_PM

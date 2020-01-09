@@ -1,5 +1,6 @@
 config BR2_PACKAGE_LIBFLASH
 	bool "libflash"
+	depends on BR2_PACKAGE_SKIBOOT
 	help
 	  Build libflash shared library
 
