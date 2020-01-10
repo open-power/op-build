@@ -1,0 +1,145 @@
+From 2afeea92966f50159db4c2f5e4d53a5576d32b0e Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Thu, 20 Jun 2019 18:09:56 +0200
+Subject: [PATCH 26/40] discover/grub2: Allow to separate the --id argument
+ using a space char
+
+The GRUB menuentry command allows to separate the arguments for options
+using either a '=' or a ' '. The latter is the convention used when the
+menu entries are defined in the GRUB config file, but this is currently
+not supported by Petitboot.
+
+Add tests to cover both using '--id=foo' and '--id foo' as options.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 7edc34c4ee8dc0913ea1a4ec64d3fbe6d64afc6d)
+---
+ discover/grub2/script.c                   | 13 +++++++--
+ test/parser/Makefile.am                   |  2 ++
+ test/parser/test-grub2-default-id-space.c | 34 +++++++++++++++++++++++
+ test/parser/test-grub2-default-id.c       | 34 +++++++++++++++++++++++
+ 4 files changed, 80 insertions(+), 3 deletions(-)
+ create mode 100644 test/parser/test-grub2-default-id-space.c
+ create mode 100644 test/parser/test-grub2-default-id.c
+
+diff --git a/discover/grub2/script.c b/discover/grub2/script.c
+index a89ca2f..963ae5b 100644
+--- a/discover/grub2/script.c
++++ b/discover/grub2/script.c
+@@ -339,9 +339,16 @@ int statement_menuentry_execute(struct grub2_script *script,
+ 	 * implementation to get --id= working.
+ 	 */
+ 	for (i = 1; i < st->argv->argc; ++i) {
+-		if (strncmp("--id=", st->argv->argv[i], 5) == 0) {
+-			id = st->argv->argv[i] + 5;
+-			break;
++		if (strncmp("--id", st->argv->argv[i], strlen("--id")) == 0) {
++			if (strlen(st->argv->argv[i]) > strlen("--id=")) {
++				id = st->argv->argv[i] + strlen("--id=");
++				break;
++			}
++
++			if (i + 1 < st->argv->argc) {
++				id = st->argv->argv[i + 1];
++				break;
++			}
+ 		}
+ 	}
+ 	if (st->argv->argc > 0)
+diff --git a/test/parser/Makefile.am b/test/parser/Makefile.am
+index 2fc19fa..5a97e8d 100644
+--- a/test/parser/Makefile.am
++++ b/test/parser/Makefile.am
+@@ -19,6 +19,8 @@ parser_TESTS = \
+ 	test/parser/test-grub2-noeol \
+ 	test/parser/test-grub2-menuentry-formats \
+ 	test/parser/test-grub2-if-formats \
++	test/parser/test-grub2-default-id \
++	test/parser/test-grub2-default-id-space \
+ 	test/parser/test-grub2-default-index \
+ 	test/parser/test-grub2-default-multiword \
+ 	test/parser/test-grub2-implicit-default-unset \
+diff --git a/test/parser/test-grub2-default-id-space.c b/test/parser/test-grub2-default-id-space.c
+new file mode 100644
+index 0000000..df0eb2a
+--- /dev/null
++++ b/test/parser/test-grub2-default-id-space.c
+@@ -0,0 +1,34 @@
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++set default=option1
++menuentry 'test-option-0' --id option0 {
++	linux   /vmlinux.0
++}
++menuentry 'test-option-1' --id option1 {
++	linux   /vmlinux.1
++}
++menuentry 'test-option-2' --id option2 {
++	linux   /vmlinux.2
++}
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	check_boot_option_count(ctx, 3);
++	opt = get_boot_option(ctx, 1);
++
++	check_name(opt, "test-option-1");
++	check_resolved_local_resource(opt->boot_image, ctx->device,
++					"/vmlinux.1");
++	check_is_default(opt);
++}
+diff --git a/test/parser/test-grub2-default-id.c b/test/parser/test-grub2-default-id.c
+new file mode 100644
+index 0000000..a41a4f9
+--- /dev/null
++++ b/test/parser/test-grub2-default-id.c
+@@ -0,0 +1,34 @@
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++set default=option1
++menuentry 'test-option-0' --id=option0 {
++	linux   /vmlinux.0
++}
++menuentry 'test-option-1' --id=option1 {
++	linux   /vmlinux.1
++}
++menuentry 'test-option-2' --id=option2 {
++	linux   /vmlinux.2
++}
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	test_read_conf_embedded(test, "/boot/grub2/grub.cfg");
++	test_run_parser(test, "grub2");
++
++	ctx = test->ctx;
++
++	check_boot_option_count(ctx, 3);
++	opt = get_boot_option(ctx, 1);
++
++	check_name(opt, "test-option-1");
++	check_resolved_local_resource(opt->boot_image, ctx->device,
++					"/vmlinux.1");
++	check_is_default(opt);
++}
+-- 
+2.17.1
+

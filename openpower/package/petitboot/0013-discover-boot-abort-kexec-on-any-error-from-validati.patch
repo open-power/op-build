@@ -1,0 +1,41 @@
+From dac3ea6aff07a07aaee64d69b5952a90818dc91d Mon Sep 17 00:00:00 2001
+From: Brett Grandbois <brett.grandbois@opengear.com>
+Date: Wed, 16 May 2018 13:23:49 +1000
+Subject: [PATCH 13/40] discover/boot: abort kexec on any error from validation
+
+gpg_validate_boot_files() can return error codes for a variety of
+reasons but kexec_load only aborts for signature or decryption failure.
+In any other failure case like unable to open LOCKDOWN_FILE or do the
+secure copy the validation is bypassed by an early return but kexec_load
+does not abort.
+
+Signed-off-by: Brett Grandbois <brett.grandbois@opengear.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 1214247667d138e2fa1748f4f270e5fc80010377)
+---
+ discover/boot.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/discover/boot.c b/discover/boot.c
+index f80b409..961217d 100644
+--- a/discover/boot.c
++++ b/discover/boot.c
+@@ -76,13 +76,13 @@ static int kexec_load(struct boot_task *boot_task)
+ 		if (result == KEXEC_LOAD_DECRYPTION_FALURE) {
+ 			pb_log("%s: Aborting kexec due to"
+ 				" decryption failure\n", __func__);
+-			goto abort_kexec;
+ 		}
+ 		if (result == KEXEC_LOAD_SIGNATURE_FAILURE) {
+ 			pb_log("%s: Aborting kexec due to signature"
+ 				" verification failure\n", __func__);
+-			goto abort_kexec;
+ 		}
++
++		goto abort_kexec;
+ 	}
+ 
+ 	const char* local_initrd = (boot_task->local_initrd_override) ?
+-- 
+2.17.1
+

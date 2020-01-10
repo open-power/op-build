@@ -1,0 +1,351 @@
+From 5d1cee899f5a9387a01b11f2fa763dacac13b166 Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Thu, 14 Nov 2019 15:06:26 +0800
+Subject: [PATCH 38/40] discover/grub2: implement 'source' command
+
+This change add support for the grub2 'source' command, executing a
+referenced script in the current parse context.
+
+We impose a limit of 10 (concurrent) source commands, to prevent
+infinite recursion.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 967cfa7e5c1bfb4d2cf78bb3de3dc6d36b78c440)
+---
+ discover/grub2/builtins.c                     | 51 +++++++++++++++-
+ discover/grub2/grub2.h                        |  1 +
+ test/parser/Makefile.am                       |  4 ++
+ test/parser/test-grub2-source-functions.c     | 46 +++++++++++++++
+ .../test-grub2-source-recursion-infinite.c    | 43 ++++++++++++++
+ test/parser/test-grub2-source-recursion.c     | 58 +++++++++++++++++++
+ test/parser/test-grub2-source.c               | 54 +++++++++++++++++
+ 7 files changed, 256 insertions(+), 1 deletion(-)
+ create mode 100644 test/parser/test-grub2-source-functions.c
+ create mode 100644 test/parser/test-grub2-source-recursion-infinite.c
+ create mode 100644 test/parser/test-grub2-source-recursion.c
+ create mode 100644 test/parser/test-grub2-source.c
+
+diff --git a/discover/grub2/builtins.c b/discover/grub2/builtins.c
+index aab11ac..fd8915f 100644
+--- a/discover/grub2/builtins.c
++++ b/discover/grub2/builtins.c
+@@ -401,6 +401,51 @@ static int builtin_test(struct grub2_script *script,
+ 	return rc ? 0 : 1;
+ }
+ 
++static int builtin_source(struct grub2_script *script,
++		void *data __attribute__((unused)),
++		int argc, char *argv[])
++{
++	struct grub2_statements *statements;
++	struct discover_device *dev;
++	const char *filename;
++	char *path, *buf;
++	int rc, len;
++
++	if (argc != 2)
++		return false;
++
++	/* limit script recursion */
++	if (script->include_depth >= 10)
++		return false;
++
++	rc = parse_to_device_path(script, argv[1], &dev, &path);
++	if (rc)
++		return false;
++
++	rc = parser_request_file(script->ctx, dev, path, &buf, &len);
++	if (rc)
++		return false;
++
++	/* save current script state */
++	statements = script->statements;
++	filename = script->filename;
++	script->include_depth++;
++
++	rc = grub2_parser_parse(script->parser, argv[1], buf, len);
++
++	if (!rc)
++		statements_execute(script, script->statements);
++
++	talloc_free(script->statements);
++
++	/* restore state */
++	script->statements = statements;
++	script->filename = filename;
++	script->include_depth--;
++
++	return !rc;
++}
++
+ static int builtin_true(struct grub2_script *script __attribute__((unused)),
+ 		void *data __attribute__((unused)),
+ 		int argc __attribute__((unused)),
+@@ -487,7 +532,11 @@ static struct {
+ 	{
+ 		.name = "blscfg",
+ 		.fn = builtin_blscfg,
+-	}
++	},
++	{
++		.name = "source",
++		.fn = builtin_source,
++	},
+ };
+ 
+ static const char *nops[] = {
+diff --git a/discover/grub2/grub2.h b/discover/grub2/grub2.h
+index deaf976..75f6aa0 100644
+--- a/discover/grub2/grub2.h
++++ b/discover/grub2/grub2.h
+@@ -100,6 +100,7 @@ struct grub2_script {
+ 	const char			*filename;
+ 	unsigned int			n_options;
+ 	struct list			options;
++	int				include_depth;
+ };
+ 
+ struct grub2_parser {
+diff --git a/test/parser/Makefile.am b/test/parser/Makefile.am
+index 479d17e..4992e96 100644
+--- a/test/parser/Makefile.am
++++ b/test/parser/Makefile.am
+@@ -46,6 +46,10 @@ parser_TESTS = \
+ 	test/parser/test-grub2-lexer-error \
+ 	test/parser/test-grub2-parser-error \
+ 	test/parser/test-grub2-test-file-ops \
++	test/parser/test-grub2-source \
++	test/parser/test-grub2-source-functions \
++	test/parser/test-grub2-source-recursion \
++	test/parser/test-grub2-source-recursion-infinite \
+ 	test/parser/test-grub2-single-yocto \
+ 	test/parser/test-grub2-blscfg-default-filename \
+ 	test/parser/test-grub2-blscfg-default-index \
+diff --git a/test/parser/test-grub2-source-functions.c b/test/parser/test-grub2-source-functions.c
+new file mode 100644
+index 0000000..a9da934
+--- /dev/null
++++ b/test/parser/test-grub2-source-functions.c
+@@ -0,0 +1,46 @@
++
++/* check that we can source other scripts, and functions can be defined
++ * and called across sourced scripts */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++function f1 {
++	menuentry "f1$1" { linux $2 }
++}
++
++source /grub/2.cfg
++
++f2 a /vmlinux
++
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++	struct discover_device *dev;
++
++	ctx = test->ctx;
++	dev = ctx->device;
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	test_add_file_string(test, dev,
++			"/grub/2.cfg",
++			"function f2 { menuentry \"f2$1\" { linux $2 } }\n"
++			"f1 a /vmlinux\n");
++
++	test_run_parser(test, "grub2");
++
++	check_boot_option_count(ctx, 2);
++
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, "f1a");
++	check_resolved_local_resource(opt->boot_image, dev, "/vmlinux");
++
++	opt = get_boot_option(ctx, 1);
++	check_name(opt, "f2a");
++	check_resolved_local_resource(opt->boot_image, dev, "/vmlinux");
++}
+diff --git a/test/parser/test-grub2-source-recursion-infinite.c b/test/parser/test-grub2-source-recursion-infinite.c
+new file mode 100644
+index 0000000..fbcc5a3
+--- /dev/null
++++ b/test/parser/test-grub2-source-recursion-infinite.c
+@@ -0,0 +1,43 @@
++
++/* check that have a maximum source recursion limit */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++name=a$name
++
++menuentry $name {
++	linux /a
++}
++
++source /grub/grub.cfg
++
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++	struct discover_device *dev;
++
++	ctx = test->ctx;
++	dev = ctx->device;
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	/* we error out after 10 levels, but we should still have
++	 * parse results up to that point
++	 */
++	check_boot_option_count(ctx, 11);
++
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, "a");
++	check_resolved_local_resource(opt->boot_image, dev, "/a");
++
++	opt = get_boot_option(ctx,10);
++	check_name(opt, "aaaaaaaaaaa");
++	check_resolved_local_resource(opt->boot_image, dev, "/a");
++}
+diff --git a/test/parser/test-grub2-source-recursion.c b/test/parser/test-grub2-source-recursion.c
+new file mode 100644
+index 0000000..21b6bd2
+--- /dev/null
++++ b/test/parser/test-grub2-source-recursion.c
+@@ -0,0 +1,58 @@
++/* check that we can source other files recursively */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++menuentry a {
++	linux /a
++}
++
++source /grub/2.cfg
++
++menuentry c {
++	linux /c
++}
++
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++	struct discover_device *dev;
++
++	ctx = test->ctx;
++	dev = ctx->device;
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	/* four levels of config files, the last defining a boot option */
++	test_add_file_string(test, dev,
++			"/grub/2.cfg",
++			"source /grub/3.cfg\n");
++
++	test_add_file_string(test, dev,
++			"/grub/3.cfg",
++			"source /grub/4.cfg\n");
++
++	test_add_file_string(test, dev,
++			"/grub/4.cfg",
++			"menuentry b { linux /b }\n");
++
++	test_run_parser(test, "grub2");
++
++	check_boot_option_count(ctx, 3);
++
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, "a");
++	check_resolved_local_resource(opt->boot_image, dev, "/a");
++
++	opt = get_boot_option(ctx, 1);
++	check_name(opt, "b");
++	check_resolved_local_resource(opt->boot_image, dev, "/b");
++
++	opt = get_boot_option(ctx, 2);
++	check_name(opt, "c");
++	check_resolved_local_resource(opt->boot_image, dev, "/c");
++}
+diff --git a/test/parser/test-grub2-source.c b/test/parser/test-grub2-source.c
+new file mode 100644
+index 0000000..a14bef7
+--- /dev/null
++++ b/test/parser/test-grub2-source.c
+@@ -0,0 +1,54 @@
++
++/* check that we can source other scripts, and variables get passed
++ * in to and out of sourced scripts */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++menuentry a {
++	linux /a
++}
++
++# var: outer -> inner -> outer
++v=b
++
++source /grub/2.cfg
++
++menuentry $v {
++	linux /c
++}
++
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++	struct discover_device *dev;
++
++	ctx = test->ctx;
++	dev = ctx->device;
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	test_add_file_string(test, dev,
++			"/grub/2.cfg",
++			"menuentry $v { linux /b }\nv=c\n");
++
++	test_run_parser(test, "grub2");
++
++	check_boot_option_count(ctx, 3);
++
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, "a");
++	check_resolved_local_resource(opt->boot_image, dev, "/a");
++
++	opt = get_boot_option(ctx, 1);
++	check_name(opt, "b");
++	check_resolved_local_resource(opt->boot_image, dev, "/b");
++
++	opt = get_boot_option(ctx, 2);
++	check_name(opt, "c");
++	check_resolved_local_resource(opt->boot_image, dev, "/c");
++}
+-- 
+2.17.1
+

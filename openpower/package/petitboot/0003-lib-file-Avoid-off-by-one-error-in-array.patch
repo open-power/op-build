@@ -1,0 +1,29 @@
+From 278cd657f9bb7bb58d1a6399303bc752cbf3397e Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Tue, 20 Mar 2018 10:03:19 +1100
+Subject: [PATCH 03/40] lib/file: Avoid off-by-one error in array
+
+Fixes Coverity defect CIDs 143606, 143610
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit abf92c05c31955333719f1a83cffb0d0d194c770)
+---
+ lib/file/file.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/file/file.c b/lib/file/file.c
+index 0d18788..57a2519 100644
+--- a/lib/file/file.c
++++ b/lib/file/file.c
+@@ -37,7 +37,7 @@ int copy_file_secure_dest(void *ctx, const char *source_file,
+ 		char **destination_file)
+ {
+ 	char readlink_buffer[MAX_FILENAME_SIZE + 1];
+-	char dest_filename[MAX_FILENAME_SIZE] = "";
++	char dest_filename[MAX_FILENAME_SIZE + 1] = "";
+ 	char template[] = "/tmp/petitbootXXXXXX";
+ 	FILE *destination_handle, *source_handle;
+ 	int destination_fd, result = 0;
+-- 
+2.17.1
+

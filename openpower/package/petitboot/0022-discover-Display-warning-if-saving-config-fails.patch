@@ -1,0 +1,31 @@
+From f4fe8dff1bcce2da8e9a422c753a83f0627256ee Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Thu, 29 Nov 2018 13:05:02 +1100
+Subject: [PATCH 22/40] discover: Display warning if saving config fails
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit c87691826e75cd036c160686c83998b6d06c6e50)
+---
+ discover/device-handler.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/discover/device-handler.c b/discover/device-handler.c
+index a6f8289..e1def79 100644
+--- a/discover/device-handler.c
++++ b/discover/device-handler.c
+@@ -1389,8 +1389,11 @@ void device_handler_update_config(struct device_handler *handler,
+ 	int rc;
+ 
+ 	rc = config_set(config);
+-	if (rc)
++	if (rc) {
++		device_handler_status_err(handler,
++				"Failed to update configuration!");
+ 		return;
++	}
+ 
+ 	discover_server_notify_config(handler->server, config);
+ 	device_handler_update_lang(config->lang);
+-- 
+2.17.1
+

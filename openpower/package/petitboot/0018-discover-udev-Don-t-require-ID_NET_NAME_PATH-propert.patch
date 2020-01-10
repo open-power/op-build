@@ -1,0 +1,46 @@
+From 4dd06f0686030ce0d46f73dd2c46b2d3789ff56d Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Wed, 20 Jun 2018 14:09:02 +1000
+Subject: [PATCH 18/40] discover/udev: Don't require ID_NET_NAME_PATH property
+
+Drop the requirement for the ID_NET_NAME_PATH property since it prevents
+Petitboot from recognising virtio network devices, and is not otherwise
+used.
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 6d23277ad7403037fbac86f5707c695ffaa8d3c7)
+---
+ discover/udev.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/discover/udev.c b/discover/udev.c
+index 45a8b56..883313b 100644
+--- a/discover/udev.c
++++ b/discover/udev.c
+@@ -241,7 +241,7 @@ static int udev_handle_block_add(struct pb_udev *udev, struct udev_device *dev,
+ static int udev_check_interface_ready(struct device_handler *handler,
+ 		struct udev_device *dev)
+ {
+-	const char *name, *name_path, *ifindex, *interface, *mac_name;
++	const char *name, *ifindex, *interface, *mac_name;
+ 	uint8_t *mac;
+ 	char byte[3];
+ 	unsigned int i, j;
+@@ -253,13 +253,12 @@ static int udev_check_interface_ready(struct device_handler *handler,
+ 		return -1;
+ 	}
+ 
+-	name_path = udev_device_get_property_value(dev, "ID_NET_NAME_PATH");
+ 	ifindex = udev_device_get_property_value(dev, "IFINDEX");
+ 	interface = udev_device_get_property_value(dev, "INTERFACE");
+ 	mac_name = udev_device_get_property_value(dev, "ID_NET_NAME_MAC");
+ 
+ 	/* Physical interfaces should have all of these properties */
+-	if (!name_path || !ifindex || !interface || !mac_name) {
++	if (!ifindex || !interface || !mac_name) {
+ 		pb_debug("%s: interface %s missing properties\n",
+ 				__func__, name);
+ 		return -1;
+-- 
+2.17.1
+

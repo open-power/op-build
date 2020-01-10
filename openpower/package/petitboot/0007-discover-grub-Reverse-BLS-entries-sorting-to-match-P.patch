@@ -1,0 +1,36 @@
+From 197ca17078c6332c548992dcfe4c0cbdae65794c Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Tue, 17 Apr 2018 19:08:58 +0200
+Subject: [PATCH 07/40] discover/grub: Reverse BLS entries sorting to match
+ Petitboot's boot order
+
+The BLS entries were sorted so that the latest entry was at the top in the
+Petitboot UI, since it matches how menu entries are sorted in GRUB2 config
+and the GRUB2 UI.
+
+But in the Petitboot's UI, the latest entry is expected to be at the bottom
+and the older one at the top. Sort the BLS entries to match what's expected.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 73bcd24e9a96468b81395e7f57d3568e5d1f7dd3)
+---
+ discover/grub2/blscfg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/discover/grub2/blscfg.c b/discover/grub2/blscfg.c
+index 02ac621..d20dde2 100644
+--- a/discover/grub2/blscfg.c
++++ b/discover/grub2/blscfg.c
+@@ -162,7 +162,7 @@ static int bls_filter(const struct dirent *ent)
+ 
+ static int bls_sort(const struct dirent **ent_a, const struct dirent **ent_b)
+ {
+-	return strverscmp((*ent_b)->d_name, (*ent_a)->d_name);
++	return strverscmp((*ent_a)->d_name, (*ent_b)->d_name);
+ }
+ 
+ int builtin_blscfg(struct grub2_script *script,
+-- 
+2.17.1
+

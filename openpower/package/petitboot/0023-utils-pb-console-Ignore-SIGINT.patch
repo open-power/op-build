@@ -1,0 +1,30 @@
+From 4180e8ab8f9cce6a662a0fd8e916a7855ac448cf Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Tue, 5 Jun 2018 10:01:06 +1000
+Subject: [PATCH 23/40] utils/pb-console: Ignore SIGINT
+
+Trap and ignore SIGINT to avoid a SIGINT intended for petitboot-nc also
+exiting the parent pb-console script.
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit cfd6bf4f7da1ee71a65f57f28912d43ab757b968)
+---
+ utils/pb-console | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/utils/pb-console b/utils/pb-console
+index 282fca1..05c89c7 100644
+--- a/utils/pb-console
++++ b/utils/pb-console
+@@ -122,6 +122,8 @@ fi
+ # show particularly important messages
+ dmesg -n 1
+ 
++trap '' SIGINT
++
+ while :
+ do
+ 	$ui $verbose_opt
+-- 
+2.17.1
+

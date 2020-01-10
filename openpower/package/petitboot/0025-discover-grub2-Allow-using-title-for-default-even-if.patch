@@ -1,0 +1,64 @@
+From 5038c5ab359c8b081233f7e0c7d88761fa83a667 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Thu, 20 Jun 2019 18:09:55 +0200
+Subject: [PATCH 25/40] discover/grub2: Allow using title for default even if
+ id was defined
+
+A default menu entry can be chosen using any of the following attributes:
+index, title or id (if the entry was defined with the --id option).
+
+But Petitboot doesn't honor this correctly and only compares the default
+with the menu entry title if the entry doesn't have an id defined. This
+is wrong since an index or title can be used even if an id was defined.
+
+This issue wasn't covered by the test that sets a default using a title
+because the menu entries didn't have an id defined. Add an id to them.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 53e0f3ef35ac694220dce135f01a4f736cbd1c19)
+---
+ discover/grub2/script.c                    | 8 +++-----
+ test/parser/test-grub2-default-multiword.c | 4 ++--
+ 2 files changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/discover/grub2/script.c b/discover/grub2/script.c
+index 1a802b9..a89ca2f 100644
+--- a/discover/grub2/script.c
++++ b/discover/grub2/script.c
+@@ -117,12 +117,10 @@ static bool option_is_default(struct grub2_script *script,
+ 	if (end != var && *end == '\0')
+ 		return default_idx == script->n_options;
+ 
+-	/* if we don't have an explicit id for this option, fall back to
+-	 * the name */
+-	if (!id)
+-		id = opt->option->name;
++	if (id && !strcmp(id, var))
++		return true;
+ 
+-	return !strcmp(id, var);
++	return !strcmp(opt->option->name, var);
+ }
+ 
+ static void append_text_to_current_arg(struct grub2_argv *argv,
+diff --git a/test/parser/test-grub2-default-multiword.c b/test/parser/test-grub2-default-multiword.c
+index 25d1cf1..d455d62 100644
+--- a/test/parser/test-grub2-default-multiword.c
++++ b/test/parser/test-grub2-default-multiword.c
+@@ -3,10 +3,10 @@
+ 
+ #if 0 /* PARSER_EMBEDDED_CONFIG */
+ set default="Multiple word option"
+-menuentry 'Non-defalt option' {
++menuentry 'Non-defalt option' --id=option0 {
+ 	linux /vmlinux.non-default
+ }
+-menuentry 'Multiple word option' {
++menuentry 'Multiple word option' --id=option1 {
+ 	linux   /vmlinux
+ }
+ #endif
+-- 
+2.17.1
+

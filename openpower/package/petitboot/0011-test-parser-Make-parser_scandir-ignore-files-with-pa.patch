@@ -1,0 +1,38 @@
+From edcc7dc716b858a151fe30a04c29b771743af08e Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Tue, 12 Jun 2018 12:18:32 +0200
+Subject: [PATCH 11/40] test/parser: Make parser_scandir() ignore files with
+ path len less than dir
+
+Both the test files and directories added into the test harness are stored
+into the same file list. So the parser_scandir() stub compares the absolute
+file path of the files and the directory to scan, to know if a file belongs
+to the directory.
+
+Files whose absolute file path length isn't bigger than the directory to
+scan should just be ignored, since it means they can't be from that dir.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 761398a5dce21926a68e016627825b9010edff7e)
+---
+ test/parser/utils.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/test/parser/utils.c b/test/parser/utils.c
+index 394efb3..c6d1a17 100644
+--- a/test/parser/utils.c
++++ b/test/parser/utils.c
+@@ -325,6 +325,9 @@ int parser_scandir(struct discover_context *ctx, const char *dirname,
+ 		if (f->dev != ctx->device)
+ 			continue;
+ 
++		if (strlen(f->name) <= strlen(dirname))
++			continue;
++
+ 		filename = strrchr(f->name, '/');
+ 		if (!filename)
+ 			continue;
+-- 
+2.17.1
+

@@ -1,0 +1,35 @@
+From f65cd902667d00215ccac7a25704fe518eaee42c Mon Sep 17 00:00:00 2001
+From: Brett Grandbois <brett.grandbois@opengear.com>
+Date: Thu, 3 May 2018 15:30:20 +1000
+Subject: [PATCH 10/40] discover/grub: Add cmdline signature support for BLS
+ entries
+
+Follow along the way the linux builtin does it.
+
+Signed-off-by: Brett Grandbois <brett.grandbois@opengear.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit fa44993a61fc7ca0f3f73233ebf761dabfd5a1fa)
+---
+ discover/grub2/blscfg.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/discover/grub2/blscfg.c b/discover/grub2/blscfg.c
+index a1076b9..78086ee 100644
+--- a/discover/grub2/blscfg.c
++++ b/discover/grub2/blscfg.c
+@@ -148,6 +148,12 @@ static void bls_finish(struct conf_context *conf)
+ 		opt->dtb = create_grub2_resource(opt, conf->dc->device,
+ 						 root, state->dtb);
+ 
++	char* args_sigfile_default = talloc_asprintf(opt,
++		"%s.cmdline.sig", state->image);
++	opt->args_sig_file = create_grub2_resource(opt, conf->dc->device,
++						root, args_sigfile_default);
++	talloc_free(args_sigfile_default);
++
+ 	option->is_default = option_is_default(state, option);
+ 
+ 	list_add_tail(&state->script->options, &opt->list);
+-- 
+2.17.1
+

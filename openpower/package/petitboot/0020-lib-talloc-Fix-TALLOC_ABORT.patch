@@ -1,0 +1,82 @@
+From fab2e43df015c54f5a264ce9d383dad126307ee8 Mon Sep 17 00:00:00 2001
+From: Geoff Levand <geoff@infradead.org>
+Date: Wed, 8 Aug 2018 13:24:50 -0700
+Subject: [PATCH 20/40] lib/talloc: Fix TALLOC_ABORT
+
+The current TALLOC_ABORT macro had a number of problems.
+Failures were not going to the pb log, but only to stderr.
+If the object passed in was not a talloc object the printing
+of an object name would be printing random data.
+The use of a macro obscured the code.
+
+To clean this up, remove all reference to TALLOC_ABORT and
+put the logging and abort calls directly into talloc_chunk_from_ptr.
+
+Signed-off-by: Geoff Levand <geoff@infradead.org>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 7e8bc8b93ce67eda63c5a252fb051ca83979dd5b)
+---
+ lib/talloc/talloc.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
+
+diff --git a/lib/talloc/talloc.c b/lib/talloc/talloc.c
+index d3e2065..2e9f37e 100644
+--- a/lib/talloc/talloc.c
++++ b/lib/talloc/talloc.c
+@@ -40,13 +40,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-
+-#if !defined(NDEBUG)
+ #include <assert.h>
+-#define TALLOC_ABORT(reason) do{ \
+-	fprintf(stderr, "%s: name: %s\n", __func__, tc->name); \
+-	assert(0 && reason);} while (0)
+-#endif
+ 
+ #ifdef HAVE_SYS_TYPES_H
+ #include <sys/types.h>
+@@ -66,6 +60,7 @@
+ #include <stdint.h>
+ #endif
+ 
++#include "log/log.h"
+ #include "talloc.h"
+ 
+ /* use this to force every realloc to change the pointer, to stress test
+@@ -78,12 +73,6 @@
+ #define TALLOC_MAGIC_FREE 0x7faebef3
+ #define TALLOC_MAGIC_REFERENCE ((const char *)1)
+ 
+-/* by default we abort when given a bad pointer (such as when talloc_free() is
+- * called on a pointer that came from malloc() */
+-#ifndef TALLOC_ABORT
+-#define TALLOC_ABORT(reason) abort()
+-#endif
+-
+ #ifndef discard_const_p
+ #if defined(__intptr_t_defined) || defined(HAVE_INTPTR_T)
+ # define discard_const_p(type, ptr) ((type *)((intptr_t)(ptr)))
+@@ -126,10 +115,16 @@ static struct talloc_chunk *talloc_chunk_from_ptr(const void *ptr)
+ 	struct talloc_chunk *tc = discard_const_p(struct talloc_chunk, ptr)-1;
+ 	if (tc->u.magic != TALLOC_MAGIC) {
+ 		if (tc->u.magic == TALLOC_MAGIC_FREE) {
+-			TALLOC_ABORT("Bad talloc magic value - double free");
++			pb_log("%s: Failed: Bad talloc magic value - double free, for name: %s\n",
++				__func__, tc->name);
++			fprintf(stderr, "%s: name: %s\n", __func__, tc->name);
++			fflush(stderr);
++			assert(0 && "Bad talloc magic value - double free");
+ 		} else {
+-			TALLOC_ABORT("Bad talloc magic value - unknown value");
++			pb_log("%s: Failed: Bad talloc magic value - unknown value\n", __func__);
++			assert(0 && "Bad talloc magic value - unknown value");
+ 		}
++		abort();
+ 	}
+ 
+ 	return tc;
+-- 
+2.17.1
+

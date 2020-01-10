@@ -1,0 +1,53 @@
+From c7e518fb0d12d6159a4f82419a4c40bba93c9c42 Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Thu, 28 Jun 2018 17:21:35 +1000
+Subject: [PATCH 19/40] discover/user-event: Check for required parameters
+
+Check for some required parameters in the 'dhcp' handler, and in the
+'add' handler return an error if parse_user_event() fails rather than
+charging ahead into a segfault.
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 786903a98d6827b3bd7d280534834c4dfaca9166)
+---
+ discover/user-event.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/discover/user-event.c b/discover/user-event.c
+index 77d28c1..7f63d43 100644
+--- a/discover/user-event.c
++++ b/discover/user-event.c
+@@ -390,6 +390,9 @@ static int user_event_dhcp(struct user_event *uev, struct event *event)
+ 
+ 	uint8_t hwaddr[MAC_ADDR_SIZE];
+ 
++	if (!event_get_param(event, "mac") || !event_get_param(event, "ip"))
++		return -1;
++
+ 	sscanf(event_get_param(event, "mac"),
+ 	       "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
+ 	       hwaddr, hwaddr + 1, hwaddr + 2,
+@@ -411,6 +414,7 @@ static int user_event_add(struct user_event *uev, struct event *event)
+ 	struct device_handler *handler = uev->handler;
+ 	struct discover_context *ctx;
+ 	struct discover_device *dev;
++	int rc;
+ 
+ 	/* In case this is a network interface, try to refer to it by UUID */
+ 	dev = discover_device_create(handler, event_get_param(event, "mac"),
+@@ -418,7 +422,11 @@ static int user_event_add(struct user_event *uev, struct event *event)
+ 	dev->device->id = talloc_strdup(dev, event->device);
+ 	ctx = device_handler_discover_context_create(handler, dev);
+ 
+-	parse_user_event(ctx, event);
++	rc = parse_user_event(ctx, event);
++	if (rc) {
++		pb_log("parse_user_event returned %d\n", rc);
++		return rc;
++	}
+ 
+ 	device_handler_discover_context_commit(handler, ctx);
+ 
+-- 
+2.17.1
+

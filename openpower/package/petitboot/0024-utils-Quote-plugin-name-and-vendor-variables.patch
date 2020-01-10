@@ -1,0 +1,31 @@
+From 640607c421360567efb47f73ee4d482b4c2ed517 Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Thu, 30 May 2019 13:10:47 +1000
+Subject: [PATCH 24/40] utils: Quote plugin name and vendor variables
+
+Otherwise we only get the first word displayed in the UI.
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit aa596b2c10344e0664e0c98cd6db43af3e20fdb9)
+---
+ utils/pb-plugin | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/utils/pb-plugin b/utils/pb-plugin
+index a42d051..45bf19d 100755
+--- a/utils/pb-plugin
++++ b/utils/pb-plugin
+@@ -232,8 +232,8 @@ do_install()
+ 	done
+ 
+ 	pb-event plugin@local \
+-		name=$PLUGIN_NAME id=$PLUGIN_ID version=$PLUGIN_VERSION \
+-		vendor=$PLUGIN_VENDOR vendor_id=$PLUGIN_VENDOR_ID \
++		name="$PLUGIN_NAME" id=$PLUGIN_ID version=$PLUGIN_VERSION \
++		vendor="$PLUGIN_VENDOR" vendor_id=$PLUGIN_VENDOR_ID \
+ 		date=$PLUGIN_DATE executables="$PLUGIN_EXECUTABLES" \
+ 		source_file=$url installed="yes"
+ 
+-- 
+2.17.1
+

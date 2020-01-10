@@ -1,0 +1,69 @@
+From ee0f24a536d219672731927d47a250bc86366a0d Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Thu, 29 Nov 2018 11:53:05 +1100
+Subject: [PATCH 21/40] discover/boot: Fix talloc parent for resource URLs
+
+The pb_urls for the boot resources use 'opt' as the talloc parent but
+this may be NULL, for example if this is a user-created boot option.
+Move the boot_task initialisation so it can be used as the talloc parent
+instead.
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit ef0c91e9b6c99ccbb5a3c1a88bb4d5ca85d254b4)
+---
+ discover/boot.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/discover/boot.c b/discover/boot.c
+index 961217d..3db5530 100644
+--- a/discover/boot.c
++++ b/discover/boot.c
+@@ -521,25 +521,31 @@ struct boot_task *boot(void *ctx, struct discover_boot_option *opt,
+ 	update_status(status_fn, status_arg, STATUS_INFO,
+ 			_("Booting %s"), boot_desc);
+ 
++	boot_task = talloc_zero(ctx, struct boot_task);
++	boot_task->dry_run = dry_run;
++	boot_task->status_fn = status_fn;
++	boot_task->status_arg = status_arg;
++
+ 	if (cmd && cmd->boot_image_file) {
+-		image = pb_url_parse(opt, cmd->boot_image_file);
++		image = pb_url_parse(boot_task, cmd->boot_image_file);
+ 	} else if (opt && opt->boot_image) {
+ 		image = opt->boot_image->url;
+ 	} else {
+ 		pb_log("%s: no image specified\n", __func__);
+ 		update_status(status_fn, status_arg, STATUS_INFO,
+ 				_("Boot failed: no image specified"));
++		talloc_free(boot_task);
+ 		return NULL;
+ 	}
+ 
+ 	if (cmd && cmd->initrd_file) {
+-		initrd = pb_url_parse(opt, cmd->initrd_file);
++		initrd = pb_url_parse(boot_task, cmd->initrd_file);
+ 	} else if (opt && opt->initrd) {
+ 		initrd = opt->initrd->url;
+ 	}
+ 
+ 	if (cmd && cmd->dtb_file) {
+-		dtb = pb_url_parse(opt, cmd->dtb_file);
++		dtb = pb_url_parse(boot_task, cmd->dtb_file);
+ 	} else if (opt && opt->dtb) {
+ 		dtb = opt->dtb->url;
+ 	}
+@@ -549,10 +555,6 @@ struct boot_task *boot(void *ctx, struct discover_boot_option *opt,
+ 		setenv("https_proxy", opt->proxy, 1);
+ 	}
+ 
+-	boot_task = talloc_zero(ctx, struct boot_task);
+-	boot_task->dry_run = dry_run;
+-	boot_task->status_fn = status_fn;
+-	boot_task->status_arg = status_arg;
+ 	list_init(&boot_task->resources);
+ 
+ 	lockdown_type = lockdown_status();
+-- 
+2.17.1
+

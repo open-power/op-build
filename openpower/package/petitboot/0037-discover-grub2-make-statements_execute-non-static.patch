@@ -1,0 +1,45 @@
+From 4eeb0ff55e4d642d55ec24c33d1e5c0303b72f42 Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Thu, 14 Nov 2019 13:52:57 +0800
+Subject: [PATCH 37/40] discover/grub2: make statements_execute non-static
+
+We want to execute newly-parsed statements, so expose
+statements_execute() to the rest of the grub2 parser code.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 9711179694bb0e52c5951dc7222f1f79fcba814d)
+---
+ discover/grub2/grub2.h  | 3 +++
+ discover/grub2/script.c | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/discover/grub2/grub2.h b/discover/grub2/grub2.h
+index 668d070..deaf976 100644
+--- a/discover/grub2/grub2.h
++++ b/discover/grub2/grub2.h
+@@ -165,6 +165,9 @@ void word_append(struct grub2_word *w1, struct grub2_word *w2);
+ /* script interface */
+ void script_execute(struct grub2_script *script);
+ 
++int statements_execute(struct grub2_script *script,
++		struct grub2_statements *stmts);
++
+ int statement_simple_execute(struct grub2_script *script,
+ 		struct grub2_statement *statement);
+ int statement_block_execute(struct grub2_script *script,
+diff --git a/discover/grub2/script.c b/discover/grub2/script.c
+index f581eb9..8a00147 100644
+--- a/discover/grub2/script.c
++++ b/discover/grub2/script.c
+@@ -229,7 +229,7 @@ static void process_expansions(struct grub2_script *script,
+ 		argv->argc--;
+ }
+ 
+-static int statements_execute(struct grub2_script *script,
++int statements_execute(struct grub2_script *script,
+ 		struct grub2_statements *stmts)
+ {
+ 	struct grub2_statement *stmt;
+-- 
+2.17.1
+

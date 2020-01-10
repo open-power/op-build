@@ -1,0 +1,58 @@
+From fb38a49f027420f3d4fbaa837a51b90f8de8c2c9 Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Tue, 20 Mar 2018 10:49:32 +1100
+Subject: [PATCH 04/40] lib/security: Fix broken if statements in
+ gpg_validate_boot_files()
+
+The patch ccb478ac "Add encrypted file support" removes two
+	result = KEXEC_LOAD_SIGNATURE_FAILURE;
+statements from after the `if (verify_file_signature)` lines for the
+kernel and cmdline signatures. This appears to have been a mistake that
+snuck through testing, and would allow incorrect signatures to pass
+validation.
+
+Also fix up some confusing indenting in the decryption section.
+
+Reported-by: Brett Grandbois <brett.grandbois@opengear.com>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 3dfa4123bdf987aaa0e4bfd73d436c6bab0184ce)
+---
+ lib/security/gpg.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/security/gpg.c b/lib/security/gpg.c
+index 41d1306..76e2c6c 100644
+--- a/lib/security/gpg.c
++++ b/lib/security/gpg.c
+@@ -462,10 +462,12 @@ int gpg_validate_boot_files(struct boot_task *boot_task) {
+ 			local_image_signature,
+ 			authorized_signatures_handle,
+ 			"/etc/gpg"))
++			result = KEXEC_LOAD_SIGNATURE_FAILURE;
+ 		if (verify_file_signature(cmdline_template,
+ 			local_cmdline_signature,
+ 			authorized_signatures_handle,
+ 			"/etc/gpg"))
++			result = KEXEC_LOAD_SIGNATURE_FAILURE;
+ 
+ 		if (boot_task->local_initrd_signature)
+ 			if (verify_file_signature(initrd_filename,
+@@ -498,7 +500,7 @@ int gpg_validate_boot_files(struct boot_task *boot_task) {
+ 			"/etc/gpg"))
+ 			result = KEXEC_LOAD_SIGNATURE_FAILURE;
+ 		if (boot_task->local_initrd)
+-		if (decrypt_file(initrd_filename,
++			if (decrypt_file(initrd_filename,
+ 				authorized_signatures_handle,
+ 				"/etc/gpg"))
+ 				result = KEXEC_LOAD_DECRYPTION_FALURE;
+@@ -570,4 +572,4 @@ int lockdown_status() {
+ 	free(auth_sig_line);
+ 
+ 	return ret;
+-}
+\ No newline at end of file
++}
+-- 
+2.17.1
+

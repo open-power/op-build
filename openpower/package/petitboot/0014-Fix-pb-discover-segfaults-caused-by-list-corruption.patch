@@ -1,0 +1,62 @@
+From ba0361083a65052d6cad82aa735d8103e9d47768 Mon Sep 17 00:00:00 2001
+From: Brandon Bergren <git@bdragon.rtk0.net>
+Date: Sun, 10 Jun 2018 13:21:58 -0500
+Subject: [PATCH 14/40] Fix pb-discover segfaults caused by list corruption.
+
+I was seeing list corruption and segfaults in pb-discover on my Talos
+II when using both yaboot and kboot config files on the same device.
+
+My assumption is that discover_context_add_boot_option() was being
+called on the same pointer more than once.
+
+So, null the pointer right after the call. The ownership was transferred
+anyway so the parsers should not keep it around.
+
+Signed-off-by: Brandon Bergren <git@bdragon.rtk0.net>
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit 917f7aa880a7c6ab08991ae0c969d0489ba48845)
+---
+ discover/pxe-parser.c      | 1 +
+ discover/syslinux-parser.c | 1 +
+ discover/yaboot-parser.c   | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/discover/pxe-parser.c b/discover/pxe-parser.c
+index fd8b8e8..470dd83 100644
+--- a/discover/pxe-parser.c
++++ b/discover/pxe-parser.c
+@@ -41,6 +41,7 @@ static void pxe_finish(struct conf_context *conf)
+ 		if (info->proxy)
+ 			info->opt->proxy = talloc_strdup(info->opt, info->proxy);
+ 		discover_context_add_boot_option(conf->dc, info->opt);
++		info->opt = NULL;
+ 	}
+ }
+ 
+diff --git a/discover/syslinux-parser.c b/discover/syslinux-parser.c
+index d948765..e46db10 100644
+--- a/discover/syslinux-parser.c
++++ b/discover/syslinux-parser.c
+@@ -403,6 +403,7 @@ static void syslinux_finalize(struct conf_context *conf)
+ 		conf_strip_str(opt->description);
+ 
+ 		discover_context_add_boot_option(dc, d_opt);
++		d_opt = NULL;
+ 		continue;
+ fail:
+ 		talloc_free(d_opt);
+diff --git a/discover/yaboot-parser.c b/discover/yaboot-parser.c
+index 42db95b..b06248f 100644
+--- a/discover/yaboot-parser.c
++++ b/discover/yaboot-parser.c
+@@ -172,6 +172,7 @@ static void yaboot_finish(struct conf_context *conf)
+ 		state->opt->option->is_default = true;
+ 
+ 	discover_context_add_boot_option(conf->dc, state->opt);
++	state->opt = NULL;
+ }
+ 
+ static void yaboot_process_pair(struct conf_context *conf, const char *name,
+-- 
+2.17.1
+

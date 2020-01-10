@@ -1,0 +1,37 @@
+From dde3b17d7511748aec3afec21f84c0b7291cf62e Mon Sep 17 00:00:00 2001
+From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+Date: Tue, 20 Mar 2018 09:59:04 +1100
+Subject: [PATCH 02/40] discover/pxe-parser: Avoid potential null dereference
+
+Fixes Coverity defect CID 149918
+
+Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
+(cherry picked from commit fc04325dd218a391112483b7536d10dc9697675f)
+---
+ discover/pxe-parser.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/discover/pxe-parser.c b/discover/pxe-parser.c
+index d2ebaab..fd8b8e8 100644
+--- a/discover/pxe-parser.c
++++ b/discover/pxe-parser.c
+@@ -273,12 +273,14 @@ static void pxe_conf_parse_cb(struct load_url_result *result, void *data)
+ 
+ 	if (!data)
+ 		return;
++	if (!result)
++		goto out_clean;
+ 
+ 	handler = talloc_parent(conf);
+ 
+-	if (result && result->status == LOAD_OK)
++	if (result->status == LOAD_OK)
+ 		rc = read_file(conf, result->local, &buf, &len);
+-	if (!result || result->status != LOAD_OK || rc) {
++	if (result->status != LOAD_OK || rc) {
+ 		/* This load failed so try the next available filename */
+ 		info = conf->parser_info;
+ 		if (!info->pxe_conf_files) {
+-- 
+2.17.1
+
