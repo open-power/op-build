@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Hari Bathini <hbathini@linux.ibm.com>
 Date: Wed, 9 Oct 2019 19:34:29 +0530
-Subject: [PATCH 2/4] powerpc/configs: add FADump awareness to
+Subject: [PATCH 2/3] powerpc/configs: add FADump awareness to
  skiroot_defconfig
 
 FADump is supported on PowerNV platform. To fulfill this support, the
