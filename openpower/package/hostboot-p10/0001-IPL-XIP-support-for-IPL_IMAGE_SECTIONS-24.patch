@@ -1,0 +1,233 @@
+From 1c8cccdb86cbe33ec30ea273dacc55d42ef334a2 Mon Sep 17 00:00:00 2001
+From: Olsen <cmolsen@us.ibm.com>
+Date: Tue, 21 Jan 2020 14:11:52 -0500
+Subject: [PATCH] IPL (XIP) support for IPL_IMAGE_SECTIONS = 24
+
+This commit incl the following changes:
+- Bumping up previous max P9_XIP_SECTIONS = 15, plus renaming
+  said define, to IPL_IMAGE_SECTIONS = 24
+- Since this affects layout of IPL image header, further
+  bumping up IPL_IMAGE_HEADER_VERSION to v2
+
+Key_Cronus_Test=XIP_REGRESS_SBE_QME
+
+Change-Id: Ibc0844a942a80591df88ed675e58c9d0605cf3b3
+Reviewed-on: http://rchgit01.rchland.ibm.com/gerrit1/90057
+Tested-by: Jenkins Server <pfd-jenkins+hostboot@us.ibm.com>
+Tested-by: PPE CI <ppe-ci+hostboot@us.ibm.com>
+Tested-by: Cronus HW CI <cronushw-ci+hostboot@us.ibm.com>
+Reviewed-by: Sumit Kumar <sumit_kumar@in.ibm.com>
+Reviewed-by: Jennifer A Stofer <stofer@us.ibm.com>
+---
+ .../hwp/customize/p10_ipl_section_append.C         |  4 +--
+ .../chips/p10/utils/imageProcs/p10_ipl_image.C     | 34 +++++++++++-----------
+ .../chips/p10/utils/imageProcs/p10_ipl_image.H     | 12 ++++----
+ 3 files changed, 26 insertions(+), 24 deletions(-)
+
+diff --git a/src/import/chips/p10/procedures/hwp/customize/p10_ipl_section_append.C b/src/import/chips/p10/procedures/hwp/customize/p10_ipl_section_append.C
+index 9214d84..879b393 100644
+--- a/src/import/chips/p10/procedures/hwp/customize/p10_ipl_section_append.C
++++ b/src/import/chips/p10/procedures/hwp/customize/p10_ipl_section_append.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
++/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -43,7 +43,7 @@ fapi2::ReturnCode p10_ipl_section_append(
+ 
+     FAPI_ASSERT((i_section != NULL) &&
+                 (i_section_size > 0) &&
+-                (i_section_id < P9_XIP_SECTIONS) &&
++                (i_section_id < IPL_IMAGE_SECTIONS) &&
+                 (i_image != NULL) &&
+                 (io_image_size > 0),
+                 fapi2::XIP_SECTION_APPEND_INVALID_PARAMETERS().
+diff --git a/src/import/chips/p10/utils/imageProcs/p10_ipl_image.C b/src/import/chips/p10/utils/imageProcs/p10_ipl_image.C
+index 4677611..4477f42 100644
+--- a/src/import/chips/p10/utils/imageProcs/p10_ipl_image.C
++++ b/src/import/chips/p10/utils/imageProcs/p10_ipl_image.C
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
++/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -100,7 +100,7 @@ dumpSectionTable(const void* i_image)
+            "-------------------------------\n",
+            i_image);
+ 
+-    for (i = 0; i < P9_XIP_SECTIONS; i++)
++    for (i = 0; i < IPL_IMAGE_SECTIONS; i++)
+     {
+         rc = p9_xip_get_section(i_image, i, &section, UNDEFINED_DD_LEVEL);
+ 
+@@ -314,8 +314,8 @@ xipTranslateSection(P9XipSection* o_dest, const P9XipSection* i_src)
+ {
+ #ifndef _BIG_ENDIAN
+ 
+-#if IPL_IMAGE_HEADER_VERSION != 1
+-#error This code assumes the IPL image header version 1 layout
++#if IPL_IMAGE_HEADER_VERSION != 2
++#error This code assumes the IPL image header version 2 layout
+ #endif
+ 
+     o_dest->iv_offset = htobe32(i_src->iv_offset);
+@@ -342,8 +342,8 @@ xipTranslateToc(P9XipToc* o_dest, P9XipToc* i_src)
+ {
+ #ifndef _BIG_ENDIAN
+ 
+-#if IPL_IMAGE_HEADER_VERSION != 1
+-#error This code assumes the IPL image header version 1 layout
++#if IPL_IMAGE_HEADER_VERSION != 2
++#error This code assumes the IPL image header version 2 layout
+ #endif
+ 
+     o_dest->iv_id = htobe32(i_src->iv_id);
+@@ -378,7 +378,7 @@ xipFinalSection(const void* i_image, int* o_sectionId)
+     offset = 0;
+     *o_sectionId = 0;           /* Make GCC -O3 happy */
+ 
+-    for (i = 0; i < P9_XIP_SECTIONS; i++)
++    for (i = 0; i < IPL_IMAGE_SECTIONS; i++)
+     {
+         if ((hostHeader.iv_section[i].iv_size != 0) &&
+             (hostHeader.iv_section[i].iv_offset >= offset))
+@@ -411,7 +411,7 @@ xipGetSectionPointer(const void* i_image,
+ {
+     int rc;
+ 
+-    if ((i_sectionId < 0) || (i_sectionId >= P9_XIP_SECTIONS))
++    if ((i_sectionId < 0) || (i_sectionId >= IPL_IMAGE_SECTIONS))
+     {
+         rc = TRACE_ERROR(P9_XIP_INVALID_ARGUMENT);
+     }
+@@ -541,7 +541,7 @@ xipImage2Section(const void* i_image,
+ 
+         addressOffset = (i_imageAddress - xipLinkAddress(i_image)) & 0xffffffff;
+ 
+-        for (sectionId = 0; sectionId < P9_XIP_SECTIONS; sectionId++)
++        for (sectionId = 0; sectionId < IPL_IMAGE_SECTIONS; sectionId++)
+         {
+             rc = p9_xip_get_section(i_image, sectionId, &section, UNDEFINED_DD_LEVEL);
+ 
+@@ -564,7 +564,7 @@ xipImage2Section(const void* i_image,
+             break;
+         }
+ 
+-        if (sectionId == P9_XIP_SECTIONS)
++        if (sectionId == IPL_IMAGE_SECTIONS)
+         {
+             rc = TRACE_ERRORX(P9_XIP_IMAGE_ERROR,
+                               "Error processing IMAGE address " F0x016llx ". "
+@@ -1600,7 +1600,7 @@ p9_xip_validate(void* i_image, const uint32_t i_size)
+         // Validate that all sections appear to be within the image
+         // bounds, and are aligned correctly.
+ 
+-        for (i = 0; i < P9_XIP_SECTIONS; i++)
++        for (i = 0; i < IPL_IMAGE_SECTIONS; i++)
+         {
+ 
+             offset = hostHeader.iv_section[i].iv_offset;
+@@ -1759,7 +1759,7 @@ p9_xip_validate2(void* i_image, const uint32_t i_size, const uint32_t i_maskIgno
+         // Validate that all sections appear to be within the image
+         // bounds, and are aligned correctly.
+ 
+-        for (i = 0; i < P9_XIP_SECTIONS; i++)
++        for (i = 0; i < IPL_IMAGE_SECTIONS; i++)
+         {
+ 
+             offset = hostHeader.iv_section[i].iv_offset;
+@@ -1909,7 +1909,7 @@ p9_xip_normalize(void* io_image)
+             break;
+         }
+ 
+-        for (i = 0; i < P9_XIP_SECTIONS; i++)
++        for (i = 0; i < IPL_IMAGE_SECTIONS; i++)
+         {
+             rc = p9_xip_get_section(io_image, i, &section, UNDEFINED_DD_LEVEL);
+ 
+@@ -2656,7 +2656,7 @@ p9_xip_delete_section(void* io_image,
+             //   than i_sectionId and make a note of the order which is to
+             //   be used when re-appending.  Then delete i_sectionId.
+ 
+-            uint8_t sectionOrder[P9_XIP_SECTIONS];
++            uint8_t sectionOrder[IPL_IMAGE_SECTIONS];
+             uint8_t orderIdx = 0;
+ 
+             do
+@@ -3141,8 +3141,8 @@ p9_xip_translate_header(P9XipHeader* o_dest, const P9XipHeader* i_src)
+     P9XipSection* destSection;
+     const P9XipSection* srcSection;
+ 
+-#if IPL_IMAGE_HEADER_VERSION != 1
+-#error This code assumes the IPL image header version 1 layout
++#if IPL_IMAGE_HEADER_VERSION != 2
++#error This code assumes the IPL image header version 2 layout
+ #endif
+ 
+     o_dest->iv_magic = htobe64(i_src->iv_magic);
+@@ -3156,7 +3156,7 @@ p9_xip_translate_header(P9XipHeader* o_dest, const P9XipHeader* i_src)
+ 
+     for (i = 0, destSection = o_dest->iv_section,
+          srcSection = i_src->iv_section;
+-         i < P9_XIP_SECTIONS;
++         i < IPL_IMAGE_SECTIONS;
+          i++, destSection++, srcSection++)
+     {
+         xipTranslateSection(destSection, srcSection);
+diff --git a/src/import/chips/p10/utils/imageProcs/p10_ipl_image.H b/src/import/chips/p10/utils/imageProcs/p10_ipl_image.H
+index a19e54b..a073d4e 100644
+--- a/src/import/chips/p10/utils/imageProcs/p10_ipl_image.H
++++ b/src/import/chips/p10/utils/imageProcs/p10_ipl_image.H
+@@ -5,7 +5,7 @@
+ /*                                                                        */
+ /* OpenPOWER HostBoot Project                                             */
+ /*                                                                        */
+-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
++/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+ /* [+] International Business Machines Corp.                              */
+ /*                                                                        */
+ /*                                                                        */
+@@ -44,7 +44,9 @@
+ ///
+ /// V1:  Introduces .sbe nested image and moves .rings into the PPE's
+ ///      nested images (as compared to P9's last XIP V9 header)
+-#define IPL_IMAGE_HEADER_VERSION 1
++/// V2:  Expands the max number of IPL image sections from 15 to 24 and which
++///      cause a .header size increase of 9 x 12 B = 108 B
++#define IPL_IMAGE_HEADER_VERSION 2
+ 
+ /// \defgroup p9_xip_magic_numbers P9-XIP magic numbers
+ ///
+@@ -86,7 +88,7 @@
+ 
+ // Fixed number of entries in section table including common and
+ // image-specific sections
+-#define P9_XIP_SECTIONS 15
++#define IPL_IMAGE_SECTIONS 24
+ #define UNDEFINED_IPL_IMAGE_SID (int)0xff  // SID: Section ID
+ 
+ // This ensures that common sections go first followed by image-specific
+@@ -401,10 +403,10 @@ typedef struct
+     uint64_t iv_reserved64[2];
+ 
+     //////////////////////////////////////////////////////////////////////
+-    // Section Table - 4-byte aligned; 15 entries
++    // Section Table - 4-byte aligned; 24 entries
+     //////////////////////////////////////////////////////////////////////
+ 
+-    P9XipSection iv_section[P9_XIP_SECTIONS];
++    P9XipSection iv_section[IPL_IMAGE_SECTIONS];
+ 
+     //////////////////////////////////////////////////////////////////////
+     // Other information - 4-byte aligned; 8 entries
+-- 
+1.8.2.2
+
