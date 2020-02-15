@@ -75,9 +75,9 @@ GENERATED_PNOR_LAYOUT_FILES = $(shell find "$(OPENPOWER_PNOR_SCRATCH_DIR)" -maxd
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.map \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/.config \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/vmlinux \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/System.map \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/.config \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/vmlinux \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/System.map \
                $(OUTPUT_IMAGES_DIR)/zImage.epapr \
                $(GENERATED_PNOR_LAYOUT_FILES)
 
