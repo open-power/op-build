@@ -1,0 +1,39 @@
+config BR2_PACKAGE_HOSTBOOT_P10
+        bool "hostboot-p10"
+        default y if (BR2_OPENPOWER_POWER10)
+        select BR2_CPP
+        help
+            Project to build the Hostboot package for P10
+
+if BR2_PACKAGE_HOSTBOOT_P10
+
+choice
+	prompt "P10 Hostboot version"
+	default BR2_HOSTBOOT_P10_LATEST_VERSION
+
+config BR2_HOSTBOOT_P10_LATEST_VERSION
+	bool "Use latest Hostboot version"
+
+config BR2_HOSTBOOT_P10_CUSTOM_VERSION
+	bool "Use custom Hostboot version"
+
+endchoice
+
+config BR2_HOSTBOOT_P10_CUSTOM_VERSION_VALUE
+	string "Hostboot P10 version"
+	depends on BR2_HOSTBOOT_P10_CUSTOM_VERSION
+
+config BR2_HOSTBOOT_P10_VERSION
+	string
+	default "e5df1123fe36c59c0d51d9c8cde10902db834fba" if BR2_HOSTBOOT_P10_LATEST_VERSION
+	default BR2_HOSTBOOT_P10_CUSTOM_VERSION_VALUE \
+		if BR2_HOSTBOOT_P10_CUSTOM_VERSION
+
+config BR2_HOSTBOOT_P10_CONFIG_FILE
+        string "Hostboot configuration file for compilation"
+        default default
+        help
+            String used to define hw specific make config file
+
+endif
+
