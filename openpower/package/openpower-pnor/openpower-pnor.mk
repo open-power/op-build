@@ -79,10 +79,10 @@ FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.map \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/.config \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/vmlinux \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)/System.map \
-	       $(FSP_TRACE_IMAGES_DIR)/fsp-trace \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/.config \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/vmlinux \
+               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/System.map \
+ 	       $(FSP_TRACE_IMAGES_DIR)/fsp-trace \
                $(OUTPUT_IMAGES_DIR)/zImage.epapr
 
 
@@ -185,12 +185,12 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         # If this is a VPNOR system, run the generate-tar command and
         # create a tarball
         if [ "$(BR2_BUILD_PNOR_SQUASHFS)" == "y" ]; then \
-            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i squashfs -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
+            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i squashfs -m $(BR2_OPENPOWER_CONFIG_NAME) -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
             cd $(STAGING_DIR)/pnor/; PATH=$(HOST_DIR)/usr/sbin:$(PATH) $(HOST_DIR)/usr/bin/generate-ubi $(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).ubi.mtd $(BINARIES_DIR); \
         else \
-            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i static -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
+            PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i static -m $(BR2_OPENPOWER_CONFIG_NAME) -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(BINARIES_DIR); \
         fi
 
