@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= 544815b3f51c2882214b3cb9708e193626d1f524
+OPENPOWER_PNOR_VERSION ?= f65af64e9a554aa877f45a5adeec419145beda12
 
 # TODO: WORKAROUND: Need to reenable next line and comment out the two lines
 # after that, when code is propagated to a public repo
@@ -15,6 +15,8 @@ OPENPOWER_PNOR_SITE_METHOD=git
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
 OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util
+
+SBE_P10_VERSION = $(call qstrip,$(BR2_SBE_P10_VERSION))
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_PNOR_DEPENDENCIES += hcode
@@ -75,6 +77,7 @@ OUTPUT_BUILD_DIR = $(STAGING_DIR)/../../../build/
 OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
 FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
+SBE_IMAGE_DIR = $(STAGING_DIR)/../../../build/sbe-p10-"$(SBE_P10_VERSION)"/images
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
@@ -149,6 +152,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
 	    -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_FILENAME) \
 	    -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
             -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
+            -sbe_img_dir $(SBE_IMAGE_DIR) \
             $(XZ_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) \
 
         mkdir -p $(STAGING_DIR)/pnor/

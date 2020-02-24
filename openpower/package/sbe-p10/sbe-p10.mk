@@ -30,6 +30,7 @@ define SBE_P10_INSTALL_IMAGES_CMDS
 	$(INSTALL) -D $(@D)/images/ipl_image_tool $(HOST_DIR)/usr/bin/
 	python $(@D)/src/build/sbeOpDistribute.py  --sbe_binary_dir=$(STAGING_DIR)/sbe_binaries --img_dir=$(@D)/images --sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME)
 	cp $(@D)/src/build/sbeOpDistribute.py $(STAGING_DIR)/sbe_binaries/
+	cp $(@D)/src/build/sbeOpToolsRegister.py $(STAGING_DIR)/sbe_binaries/
 endef
 
 $(eval $(generic-package))
