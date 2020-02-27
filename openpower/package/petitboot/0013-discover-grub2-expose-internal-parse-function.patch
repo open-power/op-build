@@ -1,0 +1,96 @@
+From 706ca57516d2fc92a404a1ca44b2984f17f5eeb3 Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Thu, 14 Nov 2019 13:17:16 +0800
+Subject: [PATCH 13/18] discover/grub2: expose internal parse function
+
+Upcoming changes will need a method to parse a secondary file (to
+support the 'source' command), but not execute it as a new script.
+
+This change exposes the parsing code, separate from the execution code.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 2c132ebc93a44b7550b1fdb3f5f7b010e51f47e8)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/grub2-parser.y | 17 +++++++++++++++--
+ discover/grub2/grub2.c        |  2 +-
+ discover/grub2/grub2.h        |  8 ++++++--
+ 3 files changed, 22 insertions(+), 5 deletions(-)
+
+diff --git a/discover/grub2/grub2-parser.y b/discover/grub2/grub2-parser.y
+index 527a61c..f99bbfd 100644
+--- a/discover/grub2/grub2-parser.y
++++ b/discover/grub2/grub2-parser.y
+@@ -331,14 +331,15 @@ struct grub2_parser *grub2_parser_create(struct discover_context *ctx)
+ 	return parser;
+ }
+ 
+-void grub2_parser_parse(struct grub2_parser *parser, const char *filename,
++/* performs a parse on buf, setting parser->script->statements */
++int grub2_parser_parse(struct grub2_parser *parser, const char *filename,
+ 		char *buf, int len)
+ {
+ 	YY_BUFFER_STATE bufstate;
+ 	int rc;
+ 
+ 	if (!len)
+-		return;
++		return -1;
+ 
+ 	parser->script->filename = filename;
+ 
+@@ -349,6 +350,18 @@ void grub2_parser_parse(struct grub2_parser *parser, const char *filename,
+ 
+ 	yy_delete_buffer(bufstate, parser->scanner);
+ 
++	parser->inter_word = false;
++
++	return rc;
++}
++
++void grub2_parser_parse_and_execute(struct grub2_parser *parser,
++		const char *filename, char *buf, int len)
++{
++	int rc;
++
++	rc = grub2_parser_parse(parser, filename, buf, len);
++
+ 	if (!rc)
+ 		script_execute(parser->script);
+ }
+diff --git a/discover/grub2/grub2.c b/discover/grub2/grub2.c
+index a8d115f..b176ce2 100644
+--- a/discover/grub2/grub2.c
++++ b/discover/grub2/grub2.c
+@@ -169,7 +169,7 @@ static int grub2_parse(struct discover_context *dc)
+ 			continue;
+ 
+ 		parser = grub2_parser_create(dc);
+-		grub2_parser_parse(parser, *filename, buf, len);
++		grub2_parser_parse_and_execute(parser, *filename, buf, len);
+ 		device_handler_status_dev_info(dc->handler, dc->device,
+ 				_("Parsed GRUB configuration from %s"),
+ 				*filename);
+diff --git a/discover/grub2/grub2.h b/discover/grub2/grub2.h
+index 323b461..668d070 100644
+--- a/discover/grub2/grub2.h
++++ b/discover/grub2/grub2.h
+@@ -204,9 +204,13 @@ struct grub2_file *grub2_parse_file(struct grub2_script *script,
+ struct discover_device *grub2_lookup_device(struct device_handler *handler,
+ 		const char *desc);
+ 
++/* internal parse api */
++int grub2_parser_parse(struct grub2_parser *parser, const char *filename,
++		char *buf, int len);
++
+ /* external parser api */
+ struct grub2_parser *grub2_parser_create(struct discover_context *ctx);
+-void grub2_parser_parse(struct grub2_parser *parser, const char *filename,
+-		char *buf, int len);
++void grub2_parser_parse_and_execute(struct grub2_parser *parser,
++		const char *filename, char *buf, int len);
+ #endif /* GRUB2_H */
+ 
+-- 
+2.17.1
+

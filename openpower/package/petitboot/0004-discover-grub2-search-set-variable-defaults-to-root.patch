@@ -1,0 +1,40 @@
+From 3794b8f14fe94fcaa7b5cdb9171aef488f93ec7e Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Thu, 31 Oct 2019 13:56:42 +0800
+Subject: [PATCH 04/18] discover/grub2: 'search' set-variable defaults to root
+
+If no --set= argument is specified, default to the variable named
+'root', as per current grub docs.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit e558da19475d747e6f8e83d07305d35da33102f9)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/builtins.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/discover/grub2/builtins.c b/discover/grub2/builtins.c
+index 7e92299..3f09319 100644
+--- a/discover/grub2/builtins.c
++++ b/discover/grub2/builtins.c
+@@ -113,7 +113,7 @@ static int builtin_search(struct grub2_script *script,
+ 	const char *env_var, *spec;
+ 	int i;
+ 
+-	env_var = NULL;
++	env_var = "root";
+ 
+ 	for (i = 1; i < argc - 1; i++) {
+ 		if (!strncmp(argv[i], "--set=", strlen("--set="))) {
+@@ -122,7 +122,7 @@ static int builtin_search(struct grub2_script *script,
+ 		}
+ 	}
+ 
+-	if (!env_var)
++	if (!strlen(env_var))
+ 		return 0;
+ 
+ 	spec = argv[argc - 1];
+-- 
+2.17.1
+

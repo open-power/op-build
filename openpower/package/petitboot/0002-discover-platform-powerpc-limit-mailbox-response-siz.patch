@@ -1,0 +1,68 @@
+From 40fd13ec2c7518dc7afa67dae2cf5c460b92997c Mon Sep 17 00:00:00 2001
+From: Maxim Polyakov <m.polyakov@yadro.com>
+Date: Mon, 8 Jul 2019 12:12:59 +0300
+Subject: [PATCH 02/18] discover/platform-powerpc: limit mailbox response size
+
+The maximum size of the mailbox with Boot Initiator info is defined in
+the specification (1). The code should not extract data from the IPMI
+response message if its size exceeds the maximum limit from the
+specification.
+
+[1] page 398, IPMI Specification v2.0, Revision 1.1, October 1, 2013
+
+Signed-off-by: Maxim Polyakov <m.polyakov@yadro.com>
+(cherry picked from commit 1088a8ab532bfe008a714613497909d19bcfb8c4)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/platform-powerpc.c | 31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
+
+diff --git a/discover/platform-powerpc.c b/discover/platform-powerpc.c
+index 6651e3f..1e33bf1 100644
+--- a/discover/platform-powerpc.c
++++ b/discover/platform-powerpc.c
+@@ -461,24 +461,27 @@ static int get_ipmi_boot_mailbox_block(struct platform_powerpc *platform,
+ 		return -1;
+ 	}
+ 
+-	if (resp_len < sizeof(resp)) {
+-		if (resp_len < 4) {
+-			pb_log("platform: unexpected length (%d) in "
+-					"boot options mailbox response\n",
+-					resp_len);
+-			return -1;
+-		}
++	if (resp_len > sizeof(resp)) {
++		pb_debug("platform: invalid mailbox response size!\n");
++		return -1;
++	}
+ 
+-		if (resp_len == 4) {
+-			pb_debug_fn("block %hu empty\n", block);
+-			return 0;
+-		}
++	if (resp_len < 4) {
++		pb_log("platform: unexpected length (%d) in "
++				"boot options mailbox response\n",
++				resp_len);
++		return -1;
++	}
+ 
+-		blocksize = sizeof(resp) - 4;
+-		pb_debug_fn("Mailbox block %hu returns only %zu bytes in block\n",
+-				block, blocksize);
++	if (resp_len == 4) {
++		pb_debug_fn("block %hu empty\n", block);
++		return 0;
+ 	}
+ 
++	blocksize = sizeof(resp) - 4;
++	pb_debug_fn("Mailbox block %hu returns only %zu bytes in block\n",
++			block, blocksize);
++
+ 	debug_buf = format_buffer(platform, resp, resp_len);
+ 	pb_debug_fn("IPMI bootdev mailbox block %hu:\n%s\n", block, debug_buf);
+ 	talloc_free(debug_buf);
+-- 
+2.17.1
+

@@ -1,0 +1,80 @@
+From e92e3204cc494de8d41160e3d3a5bd5d03fdbb15 Mon Sep 17 00:00:00 2001
+From: Maxim Polyakov <m.polyakov@yadro.com>
+Date: Mon, 8 Jul 2019 12:12:43 +0300
+Subject: [PATCH 01/18] discover/platform-powerpc: add missing mbox block
+ selector
+
+According to IPMI Specification, in the IPMI response message with
+boot initiator mailbox information block, byte 4 should be used as
+the block selector (1). However, this parameter isn`t taken into
+account in the code and bytes 4-6 in the block 0 are defined as the
+IANA enterprise ID number. Thus, IANA contains an invalid value and
+doesn`t match the IBM ID. For this reason, the get_ipmi_boot_mailbox()
+procedure fails with error and the boot options from mailbox doesn`t
+apply.
+/var/log/petitboot/pb-discover.log:
+
+IANA number unrecognised: 0x00:0x02:0x00
+
+This patch adds the missing block selector parameter.
+It has been tested on the YADRO Vesnin P8 Server with the Openbmc
+
+[1] page 398, IPMI Specification v2.0, Revision 1.1, October 1, 2013
+
+Signed-off-by: Maxim Polyakov <m.polyakov@yadro.com>
+(cherry picked from commit 43813e6f5e7e051b9c0c077bef71f4a423d7f6c0)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/platform-powerpc.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/discover/platform-powerpc.c b/discover/platform-powerpc.c
+index 5d7cc59..6651e3f 100644
+--- a/discover/platform-powerpc.c
++++ b/discover/platform-powerpc.c
+@@ -440,7 +440,7 @@ static int get_ipmi_boot_mailbox_block(struct platform_powerpc *platform,
+ 		char *buf, uint8_t block)
+ {
+ 	size_t blocksize = 16;
+-	uint8_t resp[3 + 16];
++	uint8_t resp[3 + 1 + 16];
+ 	uint16_t resp_len;
+ 	char *debug_buf;
+ 	int rc;
+@@ -462,7 +462,7 @@ static int get_ipmi_boot_mailbox_block(struct platform_powerpc *platform,
+ 	}
+ 
+ 	if (resp_len < sizeof(resp)) {
+-		if (resp_len < 3) {
++		if (resp_len < 4) {
+ 			pb_log("platform: unexpected length (%d) in "
+ 					"boot options mailbox response\n",
+ 					resp_len);
+@@ -474,7 +474,7 @@ static int get_ipmi_boot_mailbox_block(struct platform_powerpc *platform,
+ 			return 0;
+ 		}
+ 
+-		blocksize = sizeof(resp) - 3;
++		blocksize = sizeof(resp) - 4;
+ 		pb_debug_fn("Mailbox block %hu returns only %zu bytes in block\n",
+ 				block, blocksize);
+ 	}
+@@ -502,7 +502,14 @@ static int get_ipmi_boot_mailbox_block(struct platform_powerpc *platform,
+ 		return -1;
+ 	}
+ 
+-	memcpy(buf, &resp[3], blocksize);
++	/* check for block number */
++	if (resp[3] != block) {
++		pb_debug("platform: returned boot mailbox block doesn't match "
++				  "requested\n");
++		return -1;
++	}
++
++	memcpy(buf, &resp[4], blocksize);
+ 
+ 	return blocksize;
+ }
+-- 
+2.17.1
+

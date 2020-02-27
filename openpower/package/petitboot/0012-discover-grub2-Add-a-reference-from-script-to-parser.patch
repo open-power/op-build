@@ -1,0 +1,43 @@
+From beb095c8b5fbae9eb5f3a77b7135bdeec036910f Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Thu, 14 Nov 2019 09:14:53 +0800
+Subject: [PATCH 12/18] discover/grub2: Add a reference from script to parser
+
+Future commands will need to access the parser, so add a reference from
+struct grub2_script.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit a9a9d575cdab5c32fcb374edf60f0e51f9f7ec9f)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/grub2.h  | 1 +
+ discover/grub2/script.c | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/discover/grub2/grub2.h b/discover/grub2/grub2.h
+index eabd6d6..323b461 100644
+--- a/discover/grub2/grub2.h
++++ b/discover/grub2/grub2.h
+@@ -91,6 +91,7 @@ struct grub2_statement_for {
+ };
+ 
+ struct grub2_script {
++	struct grub2_parser		*parser;
+ 	struct grub2_statements		*statements;
+ 	struct list			environment;
+ 	struct list			symtab;
+diff --git a/discover/grub2/script.c b/discover/grub2/script.c
+index 8a9d91d..34e0400 100644
+--- a/discover/grub2/script.c
++++ b/discover/grub2/script.c
+@@ -518,6 +518,7 @@ struct grub2_script *create_script(struct grub2_parser *parser,
+ 	script = talloc_zero(parser, struct grub2_script);
+ 
+ 	script->ctx = ctx;
++	script->parser = parser;
+ 
+ 	list_init(&script->symtab);
+ 	list_init(&script->options);
+-- 
+2.17.1
+

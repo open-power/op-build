@@ -33,6 +33,12 @@ ifeq ($(BR2_PACKAGE_NCURSES_WCHAR),y)
 PETITBOOT_CONF_OPTS += --with-ncursesw MENU_LIB=-lmenuw FORM_LIB=-lformw
 endif
 
+# Autoreconf is needed because we're touching a few Makefiles.am
+PETITBOOT_AUTORECONF = YES
+
+# And Gettext is needed because we'll update Makefile.in.in
+PETITBOOT_GETTEXTIZE = YES
+
 define PETITBOOT_POST_INSTALL
 	$(INSTALL) -D -m 0755 $(@D)/utils/bb-kexec-reboot \
 		$(TARGET_DIR)/usr/libexec/petitboot

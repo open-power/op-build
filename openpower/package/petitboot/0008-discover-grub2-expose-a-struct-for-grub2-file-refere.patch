@@ -1,0 +1,112 @@
+From 108772a058d1bbecf8a1d413a0c365e90cd8b6c0 Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Tue, 5 Nov 2019 16:42:14 +0800
+Subject: [PATCH 08/18] discover/grub2: expose a struct for grub2 file
+ references
+
+Currently, we have struct grub2_resource_info to keep references to boot
+payloads that may be returned in boot options, and be (conditionally)
+resolved by the parser.
+
+We'd also like to use the same semantics for other file references in
+the grub2 parser, for arbitrary usage in scripts - where files are
+also referenced by a path and an optional device.
+
+To do this, this change moves struct grub2_resource_info to grub2.h, and
+renames to struct grub2_file. Future changes will use this for
+script-internal file handling.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 8cb74c4502712162ba899bc06e2d0cf249a8697b)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/grub2.c | 24 +++++++++---------------
+ discover/grub2/grub2.h |  8 ++++++++
+ 2 files changed, 17 insertions(+), 15 deletions(-)
+
+diff --git a/discover/grub2/grub2.c b/discover/grub2/grub2.c
+index f62ccdd..412298b 100644
+--- a/discover/grub2/grub2.c
++++ b/discover/grub2/grub2.c
+@@ -33,17 +33,12 @@ static const char *const grub2_conf_files[] = {
+ 	NULL
+ };
+ 
+-struct grub2_resource_info {
+-	char *root;
+-	char *path;
+-};
+-
+ /* we use slightly different resources for grub2 */
+ struct resource *create_grub2_resource(struct discover_boot_option *opt,
+ 		struct discover_device *orig_device,
+ 		const char *root, const char *path)
+ {
+-	struct grub2_resource_info *info;
++	struct grub2_file *file;
+ 	struct resource *res;
+ 
+ 	if (strstr(path, "://")) {
+@@ -55,13 +50,12 @@ struct resource *create_grub2_resource(struct discover_boot_option *opt,
+ 	res = talloc(opt, struct resource);
+ 
+ 	if (root) {
+-		info = talloc(res, struct grub2_resource_info);
+-		talloc_reference(info, root);
+-		info->root = talloc_strdup(info, root);
+-		info->path = talloc_strdup(info, path);
++		file = talloc(res, struct grub2_file);
++		file->dev = talloc_strdup(file, root);
++		file->path = talloc_strdup(file, path);
+ 
+ 		res->resolved = false;
+-		res->info = info;
++		res->info = file;
+ 
+ 	} else
+ 		resolve_resource_against_device(res, orig_device, path);
+@@ -72,18 +66,18 @@ struct resource *create_grub2_resource(struct discover_boot_option *opt,
+ bool resolve_grub2_resource(struct device_handler *handler,
+ 		struct resource *res)
+ {
+-	struct grub2_resource_info *info = res->info;
++	struct grub2_file *file = res->info;
+ 	struct discover_device *dev;
+ 
+ 	assert(!res->resolved);
+ 
+-	dev = device_lookup_by_uuid(handler, info->root);
++	dev = device_lookup_by_uuid(handler, file->dev);
+ 
+ 	if (!dev)
+ 		return false;
+ 
+-	resolve_resource_against_device(res, dev, info->path);
+-	talloc_free(info);
++	resolve_resource_against_device(res, dev, file->path);
++	talloc_free(file);
+ 
+ 	return true;
+ }
+diff --git a/discover/grub2/grub2.h b/discover/grub2/grub2.h
+index 68176fb..73d91b2 100644
+--- a/discover/grub2/grub2.h
++++ b/discover/grub2/grub2.h
+@@ -107,6 +107,14 @@ struct grub2_parser {
+ 	bool			inter_word;
+ };
+ 
++/* References to files in grub2 consist of an optional device and a path
++ * (specified here by UUID). If the dev is unspecified, we fall back to a
++ * default - usually the 'root' environment variable. */
++struct grub2_file {
++	char *dev;
++	char *path;
++};
++
+ /* type for builtin functions */
+ typedef int (*grub2_function)(struct grub2_script *script, void *data,
+ 				int argc, char *argv[]);
+-- 
+2.17.1
+
