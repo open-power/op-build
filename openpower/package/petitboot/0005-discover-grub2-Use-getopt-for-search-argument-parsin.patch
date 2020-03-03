@@ -1,0 +1,142 @@
+From 0ddab9194fb2a24dbe25c848f27eb4d66e556113 Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Thu, 31 Oct 2019 17:31:10 +0800
+Subject: [PATCH 05/18] discover/grub2: Use getopt for `search` argument
+ parsing
+
+The search command will be extended to add the full set of grub2-style
+arguments, so switch to using getopt, rather than manual parsing.
+
+This means we now support `--set=foo` and `--set foo` style arguments,
+both of which appear in the docs and common grub configs.
+
+Also, add a small test for the search argument handling.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 61ede5e0bea7d999acfdda9931e5c1f3c13c0694)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/builtins.c            | 33 +++++++++++++++++++++++-----
+ test/parser/Makefile.am              |  1 +
+ test/parser/test-grub2-search-args.c | 33 ++++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+), 5 deletions(-)
+ create mode 100644 test/parser/test-grub2-search-args.c
+
+diff --git a/discover/grub2/builtins.c b/discover/grub2/builtins.c
+index 3f09319..ab6b0ec 100644
+--- a/discover/grub2/builtins.c
++++ b/discover/grub2/builtins.c
+@@ -1,4 +1,7 @@
+ 
++#define _GNU_SOURCE
++
++#include <getopt.h>
+ #include <stdio.h>
+ #include <string.h>
+ 
+@@ -106,18 +109,35 @@ static int builtin_initrd(struct grub2_script *script,
+ 	return 0;
+ }
+ 
++static const struct option search_options[] = {
++	{
++		.name = "set",
++		.has_arg = required_argument,
++		.val = 's',
++	},
++	{ 0 },
++};
++
+ static int builtin_search(struct grub2_script *script,
+ 		void *data __attribute__((unused)),
+ 		int argc, char *argv[])
+ {
+ 	const char *env_var, *spec;
+-	int i;
+ 
+ 	env_var = "root";
++	optind = 0;
++
++	for (;;) {
++		int c = getopt_long(argc, argv, ":", search_options, NULL);
++		if (c == -1)
++			break;
+ 
+-	for (i = 1; i < argc - 1; i++) {
+-		if (!strncmp(argv[i], "--set=", strlen("--set="))) {
+-			env_var = argv[i] + strlen("--set=");
++		switch (c) {
++		case 's':
++			env_var = optarg;
++			break;
++		case '?':
++		case ':':
+ 			break;
+ 		}
+ 	}
+@@ -125,7 +145,10 @@ static int builtin_search(struct grub2_script *script,
+ 	if (!strlen(env_var))
+ 		return 0;
+ 
+-	spec = argv[argc - 1];
++	if (optind >= argc)
++		return -1;
++
++	spec = argv[optind];
+ 
+ 	script_env_set(script, env_var, spec);
+ 
+diff --git a/test/parser/Makefile.am b/test/parser/Makefile.am
+index 748c836..df9c539 100644
+--- a/test/parser/Makefile.am
++++ b/test/parser/Makefile.am
+@@ -29,6 +29,7 @@ parser_TESTS = \
+ 	test/parser/test-grub2-multiple-id \
+ 	test/parser/test-grub2-single-line-if \
+ 	test/parser/test-grub2-pos-param \
++	test/parser/test-grub2-search-args \
+ 	test/parser/test-grub2-load-env \
+ 	test/parser/test-grub2-save-env \
+ 	test/parser/test-grub2-save-env-dash-f \
+diff --git a/test/parser/test-grub2-search-args.c b/test/parser/test-grub2-search-args.c
+new file mode 100644
+index 0000000..ffce853
+--- /dev/null
++++ b/test/parser/test-grub2-search-args.c
+@@ -0,0 +1,33 @@
++
++/* check for multiple styles of option parsing for the 'search' command */
++
++#include "parser-test.h"
++
++#if 0 /* PARSER_EMBEDDED_CONFIG */
++
++# no --set arugment will set the 'root' var
++search a
++search --set=v1 b
++search --set v2 c
++
++menuentry $root$v1$v2 {
++    linux /vmlinux
++}
++
++#endif
++
++void run_test(struct parser_test *test)
++{
++	struct discover_boot_option *opt;
++	struct discover_context *ctx;
++
++	ctx = test->ctx;
++
++	test_read_conf_embedded(test, "/grub/grub.cfg");
++
++	test_run_parser(test, "grub2");
++
++	check_boot_option_count(ctx, 1);
++	opt = get_boot_option(ctx, 0);
++	check_name(opt, "abc");
++}
+-- 
+2.17.1
+

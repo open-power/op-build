@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PETITBOOT_VERSION = v1.10.3
+PETITBOOT_VERSION = v1.10.4
 PETITBOOT_SOURCE = petitboot-$(PETITBOOT_VERSION).tar.gz
 PETITBOOT_SITE ?= https://github.com/open-power/petitboot/releases/download/$(PETITBOOT_VERSION)
 PETITBOOT_DEPENDENCIES = ncurses udev host-bison host-flex lvm2
@@ -32,6 +32,12 @@ endif
 ifeq ($(BR2_PACKAGE_NCURSES_WCHAR),y)
 PETITBOOT_CONF_OPTS += --with-ncursesw MENU_LIB=-lmenuw FORM_LIB=-lformw
 endif
+
+# Autoreconf is needed because we're touching a few Makefiles.am
+PETITBOOT_AUTORECONF = YES
+
+# And Gettext is needed because we'll update Makefile.in.in
+PETITBOOT_GETTEXTIZE = YES
 
 define PETITBOOT_POST_INSTALL
 	$(INSTALL) -D -m 0755 $(@D)/utils/bb-kexec-reboot \

@@ -1,0 +1,84 @@
+From a4716f32814e6624f975da0a261175e4fee5f79d Mon Sep 17 00:00:00 2001
+From: Jeremy Kerr <jk@ozlabs.org>
+Date: Wed, 6 Nov 2019 11:04:54 +0800
+Subject: [PATCH 09/18] discover/grub2: Add parsing code for grub2 file
+ specifiers
+
+This change adds a (currently unused) function to parse (device)/path
+references from grub scripts.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+(cherry picked from commit 51f71178cd82a1cb7fae1a4e6bf40290e41b7d0e)
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ discover/grub2/grub2.c | 38 ++++++++++++++++++++++++++++++++++++++
+ discover/grub2/grub2.h |  4 ++++
+ 2 files changed, 42 insertions(+)
+
+diff --git a/discover/grub2/grub2.c b/discover/grub2/grub2.c
+index 412298b..3873720 100644
+--- a/discover/grub2/grub2.c
++++ b/discover/grub2/grub2.c
+@@ -82,6 +82,44 @@ bool resolve_grub2_resource(struct device_handler *handler,
+ 	return true;
+ }
+ 
++struct grub2_file *grub2_parse_file(struct grub2_script *script,
++		const char *str)
++{
++	struct grub2_file *file;
++	size_t dev_len;
++	char *pos;
++
++	if (!str)
++		return NULL;
++
++	file = talloc_zero(script, struct grub2_file);
++
++	if (*str != '(') {
++		/* just a path - no device, return path as-is */
++		file->path = talloc_strdup(file, str);
++
++	} else {
++		/* device plus path - split into components */
++
++		pos = strchr(str, ')');
++
++		/* no closing bracket, or zero-length path? */
++		if (!pos || *(pos+1) == '\0') {
++			talloc_free(file);
++			return NULL;
++		}
++
++		file->path = talloc_strdup(file, pos + 1);
++
++		dev_len = pos - str - 1;
++		if (dev_len)
++			file->dev = talloc_strndup(file, str + 1, dev_len);
++	}
++
++	return file;
++}
++
++
+ static int grub2_parse(struct discover_context *dc)
+ {
+ 	const char * const *filename;
+diff --git a/discover/grub2/grub2.h b/discover/grub2/grub2.h
+index 73d91b2..8c4839b 100644
+--- a/discover/grub2/grub2.h
++++ b/discover/grub2/grub2.h
+@@ -198,6 +198,10 @@ struct resource *create_grub2_resource(struct discover_boot_option *opt,
+ bool resolve_grub2_resource(struct device_handler *handler,
+ 		struct resource *res);
+ 
++/* grub-style device+path parsing */
++struct grub2_file *grub2_parse_file(struct grub2_script *script,
++		const char *str);
++
+ /* external parser api */
+ struct grub2_parser *grub2_parser_create(struct discover_context *ctx);
+ void grub2_parser_parse(struct grub2_parser *parser, const char *filename,
+-- 
+2.17.1
+
