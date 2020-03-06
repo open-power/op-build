@@ -1,0 +1,43 @@
+From ab2bc5d0efcfb5f1a1122d9c85b9ea9e53908454 Mon Sep 17 00:00:00 2001
+From: Reza Arbab <arbab@linux.ibm.com>
+Date: Fri, 21 Feb 2020 14:45:23 -0600
+Subject: [PATCH] hdata/spira: Add p10 NMMU base address
+
+Signed-off-by: Reza Arbab <arbab@linux.ibm.com>
+---
+ hdata/spira.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/hdata/spira.c b/hdata/spira.c
+index db54a02..de6386a 100644
+--- a/hdata/spira.c
++++ b/hdata/spira.c
+@@ -919,15 +919,22 @@ static void add_nx(void)
+ static void add_nmmu(void)
+ {
+ 	struct dt_node *xscom, *nmmu;
++	u32 scom;
+ 
+-	/* Nest MMU only exists on POWER9 */
++	/* Nest MMU only exists on POWER9 or later */
+ 	if (proc_gen < proc_gen_p9)
+ 		return;
+ 
++	if (proc_gen == proc_gen_p9)
++		scom = 0x5012c40;
++	else
++		scom = 0x2010c40;
++
+ 	dt_for_each_compatible(dt_root, xscom, "ibm,xscom") {
+-		nmmu = dt_new_addr(xscom, "nmmu", 0x5012c40);
++		nmmu = dt_new_addr(xscom, "nmmu", scom);
++		/* XXX P10 */
+ 		dt_add_property_strings(nmmu, "compatible", "ibm,power9-nest-mmu");
+-		dt_add_property_cells(nmmu, "reg", 0x5012c40, 0x20);
++		dt_add_property_cells(nmmu, "reg", scom, 0x20);
+ 	}
+ }
+ 
+-- 
+1.8.3.1
+
