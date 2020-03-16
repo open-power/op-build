@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index e16d2e58ed4b..cabff177cbb4 100644
+index 85e41313f078..d4e6b58c7199 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 5
  PATCHLEVEL = 4
- SUBLEVEL = 18
+ SUBLEVEL = 25
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Kleptomaniac Octopus
