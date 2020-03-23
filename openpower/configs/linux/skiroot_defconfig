@@ -46,7 +46,7 @@ CONFIG_NUMA=y
 CONFIG_PPC_64K_PAGES=y
 CONFIG_SCHED_SMT=y
 CONFIG_CMDLINE_BOOL=y
-CONFIG_CMDLINE="console=tty0 console=hvc0 debug ignore_loglevel bootmem_debug sched_debug"
+CONFIG_CMDLINE="console=tty0 console=hvc0 debug ignore_loglevel bootmem_debug sched_debug powersave=off"
 # CONFIG_SECCOMP is not set
 # CONFIG_PPC_MEM_KEYS is not set
 CONFIG_JUMP_LABEL=y
