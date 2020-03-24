@@ -66,6 +66,9 @@ P10_RING_DYNAMIC_FILE=p10.hw.dynamic.bin
 P10_RING_OVERLAYS_FILE=p10.hw.overlays.bin
 P10_RING_QME_FILE=p10.hw.qme.rings.bin
 P10_RING_SBE_FILE=p10.hw.sbe.rings.bin
+P10_RING_FA_EC_CL2_FILE=p10.hw.fa_ec_cl2_far.bin
+P10_RING_FA_EC_MMA_FILE=p10.hw.fa_ec_mma_far.bin
+P10_RING_FA_OVRD_FILE=p10.hw.fa_ring_ovrd.bin
 
 define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
      $(INSTALL) -D $(@D)/gpu_gpe1.bin  $(STAGING_DIR)/hostboot_binaries/gpu_gpe1.bin
@@ -75,6 +78,9 @@ define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
      $(INSTALL) -D $(@D)/$(P10_RING_OVERLAYS_FILE)  $(STAGING_DIR)/hostboot_binaries/
      $(INSTALL) -D $(@D)/$(P10_RING_QME_FILE)  $(STAGING_DIR)/hostboot_binaries/
      $(INSTALL) -D $(@D)/$(P10_RING_SBE_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_FA_EC_CL2_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_FA_EC_MMA_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_FA_OVRD_FILE)  $(STAGING_DIR)/hostboot_binaries/
 endef
 endif
 
