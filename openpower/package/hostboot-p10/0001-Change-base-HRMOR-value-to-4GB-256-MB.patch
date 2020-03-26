@@ -1,0 +1,353 @@
+From c675377f08ff001f09d9f56362ac704964d3dfd3 Mon Sep 17 00:00:00 2001
+From: Luis Fernandez <Luis.Fernandez@ibm.com>
+Date: Thu, 19 Mar 2020 14:24:06 -0500
+Subject: [PATCH] Change base HRMOR value to 4GB - 256 MB
+
+- Changing HRMOR value where it is hardcoded
+- Moves l3 to the value of base HRMOR in runsim commands
+
+Change-Id: I0cc44d5ef8c915626940121035b532208bfefdc0
+RTC: 244859
+---
+ src/build/buildpnor/genPnorImages.pl      |  4 +--
+ src/build/citest/autocitest               |  2 +-
+ src/build/debug/ecmd-debug-framework.pl   |  9 ++---
+ src/build/debug/fsp-memdump.sh            |  5 +--
+ src/build/debug/simics-debug-framework.py | 19 ++++++----
+ src/build/simics/startup.simics           | 25 +++++++------
+ src/build/simics/triggerMPIPL.simics      |  6 ++--
+ src/include/usr/vmmconst.h                |  4 +--
+ src/usr/runtime/populate_hbruntime.C      | 58 ++++++++++++-------------------
+ 9 files changed, 65 insertions(+), 67 deletions(-)
+
+diff --git a/src/build/buildpnor/genPnorImages.pl b/src/build/buildpnor/genPnorImages.pl
+index 6196322..de7d56a 100755
+--- a/src/build/buildpnor/genPnorImages.pl
++++ b/src/build/buildpnor/genPnorImages.pl
+@@ -6,7 +6,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2016,2019
++# Contributors Listed Below - COPYRIGHT 2016,2020
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -37,7 +37,7 @@ use Getopt::Long qw(:config pass_through);
+ # Hostboot base image constants for the hardware header portion of the
+ # secureboot header
+ use constant BASE_IMAGE_TOTAL_CONTAINER_SIZE => 0x000000000007EF80;
+-use constant BASE_IMAGE_TARGET_HRMOR => 0x0000000008000000;
++use constant BASE_IMAGE_TARGET_HRMOR => 0x00000000F0000000;
+ use constant BASE_IMAGE_INSTRUCTION_START_STACK_POINTER => 0x0000000008280000;
+ 
+ use constant MAX_COMP_ID_LEN => 8;
+diff --git a/src/build/citest/autocitest b/src/build/citest/autocitest
+index 0ca6d2f..56eaa8f 100755
+--- a/src/build/citest/autocitest
++++ b/src/build/citest/autocitest
+@@ -234,7 +234,7 @@ echo "Wait for SBE and Hostboot bootloader to complete."
+ echo
+ echo "==================================="
+ echo
+-BL_HRMOR=0x8200000
++BL_HRMOR=0xF0200000
+ loopcount=1
+ while true; do
+     sleep 5
+diff --git a/src/build/debug/ecmd-debug-framework.pl b/src/build/debug/ecmd-debug-framework.pl
+index e7321c0..58c6733 100755
+--- a/src/build/debug/ecmd-debug-framework.pl
++++ b/src/build/debug/ecmd-debug-framework.pl
+@@ -6,7 +6,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2013,2018
++# Contributors Listed Below - COPYRIGHT 2013,2020
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -33,7 +33,8 @@ use lib dirname (__FILE__);
+ 
+ use Hostboot::_DebugFramework;
+ 
+-use constant DEFAULT_HRMOR => 128*1024*1024; # 128 MB.
++# HRMOR value: 4 GB - 256 MB = 3840 MB
++use constant DEFAULT_HRMOR => 3840*1024*1024;
+ use constant PER_NODE_OFFSET => 32*1024*1024*1024*1024; # 32 TB.
+ use constant UNSET_HRMOR => 0xFFFFFFFFFFFFFFFF;
+ 
+@@ -161,7 +162,7 @@ sub getEnv
+ 
+ # @sub getHRMOR
+ #
+-# Returns the HRMOR (128MB for a real system).
++# Returns the HRMOR (4GB-256MB for a real system).
+ #
+ sub getHRMOR
+ {
+@@ -444,7 +445,7 @@ List of arguments to pass to the tool as options.
+ 
+ =item B<--force-hrmor>=value
+ 
+-Set the HRMOR to be a non-default value.  The default is 128MB.
++Set the HRMOR to be a non-default value.  The default is 4GB-256MB.
+ 
+ =item B<--toolhelp>
+ 
+diff --git a/src/build/debug/fsp-memdump.sh b/src/build/debug/fsp-memdump.sh
+index f62ae12..b807f80 100755
+--- a/src/build/debug/fsp-memdump.sh
++++ b/src/build/debug/fsp-memdump.sh
+@@ -6,7 +6,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2013,2018
++# Contributors Listed Below - COPYRIGHT 2013,2020
+ # [+] International Business Machines Corp.
+ #
+ #
+@@ -121,7 +121,8 @@ if [[ -z ${NODE} ]]; then
+     NODE=0
+ fi
+ 
+-HB_OFFSET=`expr 128 \* 1024 \* 1024`
++# HB HRMOR offset is at: 4 GB - 256 MB = 3840 MB
++HB_OFFSET=`expr 3840 \* 1024 \* 1024`
+ #(32TB - 0x200000000000 OR 35184372088832)
+ HB_BASE_HRMOR=`expr 32 \* 1024 \* 1024 \* 1024 \* 1024`
+ 
+diff --git a/src/build/debug/simics-debug-framework.py b/src/build/debug/simics-debug-framework.py
+index 22e5189..67abd56 100644
+--- a/src/build/debug/simics-debug-framework.py
++++ b/src/build/debug/simics-debug-framework.py
+@@ -6,7 +6,7 @@
+ #
+ # OpenPOWER HostBoot Project
+ #
+-# Contributors Listed Below - COPYRIGHT 2011,2019
++# Contributors Listed Below - COPYRIGHT 2011,2020
+ # [+] Google Inc.
+ # [+] International Business Machines Corp.
+ #
+@@ -519,9 +519,16 @@ def magic_instruction_callback(user_arg, cpu, arg):
+         return
+ 
+     # Disable our handler if we aren't inside HB part of IPL
+-    #   If HB is running then HRMOR==128MB (ignoring high bits)
+-    #   0x40000000=1GB, 0x8000000=128MB
+-    if( (cpu.hrmor % 0x40000000) != 0x8000000 ):
++    # We're inside HB when HRMOR offset is 4 GB - 256 MB.
++    # Assuming that the HRMOR offset can be moved arround in multiples of 1 GB
++    # increments (e.g. the HRMOR base may find it self at 1 TB + 4 GB - 256 MB),
++    # then the following equation will always be true if we are in HB:
++    # (X GB + HRMOR_offset) % 1 GB = 768 MB
++    #   This is true because:
++    #   let Y = X GB + 4GB - 256MB = X GB + 3 GB + 768 MB
++    #   and if we take the modulo of Y by 1 GB, the residual is 768 MB.
++    # 0x40000000=1GB, 0x30000000= 768 MB
++    if( (cpu.hrmor % 0x40000000) != 0x30000000 ):
+         print 'Skipping HB magic (outside of HB)', arg
+         return
+ 
+@@ -712,9 +719,7 @@ def magic_instruction_callback(user_arg, cpu, arg):
+             #entire base memory which is:  hrmor + 0x4000000 (64 MB)
+             if ((entry[0] == hb_hrmor) or
+                 ((entry[0] < hb_hrmor) and
+-                 (entry[0] + entry[4] >= hb_hrmor + 0x4000000) or
+-                 (entry[0] == 134217728) or
+-                 (entry[0] == 136314880))): #0x8000000 or 0x8200000
++                 (entry[0] + entry[4] >= hb_hrmor + 0x4000000))):
+                 obj = entry[1]
+                 size = entry[4]
+                 target = entry[5]
+diff --git a/src/build/simics/startup.simics b/src/build/simics/startup.simics
+index 0817938..24e2024 100755
+--- a/src/build/simics/startup.simics
++++ b/src/build/simics/startup.simics
+@@ -158,18 +158,18 @@ if($vpo_compile == "1") {
+     # Manually populate the SBE to HBBL communication area since SBE isn't running in VPO
+     #
+     # The "Jump forward x3000 instruction"
+-    system_cmp0.phys_mem.set address = 0x8200000 size = 4 0x48003000
++    system_cmp0.phys_mem.set address = 0xF0200000 size = 4 0x48003000
+     # The version of SBE
+-    system_cmp0.phys_mem.set address = 0x8200004 size = 4 0x00100001
++    system_cmp0.phys_mem.set address = 0xF0200004 size = 4 0x00100001
+     # 0th byte: sbeBootSide 1 byte:lpcConsoleEnable 3-4 byte: cacheSizeMB (4MB)
+-    system_cmp0.phys_mem.set address = 0x8200008 size = 4 0x00000004
++    system_cmp0.phys_mem.set address = 0xF0200008 size = 4 0x00000004
+     # The size of the HBBL + 0x3000 offset
+-    system_cmp0.phys_mem.set address = 0x820000c size = 8 0x9000
+-    system_cmp0.phys_mem.set address = 0x8200014 size = 2 0x0900
++    system_cmp0.phys_mem.set address = 0xF020000c size = 8 0x9000
++    system_cmp0.phys_mem.set address = 0xF0200014 size = 2 0x0900
+     # 0th byte: numKeyAddrPair; 1-7 byte: start of the XSCOM BAR
+-    system_cmp0.phys_mem.set address = 0x8200016 size = 8 0x080006
+-    system_cmp0.phys_mem.set address = 0x820001e size = 2 0x03fc
+-    system_cmp0.phys_mem.set address = 0x8200020 size = 8 0x00060300
++    system_cmp0.phys_mem.set address = 0xF0200016 size = 8 0x080006
++    system_cmp0.phys_mem.set address = 0xF020001e size = 2 0x03fc
++    system_cmp0.phys_mem.set address = 0xF0200020 size = 8 0x00060300
+ 
+     # Now force the HBBL, HBB, and PNOR images at their respective offsets into the L3 cache.
+     $root = (env PROJECT_ROOT)
+@@ -179,8 +179,8 @@ if($vpo_compile == "1") {
+     (get-master-procs)[0].l3_img.load-file (lookup-file $root+"/standalone/pnor/VPO.pnor") 0x400000
+ 
+     # Set up to run on core 1 (for testing purposes)
+-    system_cmp0.cpu0_0_01_0->hrmor = 0x8200000
+-    system_cmp0.cpu0_0_01_0->urmor = 0x8200000
++    system_cmp0.cpu0_0_01_0->hrmor = 0xF0200000
++    system_cmp0.cpu0_0_01_0->urmor = 0xF0200000
+     system_cmp0.cpu0_0_01_0->iar = 0
+     system_cmp0.cpu0_0_01_0.enable
+     system_cmp0.cpu0_0_00_0.disable
+@@ -196,3 +196,8 @@ foreach $dimm_uchip in (get-object-list -all substr = uchip_space) {
+     ($dimm_uchip).write 0x2134 0xd2000610
+ }
+ 
++# Changing the base of HRMOR to 4GB - 256MB for all procs
++echo "Setting l3_base"
++foreach $proc in (get-all-procs) {
++    $proc->l3_base=0xF0000000
++}
+diff --git a/src/build/simics/triggerMPIPL.simics b/src/build/simics/triggerMPIPL.simics
+index e026b13..0d6f360 100644
+--- a/src/build/simics/triggerMPIPL.simics
++++ b/src/build/simics/triggerMPIPL.simics
+@@ -13,15 +13,15 @@
+ 
+ #set regs on master thread to prepare for bootloader
+ ($hb_cpu).write-reg IAR 0x3000
+-($hb_cpu).write-reg HRMOR 0x8200000
++($hb_cpu).write-reg HRMOR 0xF0200000
+ ($hb_cpu).write-reg MSR 0xd000000000000000
+ ($hb_cpu).write-reg LPCR 0x800040000000800c
+ 
+ #load in the bootloader code
+-system_cmp0.phys_mem.load-file ../obj/ppc/hbfw/img/hbbl.bin 0x8203000
++system_cmp0.phys_mem.load-file ../obj/ppc/hbfw/img/hbbl.bin 0xF0203000
+ 
+ #set up memory that SBE usually sets
+-system_cmp0.phys_mem.write address = 0x820000c value = 0x0000000000006000 size = 8
++system_cmp0.phys_mem.write address = 0xF020000c value = 0x0000000000006000 size = 8
+ 
+ #set isMPIPL mode to be true
+ ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "20000000_00000000" 64
+diff --git a/src/include/usr/vmmconst.h b/src/include/usr/vmmconst.h
+index 683b1b4..6f35f49 100644
+--- a/src/include/usr/vmmconst.h
++++ b/src/include/usr/vmmconst.h
+@@ -127,7 +127,7 @@ enum BlockPriority
+ #define SLBE_b 12
+ 
+ /** Hostboot reserved memory */
+-#define VMM_HRMOR_OFFSET (128*MEGABYTE)
++#define VMM_HRMOR_OFFSET ((4 * GIGABYTE) - (256*MEGABYTE))
+ #define VMM_HB_RSV_MEM_SIZE (256*MEGABYTE)
+ 
+ /** PHYP ATTN AREA OFFSET */
+@@ -137,7 +137,7 @@ enum BlockPriority
+ 
+ /** Hardwired offsets from HRMOR to HOMER images in real mem */
+ /** HOMER starts immediately after our HB memory */
+-/**    <n0p0 HRMOR = 128MB> + <memory size = 64MB> = 192 MB */
++/**    <n0p0 HRMOR = 4GB-256MB> + <memory size = 64MB> = 3904 MB */
+ /** HOMER is 4 MB per proc, 4 procs = 16MB */
+ /** Each HOMER must start on a 4MB offset to meet OCC requirements */
+ #define VMM_HOMER_REGION_START_OFFSET (VMM_MEMORY_SIZE)
+diff --git a/src/usr/runtime/populate_hbruntime.C b/src/usr/runtime/populate_hbruntime.C
+index a395e3c..d79dd90 100644
+--- a/src/usr/runtime/populate_hbruntime.C
++++ b/src/usr/runtime/populate_hbruntime.C
+@@ -86,8 +86,6 @@
+ namespace RUNTIME
+ {
+ 
+-
+-
+ mutex_t g_rhbMutex = MUTEX_INITIALIZER;
+ 
+ // used for populating the TPM required bit in HDAT
+@@ -96,13 +94,14 @@ const uint16_t TPM_REQUIRED_BIT = 0x8000; //leftmost bit of uint16_t set to 1
+ const uint8_t BITS_PER_BYTE = 8;
+ 
+ const uint8_t HDAT_INVALID_NODE = 0xFF;
++
+ // The upper limit of the hostboot reserved memory. Only applies to PHYP.
+-// The lower limit is Hostboot HRMOR + 64MB (if not mirroring)
+-const uint64_t HB_RES_MEM_UPPER_LIMIT = 256*MEGABYTE;
++const uint64_t HB_RES_MEM_UPPER_LIMIT = VMM_HRMOR_OFFSET + VMM_HB_RSV_MEM_SIZE;
+ 
++// The lower limit is Hostboot HRMOR + 64MB (if not mirroring)
+ // The lower limit of the hostboot reserved memory. Do not allow to reserve
+-// any memory below this limit.
+-const uint64_t HB_RES_MEM_LOWER_LIMIT = VMM_MEMORY_SIZE + VMM_HRMOR_OFFSET;
++// any memory below this limit. Only applies to PHYP.
++const uint64_t HB_RES_MEM_LOWER_LIMIT = VMM_HRMOR_OFFSET + VMM_MEMORY_SIZE;
+ 
+ trace_desc_t *g_trac_runtime = nullptr;
+ TRAC_INIT(&g_trac_runtime, RUNTIME_COMP_NAME, KILOBYTE);
+@@ -1119,39 +1118,26 @@ errlHndl_t populate_HbRsvMem(uint64_t i_nodeId, bool i_master_node)
+             // Reserve the HRMOR space if it not at zero offset.
+             ////////////////////////////////////////////////////////////////////
+             // HRMOR Calculation on OPAL Vs PhyP systems
+-            // For PhyP system, HRMOR is set to 128MB, which is calculated basis
+-            // this theory ==>>
+-            // "supported offset values are all values of the
+-            // form i x 2 exp `r`, where 0 <= i <= 2 exp `j`, and j and r are
+-            // implementation-dependent values having the properties that
+-            // 12 <= r <= 26". (Texted quoted from PowerISA Doc)
+-            // Basis the above, value of r is 26, which sets the offset
+-            // granularity to 64MB, therefore value of i is '2', which makes the
+-            // offset to 128MB.
+-            // Basis the above calculation/assumption, calculation of HRMO in
+-            // OPAL system is as follows -
+-            // OPAL needs the HRMOR in the range of 4GB, so that HB reloading
+-            // doesn't stamp on the OPAL/HostLinux Data. Now keeping the max
+-            // granularity as 64MB, 'i' is the multiplication factor which comes
+-            // to around 64 (64MB * 64 = 4096MB)
++            // For PhyP and OPAL systems, HRMOR is set to 4GB-256MB, which is
++            // calculated following PowerISA Doc:
++            // "The supported HRMOR values are the non-negative multiples of
++            // 2 to the power of r, where r is an implementation-dependent value
++            // and 12 <= r <= 26."
++            // Setting r to 26 sets the offset granularity to 64MB.
++            // 64MB * 60 = 3840MB, which is equal to 4GB-256MB.
+             ////////////////////////////////////////////////////////////////////
+             uint64_t l_hbAddr = cpu_spr_value(CPU_SPR_HRMOR) - VMM_HRMOR_OFFSET;
+-            // if l_hbAddr is zero that means PhyP system where HRMOR is set to
+-            // 128MB, if this is not zero that means OPAL system where HRMOR is
+-            // set to 3968MB
+-            if(l_hbAddr)
++
++            l_elog = setNextHbRsvMemEntry(HDAT::RHB_TYPE_PRIMARY,
++                    i_nodeId,
++                    l_hbAddr,
++                    VMM_HB_RSV_MEM_SIZE,
++                    HBRT_RSVD_MEM__PRIMARY,
++                    HDAT::RHB_READ_WRITE,
++                    false);
++            if(l_elog != nullptr)
+             {
+-                l_elog = setNextHbRsvMemEntry(HDAT::RHB_TYPE_PRIMARY,
+-                        i_nodeId,
+-                        l_hbAddr,
+-                        VMM_HB_RSV_MEM_SIZE,
+-                        HBRT_RSVD_MEM__PRIMARY,
+-                        HDAT::RHB_READ_WRITE,
+-                        false);
+-                if(l_elog != nullptr)
+-                {
+-                    break;
+-                }
++                break;
+             }
+ 
+             // Opal data goes at top_of_mem
+-- 
+1.8.3.1
+
