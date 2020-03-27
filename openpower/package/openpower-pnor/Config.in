@@ -177,4 +177,8 @@ config BR2_BUILD_PNOR_SQUASHFS
         bool "Create a virtual PNOR image along with the standard image"
         default n
 
+config BR2_OPENPOWER_MAKE_LIDS
+        bool "Create a package of content and signature binaries to be used for lid creation"
+        default n
+
 endmenu

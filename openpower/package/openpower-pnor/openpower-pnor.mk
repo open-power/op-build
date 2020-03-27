@@ -198,6 +198,15 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(BINARIES_DIR); \
         fi
 
+        # Make the lids 
+        if [ "$(BR2_OPENPOWER_MAKE_LIDS)" == "y" ]; then \
+            $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
+                 $(OUTPUT_IMAGES_DIR) \
+                 $(OPENPOWER_PNOR_SCRATCH_DIR); \
+        else \
+            echo "Not making LIDs"; \
+        fi
+
 	#Create Debug Tarball
 	mkdir -p $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
 	cp -r $(FILES_TO_TAR) $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
