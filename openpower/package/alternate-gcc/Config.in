@@ -1,0 +1,22 @@
+config BR2_PACKAGE_ALTERNATE_GCC
+		bool "alternate-gcc"
+		select BR2_PACKAGE_ALTERNATE_BINUTILS
+		help
+		  Build gcc for an Alternate Toolchain, for use in
+		  certain packages.
+
+
+if BR2_PACKAGE_ALTERNATE_GCC
+
+config BR2_ALTERNATE_GCC_VERSION
+		string "Alternate gcc version"
+		default "6.5.0"
+
+config BR2_ALTERNATE_GCC_EXTRA_CONFIG_OPTIONS
+		string "Extra configure options for Alternate Toolchain GCC"
+		default BR2_EXTRA_GCC_CONFIG_OPTIONS
+		help
+		  Any extra options to the Alternate Toolchain's gcc configure script
+		  The default is taken from EXTRA_GCC_CONFIG_OPTIONS
+
+endif
