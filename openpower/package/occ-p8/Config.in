@@ -13,4 +13,12 @@ config BR2_OCC_P8_BIN_FILENAME
         help
             String used to define name of the OCC binary image file
 
+config BR2_OCC_P8_USE_ALTERNATE_GCC
+	bool "use Alternate gcc to build occ-p8"
+	default n
+	select BR2_PACKAGE_ALTERNATE_GCC
+	help
+	  Select to enable using an alternate version of gcc
+	  to build occ-p8.
+
 endif

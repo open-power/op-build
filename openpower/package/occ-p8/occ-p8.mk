@@ -16,11 +16,20 @@ OCC_P8_INSTALL_TARGET = NO
 OCC_P8_STAGING_DIR = $(STAGING_DIR)/occ
 
 OCC_P8_IMAGE_BIN_PATH = src/image.bin
-OCC_P8_DEPENDENCIES = host-binutils host-p8-pore-binutils
+OCC_P8_DEPENDENCIES = host-p8-pore-binutils
+
+ifeq ($(BR2_OCC_P8_USE_ALTERNATE_GCC),y)
+OCC_P8_TARGET_CROSS = $(HOST_DIR)/alternate-toolchain/bin/$(GNU_TARGET_NAME)-
+OCC_P8_DEPENDENCIES += host-alternate-gcc
+else
+OCC_P8_TARGET_CROSS = $(TARGET_CROSS)
+OCC_P8_DEPENDENCIES += host-binutils
+endif
 
 define OCC_P8_BUILD_CMDS
         cd $(@D)/src && \
-        make POREPATH=$(P8_PORE_BINUTILS_BIN)/bin/ OCC_OP_BUILD=1 CROSS_PREFIX=$(TARGET_CROSS) all && \
+        make POREPATH=$(P8_PORE_BINUTILS_BIN)/bin/ OCC_OP_BUILD=1 \
+          CROSS_PREFIX=$(OCC_P8_TARGET_CROSS) all && \
         make tracehash && \
         make combineImage
 endef
