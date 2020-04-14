@@ -13,5 +13,12 @@ config BR2_HOSTBOOT_P8_CONFIG_FILE
         help
             String used to define hw specific make config file
 
-endif
+config BR2_HOSTBOOT_P8_USE_ALTERNATE_GCC
+		bool "use Alternate GCC to build hostboot-p8"
+		default n
+		select BR2_PACKAGE_ALTERNATE_GCC
+		help
+		  Select to enable using an alternate version of GCC
+		  to build hostboot-p8.
 
+endif
