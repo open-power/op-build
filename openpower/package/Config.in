@@ -1,3 +1,5 @@
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/alternate-binutils/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/alternate-gcc/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/openpower-ffs/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/hostboot/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/hostboot-binaries/Config.in"
