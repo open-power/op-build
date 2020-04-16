@@ -56,11 +56,6 @@ else
         done
 fi
 
-if [ -z "${OUTDIR}" or ! -d "${OUTDIR}" ]; then
-	echo "No output directory specified"
-	exit 1;
-fi
-
 if [ -z "$CCACHE_DIR" ]; then
 	CCACHE_DIR=`pwd`/.op-build_ccache
 fi
@@ -78,7 +73,7 @@ if [ -f $(ldconfig -p | grep libeatmydata.so | tr ' ' '\n' | grep /|head -n1) ];
 fi
 
 for i in ${DEFCONFIGS[@]}; do
-	export O=${OUTDIR}-$i
+	export O=${OUTDIR}/$i
 	rm -rf $O
         op-build O=$O $i
 	./buildroot/utils/config --file $O/.config --enable BR2_CCACHE
