@@ -88,9 +88,13 @@ for i in ${DEFCONFIGS[@]}; do
 	    ./buildroot/utils/config --file $O/.config --set-str BR2_TOOLCHAIN_EXTERNAL_PATH $SDK_DIR
 	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC y
 	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CXX y
-	    # FIXME: How do we work this out programatically?
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_6 y
-
+	    if [ "$(./buildroot/utils/config --file $O/.config --state GCC_VERSION_6_X)" == "y" ]; then
+		    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_6 y
+	    elif [ "$(./buildroot/utils/config --file $O/.config --state GCC_VERSION_7_X)" == "y" ]; then
+		    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_7 y
+	    elif [ "$(./buildroot/utils/config --file $O/.config --state GCC_VERSION_8_X)" == "y" ]; then
+		    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_8 y
+	    fi
 	    KERNEL_VER=$(./buildroot/utils/config --file $O/.config --state BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)
 	    echo "KERNEL_VER " $KERNEL_VER
 	    HEADERS=BR2_TOOLCHAIN_EXTERNAL_HEADERS_$(get_kernel_release $KERNEL_VER)
