@@ -68,7 +68,7 @@ if [ -n "$DL_DIR" ]; then
 	export BR2_DL_DIR=${DL_DIR}
 fi
 
-if [ -f $(ldconfig -p | grep libeatmydata.so | tr ' ' '\n' | grep /|head -n1) ]; then
+if [ -f "$(ldconfig -p | grep libeatmydata.so | tr ' ' '\n' | grep /|head -n1)" ]; then
     export LD_PRELOAD=${LD_PRELOAD:+"$LD_PRELOAD "}libeatmydata.so
 fi
 
