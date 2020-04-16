@@ -81,24 +81,24 @@ for i in ${DEFCONFIGS[@]}; do
 	export O=${OUTDIR}-$i
 	rm -rf $O
         op-build O=$O $i
-	./buildroot/utils/config --file $O/.config --set-val BR2_CCACHE y
+	./buildroot/utils/config --file $O/.config --enable BR2_CCACHE
         ./buildroot/utils/config --file $O/.config --set-str BR2_CCACHE_DIR $CCACHE_DIR
 	if [ -d "$SDK_DIR" ]; then
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL y
+	    ./buildroot/utils/config --file $O/.config --enable BR2_TOOLCHAIN_EXTERNAL
 	    ./buildroot/utils/config --file $O/.config --set-str BR2_TOOLCHAIN_EXTERNAL_PATH $SDK_DIR
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC y
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CXX y
+	    ./buildroot/utils/config --file $O/.config --enable BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC
+	    ./buildroot/utils/config --file $O/.config --enable BR2_TOOLCHAIN_EXTERNAL_CXX
 	    if [ "$(./buildroot/utils/config --file $O/.config --state GCC_VERSION_6_X)" == "y" ]; then
-		    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_6 y
+		    ./buildroot/utils/config --file $O/.config --enable BR2_TOOLCHAIN_EXTERNAL_GCC_6
 	    elif [ "$(./buildroot/utils/config --file $O/.config --state GCC_VERSION_7_X)" == "y" ]; then
-		    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_7 y
+		    ./buildroot/utils/config --file $O/.config --enable BR2_TOOLCHAIN_EXTERNAL_GCC_7
 	    elif [ "$(./buildroot/utils/config --file $O/.config --state GCC_VERSION_8_X)" == "y" ]; then
-		    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_8 y
+		    ./buildroot/utils/config --file $O/.config --enable BR2_TOOLCHAIN_EXTERNAL_GCC_8
 	    fi
 	    KERNEL_VER=$(./buildroot/utils/config --file $O/.config --state BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)
 	    echo "KERNEL_VER " $KERNEL_VER
 	    HEADERS=BR2_TOOLCHAIN_EXTERNAL_HEADERS_$(get_kernel_release $KERNEL_VER)
-	    ./buildroot/utils/config --file $O/.config --set-val $HEADERS y
+	    ./buildroot/utils/config --file $O/.config --enable $HEADERS
 	fi
         op-build O=$O olddefconfig
         op-build O=$O
