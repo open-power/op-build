@@ -76,15 +76,15 @@ for i in ${DEFCONFIGS[@]}; do
 	export O=${OUTDIR}/$i
 	rm -rf $O
         op-build O=$O $i
-	./buildroot/utils/config --file $O/.config --set-val BR2_CCACHE y
-        ./buildroot/utils/config --file $O/.config --set-str BR2_CCACHE_DIR $CCACHE_DIR
+	./buildroot/utils/config --file $O/.config --enable CCACHE \
+		--set-str CCACHE_DIR $CCACHE_DIR
 	if [ -d "$SDK_DIR" ]; then
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL y
-	    ./buildroot/utils/config --file $O/.config --set-str BR2_TOOLCHAIN_EXTERNAL_PATH $SDK_DIR
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC y
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_CXX y
+	    ./buildroot/utils/config --file $O/.config --enable TOOLCHAIN_EXTERNAL \
+		    --set-str TOOLCHAIN_EXTERNAL_PATH $SDK_DIR \
+		    --enable TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC \
+		    --enable TOOLCHAIN_EXTERNAL_CXX
 	    # FIXME: How do we work this out programatically?
-	    ./buildroot/utils/config --file $O/.config --set-val BR2_TOOLCHAIN_EXTERNAL_GCC_6 y
+	    ./buildroot/utils/config --file $O/.config --enable BR2_TOOLCHAIN_EXTERNAL_GCC_6
 
 	    KERNEL_VER=$(./buildroot/utils/config --file $O/.config --state BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE)
 	    echo "KERNEL_VER " $KERNEL_VER
