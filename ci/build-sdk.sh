@@ -27,7 +27,25 @@ fi
 
 export O=`pwd`/output-$1-$2/
 op-build O=$O $2
-./buildroot/utils/config --file $O/.config --set-val BR2_CCACHE y
-./buildroot/utils/config --file $O/.config --set-str BR2_CCACHE_DIR $CCACHE_DIR
+./buildroot/utils/config --file $O/.config --enable CCACHE
+./buildroot/utils/config --file $O/.config --set-str CCACHE_DIR $CCACHE_DIR
+
+# Disable things not necessary for the sdk
+# (Buildroot manual section 6.1.3)
+./buildroot/utils/config --file $O/.config --disable INIT_BUSYBOX \
+	--enable INIT_NONE \
+	--disable SYSTEM_BIN_SH_BUSYBOX \
+	--disable TARGET_ROOTFS_TAR
+
+# Additionally, disable OpenPower packages and
+# ROOTFS stuff that we won't need
+./buildroot/utils/config --file $O/.config --disable OPENPOWER_PLATFORM \
+	--undefine ROOTFS_USERS_TABLES \
+	--undefine ROOTFS_OVERLAY \
+	--undefine ROOTFS_POST_BUILD_SCRIPT \
+	--undefine ROOTFS_POST_FAKEROOT_SCRIPT \
+	--undefine ROOTFS_POST_IMAGE_SCRIPT \
+	--undefine ROOTFS_POST_SCRIPT_ARGS
+
 op-build O=$O olddefconfig
 op-build O=$O sdk
