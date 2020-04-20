@@ -10,33 +10,46 @@ DEFCONFIGS=();
 
 SDK_DIR=""
 
-while getopts "o:p:rs:" opt; do
-  case $opt in
-    o)
-      echo "Output directory: $OPTARG"
-      OUTDIR="$OPTARG"
+opt=$(getopt -o 'o:s:p:r' -- "$@")
+if [ $? != 0 ] ; then
+	echo "Invalid arguments"
+	exit 1
+fi
+
+eval set -- "$opt"
+unset opt
+
+while true; do
+  case "$1" in
+    '-o')
+      shift
+      echo "Output directory: $1"
+      OUTDIR="$1"
       ;;
-    s)
-      echo "SDK is in: $OPTARG"
-      SDK_DIR=$OPTARG
+    '-s')
+      shift
+      echo "SDK is in: $1"
+      SDK_DIR=$1
       ;;
-    p)
-      echo "Platforms to build: $OPTARG"
-      PLATFORM_LIST="$OPTARG"
+    '-p')
+      shift
+      echo "Platforms to build: $1"
+      PLATFORM_LIST="$1"
       ;;
-    r)
+    '-r')
       echo "Build legal-info etc for release"
       BUILD_INFO=1
       ;;
-    \?)
-      echo "Invalid option: -$OPTARG"
-      exit 1
+    '--')
+      shift
+      break
       ;;
-    :)
-      echo "Option -$OPTARG requires an argument."
+    *)
+      echo "Internal error!"
       exit 1
       ;;
   esac
+  shift
 done
 
 function get_kernel_release
