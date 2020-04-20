@@ -1,38 +1,52 @@
 #!/bin/bash
 
+set -ex
+set -eo pipefail
+
 CONTAINERS="ubuntu1804 fedora30"
-
-
 SDK_ONLY=0
 
-while getopts ":ab:hp:c:rs:S" opt; do
-  case $opt in
-    s)
-      echo "SDK Cache dir"
-      SDK_CACHE="$OPTARG"
+opt=$(getopt -o 's:Sab:p:c:hr' -- "$@")
+if [ $? != 0 ] ; then
+	echo "Invalid arguments"
+	exit 1
+fi
+
+eval set -- "$opt"
+unset opt
+
+while true; do
+  case "$1" in
+    '-s')
+      shift
+      echo "SDK Cache dir: $1"
+      SDK_CACHE="$1"
       ;;
-    S)
+    '-S')
       echo "Build SDK Only"
       SDK_ONLY=1
       ;;
-    a)
+    '-a')
       echo "Build firmware images for all the platforms"
       PLATFORMS=""
       ;;
-    b)
-      echo "Directory to bind to container: $OPTARG"
-      BIND="$OPTARG"
+    '-b')
+      shift
+      echo "Directory to bind to container: $1"
+      BIND="$1"
       ;;
-    p)
-      echo "Build firmware images for the platforms: $OPTARG"
-      PLATFORMS=$OPTARG
+    '-p')
+      shift
+      echo "Build firmware images for the platforms: $1"
+      PLATFORMS="$1"
       ;;
-    c)
-      echo "Build in container: $OPTARG"
-      CONTAINERS=$OPTARG
+    '-c')
+      shift
+      echo "Build in container: $1"
+      CONTAINERS="$1"
       ;;
-    h)
-      echo "Usage: ./ci/build.sh [options] [--]"
+    '-h')
+      echo "Usage: ./ci/build.sh [options]"
       echo "-h          Print this help and exit successfully."
       echo "-a          Build firmware images for all the platform defconfig's."
       echo "-b DIR      Bind DIR to container."
@@ -48,23 +62,27 @@ while getopts ":ab:hp:c:rs:S" opt; do
       echo -e "\tDOCKER_PREFIX=sudo ./ci/build.sh -p garrison,palmetto,opal"
       exit 1
       ;;
-    r)
+    '-r')
       echo "Build for release"
       release_args="-r"
       ;;
-    \?)
-      echo "Invalid option: -$OPTARG"
-      exit 1
+    '--')
+      shift
+      break
       ;;
-    :)
-      echo "Option -$OPTARG requires an argument."
+    *)
+      echo "Internal Error!"
       exit 1
       ;;
   esac
+  shift
 done
 
-set -ex
-set -eo pipefail
+
+if [ ! -d "$SDK_CACHE" ]; then
+    echo "Error: SDK Cache dir doesn't exist: $SDK_CACHE"
+    exit 1
+fi
 
 function run_docker
 {
@@ -126,21 +144,24 @@ ${CCACHE_DIR_ENV}
 EOF
 		  )
 	$DOCKER_PREFIX docker build --network=host -t openpower/op-build-$distro - <<< "${Dockerfile}"
-	if [ -d "$SDK_CACHE" ]; then
-	    SDK_DIR=$SDK_CACHE/$(toolchain_hash)-$distro
-	    if [ ! -d "$SDK_DIR" ]; then
-		chmod +x ci/build-sdk.sh
-		run_docker openpower/op-build-$distro "./ci/build-sdk.sh $distro witherspoon_defconfig"
-		mv output-$distro-witherspoon_defconfig $SDK_DIR
-		$SDK_DIR/host/relocate-sdk.sh
-	    fi
-	    sdk_args="-s $SDK_DIR/host"
+	SDK_DIR=$SDK_CACHE/$(toolchain_hash)-$distro
+	if [ ! -d "$SDK_DIR" ]; then
+	    chmod +x ci/build-sdk.sh
+	    run_docker openpower/op-build-$distro "./ci/build-sdk.sh $distro witherspoon_defconfig"
+	    mv output-$distro-witherspoon_defconfig $SDK_DIR
+	    $SDK_DIR/host/relocate-sdk.sh
+	fi
+
+	sdk_args="-s $SDK_DIR/host"
+
+	if [ -n "$PLATFORMS" ]; then
+	    platform_args="-p $PLATFORMS"
 	else
-	    sdk_args=""
+	    platform_args=""
 	fi
 
 	if [ $SDK_ONLY == 0 ]; then
-	    run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh -o `pwd`/output-$distro -p $PLATFORMS ${release_args} ${sdk_args}"
+	    run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh -o `pwd`/output-$distro ${platform_args} ${release_args} ${sdk_args}"
 	fi
 
 	if [ $? != 0 ]; then
