@@ -48,4 +48,11 @@ op-build O=$O $2
 	--undefine ROOTFS_POST_SCRIPT_ARGS
 
 op-build O=$O olddefconfig
+
+if [ -f "$(ldconfig -p | grep libeatmydata.so | tr ' ' '\n' | grep /|head -n1)" ]; then
+    export LD_PRELOAD=${LD_PRELOAD:+"$LD_PRELOAD "}libeatmydata.so
+elif [ -f "/usr/lib64/nosync/nosync.so" ]; then
+    export LD_PRELOAD=${LD_PRELOAD:+"$LD_PRELOAD "}/usr/lib64/nosync/nosync.so
+fi
+
 op-build O=$O sdk
