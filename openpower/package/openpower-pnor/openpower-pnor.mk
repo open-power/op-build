@@ -78,6 +78,8 @@ OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
 FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 SBE_IMAGE_DIR = $(STAGING_DIR)/../../../build/sbe-p10-"$(SBE_P10_VERSION)"/images
+DEVTREE_BIN_DIR = $(STAGING_DIR)/usr/share/
+BMC_POWER_TARGET_FILENAME = power-target.dtb
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
@@ -117,6 +119,12 @@ else
     OCC_BIN_FILENAME=$(BR2_OCC_BIN_FILENAME)
 endif
 
+DEVTREE_BLOB_FILENAME = ""
+ifeq ($(BR2_OPENPOWER_POWER10),y)
+    DEVTREE_BLOB_FILENAME = $(DEVTREE_BIN_DIR)/$(BMC_POWER_TARGET_FILENAME)
+    OPENPOWER_PNOR_DEPENDENCIES += pdata
+endif
+
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         mkdir -p $(OPENPOWER_PNOR_SCRATCH_DIR)
 
@@ -153,6 +161,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
 	    -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
             -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
             -sbe_img_dir $(SBE_IMAGE_DIR) \
+            -devtree_binary_filename $(DEVTREE_BLOB_FILENAME) \
             $(XZ_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) \
 
         mkdir -p $(STAGING_DIR)/pnor/
@@ -175,7 +184,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -wofdata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_WOFDATA_BINARY_FILENAME) \
             -memddata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_MEMDDATA_BINARY_FILENAME) \
             -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
-            -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin
+            -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin  \
+            -devtree_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/DEVTREE.bin
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
 
@@ -198,7 +208,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(BINARIES_DIR); \
         fi
 
-        # Make the lids 
+        # Make the lids
         if [ "$(BR2_OPENPOWER_MAKE_LIDS)" == "y" ]; then \
             $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
                  $(OUTPUT_IMAGES_DIR) \
