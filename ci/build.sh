@@ -7,7 +7,7 @@ CONTAINERS="ubuntu1804 fedora30"
 SDK_ONLY=0
 
 opt=$(getopt -o 's:Sab:p:c:hr' -- "$@")
-if [ $? != 0 ] ; then
+if [ $? -ne 0 ] ; then
 	echo "Invalid arguments"
 	exit 1
 fi
@@ -96,10 +96,6 @@ function run_docker
          -t $1 $2
 }
 
-function toolchain_hash
-{
-    echo -n 'toolchain-'$((git submodule ; cd openpower/configs/; cat `ls -1 |grep '_defconfig$'|sort`)|sha1sum |sed -e 's/ .*//')
-}
 
 env
 
@@ -144,15 +140,6 @@ ${CCACHE_DIR_ENV}
 EOF
 		  )
 	$DOCKER_PREFIX docker build --network=host -t openpower/op-build-$distro - <<< "${Dockerfile}"
-	SDK_DIR=$SDK_CACHE/$(toolchain_hash)-$distro
-	if [ ! -d "$SDK_DIR" ]; then
-	    chmod +x ci/build-sdk.sh
-	    run_docker openpower/op-build-$distro "./ci/build-sdk.sh $distro witherspoon_defconfig"
-	    mv output-$distro-witherspoon_defconfig $SDK_DIR
-	    $SDK_DIR/host/relocate-sdk.sh
-	fi
-
-	sdk_args="-s $SDK_DIR/host"
 
 	if [ -n "$PLATFORMS" ]; then
 	    platform_args="-p $PLATFORMS"
@@ -160,11 +147,15 @@ EOF
 	    platform_args=""
 	fi
 
-	if [ $SDK_ONLY == 0 ]; then
-	    run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh -o `pwd`/output-$distro ${platform_args} ${release_args} ${sdk_args}"
+	if [ $SDK_ONLY -ne 0 ]; then
+	    sdk_args="-S"
+	else
+	    sdk_args=""
 	fi
 
-	if [ $? != 0 ]; then
+	run_docker openpower/op-build-$distro "./ci/build-all-defconfigs.sh -o `pwd`/output-$distro ${platform_args} ${release_args} ${sdk_args} -s $SDK_CACHE"
+
+	if [ $? -ne 0 ]; then
 		exit $?;
 	fi
 done;
