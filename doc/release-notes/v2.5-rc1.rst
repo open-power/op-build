@@ -1,7 +1,7 @@
 Release Notes for OpenPower Firmware v2.5-rc1
 =============================================
 
-op-build v2.4-rc1 was released on Thursday, April 30th, 2020. It should become the next stable release of op-build, following on
+op-build v2.5-rc1 was released on Thursday, April 30th, 2020. It should become the next stable release of op-build, following on
 from v2.4, first released on July 28th, 2019.
 
 In addition to a number of bugfixes and re-factors, plus the 3 new platforms listed below, this release also brings new features
