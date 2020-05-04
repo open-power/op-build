@@ -83,7 +83,7 @@ function build_sdk
 
 	# Even if they should be interchangeable, we want to force the sdk
 	# build on every supported OS variations
-	HASH_PROPERTIES="$(HASH PROPERTIES) $(lsb_release -as | tr -d '/n[:space:]')"
+	HASH_PROPERTIES="$HASH_PROPERTIES $(lsb_release -as | tr -d '[:space:]')"
 
 	# Disable things not necessary for the sdk
 	# (Buildroot manual section 6.1.3 plus a few more things)
