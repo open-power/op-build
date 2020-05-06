@@ -1,0 +1,212 @@
+From acb807c91405f3f6632d24735d1d464db679cd14 Mon Sep 17 00:00:00 2001
+From: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+Date: Fri, 1 Mar 2019 16:27:31 +0300
+Subject: [PATCH 1/7] core/pci: Add functions to find accessible devices by
+ bdfn
+
+During the PCIe re-enumeration by an OS the .bdfn field of the struct
+pci_device may not correspond to its device's actual address for a while,
+so the pci_find_dev() will return an invalid descriptor in this case. Some
+code may rely on this behavior, so this patch introduces a new function to
+return a descriptor for addressable devices only.
+
+This new function will help in discovering hotplugged devices.
+
+Here's a synthetic (but possible) scenario where pci_find_dev_safe() is
+different from pci_find_dev():
+
+I. Before the re-enumeration:
+
+ +-[0021:00]---00.0-[01-04]--+-00.0-[02]--
+                             +-01.0-[03]----00.0 Device Z1
+                             +-02.0-[04]--
+
+ - pci_find_dev(0021:03:00.0) returns correct struct pci_device *pd for
+   Device Z1;
+ - pci_find_dev_safe(0021:03:00.0) returns the same pd.
+
+II. Re-enumeration, step 1:
+
+                       _____ Dropped the bus numbers by writing zeros
+                      /
+ +-[0021:00]---00.0-[00-00]--+-00.0-[02]--
+                             +-01.0-[03]----00.0 Device Z1
+                             +-02.0-[04]--
+
+ - Device Z1 is unreachable (bus 1 is not assigned), but
+   pci_find_dev(0021:03:00.0) returns its pd;
+ - pci_find_dev_safe(0021:03:00.0) returns NULL.
+
+III. Re-enumeration, step 2:
+
+                      __ Update the bus numbers: primary <- 0,
+                     /   secondary <- 1, subordinate <- ff
+                    /
+ +-[0021:00]---00.0-[01-ff]--+-00.0-[02]--
+                             +-01.0-[03]----00.0 Device Z1
+                             +-02.0-[04]--
+
+ - By coincidence, pci_find_dev(0021:03:00.0) returns pd for Device Z1;
+ - pci_find_dev_safe(0021:03:00.0) returns pd for Device Z1, which is
+   correct by coincidence.
+
+IV. Re-enumeration, step 3:
+                                       ___ Drop the bus numbers
+                                      /
+ +-[0021:00]---00.0-[01-ff]--+-00.0-[00-00]--
+                             +-01.0-[00-00]----00.0 Device Z1
+                             +-02.0-[00-00]--
+
+ - Device Z1 is unreachable (downstream 0021:01:01.0 has no bus numbers
+   assigned), but pci_find_dev(0021:03:00.0) returns its uncorrected pd;
+ - pci_find_dev_safe(0021:03:00.0) returns NULL.
+
+V. Re-enumeration, step 4:
+
+               Set the bus numbers __           _ A phantom of Device Z1
+                                     \         / from pci_find_dev(03:00.0)
+ +-[0021:00]---00.0-[01-ff]--+-00.0-[02-06]-- -
+                             +-01.0-[00-00]----00.0 Device Z1
+                             +-02.0-[00-00]--
+
+ - pci_find_dev(0021:03:00.0) returns a phantom of the Device Z1 for wrong
+   address;
+ - pci_find_dev_safe(0021:03:00.0) returns NULL.
+
+VI. Re-enumeration, step 5:
+
+ +-[0021:00]---00.0-[01-ff]--+-00.0-[02-06]--
+                            -+-01.0-[07-0b]----00.0 Device Z1
+                           / +-02.0-[00-00]--
+     Set the bus numbers --
+
+ - pci_find_dev(0021:03:00.0) returns a phantom of the Device Z1;
+ - pci_find_dev_safe(0021:03:00.0) returns NULL;
+ - pci_find_dev_safe(0021:07:00.0) returns pd for the Device Z1, but its
+   .bdfn field needs to be corrected (by the following patch).
+
+VI. After the re-enumeration:
+
+ +-[0021:00]---00.0-[01-10]--+-00.0-[02-06]--
+                             +-01.0-[07-0b]----00.0 Device Z1
+                             +-02.0-[0c-10]--
+
+Even though the .bdfn field is not correct at the moment, it is clear that
+this is a previously known device, not a hotplugged one.
+
+Signed-off-by: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+---
+ core/pci.c    | 83 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/pci.h |  2 ++
+ 2 files changed, 85 insertions(+)
+
+diff --git a/core/pci.c b/core/pci.c
+index e195ecbf..d443f935 100644
+--- a/core/pci.c
++++ b/core/pci.c
+@@ -1826,6 +1826,89 @@ struct pci_device *pci_find_dev(struct phb *phb, uint16_t bdfn)
+ 	return pci_walk_dev(phb, NULL, __pci_find_dev, &bdfn);
+ }
+ 
++static struct pci_device *__pci_find_parent(struct pci_device *pd, uint8_t bus)
++{
++	struct pci_device *child;
++
++	if (!pd)
++		return NULL;
++
++	if (pd->secondary_bus == bus)
++		return pd;
++
++	if (bus < pd->secondary_bus || bus > pd->subordinate_bus)
++		return NULL;
++
++	list_for_each(&pd->children, child, link) {
++		if (child->secondary_bus == bus)
++			return child;
++	}
++
++	list_for_each(&pd->children, child, link) {
++		struct pci_device *found = __pci_find_parent(child, bus);
++
++		if (found)
++			return found;
++	}
++
++	return NULL;
++}
++
++struct pci_device *pci_find_parent_dev(struct phb *phb, uint16_t bdfn)
++{
++	struct pci_device *pd;
++	uint8_t bus = PCI_BUS_NUM(bdfn);
++
++	if (!phb)
++		return NULL;
++
++	list_for_each(&phb->devices, pd, link) {
++		struct pci_device *found = __pci_find_parent(pd, bus);
++
++		if (found)
++			return found;
++	}
++
++	return NULL;
++}
++
++struct pci_device *pci_find_dev_safe(struct phb *phb, uint16_t bdfn)
++{
++	struct pci_device *parent;
++	struct pci_device *child;
++
++	if (!phb)
++		return NULL;
++
++	if (!bdfn) {
++		struct pci_device *pd;
++
++		list_for_each(&phb->devices, pd, link) {
++			if (pd->bdfn == bdfn)
++				return pd;
++		}
++	}
++
++	parent = pci_find_parent_dev(phb, bdfn);
++	if (!parent)
++		return NULL;
++
++	list_for_each(&parent->children, child, link) {
++		if ((child->bdfn & 0xff) == (bdfn & 0xff)) {
++			if (child->bdfn != bdfn) {
++				PCIERR(phb, bdfn, "pci_device has invalid bdfn field %04x:%02x:%02x.%d\n",
++				       phb->opal_id,
++				       PCI_BUS_NUM(child->bdfn),
++				       PCI_DEV(child->bdfn),
++				       PCI_FUNC(child->bdfn));
++			}
++			return child;
++		}
++	}
++
++	return NULL;
++}
++
+ static int __pci_restore_bridge_buses(struct phb *phb,
+ 				      struct pci_device *pd,
+ 				      void *data __unused)
+diff --git a/include/pci.h b/include/pci.h
+index eb23a6d9..e34d24ff 100644
+--- a/include/pci.h
++++ b/include/pci.h
+@@ -462,6 +462,8 @@ extern struct pci_device *pci_walk_dev(struct phb *phb,
+ 						 void *),
+ 				       void *userdata);
+ extern struct pci_device *pci_find_dev(struct phb *phb, uint16_t bdfn);
++extern struct pci_device *pci_find_dev_safe(struct phb *phb, uint16_t bdfn);
++extern struct pci_device *pci_find_parent_dev(struct phb *phb, uint16_t bdfn);
+ extern void pci_restore_bridge_buses(struct phb *phb, struct pci_device *pd);
+ extern struct pci_cfg_reg_filter *pci_find_cfg_reg_filter(struct pci_device *pd,
+ 					uint32_t start, uint32_t len);
+-- 
+2.24.1
+

@@ -1,0 +1,132 @@
+From e968adf90e7201b65f69d94c86dfedc1f5d17da6 Mon Sep 17 00:00:00 2001
+From: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+Date: Fri, 1 Mar 2019 16:27:46 +0300
+Subject: [PATCH 4/7] core/pci: Hook up the writes to
+ PRIMARY/SECONDARY/SUBORDINATE_BUS registers
+
+When Linux kernel boots with the "pci=realloc" command line argument, it
+re-enumerates the PCIe topology first by dropping all the bridge's
+downstream port's bus numbers to zero, and then assigns the newly
+calculated bus numbers:
+
+pci_scan_bridge_extend()
+    if (pcibios_assign_all_busses())
+        pci_write_config_dword(dev, PCI_PRIMARY_BUS,
+                               buses & ~0xffffff);
+        ...
+        buses = ...
+        ...
+        pci_write_config_dword(dev, PCI_PRIMARY_BUS, buses);
+
+But this leaves the corresponding struct pci_device entries in the skiboot
+de-synchronized with actual values in bridge's registers.
+
+This patch intercepts the write requests to the PCI_CFG_PRIMARY_BUS,
+PCI_CFG_SECONDARY_BUS and PCI_CFG_SUBORDINATE_BUS registers, updating the
+bdfn, primary_bus, secondary_bus and subordinate_bus fields.
+
+Signed-off-by: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+---
+ core/pci-opal.c | 78 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 77 insertions(+), 1 deletion(-)
+
+diff --git a/core/pci-opal.c b/core/pci-opal.c
+index 0ec9bcdd..0c9de1c1 100644
+--- a/core/pci-opal.c
++++ b/core/pci-opal.c
+@@ -49,6 +49,80 @@ static int64_t opal_pci_config_##op(uint64_t phb_id,			\
+ 	return rc;							\
+ }
+ 
++static void pci_update_children_bdfns(struct pci_device *pd)
++{
++	struct pci_device *child;
++
++	list_for_each(&pd->children, child, link) {
++		uint16_t new_bdfn = (child->bdfn & 0xff) | (pd->secondary_bus << 8);
++
++		if (child->bdfn != new_bdfn || child->primary_bus != pd->secondary_bus) {
++			if (!list_empty(&child->pcrf) && child->primary_bus)
++				bitmap_clr_bit(*child->phb->filter_map, child->bdfn);
++
++			child->bdfn = new_bdfn;
++			child->primary_bus = pd->secondary_bus;
++
++			if (!list_empty(&child->pcrf) && child->primary_bus)
++				bitmap_set_bit(*child->phb->filter_map, child->bdfn);
++
++			if (child->primary_bus && child->slot)
++				child->slot->id = PCI_SLOT_ID(child->phb, child->bdfn);
++		}
++	}
++}
++
++static void opal_pci_config_write_hook(struct phb *phb, uint16_t bdfn, uint64_t offset,
++				       uint32_t data, uint32_t size)
++{
++	struct pci_device *pd;
++	uint8_t old_sec;
++
++	if (data == 0xffffffff)
++		return;
++
++	pd = pci_find_dev_safe(phb, bdfn);
++	if (!pd) {
++		pd = pci_create_dn(phb, bdfn);
++		return;
++	}
++
++	switch (offset) {
++	case PCI_CFG_PRIMARY_BUS:
++	case PCI_CFG_SECONDARY_BUS:
++	case PCI_CFG_SUBORDINATE_BUS:
++		break;
++
++	default:
++		return;
++	}
++
++	old_sec = pd->secondary_bus;
++
++	switch (offset) {
++	case PCI_CFG_PRIMARY_BUS:
++		pd->primary_bus = data & 0xff;
++
++		if (size == 4) {
++			pd->secondary_bus = (data >> 8) & 0xff;
++			pd->subordinate_bus = (data >> 16) & 0xff;
++		}
++		break;
++
++	case PCI_CFG_SECONDARY_BUS:
++		pd->secondary_bus = data & 0xff;
++		break;
++
++	case PCI_CFG_SUBORDINATE_BUS:
++		pd->subordinate_bus = data & 0xff;
++		break;
++	}
++
++	if (pd->is_bridge && old_sec != pd->secondary_bus) {
++		pci_update_children_bdfns(pd);
++	}
++}
++
+ #define OPAL_PCICFG_ACCESS_WRITE(op, cb, type)	\
+ static int64_t opal_pci_config_##op(uint64_t phb_id,			\
+ 				    uint64_t bus_dev_func,		\
+@@ -59,8 +133,10 @@ static int64_t opal_pci_config_##op(uint64_t phb_id,			\
+ 									\
+ 	if (!phb)							\
+ 		return OPAL_PARAMETER;					\
+-	phb_lock(phb);						\
++	phb_lock(phb);							\
+ 	rc = phb->ops->cfg_##cb(phb, bus_dev_func, offset, data);	\
++	opal_pci_config_write_hook(phb, bus_dev_func, offset, data,	\
++				   sizeof(type));			\
+ 	phb_unlock(phb);						\
+ 									\
+ 	return rc;							\
+-- 
+2.24.1
+

@@ -1,0 +1,32 @@
+From e68b09257d748454e03b04b68137066a06261c7d Mon Sep 17 00:00:00 2001
+From: Sergei Miroshnichenko <s.miroshnichenko@yadro.com>
+Date: Wed, 10 Jun 2020 14:51:33 +0300
+Subject: [PATCH 6/7] hw/phb4: Don't force the link to be killed after errors
+
+When EEH is disabled (to have DPC and pciehp), link status is not polled,
+so when a removed PCI device is back, make it accessible.
+
+Signed-off-by: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+---
+ hw/phb4.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/hw/phb4.c b/hw/phb4.c
+index 3f22a2c4..05a8f9c8 100644
+--- a/hw/phb4.c
++++ b/hw/phb4.c
+@@ -2273,9 +2273,8 @@ static void phb4_prepare_link_change(struct pci_slot *slot, bool is_up)
+ 		/* Don't block PCI-CFG */
+ 		p->flags &= ~PHB4_CFG_BLOCKED;
+ 
+-		/* Re-enable link down errors */
+-		out_be64(p->regs + PHB_PCIE_MISC_STRAP,
+-			 0x0000060000000000ull);
++		/* Don't force the link to be 'killed' after errors */
++		out_be64(p->regs + PHB_PCIE_MISC_STRAP, 0);
+ 
+ 		/* Re-enable error status indicators that trigger irqs */
+ 		out_be64(p->regs + PHB_REGB_ERR_INF_ENABLE,
+-- 
+2.24.1
+

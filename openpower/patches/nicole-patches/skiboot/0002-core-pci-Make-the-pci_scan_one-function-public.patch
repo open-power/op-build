@@ -1,0 +1,45 @@
+From 3d6e773d1bbbacb5fe32a4227556f3b0651ddf24 Mon Sep 17 00:00:00 2001
+From: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+Date: Fri, 1 Mar 2019 16:27:36 +0300
+Subject: [PATCH 2/7] core/pci: Make the pci_scan_one() function public
+
+This change will be used by the next commit to discover new PCI devices and
+to create struct pci_device for them.
+
+Signed-off-by: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+---
+ core/pci.c    | 4 ++--
+ include/pci.h | 2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/core/pci.c b/core/pci.c
+index d443f935..77424b3e 100644
+--- a/core/pci.c
++++ b/core/pci.c
+@@ -219,8 +219,8 @@ bool pci_wait_crs(struct phb *phb, uint16_t bdfn, uint32_t *out_vdid)
+ 	return true;
+ }
+ 
+-static struct pci_device *pci_scan_one(struct phb *phb, struct pci_device *parent,
+-				       uint16_t bdfn)
++struct pci_device *pci_scan_one(struct phb *phb, struct pci_device *parent,
++				uint16_t bdfn)
+ {
+ 	struct pci_device *pd = NULL;
+ 	uint32_t vdid;
+diff --git a/include/pci.h b/include/pci.h
+index e34d24ff..29ecdddd 100644
+--- a/include/pci.h
++++ b/include/pci.h
+@@ -443,6 +443,8 @@ extern void pci_remove_bus(struct phb *phb, struct list_head *list);
+ extern uint8_t pci_scan_bus(struct phb *phb, uint8_t bus, uint8_t max_bus,
+ 			    struct list_head *list, struct pci_device *parent,
+ 			    bool scan_downstream);
++extern struct pci_device *pci_scan_one(struct phb *phb, struct pci_device *parent,
++				       uint16_t bdfn);
+ extern void pci_add_device_nodes(struct phb *phb,
+ 				 struct list_head *list,
+ 				 struct dt_node *parent_node,
+-- 
+2.24.1
+

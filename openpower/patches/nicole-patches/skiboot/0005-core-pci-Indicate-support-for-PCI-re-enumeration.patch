@@ -1,0 +1,28 @@
+From 9adb468e7bccfae021a9520f019962559b88f34e Mon Sep 17 00:00:00 2001
+From: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+Date: Wed, 3 Jul 2019 11:22:15 +0300
+Subject: [PATCH 5/7] core/pci: Indicate support for PCI re-enumeration
+
+New PHB's property "ibm,supported-movable-bdfs" shows that skiboot now
+supports changing PCI bus numbers.
+
+Signed-off-by: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+---
+ core/pci.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/pci.c b/core/pci.c
+index 77424b3e..d556189c 100644
+--- a/core/pci.c
++++ b/core/pci.c
+@@ -1046,6 +1046,7 @@ int64_t pci_register_phb(struct phb *phb, int opal_id)
+ 	if (opal_id > last_phb_id)
+ 		last_phb_id = opal_id;
+ 	dt_add_property_cells(phb->dt_node, "ibm,opal-phbid", 0, phb->opal_id);
++	dt_add_property(phb->dt_node, "ibm,supported-movable-bdfs", NULL, 0);
+ 	PCIDBG(phb, 0, "PCI: Registered PHB\n");
+ 
+ 	init_lock(&phb->lock);
+-- 
+2.24.1
+

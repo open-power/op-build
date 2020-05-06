@@ -1,0 +1,178 @@
+From 5e59bd74bd8df3248e3330c3748ae0c37ed7721b Mon Sep 17 00:00:00 2001
+From: Sergei Miroshnichenko <s.miroshnichenko@yadro.com>
+Date: Tue, 16 Jun 2020 11:57:48 +0300
+Subject: [PATCH 7/7] hw/phb4: Decode some common error bits when dumping
+ registers
+
+Manual deciphering of register values is unbearable, so decode at least
+some of them automatically.
+
+Signed-off-by: Sergey Miroshnichenko <s.miroshnichenko@yadro.com>
+---
+ hw/phb4.c | 111 +++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 105 insertions(+), 6 deletions(-)
+
+diff --git a/hw/phb4.c b/hw/phb4.c
+index 05a8f9c8..9bccaf53 100644
+--- a/hw/phb4.c
++++ b/hw/phb4.c
+@@ -2088,11 +2088,100 @@ static void __unused phb4_dump_ioda_table(struct phb4 *p, int table)
+ 	PHBERR(p, "End %s dump\n", name);
+ }
+ 
++struct bit_desc {
++	int bit;
++	const char *desc;
++};
++
++static struct bit_desc phbErrorStatusDesc[] = {
++	{ 20, "RXE_ARB OR Error Status" },
++	{ 21, "RXE_MRG OR Error Status" },
++	{ 22, "RXE_TCE OR Error Status" },
++	{ 23, "TXE OR Error Status" },
++	{ 24, "Error signal from PCIE/REGB. INF" },
++	{ 25, "Error signal from PCIE/REGB. ER (ALL)" },
++	{ 26, "Error signal from PCIE/REGB. Fatal" },
++	{ 27, "Internal register bus write data parity error" },
++};
++
++static struct bit_desc phbTxeErrorStatusDesc[] = {
++	{ 16, "BLIF Controls Parity Error" },
++	{ 17, "CFG Write Error CA or UR response" },
++	{ 18, "BLIF Forward Progress Timeout" },
++	{ 19, "MMIO RD Pending Error" },
++	{ 24, "A CFG access was attempted but the Enable bit was not set" },
++	{ 25, "CFG Size Error" },
++	{ 26, "CFG Bus Address Error" },
++	{ 27, "CFG Link Down Error" },
++};
++
++static struct bit_desc phbRxeArbErrorStatusDesc[] = {
++	{ 0, "BLIF Inbound CA Completion Error" },
++	{ 1, "BLIF Inbound UR Completion Error" },
++	{ 2, "MSI Size Error" },
++	{ 3, "MSI Address Alignment Error" },
++	{ 16, "BLIF Header Control Bits Parity Error" },
++	{ 17, "BLIF Data Control Bits Parity Error" },
++	{ 18, "BLIF Unsupported Request (UR) Error" },
++	{ 19, "BLIF Completion Timeout Error" },
++	{ 32, "PELT-V BAR Disabled Error" },
++	{ 33, "IODA Table Parity Error" },
++	{ 34, "PCT Timeout" },
++	{ 35, "PCT Unexpected Completion" },
++};
++
++static struct bit_desc phbRxeTceErrorStatusDesc[] = {
++	{ 0, "TCE CMP Internal Parity Error" },
++	{ 1, "TCE Request Page Access Error" },
++	{ 2, "TCE Response Page Access Error" },
++	{ 3, "TCE CMP Queue Overflow" },
++};
++
++static struct bit_desc phbRegbErrorStatusDesc[] = {
++	{ 8, "PCIE Link Down" },
++	{ 9, "PCIE Link Up" },
++	{ 10, "PCIE Link Auto Bandwidth Event Status" },
++	{ 11, "PCIE Link BW Management Event Status (Silent Retrain)" },
++	{ 25, "PBL Error Trap: INF Error. INF" },
++	{ 26, "PBL Error Trap: ERC Error. INF" },
++	{ 27, "PBL Error Trap: FAT Error. Fatal" },
++	{ 28, "tldlpo_dl_mon_rxreceivererror(0)" },
++	{ 29, "tldlpo_dl_mon_rxreceivererror(1)" },
++	{ 30, "tldlpo_dl_mon_rxreceivererror(2)" },
++	{ 32, "TLDLP core detected a bad DLLP packet" },
++	{ 33, "TLDLP core detected a bad TLP packet" },
++	{ 34, "TLDLP core detected a Data Link Layer Protocol Error" },
++	{ 35, "TLDLP core detected a Receiver Error on the link" },
++	{ 40, "DL_LB_ERROR" },
++	{ 41, "TLDLP core indicates it received a TLP that was malformed" },
++	{ 42, "TLDLP core indicates it received a TLP that was nullified by the transmitter" },
++	{ 43, "Asserted to indicate that the TLP in-progress has overflowed its receiver buffer" },
++};
++
++static void phb4_eeh_describe_reg(struct phb4 *p, const char *name, uint64_t v, const struct bit_desc *d, size_t d_size)
++{
++	unsigned int i;
++
++	for (i = 0; i < d_size; ++i) {
++		uint64_t bit = PPC_BIT(d[i].bit);
++
++		if (!(v & bit))
++			continue;
++
++		PHBERR(p, "%s: %02d: %s\n", name, d[i].bit, d[i].desc);
++		v &= ~bit;
++	}
++
++	if (v)
++		PHBERR(p, "%s: and more\n", name);
++}
++
+ static void phb4_eeh_dump_regs(struct phb4 *p)
+ {
+ 	struct OpalIoPhb4ErrorData *s;
+ 	uint16_t reg;
+ 	unsigned int i;
++	uint64_t phbErrorStatus, phbTxeErrorStatus, phbRxeArbErrorStatus, phbRxeTceErrorStatus, phbRegbErrorStatus;
+ 
+ 	if (!verbose_eeh)
+ 		return;
+@@ -2104,6 +2193,12 @@ static void phb4_eeh_dump_regs(struct phb4 *p)
+ 	}
+ 	phb4_read_phb_status(p, s);
+ 
++	phbErrorStatus          = be64_to_cpu(s->phbErrorStatus);
++	phbTxeErrorStatus       = be64_to_cpu(s->phbTxeErrorStatus);
++	phbRxeArbErrorStatus    = be64_to_cpu(s->phbRxeArbErrorStatus);
++	phbRxeTceErrorStatus	= be64_to_cpu(s->phbRxeTceErrorStatus);
++	phbRegbErrorStatus      = be64_to_cpu(s->phbRegbErrorStatus);
++
+ 	PHBERR(p, "                 brdgCtl = %08x\n", be32_to_cpu(s->brdgCtl));
+ 
+ 	/* PHB4 cfg regs */
+@@ -2137,15 +2232,18 @@ static void phb4_eeh_dump_regs(struct phb4 *p)
+ 	PHBERR(p, "                  lemFir = %016llx\n", be64_to_cpu(s->lemFir));
+ 	PHBERR(p, "            lemErrorMask = %016llx\n", be64_to_cpu(s->lemErrorMask));
+ 	PHBERR(p, "                  lemWOF = %016llx\n", be64_to_cpu(s->lemWOF));
+-	PHBERR(p, "          phbErrorStatus = %016llx\n", be64_to_cpu(s->phbErrorStatus));
++	PHBERR(p, "          phbErrorStatus = %016llx\n", phbErrorStatus);
++	phb4_eeh_describe_reg(p, "phbErrorStatus", phbErrorStatus, phbErrorStatusDesc, ARRAY_SIZE(phbErrorStatusDesc));
+ 	PHBERR(p, "     phbFirstErrorStatus = %016llx\n", be64_to_cpu(s->phbFirstErrorStatus));
+ 	PHBERR(p, "            phbErrorLog0 = %016llx\n", be64_to_cpu(s->phbErrorLog0));
+ 	PHBERR(p, "            phbErrorLog1 = %016llx\n", be64_to_cpu(s->phbErrorLog1));
+-	PHBERR(p, "       phbTxeErrorStatus = %016llx\n", be64_to_cpu(s->phbTxeErrorStatus));
++	PHBERR(p, "       phbTxeErrorStatus = %016llx\n", phbTxeErrorStatus);
++	phb4_eeh_describe_reg(p, "phbTxeErrorStatus", phbTxeErrorStatus, phbTxeErrorStatusDesc, ARRAY_SIZE(phbTxeErrorStatusDesc));
+ 	PHBERR(p, "  phbTxeFirstErrorStatus = %016llx\n", be64_to_cpu(s->phbTxeFirstErrorStatus));
+ 	PHBERR(p, "         phbTxeErrorLog0 = %016llx\n", be64_to_cpu(s->phbTxeErrorLog0));
+ 	PHBERR(p, "         phbTxeErrorLog1 = %016llx\n", be64_to_cpu(s->phbTxeErrorLog1));
+-	PHBERR(p, "    phbRxeArbErrorStatus = %016llx\n", be64_to_cpu(s->phbRxeArbErrorStatus));
++	PHBERR(p, "    phbRxeArbErrorStatus = %016llx\n", phbRxeArbErrorStatus);
++	phb4_eeh_describe_reg(p, "phbRxeArbErrorStatusDesc", phbRxeArbErrorStatus, phbRxeArbErrorStatusDesc, ARRAY_SIZE(phbRxeArbErrorStatusDesc));
+ 	PHBERR(p, "phbRxeArbFrstErrorStatus = %016llx\n", be64_to_cpu(s->phbRxeArbFirstErrorStatus));
+ 	PHBERR(p, "      phbRxeArbErrorLog0 = %016llx\n", be64_to_cpu(s->phbRxeArbErrorLog0));
+ 	PHBERR(p, "      phbRxeArbErrorLog1 = %016llx\n", be64_to_cpu(s->phbRxeArbErrorLog1));
+@@ -2153,7 +2251,8 @@ static void phb4_eeh_dump_regs(struct phb4 *p)
+ 	PHBERR(p, "phbRxeMrgFrstErrorStatus = %016llx\n", be64_to_cpu(s->phbRxeMrgFirstErrorStatus));
+ 	PHBERR(p, "      phbRxeMrgErrorLog0 = %016llx\n", be64_to_cpu(s->phbRxeMrgErrorLog0));
+ 	PHBERR(p, "      phbRxeMrgErrorLog1 = %016llx\n", be64_to_cpu(s->phbRxeMrgErrorLog1));
+-	PHBERR(p, "    phbRxeTceErrorStatus = %016llx\n", be64_to_cpu(s->phbRxeTceErrorStatus));
++	PHBERR(p, "    phbRxeTceErrorStatus = %016llx\n", phbRxeTceErrorStatus);
++	phb4_eeh_describe_reg(p, "phbRxeTceErrorStatus", phbRxeTceErrorStatus, phbRxeTceErrorStatusDesc, ARRAY_SIZE(phbRxeTceErrorStatusDesc));
+ 	PHBERR(p, "phbRxeTceFrstErrorStatus = %016llx\n", be64_to_cpu(s->phbRxeTceFirstErrorStatus));
+ 	PHBERR(p, "      phbRxeTceErrorLog0 = %016llx\n", be64_to_cpu(s->phbRxeTceErrorLog0));
+ 	PHBERR(p, "      phbRxeTceErrorLog1 = %016llx\n", be64_to_cpu(s->phbRxeTceErrorLog1));
+@@ -2164,8 +2263,8 @@ static void phb4_eeh_dump_regs(struct phb4 *p)
+ 	PHBERR(p, "     phbPcieDlpErrorLog1 = %016llx\n", be64_to_cpu(s->phbPcieDlpErrorLog1));
+ 	PHBERR(p, "     phbPcieDlpErrorLog2 = %016llx\n", be64_to_cpu(s->phbPcieDlpErrorLog2));
+ 	PHBERR(p, "   phbPcieDlpErrorStatus = %016llx\n", be64_to_cpu(s->phbPcieDlpErrorStatus));
+-
+-	PHBERR(p, "      phbRegbErrorStatus = %016llx\n", be64_to_cpu(s->phbRegbErrorStatus));
++	PHBERR(p, "      phbRegbErrorStatus = %016llx\n", phbRegbErrorStatus);
++	phb4_eeh_describe_reg(p, "phbRegbErrorStatus", phbRegbErrorStatus, phbRegbErrorStatusDesc, ARRAY_SIZE(phbRegbErrorStatusDesc));
+ 	PHBERR(p, " phbRegbFirstErrorStatus = %016llx\n", be64_to_cpu(s->phbRegbFirstErrorStatus));
+ 	PHBERR(p, "        phbRegbErrorLog0 = %016llx\n", be64_to_cpu(s->phbRegbErrorLog0));
+ 	PHBERR(p, "        phbRegbErrorLog1 = %016llx\n", be64_to_cpu(s->phbRegbErrorLog1));
+-- 
+2.24.1
+
