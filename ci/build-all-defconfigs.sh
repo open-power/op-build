@@ -7,7 +7,6 @@ BUILD_INFO=0
 SDK_ONLY=0
 CONFIGTAG="_defconfig"
 DEFCONFIGS=();
-CCACHE_DIR=""
 SDK_DIR=""
 
 opt=$(getopt -o 'o:Ss:p:r' -- "$@")
@@ -83,7 +82,7 @@ function build_sdk
 
 	# Even if they should be interchangeable, we want to force the sdk
 	# build on every supported OS variations
-	HASH_PROPERTIES="$(HASH PROPERTIES) $(lsb_release -as | tr -d '/n[:space:]')"
+	HASH_PROPERTIES="$HASH_PROPERTIES $(lsb_release -as | tr -d '[:space:]')"
 
 	# Disable things not necessary for the sdk
 	# (Buildroot manual section 6.1.3 plus a few more things)
@@ -192,7 +191,7 @@ function build_sdk
 	export SDK_DIR
 }
 
-if [ -z "${PLATFORM_LIST}" ]; then
+if [ -z "${PLATFORM_LIST-}" ]; then
         echo "Using all the defconfigs for all the platforms"
         DEFCONFIGS=`(cd openpower/configs; ls -1 *_defconfig)`
 else
@@ -203,14 +202,14 @@ else
         done
 fi
 
-if [ -z "$CCACHE_DIR" ]; then
+if [ -z "${CCACHE_DIR-}" ]; then
 	CCACHE_DIR=`pwd`/.op-build_ccache
 fi
 
 shopt -s expand_aliases
 source op-build-env
 
-if [ -n "$DL_DIR" ]; then
+if [ -n "${DL_DIR-}" ]; then
 	unset BR2_DL_DIR
 	export BR2_DL_DIR=${DL_DIR}
 fi
