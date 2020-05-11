@@ -1,6 +1,7 @@
 config BR2_PACKAGE_OCC_P8
         bool "OCC for P8"
         default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER8)
+        depends on BR2_PACKAGE_HAS_P8_PORE_TOOLCHAIN
         select BR2_CPP
         help
             Project to build OCC
