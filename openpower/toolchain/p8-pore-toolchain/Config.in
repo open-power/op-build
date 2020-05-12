@@ -1,6 +1,27 @@
+menuconfig BR2_PACKAGE_P8_PORE_TOOLCHAIN
+	bool "p8-pore-toolchain"
+	default y if (BR2_OPENPOWER_POWER8)
+	help
+	  Build the PORE toolchain required to build the
+	  POWER8 OCC firmware
+
+if BR2_PACKAGE_P8_PORE_TOOLCHAIN
+choice
+	prompt "P8 PORE Toolchain Type"
+	help
+	  Select whether to build the P8 PORE toolchain or
+	  provide an external one
+
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/p8-pore-binutils/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/p8-pore-toolchain-external/Config.in"
+
+endchoice
+
 config BR2_PACKAGE_HAS_P8_PORE_TOOLCHAIN
 	bool
 
 config BR2_PACKAGE_PROVIDES_P8_PORE_TOOLCHAIN
 	depends on BR2_PACKAGE_HAS_P8_PORE_TOOLCHAIN
 	string
+
+endif
