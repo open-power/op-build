@@ -1,0 +1,58 @@
+From 35f5345553bb14c77a6f94664015416cebf07722 Mon Sep 17 00:00:00 2001
+From: Nayna Jain <nayna@linux.ibm.com>
+Date: Fri, 1 May 2020 10:16:52 -0400
+Subject: [PATCH 16/16] powerpc/ima: fix secure boot rules in ima arch policy
+
+To prevent verifying the kernel module appended signature twice
+(finit_module), once by the module_sig_check() and again by IMA, powerpc
+secure boot rules define an IMA architecture specific policy rule
+only if CONFIG_MODULE_SIG_FORCE is not enabled. This, unfortunately, does
+not take into account the ability of enabling "sig_enforce" on the boot
+command line (module.sig_enforce=1).
+
+Including the IMA module appraise rule results in failing the finit_module
+syscall, unless the module signing public key is loaded onto the IMA
+keyring.
+
+This patch fixes secure boot policy rules to be based on CONFIG_MODULE_SIG
+instead.
+
+Fixes: 4238fad366a6 ("powerpc/ima: Add support to initialize ima policy rules")
+Signed-off-by: Nayna Jain <nayna@linux.ibm.com>
+Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
+(cherry picked from commit e54c75935fd6ee26823eb29c3c13698a2fd08812)
+---
+ arch/powerpc/kernel/ima_arch.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/powerpc/kernel/ima_arch.c b/arch/powerpc/kernel/ima_arch.c
+index e34116255ced..957abd592075 100644
+--- a/arch/powerpc/kernel/ima_arch.c
++++ b/arch/powerpc/kernel/ima_arch.c
+@@ -19,12 +19,12 @@ bool arch_ima_get_secureboot(void)
+  * to be stored as an xattr or as an appended signature.
+  *
+  * To avoid duplicate signature verification as much as possible, the IMA
+- * policy rule for module appraisal is added only if CONFIG_MODULE_SIG_FORCE
++ * policy rule for module appraisal is added only if CONFIG_MODULE_SIG
+  * is not enabled.
+  */
+ static const char *const secure_rules[] = {
+ 	"appraise func=KEXEC_KERNEL_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+-#ifndef CONFIG_MODULE_SIG_FORCE
++#ifndef CONFIG_MODULE_SIG
+ 	"appraise func=MODULE_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+ #endif
+ 	NULL
+@@ -50,7 +50,7 @@ static const char *const secure_and_trusted_rules[] = {
+ 	"measure func=KEXEC_KERNEL_CHECK template=ima-modsig",
+ 	"measure func=MODULE_CHECK template=ima-modsig",
+ 	"appraise func=KEXEC_KERNEL_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+-#ifndef CONFIG_MODULE_SIG_FORCE
++#ifndef CONFIG_MODULE_SIG
+ 	"appraise func=MODULE_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+ #endif
+ 	NULL
+-- 
+2.25.1
+

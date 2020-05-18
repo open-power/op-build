@@ -1,0 +1,132 @@
+From c78d9de9d6f2256ceff5afbb0ac90dbd7fc4505e Mon Sep 17 00:00:00 2001
+From: Nayna Jain <nayna@linux.ibm.com>
+Date: Tue, 5 Nov 2019 17:00:22 -0600
+Subject: [PATCH 01/16] powerpc: Detect the secure boot mode of the system
+
+This patch defines a function to detect the secure boot state of a
+PowerNV system.
+
+The PPC_SECURE_BOOT config represents the base enablement of secure
+boot for powerpc.
+
+Signed-off-by: Nayna Jain <nayna@linux.ibm.com>
+Signed-off-by: Eric Richter <erichte@linux.ibm.com>
+[mpe: Fold in change from Nayna to add "ibm,secureboot" to ids]
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lore.kernel.org/r/46b003b9-3225-6bf7-9101-ed6580bb748c@linux.ibm.com
+---
+ arch/powerpc/Kconfig                   | 10 ++++++++
+ arch/powerpc/include/asm/secure_boot.h | 23 +++++++++++++++++
+ arch/powerpc/kernel/Makefile           |  2 ++
+ arch/powerpc/kernel/secure_boot.c      | 35 ++++++++++++++++++++++++++
+ 4 files changed, 70 insertions(+)
+ create mode 100644 arch/powerpc/include/asm/secure_boot.h
+ create mode 100644 arch/powerpc/kernel/secure_boot.c
+
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 2b1033f13210..5626def3d83b 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -934,6 +934,16 @@ config PPC_MEM_KEYS
+ 
+ 	  If unsure, say y.
+ 
++config PPC_SECURE_BOOT
++	prompt "Enable secure boot support"
++	bool
++	depends on PPC_POWERNV
++	help
++	  Systems with firmware secure boot enabled need to define security
++	  policies to extend secure boot to the OS. This config allows a user
++	  to enable OS secure boot on systems that have firmware support for
++	  it. If in doubt say N.
++
+ endmenu
+ 
+ config ISA_DMA_API
+diff --git a/arch/powerpc/include/asm/secure_boot.h b/arch/powerpc/include/asm/secure_boot.h
+new file mode 100644
+index 000000000000..07d0fe0ca81f
+--- /dev/null
++++ b/arch/powerpc/include/asm/secure_boot.h
+@@ -0,0 +1,23 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Secure boot definitions
++ *
++ * Copyright (C) 2019 IBM Corporation
++ * Author: Nayna Jain
++ */
++#ifndef _ASM_POWER_SECURE_BOOT_H
++#define _ASM_POWER_SECURE_BOOT_H
++
++#ifdef CONFIG_PPC_SECURE_BOOT
++
++bool is_ppc_secureboot_enabled(void);
++
++#else
++
++static inline bool is_ppc_secureboot_enabled(void)
++{
++	return false;
++}
++
++#endif
++#endif
+diff --git a/arch/powerpc/kernel/Makefile b/arch/powerpc/kernel/Makefile
+index 3c02445cf086..e4a724e039bd 100644
+--- a/arch/powerpc/kernel/Makefile
++++ b/arch/powerpc/kernel/Makefile
+@@ -161,6 +161,8 @@ ifneq ($(CONFIG_PPC_POWERNV)$(CONFIG_PPC_SVM),)
+ obj-y				+= ucall.o
+ endif
+ 
++obj-$(CONFIG_PPC_SECURE_BOOT)	+= secure_boot.o
++
+ # Disable GCOV, KCOV & sanitizers in odd or sensitive code
+ GCOV_PROFILE_prom_init.o := n
+ KCOV_INSTRUMENT_prom_init.o := n
+diff --git a/arch/powerpc/kernel/secure_boot.c b/arch/powerpc/kernel/secure_boot.c
+new file mode 100644
+index 000000000000..583c2c4edaf0
+--- /dev/null
++++ b/arch/powerpc/kernel/secure_boot.c
+@@ -0,0 +1,35 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019 IBM Corporation
++ * Author: Nayna Jain
++ */
++#include <linux/types.h>
++#include <linux/of.h>
++#include <asm/secure_boot.h>
++
++static struct device_node *get_ppc_fw_sb_node(void)
++{
++	static const struct of_device_id ids[] = {
++		{ .compatible = "ibm,secureboot", },
++		{ .compatible = "ibm,secureboot-v1", },
++		{ .compatible = "ibm,secureboot-v2", },
++		{},
++	};
++
++	return of_find_matching_node(NULL, ids);
++}
++
++bool is_ppc_secureboot_enabled(void)
++{
++	struct device_node *node;
++	bool enabled = false;
++
++	node = get_ppc_fw_sb_node();
++	enabled = of_property_read_bool(node, "os-secureboot-enforcing");
++
++	of_node_put(node);
++
++	pr_info("Secure boot mode %s\n", enabled ? "enabled" : "disabled");
++
++	return enabled;
++}
+-- 
+2.25.1
+

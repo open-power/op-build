@@ -1,0 +1,48 @@
+From c8d24e982473d491f49cc2443ed920fdc2f0443b Mon Sep 17 00:00:00 2001
+From: Nayna Jain <nayna@linux.ibm.com>
+Date: Wed, 30 Oct 2019 23:31:33 -0400
+Subject: [PATCH 08/16] powerpc/ima: Update ima arch policy to check for
+ blacklist
+
+This patch updates the arch-specific policies for PowerNV system to
+make sure that the binary hash is not blacklisted.
+
+Signed-off-by: Nayna Jain <nayna@linux.ibm.com>
+Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lore.kernel.org/r/1572492694-6520-9-git-send-email-zohar@linux.ibm.com
+---
+ arch/powerpc/kernel/ima_arch.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/powerpc/kernel/ima_arch.c b/arch/powerpc/kernel/ima_arch.c
+index 0ef5956c9753..b9de0fb45bb9 100644
+--- a/arch/powerpc/kernel/ima_arch.c
++++ b/arch/powerpc/kernel/ima_arch.c
+@@ -23,9 +23,9 @@ bool arch_ima_get_secureboot(void)
+  * is not enabled.
+  */
+ static const char *const secure_rules[] = {
+-	"appraise func=KEXEC_KERNEL_CHECK appraise_type=imasig|modsig",
++	"appraise func=KEXEC_KERNEL_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+ #ifndef CONFIG_MODULE_SIG_FORCE
+-	"appraise func=MODULE_CHECK appraise_type=imasig|modsig",
++	"appraise func=MODULE_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+ #endif
+ 	NULL
+ };
+@@ -49,9 +49,9 @@ static const char *const trusted_rules[] = {
+ static const char *const secure_and_trusted_rules[] = {
+ 	"measure func=KEXEC_KERNEL_CHECK template=ima-modsig",
+ 	"measure func=MODULE_CHECK template=ima-modsig",
+-	"appraise func=KEXEC_KERNEL_CHECK appraise_type=imasig|modsig",
++	"appraise func=KEXEC_KERNEL_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+ #ifndef CONFIG_MODULE_SIG_FORCE
+-	"appraise func=MODULE_CHECK appraise_type=imasig|modsig",
++	"appraise func=MODULE_CHECK appraise_flag=check_blacklist appraise_type=imasig|modsig",
+ #endif
+ 	NULL
+ };
+-- 
+2.25.1
+
