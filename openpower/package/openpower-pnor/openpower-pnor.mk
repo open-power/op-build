@@ -82,14 +82,13 @@ DEVTREE_BIN_DIR = $(STAGING_DIR)/usr/share/pdata/
 BMC_POWER_TARGET_FILENAME = power-target.dtb
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
-               $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.elf \
-               $(OUTPUT_BUILD_DIR)/skiboot-$(BR2_SKIBOOT_VERSION)/skiboot.map \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/.config \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/vmlinux \
-               $(OUTPUT_BUILD_DIR)/linux-$(BR2_LINUX_KERNEL_VERSION)/System.map \
+               $(OUTPUT_BUILD_DIR)/skiboot-$(SKIBOOT_VERSION)/skiboot.elf \
+               $(OUTPUT_BUILD_DIR)/skiboot-$(SKIBOOT_VERSION)/skiboot.map \
+               $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/.config \
+               $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/vmlinux \
+               $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/System.map \
  	       $(FSP_TRACE_IMAGES_DIR)/fsp-trace \
                $(OUTPUT_IMAGES_DIR)/zImage.epapr
-
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
 OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
@@ -155,7 +154,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -payload_filename $(BR2_SKIBOOT_LID_XZ_NAME) \
             -binary_dir $(BINARIES_DIR) \
             -bootkernel_filename $(LINUX_IMAGE_NAME) \
-	    -ocmbfw_version $(BR2_OCMB_EXPLORER_FW_VERSION) \
+	    -ocmbfw_version $(OCMB_EXPLORER_FW_VERSION) \
 	    -ocmbfw_url $(BR2_OCMB_EXPLORER_FW_URL) \
 	    -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_FILENAME) \
 	    -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
