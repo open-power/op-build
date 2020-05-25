@@ -67,6 +67,11 @@ function get_major_release
 	echo -n "${major}"
 }
 
+function sha1sum_dir
+{
+	echo -n "$(find $1 -type f -print0 | sort -z | xargs -0 sha1sum | sed -e 's/ .*//' | tr -d '[:space:]' | sha1sum | sed -e 's/ .*//')"
+}
+
 function build_sdk
 {
 # $1 is the defconfig
@@ -99,6 +104,16 @@ function build_sdk
 	buildroot/utils/config --file $SDK_BUILD_DIR/.config --disable LINUX_KERNEL \
 		--disable ROOTFS_DEVICE_CREATION_DYNAMIC_EUDEV \
 		--enable INSTALL_LIBSTDCPP
+
+	# Enable toolchains we'll need to be built as part of the SDK, and make sure we
+	# consider them to make the sdk unique
+	buildroot/utils/config --file $SDK_BUILD_DIR/.config --package \
+		--enable P8_PORE_TOOLCHAIN  --enable HOST_P8_PORE_BINUTILS \
+		--enable PPE42_TOOLCHAIN --enable HOST_PPE42_GCC --enable HOST_PPE42_BINUTILS
+
+	HASH_PROPERTIES="$HASH_PROPERTIES $(sha1sum_dir openpower/package/p8-pore-binutils/)"
+	HASH_PROPERTIES="$HASH_PROPERTIES $(sha1sum_dir openpower/package/ppe42-gcc/)"
+	HASH_PROPERTIES="$HASH_PROPERTIES $(sha1sum_dir openpower/package/ppe42-binutils/)"
 
 	# As we are disabling BR2_LINUX_KERNEL, capture Kernel version if any
 	# to prevent it from defaulting to the last on olddefconfig
@@ -249,6 +264,24 @@ for i in ${DEFCONFIGS[@]}; do
 	if [ "$CPP_REQUIRED" = "y" ]; then
 		buildroot/utils/config --file $O/.config --enable TOOLCHAIN_EXTERNAL_CXX
 	fi
+
+	# Our SDK will always have p8-pore-toolchain enabled, but
+	# only use it if we require it
+	P8_PORE_REQUIRED=$(buildroot/utils/config --file $O/.config --package --state P8_PORE_TOOLCHAIN)
+	if [ "$P8_PORE_REQUIRED" = "y" ]; then
+		buildroot/utils/config --file $O/.config --enable PACKAGE_P8_PORE_TOOLCHAIN_EXTERNAL \
+			--set-str P8_PORE_TOOLCHAIN_EXTERNAL_PATH $SDK_DIR/host
+	fi
+
+	# Our SDK will always have ppe42-toolchain enabled, but
+	# only use it if we require it
+	PPE42_REQUIRED=$(buildroot/utils/config --file $O/.config --package --state PPE42_TOOLCHAIN)
+	if [ "$PPE42_REQUIRED" = "y" ]; then
+		buildroot/utils/config --file $O/.config --enable PACKAGE_PPE42_TOOLCHAIN_EXTERNAL \
+			--set-str PPE42_TOOLCHAIN_EXTERNAL_PATH $SDK_DIR/host
+	fi
+
+
 
 	# The Kernel Headers requested MUST be the same as the one
 	# provided by the SDK (i.e., it's part of the hash)

@@ -10,9 +10,10 @@ PPE42_GCC_LICENSE = GPLv3+
 
 PPE42_GCC_DEPENDENCIES = ppe42-binutils gmp mpfr mpc
 HOST_PPE42_GCC_DEPENDENCIES = host-ppe42-binutils host-gmp host-mpfr host-mpc
+PPE42_GCC_PROVIDES = ppe42-toolchain
 
-PPE42_GCC_DIR = $(STAGING_DIR)/ppe42-binutils
-PPE42_GCC_BIN = $(STAGING_DIR)/ppe42-binutils/linux
+PPE42_GCC_DIR = $(HOST_DIR)/$(PPE42_TOOLCHAIN_DIR)
+PPE42_GCC_BIN = $(HOST_DIR)/$(PPE42_TOOLCHAIN_BIN)
 
 define HOST_PPE42_GCC_BUILD_CMDS
         cd $(@D) && \

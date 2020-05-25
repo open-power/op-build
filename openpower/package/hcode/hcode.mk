@@ -12,7 +12,7 @@ HCODE_LICENSE = Apache-2.0
 HCODE_INSTALL_IMAGES = YES
 HCODE_INSTALL_TARGET = NO
 
-HCODE_DEPENDENCIES = host-binutils host-ppe42-gcc hostboot-binaries
+HCODE_DEPENDENCIES = host-binutils host-ppe42-toolchain hostboot-binaries
 
 HW_IMAGE_BIN_PATH=output/images/hw_image
 HW_IMAGE_BIN=p9n.hw_image.bin

@@ -1,6 +1,7 @@
 config BR2_PACKAGE_HCODE
         bool "hcode"
         default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
+        depends on BR2_PACKAGE_HAS_PPE42_TOOLCHAIN
         select BR2_CPP
         help
             Project to build the hcode firmware codebase

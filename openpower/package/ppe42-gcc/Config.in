@@ -1,6 +1,12 @@
 config BR2_PACKAGE_HOST_PPE42_GCC
         bool "ppe42-gcc"
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
+        select BR2_PACKAGE_HAS_PPE42_TOOLCHAIN
+        select BR2_PACKAGE_PPE42_BINUTILS
         select BR2_CPP
         help
             Project to build the PPE42 gcc
+
+if BR2_PACKAGE_HOST_PPE42_GCC
+config BR2_PACKAGE_PROVIDES_PPE42_TOOLCHAIN
+        default "ppe42-gcc"
+endif

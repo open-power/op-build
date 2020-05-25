@@ -1,6 +1,7 @@
 menu "OpenPower"
 
 source "$BR2_EXTERNAL_OP_BUILD_PATH/platform/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/toolchain/Config.in"
 
 menu "OpenPower Packages"
 if BR2_OPENPOWER_PLATFORM
