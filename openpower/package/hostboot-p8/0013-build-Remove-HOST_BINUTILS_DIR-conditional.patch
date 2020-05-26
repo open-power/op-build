@@ -1,0 +1,59 @@
+From d0f4390d6805f8dfd6052cfd4704195cc8073201 Mon Sep 17 00:00:00 2001
+From: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+Date: Tue, 26 May 2020 16:57:45 -0300
+Subject: [PATCH] build: Remove HOST_BINUTILS_DIR conditional
+
+Hostboot has been relying on HOST_BINUTILS_DIR variable to decide to
+look for libbfd and libiberty static libraries.
+
+This conflicts with build systems such as buildroot, that may have that
+variable defined even if Hostboot should be using the system's (i.e.,
+sys-root dir) version for them.
+
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ src/build/linker/makefile | 8 +-------
+ src/build/trace/makefile  | 8 +-------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
+
+diff --git a/src/build/linker/makefile b/src/build/linker/makefile
+index 523b38586..e25e39c05 100644
+--- a/src/build/linker/makefile
++++ b/src/build/linker/makefile
+@@ -24,13 +24,7 @@
+ # IBM_PROLOG_END_TAG
+ ROOTPATH = ../../..
+ 
+-ifdef HOST_BINUTILS_DIR
+-BFD_CFLAGS = -I$(HOST_BINUTILS_DIR)/bfd/ -I$(HOST_BINUTILS_DIR)/include/
+-BFD_LDFLAGS = $(HOST_BINUTILS_DIR)/bfd/libbfd.a -ldl \
+-	      $(HOST_BINUTILS_DIR)/libiberty/libiberty.a -lz
+-else
+-BFD_LDFLAGS = -lbfd -liberty -lz
+-endif
++BFD_LDFLAGS = -lbfd -liberty -lz -ldl
+ 
+ CODE_PASS_POST += linker gensyms genlist
+ CLEAN_TARGETS += linker linker.o gensyms gensyms.o genlist genlist.o
+diff --git a/src/build/trace/makefile b/src/build/trace/makefile
+index f9aa1b7a0..cd42be879 100644
+--- a/src/build/trace/makefile
++++ b/src/build/trace/makefile
+@@ -27,13 +27,7 @@ ROOTPATH = ../../..
+ GEN_PASS_BODY += tracehash
+ CLEAN_TARGETS += tracehash tracehash.o
+ 
+-ifdef HOST_BINUTILS_DIR
+-BFD_CFLAGS = -I$(HOST_BINUTILS_DIR)/bfd/ -I$(HOST_BINUTILS_DIR)/include/
+-BFD_LDFLAGS = $(HOST_BINUTILS_DIR)/bfd/libbfd.a -ldl \
+-	      $(HOST_BINUTILS_DIR)/libiberty/libiberty.a -lz
+-else
+-BFD_LDFLAGS = -lbfd
+-endif
++BFD_LDFLAGS = -lbfd -ldl -lz
+ 
+ include $(ROOTPATH)/config.mk
+ 
+-- 
+2.17.1
+

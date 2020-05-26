@@ -16,7 +16,7 @@ OCC_P8_INSTALL_TARGET = NO
 OCC_P8_STAGING_DIR = $(STAGING_DIR)/occ
 
 OCC_P8_IMAGE_BIN_PATH = src/image.bin
-OCC_P8_DEPENDENCIES = host-binutils host-p8-pore-toolchain
+OCC_P8_DEPENDENCIES = host-p8-pore-toolchain
 
 define OCC_P8_BUILD_CMDS
         cd $(@D)/src && \

@@ -58,7 +58,7 @@ a handful of other packages (see below).
           python language-pack-en texinfo gawk cpio xxd \
           build-essential g++ git bison flex unzip \
           libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
-          wget bc rsync
+          wget bc rsync binutils-dev libiberty-dev
 
 ### Dependencies for *64-bit* Fedora systems
 
@@ -70,5 +70,6 @@ a handful of other packages (see below).
           "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" \
           "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" "perl(ExtUtils::MakeMaker)" \
           libxml2-devel which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
-          openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname
+          openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname \
+          binutils-devel
 

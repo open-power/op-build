@@ -5,6 +5,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteract
           python language-pack-en texinfo gawk cpio xxd \
           build-essential g++ git bison flex unzip \
           libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
-          wget bc rsync
+          wget bc rsync binutils-dev libiberty-dev
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install eatmydata python-matplotlib \
           python-numpy graphviz bsdmainutils lsb-release
