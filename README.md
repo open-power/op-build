@@ -27,7 +27,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for howto contribute code.
 To build an image for a Palmetto system:
 
 ```
-git clone --recursive git@github.com:open-power/op-build.git
+git clone --recursive https://github.com/open-power/op-build.git
 cd op-build
 ./op-build palmetto_defconfig && ./op-build
 ```
