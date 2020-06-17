@@ -97,8 +97,8 @@ OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
 ifeq ($(BR2_PACKAGE_HOSTBOOT_P8),y)
     OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p8 occ-p8
 else ifeq ($(BR2_PACKAGE_HOSTBOOT_P10),y)
-    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p10 occ-p10 sbe-p10 hcode-p10
-	OPENPOWER_PNOR_DEPENDENCIES += hostboot-p10 occ-p10 sbe-p10 hcode-p10
+    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw
+	OPENPOWER_PNOR_DEPENDENCIES += hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw
 else ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
     OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
 endif
