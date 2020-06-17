@@ -103,6 +103,10 @@ else
     OCC_BIN_FILENAME=$(BR2_OCC_BIN_FILENAME)
 endif
 
+ifeq ($(BR2_PACKAGE_OCMB_EXPLORER_FW),y)
+    OCMB_EXPLORER_FW_URL=$(call qstrip,$(OCMB_EXPLORER_FW_SITE)/$(OCMB_EXPLORER_FW_SOURCE))
+endif
+
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         mkdir -p $(OPENPOWER_PNOR_SCRATCH_DIR)
 
@@ -134,7 +138,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -binary_dir $(BINARIES_DIR) \
             -bootkernel_filename $(LINUX_IMAGE_NAME) \
 	    -ocmbfw_version $(OCMB_EXPLORER_FW_VERSION) \
-	    -ocmbfw_url $(BR2_OCMB_EXPLORER_FW_URL) \
+	    -ocmbfw_url $(OCMB_EXPLORER_FW_URL) \
 	    -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_FILENAME) \
 	    -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
             -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
