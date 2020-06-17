@@ -4,15 +4,16 @@
 #
 ################################################################################
 
-PPE42_GCC_VERSION ?= c13849780c80d1ed466efbeaabcc663fe48cd87d
+PPE42_GCC_VERSION ?= b4772a9fa65ea0dd812f8f305ce157bb1cb5ab4a
 PPE42_GCC_SITE ?= $(call github,open-power,ppe42-gcc,$(PPE42_GCC_VERSION))
 PPE42_GCC_LICENSE = GPLv3+
 
 PPE42_GCC_DEPENDENCIES = ppe42-binutils gmp mpfr mpc
 HOST_PPE42_GCC_DEPENDENCIES = host-ppe42-binutils host-gmp host-mpfr host-mpc
+PPE42_GCC_PROVIDES = ppe42-toolchain
 
-PPE42_GCC_DIR = $(STAGING_DIR)/ppe42-binutils
-PPE42_GCC_BIN = $(STAGING_DIR)/ppe42-binutils/linux
+PPE42_GCC_DIR = $(HOST_DIR)/$(PPE42_TOOLCHAIN_DIR)
+PPE42_GCC_BIN = $(HOST_DIR)/$(PPE42_TOOLCHAIN_BIN)
 
 define HOST_PPE42_GCC_BUILD_CMDS
         cd $(@D) && \

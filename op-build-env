@@ -12,7 +12,9 @@ if [ ! -e buildroot/Makefile ]; then
 fi
 
 export BR2_EXTERNAL=${__PWD}/openpower
-export BR2_DL_DIR=${__PWD}/dl
+if [ -z "${BR2_DL_DIR-}" ]; then export BR2_DL_DIR=${__PWD}/dl; fi
+
+export LANG=en_US.UTF-8
 
 op-build () {
     make --directory=${__PWD}/buildroot O=${__PWD}/output $@

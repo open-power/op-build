@@ -1,7 +1,0 @@
-FROM fedora:29
-RUN dnf -y remove vim-minimal
-RUN dnf -y install gcc-c++ flex bison git ctags cscope expat-devel patch zlib-devel zlib-static texinfo perl-bignum "perl(XML::Simple)" "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" libxml2-devel libxslt "perl(ExtUtils::MakeMaker)"
-RUN dnf -y install which wget unzip tar cpio python bzip2 bc vim redhat-lsb-core gawk
-RUN dnf -y install findutils
-RUN dnf -y install ncurses-devel openssl-devel
-RUN dnf -y install rsync

@@ -1,6 +1,7 @@
 config BR2_PACKAGE_OCC
         bool "OCC (POWER9)"
         default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
+        depends on BR2_PACKAGE_HAS_PPE42_TOOLCHAIN
         select BR2_CPP
         help
             Project to build OCC
@@ -43,7 +44,7 @@ config BR2_OCC_CUSTOM_VERSION_VALUE
 
 config BR2_OCC_VERSION
 	string
-	default "e5a2afd6cfb06cddf18e42d6be61366acc5616c6" if BR2_OCC_LATEST_VERSION
+	default "ab4dc96fd6cf584c42bd0b45be25458c0e61ad63" if BR2_OCC_LATEST_VERSION
 	default BR2_OCC_CUSTOM_VERSION_VALUE \
 		if BR2_OCC_CUSTOM_VERSION
 

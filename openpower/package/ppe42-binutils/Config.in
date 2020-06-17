@@ -1,6 +1,5 @@
 config BR2_PACKAGE_HOST_PPE42_BINUTILS
         bool "ppe42-binutils"
-        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
         select BR2_CPP
         help
             Project to build the PPE42 PORE binutils

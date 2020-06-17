@@ -12,8 +12,6 @@ config BR2_PACKAGE_PETITBOOT
 	# run-time dependency only
 	select BR2_PACKAGE_POWERPC_UTILS if BR2_powerpc || BR2_powerpc64 || BR2_powerpc64le
 	# run-time dependency only
-	select BR2_PACKAGE_IPRUTILS if BR2_powerpc || BR2_powerpc64 || BR2_powerpc64le
-	# run-time dependency only
 	select BR2_PACKAGE_NVME if BR2_powerpc || BR2_powerpc64 || BR2_powerpc64le
 	help
 	  Petitboot is a small kexec-based bootloader

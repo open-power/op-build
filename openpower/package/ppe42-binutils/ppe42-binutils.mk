@@ -4,14 +4,14 @@
 #
 ################################################################################
 
-PPE42_BINUTILS_VERSION ?= ded0eff199fa1d9bd8be5a78935e8f023a2c5fad
+PPE42_BINUTILS_VERSION ?= c615a89c5beb032cbb00bf0c3e670319b2bbd4f5
 PPE42_BINUTILS_SITE ?= $(call github,open-power,ppe42-binutils,$(PPE42_BINUTILS_VERSION))
 PPE42_BINUTILS_LICENSE = GPLv3+
 
 PPE42_BINUTILS_DEPENDENCIES = host-binutils
 
-PPE42_BINUTILS_DIR = $(STAGING_DIR)/ppe42-binutils
-PPE42_BINUTILS_BIN = $(STAGING_DIR)/ppe42-binutils/linux
+PPE42_BINUTILS_DIR = $(HOST_DIR)/$(PPE42_TOOLCHAIN_DIR)
+PPE42_BINUTILS_BIN = $(HOST_DIR)/$(PPE42_TOOLCHAIN_BIN)
 
 define HOST_PPE42_BINUTILS_BUILD_CMDS
         cd $(@D) && \

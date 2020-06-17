@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-HOST_OPENPOWER_PNOR_UTIL_VERSION ?= e499446423d6ebe96f74e079de36a8929d47277b
+HOST_OPENPOWER_PNOR_UTIL_VERSION ?= 647d6134d448178e6b32892322596a5cc3d78b2d
 HOST_OPENPOWER_PNOR_UTIL_SITE ?= $(call github,openbmc,openpower-pnor-code-mgmt,$(HOST_OPENPOWER_PNOR_UTIL_VERSION))
 HOST_OPENPOWER_PNOR_UTIL_DEPENDENCIES = host-squashfs host-libflash
 

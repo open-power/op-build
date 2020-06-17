@@ -1,0 +1,71 @@
+From d90e6c513094231f622a427030f3dbca1eeb5ed5 Mon Sep 17 00:00:00 2001
+From: Timothy Pearson <tpearson@raptorengineering.com>
+Date: Thu, 18 Apr 2019 06:28:50 +0000
+Subject: [PATCH] Add detailed ISTEP output option to hostboot
+
+Output detailed ISTEP data over LPC port 81h/82h in support of RCS
+Talos II systems.  These systems will deadlock due to FSI silicon bugs
+in the CPUs unless the BMC is aware of the current ISTEP data in order
+to properly sequence BMC-side FSI service startup.
+---
+ src/usr/initservice/istepdispatcher/HBconfig  |  5 ++++
+ .../istepdispatcher/istepdispatcher.C         | 27 +++++++++++++++++++
+ 2 files changed, 32 insertions(+)
+
+diff --git a/src/usr/initservice/istepdispatcher/HBconfig b/src/usr/initservice/istepdispatcher/HBconfig
+index 7987f8ef3..ccbd43854 100644
+--- a/src/usr/initservice/istepdispatcher/HBconfig
++++ b/src/usr/initservice/istepdispatcher/HBconfig
+@@ -21,6 +21,11 @@ config ISTEP_LPC_PORT80_DEBUG
+     help
+         Writes ISTEP progress to LPC port 80h.
+ 
++config ISTEP_LPC_PORT8X_DEBUG
++    default n
++    help
++        Writes detailed ISTEP progress to LPC port 81h / 82h.
++
+ config HANG_ON_MFG_SRC_TERM
+     default y
+     help
+diff --git a/src/usr/initservice/istepdispatcher/istepdispatcher.C b/src/usr/initservice/istepdispatcher/istepdispatcher.C
+index e8db88f33..8f2d57298 100644
+--- a/src/usr/initservice/istepdispatcher/istepdispatcher.C
++++ b/src/usr/initservice/istepdispatcher/istepdispatcher.C
+@@ -2521,6 +2521,33 @@ errlHndl_t IStepDispatcher::sendProgressCode(bool i_needsLock)
+     port80_val++;
+ #endif
+ 
++#ifdef CONFIG_ISTEP_LPC_PORT8X_DEBUG
++    // Detailed istep output for consumption by BMC on e.g. RCS Talos II systems.
++    //
++    // Due to FSI silicon issues, those platforms may fail to start correctly
++    // if the BMC is not aware of the exact ISTEP being run to control BMC
++    // service sequencing.
++    //
++    // NEVER output fake values here, only real ISTEP data.
++    // Data is latched in on write to port 82h
++    uint8_t port81_val = iv_curIStep & 0xff;
++    uint8_t port82_val = iv_curSubStep & 0xff;
++    size_t port81_len = sizeof(port81_val);
++    size_t port82_len = sizeof(port82_val);
++    // Write port 81h first
++    err = deviceWrite(TARGETING::MASTER_PROCESSOR_CHIP_TARGET_SENTINEL,
++                      &port81_val, port81_len,
++                      DEVICE_LPC_ADDRESS(LPC::TRANS_IO, 0x81));
++    delete err; // this is debug only, ignore any errors
++    err = NULL;
++    // Then write port 82h, latching in the full 16-bit value for read
++    err = deviceWrite(TARGETING::MASTER_PROCESSOR_CHIP_TARGET_SENTINEL,
++                      &port82_val, port82_len,
++                      DEVICE_LPC_ADDRESS(LPC::TRANS_IO, 0x82));
++    delete err; // this is debug only, ignore any errors
++    err = NULL;
++#endif
++
+ #ifdef CONFIG_CONSOLE_OUTPUT_PROGRESS
+     //--- Display step on serial console
+     if ((iv_curIStep != lastIstep) || (iv_curSubStep != lastSubstep))
+-- 
+2.23.0
+
