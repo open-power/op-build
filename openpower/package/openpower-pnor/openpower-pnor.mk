@@ -89,6 +89,9 @@ endif
 ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
 OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
 endif
+ifeq ($(BR2_PACKAGE_OCMB_EXPLORER_FW),y)
+OPENPOWER_VERSIONED_SUBPACKAGES += ocmb-explorer-fw
+endif
 OPENPOWER_VERSIONED_SUBPACKAGES += linux petitboot machine-xml hostboot-binaries capp-ucode
 OPENPOWER_PNOR = openpower-pnor
 
