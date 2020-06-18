@@ -1,8 +1,6 @@
-diff --git a/p9Layouts/defaultPnorLayout_64.xml b/p9Layouts/defaultPnorLayout_64.xml
-index 3f74223..86b8053 100644
 --- a/p9Layouts/defaultPnorLayout_64.xml
 +++ b/p9Layouts/defaultPnorLayout_64.xml
-@@ -222,10 +222,10 @@ Layout Description
+@@ -222,10 +222,10 @@
          <readOnly/>
      </section>
      <section>
@@ -15,7 +13,7 @@ index 3f74223..86b8053 100644
          <side>A</side>
          <sha512Version/>
          <readOnly/>
-@@ -233,7 +233,7 @@ Layout Description
+@@ -233,7 +233,7 @@
      <section>
          <description>OCC Lid (1.125M)</description>
          <eyeCatch>OCC</eyeCatch>
@@ -24,7 +22,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x120000</physicalRegionSize>
          <side>A</side>
          <sha512Version/>
-@@ -243,7 +243,7 @@ Layout Description
+@@ -243,7 +243,7 @@
      <section>
          <description>Checkstop FIR data (12K)</description>
          <eyeCatch>FIRDATA</eyeCatch>
@@ -33,7 +31,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x3000</physicalRegionSize>
          <side>A</side>
          <ecc/>
-@@ -253,7 +253,7 @@ Layout Description
+@@ -253,7 +253,7 @@
      <section>
          <description>CAPP Lid (144K)</description>
          <eyeCatch>CAPP</eyeCatch>
@@ -42,7 +40,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x24000</physicalRegionSize>
          <side>A</side>
          <sha512Version/>
-@@ -263,7 +263,7 @@ Layout Description
+@@ -263,7 +263,7 @@
      <section>
          <description>BMC Inventory (36K)</description>
          <eyeCatch>BMC_INV</eyeCatch>
@@ -51,7 +49,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x9000</physicalRegionSize>
          <side>sideless</side>
          <reprovision/>
-@@ -271,7 +271,7 @@ Layout Description
+@@ -271,7 +271,7 @@
      <section>
          <description>Hostboot Bootloader (28K)</description>
          <eyeCatch>HBBL</eyeCatch>
@@ -60,7 +58,7 @@ index 3f74223..86b8053 100644
          <!-- Physical Size includes Header rounded to ECC valid size -->
          <!-- Max size of actual HBBL content is 20K and 22.5K with ECC -->
          <physicalRegionSize>0x7000</physicalRegionSize>
-@@ -283,7 +283,7 @@ Layout Description
+@@ -283,7 +283,7 @@
      <section>
          <description>Temporary Attribute Override (32K)</description>
          <eyeCatch>ATTR_TMP</eyeCatch>
@@ -69,7 +67,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x8000</physicalRegionSize>
          <side>A</side>
          <reprovision/>
-@@ -291,7 +291,7 @@ Layout Description
+@@ -291,7 +291,7 @@
      <section>
          <description>Permanent Attribute Override (32K)</description>
          <eyeCatch>ATTR_PERM</eyeCatch>
@@ -78,7 +76,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x8000</physicalRegionSize>
          <side>A</side>
          <ecc/>
-@@ -301,7 +301,7 @@ Layout Description
+@@ -301,7 +301,7 @@
      <section>
          <description>PNOR Version (4K)</description>
          <eyeCatch>VERSION</eyeCatch>
@@ -87,7 +85,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x2000</physicalRegionSize>
          <side>A</side>
          <sha512Version/>
-@@ -310,7 +310,7 @@ Layout Description
+@@ -310,7 +310,7 @@
      <section>
          <description>IMA Catalog (256K)</description>
          <eyeCatch>IMA_CATALOG</eyeCatch>
@@ -96,7 +94,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x40000</physicalRegionSize>
          <side>A</side>
          <sha512Version/>
-@@ -320,7 +320,7 @@ Layout Description
+@@ -320,7 +320,7 @@
      <section>
          <description>Ref Image Ring Overrides (128K)</description>
          <eyeCatch>RINGOVD</eyeCatch>
@@ -105,7 +103,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x20000</physicalRegionSize>
          <side>A</side>
      </section>
-@@ -329,7 +329,7 @@ Layout Description
+@@ -329,7 +329,7 @@
          <!-- We need 266KB per module sort, going to support
               10 sorts by default, plus ECC  -->
          <eyeCatch>WOFDATA</eyeCatch>
@@ -114,7 +112,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x300000</physicalRegionSize>
          <side>A</side>
          <sha512Version/>
-@@ -339,7 +339,7 @@ Layout Description
+@@ -339,7 +339,7 @@
      <section>
          <description>Hostboot deconfig area (64KB)</description>
          <eyeCatch>HB_VOLATILE</eyeCatch>
@@ -123,7 +121,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x5000</physicalRegionSize>
          <side>A</side>
          <reprovision/>
-@@ -350,7 +350,7 @@ Layout Description
+@@ -350,7 +350,7 @@
      <section>
          <description>Memory config data (28K)</description>
          <eyeCatch>MEMD</eyeCatch>
@@ -132,7 +130,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0xE000</physicalRegionSize>
          <side>A</side>
          <sha512Version/>
-@@ -360,7 +360,7 @@ Layout Description
+@@ -360,7 +360,7 @@
      <section>
          <description>SecureBoot Key Transition Partition (16K)</description>
          <eyeCatch>SBKT</eyeCatch>
@@ -141,7 +139,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x4000</physicalRegionSize>
          <side>A</side>
          <sha512Version/>
-@@ -370,7 +370,7 @@ Layout Description
+@@ -370,7 +370,7 @@
      <section>
          <description>HDAT binary data (32KB)</description>
          <eyeCatch>HDAT</eyeCatch>
@@ -150,7 +148,7 @@ index 3f74223..86b8053 100644
          <physicalRegionSize>0x8000</physicalRegionSize>
          <side>sideless</side>
          <sha512Version/>
-@@ -380,7 +380,7 @@ Layout Description
+@@ -380,7 +380,7 @@
      <section>
          <description>Ultravisor binary image (1MB)</description>
          <eyeCatch>UVISOR</eyeCatch>
@@ -158,4 +156,13 @@ index 3f74223..86b8053 100644
 +        <physicalOffset>0x3E29000</physicalOffset>
          <physicalRegionSize>0x100000</physicalRegionSize>
          <side>sideless</side>
+         <sha512Version/>
+@@ -389,7 +389,7 @@
+     <section>
+         <description>Hostboot Runtime Proxy (32KB)</description>
+         <eyeCatch>HBRT_PROXY</eyeCatch>
+-        <physicalOffset>0x36A9000</physicalOffset>
++        <physicalOffset>0x3F29000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+         <side>A</side>
          <sha512Version/>
