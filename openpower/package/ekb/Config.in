@@ -4,10 +4,11 @@ config BR2_PACKAGE_EKB
         bool "ekb"
         default y if (BR2_OPENPOWER_POWER10)
         help
-          To get FAPI attributes xml files. This is required for generate
-          power processor specific device tree by using specific HWPs xmls.
-          If new processor need to support then adding required xmls
-          in this package file is sufficient by using BR2_OPENPOWER_POWERxx.
+          To boot the server, the bmc application and hostboot will expect
+          hardware functional details which are maintained in xml files by ekb.
+          So, this packge is used to get all those xml files and pdata will
+          consume those xml files to add hardware functional details into
+          device tree.
 
 if BR2_PACKAGE_EKB
 
