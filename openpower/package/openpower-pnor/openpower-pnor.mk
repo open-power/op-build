@@ -78,7 +78,7 @@ OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
 FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 SBE_IMAGE_DIR = $(STAGING_DIR)/../../../build/sbe-p10-"$(SBE_P10_VERSION)"/images
-DEVTREE_BIN_DIR = $(STAGING_DIR)/usr/share/
+DEVTREE_BIN_DIR = $(STAGING_DIR)/usr/share/pdata/
 BMC_POWER_TARGET_FILENAME = power-target.dtb
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \

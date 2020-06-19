@@ -16,7 +16,8 @@ PDATA_LICENSE_FILES = $(@D)/LICENSE
 PDATA_INSTALL_STAGING = YES
 PDATA_INSTALL_TARGET = NO
 PDATA_AUTORECONF = YES
-PDATA_DEPENDENCIES = ekb host-dtc machine-xml
+PDATA_AUTORECONF_OPTS += -I $(HOST_DIR)/share/autoconf-archive
+PDATA_DEPENDENCIES = ekb host-dtc machine-xml host-autoconf-archive
 
 EKB_STAGING_DIR = $(STAGING_DIR)/ekb
 MACHINE_XML_STAGING_DIR = $(STAGING_DIR)/openpower_mrw_scratch
