@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Brian King <brking@linux.vnet.ibm.com>
 Date: Wed, 25 Oct 2017 10:42:59 +1100
-Subject: [PATCH 1/2] xhci: Reset controller on xhci shutdown
+Subject: [PATCH 01/18] xhci: Reset controller on xhci shutdown
 
 Fixes kexec boot. Without a hard reset, some USB chips will fail to
 initialize in a kexec booted kernel.
@@ -14,7 +14,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 2f49a7b3ce85..b7e17c62396e 100644
+index 81b54a3d2910..b0f66b42a16a 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
 @@ -789,6 +789,9 @@ void xhci_shutdown(struct usb_hcd *hcd)
