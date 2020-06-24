@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From a8fbb62a66d62451e2078610f60203a4b290b82e Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Wed, 2 Mar 2016 11:25:47 +0800
-Subject: [PATCH 02/11] drivers/drm/ast: Switch SCU to VGA output on POST
+Subject: [PATCH 02/10] drivers/drm/ast: Switch SCU to VGA output on POST
 
 On AST BMC platforms, the BMC may be using the VGA device for UART
 mirroring. In this case, we need to switch the DAC output to
@@ -15,7 +15,7 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  1 file changed, 33 insertions(+)
 
 diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
-index c7c58becb25d..a31158ed5928 100644
+index c7c58be..a31158e 100644
 --- a/drivers/gpu/drm/ast/ast_post.c
 +++ b/drivers/gpu/drm/ast/ast_post.c
 @@ -32,6 +32,7 @@
@@ -69,3 +69,6 @@ index c7c58becb25d..a31158ed5928 100644
 +
 +	ast_moutdwm(ast, scu_addr | 0x2c, val);
 +}
+-- 
+1.9.4
+

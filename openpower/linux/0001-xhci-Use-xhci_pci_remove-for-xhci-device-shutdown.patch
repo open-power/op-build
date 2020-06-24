@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 7cbcf3b28bbf626e9c98029a057c5ab3ec148d28 Mon Sep 17 00:00:00 2001
 From: Thadeu Lima De Souza Cascardo <thadeul@br.ibm.com>
 Date: Tue, 25 Mar 2014 10:45:16 -0400
-Subject: [PATCH 01/11] xhci: Use xhci_pci_remove for xhci device shutdown
+Subject: [PATCH 01/10] xhci: Use xhci_pci_remove for xhci device shutdown
 
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Signed-off-by: Joel Stanley <joel@jms.id.au>
@@ -11,10 +11,10 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
-index cbf3be66f89c..2c5527bd3341 100644
+index 5af57af..cbc2aba 100644
 --- a/drivers/usb/host/xhci-pci.c
 +++ b/drivers/usb/host/xhci-pci.c
-@@ -465,7 +465,7 @@ static struct pci_driver xhci_pci_driver = {
+@@ -481,7 +481,7 @@ static struct pci_driver xhci_pci_driver = {
  	.remove =	xhci_pci_remove,
  	/* suspend and resume implemented later */
  
@@ -23,3 +23,6 @@ index cbf3be66f89c..2c5527bd3341 100644
  #ifdef CONFIG_PM
  	.driver = {
  		.pm = &usb_hcd_pci_pm_ops
+-- 
+1.9.4
+

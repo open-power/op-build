@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From d5c71bd9fe93ffe1c743d8b58bc31fe87a2d2524 Mon Sep 17 00:00:00 2001
 From: Samuel Mendoza-Jonas <sam@mendozajonas.com>
 Date: Wed, 13 Jul 2016 11:15:41 +1000
-Subject: [PATCH 08/11] tty/hvc: Use IRQF_SHARED for OPAL hvc consoles
+Subject: [PATCH 08/10] tty/hvc: Use IRQF_SHARED for OPAL hvc consoles
 
 Commit 2def86a7200c
 ("hvc: Convert to using interrupts instead of opal events")
@@ -33,7 +33,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  3 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/tty/hvc/hvc_console.h b/drivers/tty/hvc/hvc_console.h
-index 913101980827..798c48d0d32c 100644
+index 9131019..798c48d 100644
 --- a/drivers/tty/hvc/hvc_console.h
 +++ b/drivers/tty/hvc/hvc_console.h
 @@ -60,6 +60,7 @@ struct hvc_struct {
@@ -45,7 +45,7 @@ index 913101980827..798c48d0d32c 100644
  
  /* implemented by a low level driver */
 diff --git a/drivers/tty/hvc/hvc_irq.c b/drivers/tty/hvc/hvc_irq.c
-index c9adb0559f61..57d9df7ee1c9 100644
+index c9adb05..57d9df7 100644
 --- a/drivers/tty/hvc/hvc_irq.c
 +++ b/drivers/tty/hvc/hvc_irq.c
 @@ -14,6 +14,9 @@ static irqreturn_t hvc_handle_interrupt(int irq, void *dev_instance)
@@ -70,7 +70,7 @@ index c9adb0559f61..57d9df7ee1c9 100644
  		hp->irq_requested = 1;
  	return rc;
 diff --git a/drivers/tty/hvc/hvc_opal.c b/drivers/tty/hvc/hvc_opal.c
-index 276b796b24e4..510799311099 100644
+index 046fd62..1fc5d5b 100644
 --- a/drivers/tty/hvc/hvc_opal.c
 +++ b/drivers/tty/hvc/hvc_opal.c
 @@ -230,6 +230,9 @@ static int hvc_opal_probe(struct platform_device *dev)
@@ -83,3 +83,6 @@ index 276b796b24e4..510799311099 100644
  	dev_set_drvdata(&dev->dev, hp);
  
  	return 0;
+-- 
+1.9.4
+
