@@ -1,23 +1,27 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 780e77f6af4a104e43cc2ff74b7064f58ffd1828 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Thu, 22 Feb 2018 13:36:09 +1030
-Subject: [PATCH 11/11] Release v4.4.116-openpower1
+Subject: [PATCH 10/10] Release v4.4.227-openpower1
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
 ---
  Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 71acaecd7899..c32911e36702 100644
+index f13f464..b8cbfb6 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,7 +1,7 @@
  VERSION = 4
  PATCHLEVEL = 4
- SUBLEVEL = 116
+ SUBLEVEL = 227
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Blurry Fish Butt
  
  # *DOCUMENTATION*
+-- 
+1.9.4
+

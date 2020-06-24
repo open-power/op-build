@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From b2d5f1737ff524778727e390353b06e244d5647e Mon Sep 17 00:00:00 2001
 From: Carol L Soto <clsoto@linux.vnet.ibm.com>
 Date: Tue, 12 Jul 2016 17:04:07 -0500
-Subject: [PATCH 05/11] net/mlx5: Add pci shutdown callback
+Subject: [PATCH 05/10] net/mlx5: Add pci shutdown callback
 
 Backport of commit 5fc7197d3a256 ("net/mlx5: Add pci shutdown callback")
 so we can use for the OpenPower kernel.
@@ -31,10 +31,10 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  3 files changed, 36 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 90e876ecc720..984668ec8a0b 100644
+index 26d25ec..566a3f1 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -2241,7 +2241,16 @@ static void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, void *vpriv)
+@@ -2255,7 +2255,16 @@ static void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, void *vpriv)
  	schedule_work(&priv->set_rx_mode_work);
  	mlx5e_disable_async_events(priv);
  	flush_scheduled_work();
@@ -52,7 +52,7 @@ index 90e876ecc720..984668ec8a0b 100644
  	mlx5e_destroy_flow_tables(priv);
  	mlx5e_destroy_tirs(priv);
  	mlx5e_destroy_rqt(priv, MLX5E_SINGLE_RQ_RQT);
-@@ -2252,7 +2261,9 @@ static void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, void *vpriv)
+@@ -2266,7 +2275,9 @@ static void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, void *vpriv)
  	mlx5_dealloc_transport_domain(priv->mdev, priv->tdn);
  	mlx5_core_dealloc_pd(priv->mdev, priv->pdn);
  	mlx5_unmap_free_uar(priv->mdev, &priv->cq_uar);
@@ -64,10 +64,10 @@ index 90e876ecc720..984668ec8a0b 100644
  
  static void *mlx5e_get_netdev(void *vpriv)
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index f5c1f4acc57b..aa39ff18b4f0 100644
+index e88605d..84c08672 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -921,7 +921,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -913,7 +913,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	int err;
  
  	mutex_lock(&dev->intf_state_mutex);
@@ -76,7 +76,7 @@ index f5c1f4acc57b..aa39ff18b4f0 100644
  		dev_warn(&dev->pdev->dev, "%s: interface is up, NOP\n",
  			 __func__);
  		goto out;
-@@ -1079,7 +1079,8 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -1071,7 +1071,8 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	if (err)
  		pr_info("failed request module on %s\n", MLX5_IB_MOD);
  
@@ -86,7 +86,7 @@ index f5c1f4acc57b..aa39ff18b4f0 100644
  out:
  	mutex_unlock(&dev->intf_state_mutex);
  
-@@ -1141,7 +1142,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -1133,7 +1134,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	int err = 0;
  
  	mutex_lock(&dev->intf_state_mutex);
@@ -95,7 +95,7 @@ index f5c1f4acc57b..aa39ff18b4f0 100644
  		dev_warn(&dev->pdev->dev, "%s: interface is down, NOP\n",
  			 __func__);
  		goto out;
-@@ -1171,7 +1172,8 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+@@ -1163,7 +1164,8 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
  	mlx5_cmd_cleanup(dev);
  
  out:
@@ -105,7 +105,7 @@ index f5c1f4acc57b..aa39ff18b4f0 100644
  	mutex_unlock(&dev->intf_state_mutex);
  	return err;
  }
-@@ -1381,6 +1383,18 @@ static const struct pci_error_handlers mlx5_err_handler = {
+@@ -1361,6 +1363,18 @@ static const struct pci_error_handlers mlx5_err_handler = {
  	.resume		= mlx5_pci_resume
  };
  
@@ -124,7 +124,7 @@ index f5c1f4acc57b..aa39ff18b4f0 100644
  static const struct pci_device_id mlx5_core_pci_table[] = {
  	{ PCI_VDEVICE(MELLANOX, 0x1011) }, /* Connect-IB */
  	{ PCI_VDEVICE(MELLANOX, 0x1012) }, /* Connect-IB VF */
-@@ -1398,6 +1412,7 @@ static struct pci_driver mlx5_core_driver = {
+@@ -1378,6 +1392,7 @@ static struct pci_driver mlx5_core_driver = {
  	.id_table       = mlx5_core_pci_table,
  	.probe          = init_one,
  	.remove         = remove_one,
@@ -133,7 +133,7 @@ index f5c1f4acc57b..aa39ff18b4f0 100644
  };
  
 diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 412aa988c6ad..dc26d9942120 100644
+index 626139d..6effb3e 100644
 --- a/include/linux/mlx5/driver.h
 +++ b/include/linux/mlx5/driver.h
 @@ -493,8 +493,9 @@ enum mlx5_device_state {
@@ -157,3 +157,6 @@ index 412aa988c6ad..dc26d9942120 100644
  	void			(*event) (struct mlx5_core_dev *dev,
  					  enum mlx5_dev_event event,
  					  unsigned long param);
+-- 
+1.9.4
+

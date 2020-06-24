@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 55cf7cd9949d7c4a3b7eb1821a30a4c41a2b3b81 Mon Sep 17 00:00:00 2001
 From: Huy Nguyen <huyn@mellanox.com>
 Date: Wed, 17 Feb 2016 17:24:26 +0200
-Subject: [PATCH 03/11] net/mlx4_core: Set UAR page size to 4KB regardless of
+Subject: [PATCH 03/10] net/mlx4_core: Set UAR page size to 4KB regardless of
  system page size
 
 problem description:
@@ -58,7 +58,7 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  8 files changed, 84 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 348828271cb0..fef3ea60bdcd 100644
+index ecd461e..6563fe3 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
 @@ -1594,9 +1594,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
@@ -77,7 +77,7 @@ index 348828271cb0..fef3ea60bdcd 100644
  	if (attr_mask & IB_QP_DEST_QPN)
  		context->remote_qpn = cpu_to_be32(attr->dest_qp_num);
 diff --git a/drivers/net/ethernet/mellanox/mlx4/cq.c b/drivers/net/ethernet/mellanox/mlx4/cq.c
-index 6eba58044456..6b8635378f1f 100644
+index 6eba580..6b86353 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/cq.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/cq.c
 @@ -320,7 +320,9 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
@@ -92,7 +92,7 @@ index 6eba58044456..6b8635378f1f 100644
  	cq_context->log_page_size   = mtt->page_shift - MLX4_ICM_PAGE_SHIFT;
  
 diff --git a/drivers/net/ethernet/mellanox/mlx4/en_resources.c b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
-index 12aab5a659d3..02e925d6f734 100644
+index 12aab5a..02e925d 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/en_resources.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
 @@ -58,7 +58,8 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
@@ -106,7 +106,7 @@ index 12aab5a659d3..02e925d6f734 100644
  	context->pri_path.ackto = 1 & 0x07;
  	context->pri_path.sched_queue = 0x83 | (priv->port - 1) << 6;
 diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
-index e4019a803a9c..0debb611da8b 100644
+index e4019a8..0debb61 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
 @@ -213,7 +213,9 @@ int mlx4_en_activate_tx_ring(struct mlx4_en_priv *priv,
@@ -121,10 +121,10 @@ index e4019a803a9c..0debb611da8b 100644
  	err = mlx4_qp_to_ready(mdev->dev, &ring->wqres.mtt, &ring->context,
  			       &ring->qp, &ring->qp_state);
 diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
-index ff77b8b608bd..d527c5fa5c59 100644
+index 7417605..cbcfaf3 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/eq.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
-@@ -929,9 +929,10 @@ static void __iomem *mlx4_get_eq_uar(struct mlx4_dev *dev, struct mlx4_eq *eq)
+@@ -930,9 +930,10 @@ static void __iomem *mlx4_get_eq_uar(struct mlx4_dev *dev, struct mlx4_eq *eq)
  
  	if (!priv->eq_table.uar_map[index]) {
  		priv->eq_table.uar_map[index] =
@@ -139,7 +139,7 @@ index ff77b8b608bd..d527c5fa5c59 100644
  			mlx4_err(dev, "Couldn't map EQ doorbell for EQN 0x%06x\n",
  				 eq->eqn);
 diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index a7d3144c2388..fdd85a3989ca 100644
+index b774ba6..e95f3d7 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/main.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
 @@ -168,6 +168,20 @@ struct mlx4_port_config {
@@ -237,7 +237,7 @@ index a7d3144c2388..fdd85a3989ca 100644
  		if (dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW ||
  		    dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN)
 diff --git a/drivers/net/ethernet/mellanox/mlx4/pd.c b/drivers/net/ethernet/mellanox/mlx4/pd.c
-index 609c59dc854e..b3cc3ab63799 100644
+index 609c59d..b3cc3ab 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/pd.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/pd.c
 @@ -269,9 +269,15 @@ EXPORT_SYMBOL_GPL(mlx4_bf_free);
@@ -260,7 +260,7 @@ index 609c59dc854e..b3cc3ab63799 100644
  		return -ENODEV;
  	}
 diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 7fde8af9b87e..e990cae8a959 100644
+index 7fde8af..e990cae 100644
 --- a/include/linux/mlx4/device.h
 +++ b/include/linux/mlx4/device.h
 @@ -44,6 +44,8 @@
@@ -295,3 +295,6 @@ index 7fde8af9b87e..e990cae8a959 100644
 +	return (128 >> (PAGE_SHIFT - dev->uar_page_shift));
 +}
  #endif /* MLX4_DEVICE_H */
+-- 
+1.9.4
+

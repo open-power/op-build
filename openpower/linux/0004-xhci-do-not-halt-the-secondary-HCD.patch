@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From de6c0cd214bbf94627c302db2c8101542f9b9e52 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 19 Jul 2016 22:43:26 +0930
-Subject: [PATCH 04/11] xhci: do not halt the secondary HCD
+Subject: [PATCH 04/10] xhci: do not halt the secondary HCD
 
 We can't halt the secondary HCD, because it's also the primary HCD,
 which will cause problems if we have devices attached to the primary
@@ -15,10 +15,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index f2e9f59c90d6..28fad2949308 100644
+index af4e681..af702ba 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -682,6 +682,21 @@ void xhci_stop(struct usb_hcd *hcd)
+@@ -680,6 +680,21 @@ void xhci_stop(struct usb_hcd *hcd)
  
  	mutex_lock(&xhci->mutex);
  
@@ -40,7 +40,7 @@ index f2e9f59c90d6..28fad2949308 100644
  	if (!(xhci->xhc_state & XHCI_STATE_HALTED)) {
  		spin_lock_irq(&xhci->lock);
  
-@@ -693,11 +708,6 @@ void xhci_stop(struct usb_hcd *hcd)
+@@ -691,11 +706,6 @@ void xhci_stop(struct usb_hcd *hcd)
  		spin_unlock_irq(&xhci->lock);
  	}
  
@@ -52,3 +52,6 @@ index f2e9f59c90d6..28fad2949308 100644
  	xhci_cleanup_msix(xhci);
  
  	/* Deleting Compliance Mode Recovery Timer */
+-- 
+1.9.4
+

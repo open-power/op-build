@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 6bc7d4cebf82330f913a20dad3ce360fd7999a60 Mon Sep 17 00:00:00 2001
 From: Jeremy Kerr <jk@ozlabs.org>
 Date: Thu, 1 Dec 2016 18:15:59 +0800
-Subject: [PATCH 09/11] usb/xhci: allow xhci_check_bandwith in
+Subject: [PATCH 09/10] usb/xhci: allow xhci_check_bandwith in
  XHCI_STATE_REMOVING
 
 Change 98d74f9ce (and backported as 0eb1e16bf9) introduced
@@ -46,10 +46,10 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 28fad2949308..c808e2e1f499 100644
+index af702ba..bd545b8 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -2757,8 +2757,7 @@ int xhci_check_bandwidth(struct usb_hcd *hcd, struct usb_device *udev)
+@@ -2803,8 +2803,7 @@ int xhci_check_bandwidth(struct usb_hcd *hcd, struct usb_device *udev)
  	if (ret <= 0)
  		return ret;
  	xhci = hcd_to_xhci(hcd);
@@ -59,3 +59,6 @@ index 28fad2949308..c808e2e1f499 100644
  		return -ENODEV;
  
  	xhci_dbg(xhci, "%s called for udev %p\n", __func__, udev);
+-- 
+1.9.4
+

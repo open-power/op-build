@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 04f36ee342ad739e3c3991480f5c5df0d6aeed0e Mon Sep 17 00:00:00 2001
 From: Oliver O'Halloran <oohall@gmail.com>
 Date: Fri, 24 Jun 2016 17:28:43 +1000
-Subject: [PATCH 06/11] powerpc/boot: Add OPAL console to epapr wrappers
+Subject: [PATCH 06/10] powerpc/boot: Add OPAL console to epapr wrappers
 
 This patch adds an OPAL console backend to the powerpc boot wrapper so
 that decompression failures inside the wrapper can be reported to the
@@ -33,19 +33,19 @@ Signed-off-by: Samuel Mendoza-Jonas <sam@mendozajonas.com>
  create mode 100644 arch/powerpc/boot/opal.c
 
 diff --git a/arch/powerpc/boot/Makefile b/arch/powerpc/boot/Makefile
-index 99e4487248ff..321a603f6ae3 100644
+index 57003d1..31eac62 100644
 --- a/arch/powerpc/boot/Makefile
 +++ b/arch/powerpc/boot/Makefile
 @@ -70,7 +70,7 @@ $(addprefix $(obj)/,$(zlib) cuboot-c2k.o gunzip_util.o main.o): \
  libfdt       := fdt.c fdt_ro.c fdt_wip.c fdt_sw.c fdt_rw.c fdt_strerror.c
  libfdtheader := fdt.h libfdt.h libfdt_internal.h
  
--$(addprefix $(obj)/,$(libfdt) libfdt-wrapper.o simpleboot.o epapr.o): \
-+$(addprefix $(obj)/,$(libfdt) libfdt-wrapper.o simpleboot.o epapr.o opal.o): \
+-$(addprefix $(obj)/,$(libfdt) libfdt-wrapper.o simpleboot.o epapr.o \
++$(addprefix $(obj)/,$(libfdt) libfdt-wrapper.o simpleboot.o epapr.o opal.o \
+ 	treeboot-akebono.o treeboot-currituck.o treeboot-iss4xx.o): \
  	$(addprefix $(obj)/,$(libfdtheader))
  
- src-wlib-y := string.S crt0.S crtsavres.S stdio.c main.c \
-@@ -78,7 +78,7 @@ src-wlib-y := string.S crt0.S crtsavres.S stdio.c main.c \
+@@ -79,7 +79,7 @@ src-wlib-y := string.S crt0.S crtsavres.S stdio.c main.c \
  		ns16550.c serial.c simple_alloc.c div64.S util.S \
  		gunzip_util.c elf_util.c $(zlib) devtree.c stdlib.c \
  		oflib.c ofconsole.c cuboot.c mpsc.c cpm-serial.c \
@@ -56,7 +56,7 @@ index 99e4487248ff..321a603f6ae3 100644
  src-wlib-$(CONFIG_8xx) += mpc8xx.c planetcore.c fsl-soc.c
 diff --git a/arch/powerpc/boot/opal-calls.S b/arch/powerpc/boot/opal-calls.S
 new file mode 100644
-index 000000000000..ff2f1b97bc53
+index 00000000..ff2f1b9
 --- /dev/null
 +++ b/arch/powerpc/boot/opal-calls.S
 @@ -0,0 +1,58 @@
@@ -120,7 +120,7 @@ index 000000000000..ff2f1b97bc53
 +OPAL_CALL(opal_console_flush,			OPAL_CONSOLE_FLUSH);
 diff --git a/arch/powerpc/boot/opal.c b/arch/powerpc/boot/opal.c
 new file mode 100644
-index 000000000000..3a2ce1e1f048
+index 00000000..3a2ce1e
 --- /dev/null
 +++ b/arch/powerpc/boot/opal.c
 @@ -0,0 +1,97 @@
@@ -222,7 +222,7 @@ index 000000000000..3a2ce1e1f048
 +}
 +#endif
 diff --git a/arch/powerpc/boot/ops.h b/arch/powerpc/boot/ops.h
-index 5e75e1c5518e..e19b64ef977a 100644
+index 5e75e1c..e19b64e 100644
 --- a/arch/powerpc/boot/ops.h
 +++ b/arch/powerpc/boot/ops.h
 @@ -89,6 +89,7 @@ int mpsc_console_init(void *devp, struct serial_console_data *scdp);
@@ -234,7 +234,7 @@ index 5e75e1c5518e..e19b64ef977a 100644
  			unsigned long granularity, unsigned long max_allocs);
  extern void flush_cache(void *, unsigned long);
 diff --git a/arch/powerpc/boot/ppc_asm.h b/arch/powerpc/boot/ppc_asm.h
-index 35ea60c1f070..b03373d8b386 100644
+index 35ea60c..b03373d 100644
 --- a/arch/powerpc/boot/ppc_asm.h
 +++ b/arch/powerpc/boot/ppc_asm.h
 @@ -61,6 +61,10 @@
@@ -249,7 +249,7 @@ index 35ea60c1f070..b03373d8b386 100644
  #define FIXUP_ENDIAN						   \
  	tdi   0, 0, 0x48; /* Reverse endian of b . + 8		*/ \
 diff --git a/arch/powerpc/boot/serial.c b/arch/powerpc/boot/serial.c
-index 167ee9433de6..e04c1e4063ae 100644
+index 167ee943..e04c1e4 100644
 --- a/arch/powerpc/boot/serial.c
 +++ b/arch/powerpc/boot/serial.c
 @@ -132,6 +132,8 @@ int serial_console_init(void)
@@ -262,7 +262,7 @@ index 167ee9433de6..e04c1e4063ae 100644
  	/* Add other serial console driver calls here */
  
 diff --git a/arch/powerpc/boot/types.h b/arch/powerpc/boot/types.h
-index 31393d17a9c1..85565a89bcc2 100644
+index 31393d1..85565a8 100644
 --- a/arch/powerpc/boot/types.h
 +++ b/arch/powerpc/boot/types.h
 @@ -12,6 +12,16 @@ typedef short			s16;
@@ -282,3 +282,6 @@ index 31393d17a9c1..85565a89bcc2 100644
  #define min(x,y) ({ \
  	typeof(x) _x = (x);	\
  	typeof(y) _y = (y);	\
+-- 
+1.9.4
+
