@@ -95,3 +95,4 @@ v2.5
     :maxdepth: 1
 
     v2.5-rc1
+    v2.5
