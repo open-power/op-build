@@ -29,7 +29,9 @@ endif
 
 QSTRIP_MACHINE_XML = $(call qstrip,$(BR2_OPENPOWER_MACHINE_XML_FILENAME))
 
-PDATA_CONF_OPTS = --enable-gen_dynamicdt
+PDATA_CONF_OPTS = --enable-gen_dynamicdt \
+                  CHIP=$(TARGET_PROC) \
+
 PDATA_MAKE_OPTS =  SYSTEM_NAME=$(call qstrip,$(BR2_OPENPOWER_CONFIG_NAME)) \
 				   TARGET_PROC=$(TARGET_PROC) \
 				   EKB=$(EKB_STAGING_DIR) \
