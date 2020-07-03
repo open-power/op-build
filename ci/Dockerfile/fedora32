@@ -1,4 +1,4 @@
-FROM fedora:30
+FROM fedora:32
 RUN dnf -y install gcc-c++ flex bison git ctags cscope expat-devel patch \
           zlib-devel zlib-static texinfo "perl(bigint)" "perl(XML::Simple)" \
           "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" \
