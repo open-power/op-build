@@ -1,0 +1,120 @@
+config BR2_PACKAGE_OPENPOWER_PNOR_P10
+        bool "openpower_pnor_p10"
+        depends on (!BR2_OPENPOWER_PNOR)
+        select BR2_TARGET_ROOTFS_INITRAMFS
+        select BR2_PACKAGE_HOSTBOOT_P10
+        select BR2_PACKAGE_HOSTBOOT_BINARIES
+        select BR2_PACKAGE_SKIBOOT
+        select BR2_PACKAGE_OPENPOWER_FFS
+        select BR2_PACKAGE_OCC_P10
+        select BR2_PACKAGE_CAPP_UCODE
+        select BR2_PACKAGE_IMA_CATALOG
+        select BR2_PACKAGE_HOST_OPENPOWER_VPNOR
+        select BR2_PACKAGE_RAINIER_2U_XML
+        select BR2_PACKAGE_RAINIER_4U_XML
+        select BR2_PACKAGE_HCODE_P10
+        help
+            Utilites for building a targeting Power10 binary image
+
+menu "OpenPOWER PNOR P10 assembly options"
+
+choice
+    prompt "Secure Boot key transition type"
+    default BR2_OPENPOWER_P10_SECUREBOOT_NO_KEY_TRANSITION
+
+config BR2_OPENPOWER_P10_SECUREBOOT_NO_KEY_TRANSITION
+    bool "None"
+    help
+      Builds a driver that does not transition Secure Boot keys
+
+config BR2_OPENPOWER_P10_SECUREBOOT_KEY_TRANSITION_TO_DEV
+    bool "Transition existing keys to development keys"
+    help
+      Builds a driver that transitions Secure Boot keys to development keys and
+      powers off the system.  Only usable when system security has been
+      disabled.
+
+config BR2_OPENPOWER_P10_SECUREBOOT_KEY_TRANSITION_TO_PROD
+    bool "Transition development keys to production keys"
+    help
+      Builds a driver that transitions Secure Boot development keys to
+      vendor supplied production keys and powers off the system.
+
+endchoice
+
+config BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE
+        string "Secureboot signing mode"
+        default "development"
+        help
+            Available options [development | production]
+            Indicates the signing mode when generating the PNOR image.  Only
+            applicable when hostboot is compiled with SECUREBOOT compile flag.
+            Default mode is development.
+
+config BR2_OPENPOWER_P10_PNOR_XML_LAYOUT_FILENAME
+        string "Name of Openpower pnor xml layout file"
+        help
+            String used to define hw specific make config file
+
+config BR2_OPENPOWER_PNOR_P10_LEGACY_PNOR_TARGET
+        string "Legacy name of P10 PNOR Configuration"
+        help
+            String used to define Legacy configuration name, used for
+            building legacy PNOR-related binaries and intermediate files
+
+config BR2_OPENPOWER_P10_XMLS
+        string "List of machine XMLs to include"
+        default "rainier-2u-xml rainier-4u-xml"
+        help
+            List of machine-xmls to include in the OpenPower PNOR
+
+config BR2_SKIBOOT_P10_LID_NAME
+        string "Name of skiboot lid name to be used"
+        default "skiboot.lid"
+        help
+            String used to define skiboot lid filename
+
+config BR2_HOSTBOOT_P10_BINARY_SBE_FILENAME
+        string "Name of sbe hostboot binary"
+        help
+            String used to define name of sbe hostboot binary file
+
+config BR2_HOSTBOOT_P10_BINARY_SBEC_FILENAME
+        string "Name of sbec hostboot binary"
+        help
+            String used to define name of sbec hostboot binary file
+
+config BR2_HOSTBOOT_P10_BINARY_IONV_FILENAME
+        string "Name of IONV binary"
+        default "ionv.bin"
+        help
+            String used to define name of ionv binary file
+
+config BR2_HOSTBOOT_P10_BINARY_WINK_FILENAME
+        string "Name of winkle hostboot binary"
+        help
+            String used to define name of winkle hostboot binary file
+
+config BR2_IMA_CATALOG_P10_FILENAME
+        string "Name of IMA catalog binary"
+        help
+            String used to define name of IMA catalog binary file
+
+config BR2_IMA_CATALOG_P10_ECC_FILENAME
+        string "Name of IMA catalog binary"
+        help
+            String used to define name of IMA catalog binary file, ecc protected
+
+config BR2_OCMBFW_P10_FILENAME
+        string "Name of the OCMBFW Update original file"
+        default "signed_app_fw.mem"
+        help
+            String used to define name of OCBMFW Update original file (before any processing occurs)
+
+config BR2_OCMBFW_P10_PROCESSED_FILENAME
+        string "Name of OCMBFW Update binary processed file"
+        default "ocmbfw.bin.ecc"
+        help
+            String used to define the name of the OCMBFW update binary file after processing, ecc protected
+
+endmenu

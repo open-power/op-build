@@ -231,4 +231,4 @@ endef
 
 $(eval $(generic-package))
 # Generate openPOWER pnor version string by combining subpackage version string files
-$(eval $(call OPENPOWER_VERSION,$(OPENPOWER_PNOR)))
+$(eval $(OPENPOWER_VERSION))

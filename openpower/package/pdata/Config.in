@@ -3,8 +3,9 @@ menu "pdata"
 config BR2_PACKAGE_PDATA
         bool "pdata"
         default y if (BR2_OPENPOWER_POWER10)
+        select BR2_PACKAGE_HOST_DTC
         depends on BR2_PACKAGE_EKB
-        depends on BR2_PACKAGE_MACHINE_XML
+        depends on (BR2_PACKAGE_MACHINE_XML || BR2_PACKAGE_RAINIER_2U_XML || BR2_PACKAGE_RAINIER_4U_XML)
         help
           To initialize and boot a server, various software components
           ( BMC apps and Hostboot) will interact. PDATA provides device tree
@@ -13,6 +14,20 @@ config BR2_PACKAGE_PDATA
           to manage the attributes data.
 
 if BR2_PACKAGE_PDATA
+
+choice
+    prompt "PDATA location"
+
+config BR2_PDATA_GITHUB_PROJECT
+    bool "PDATA located at default Github project"
+
+config BR2_PDATA_CUSTOM_GIT
+    bool "PDATA located at Custom Git repository"
+
+endchoice
+
+config BR2_PDATA_CUSTOM_GIT_VALUE
+    string "URL of PDATA Custom Git repository"
 
 choice
     prompt "PDATA version"
