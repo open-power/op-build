@@ -89,7 +89,7 @@ function version_string {
       version+="-p${patchlvl}"
     fi
     version+="-g$(${GIT} rev-parse --short=7 HEAD)"
-    if [[ "${ver_num}" == *.0 ]] || [[ ${patchlvl} -ne 0 ]]; then
+    if [[ ${patchlvl} -ne 0 ]]; then
       version+="-unofficial"
     fi
     if ${GIT} describe --dirty | grep -q dirty; then
