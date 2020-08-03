@@ -8,14 +8,14 @@ if BR2_PACKAGE_OCMB_EXPLORER_FW
 
 config BR2_OCMB_EXPLORER_FW_VERSION
 	string
-	default "v4.0"
+	default "v6.0"
 
 config BR2_OCMB_EXPLORER_FW_SITE
         string
-        default "https://github.com/open-power/ocmb-explorer-fw/files/4519502"
+        default "https://github.com/open-power/ocmb-explorer-fw/files/4989167"
 
 config BR2_OCMB_EXPLORER_FW_SOURCE
         string
-        default "RC4BinaryRelease.zip"
+        default "FWCL395423BinaryOnly.zip"
 
 endif
