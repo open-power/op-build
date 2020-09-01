@@ -79,7 +79,9 @@ HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
 FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 SBE_IMAGE_DIR = $(STAGING_DIR)/../../../build/sbe-p10-"$(SBE_P10_VERSION)"/images
 DEVTREE_BIN_DIR = $(STAGING_DIR)/usr/share/pdata/
-BMC_POWER_TARGET_FILENAME = power-target.dtb
+# The pdata generated device tree file name will be based on machine xml filename
+QSTRIP_OP_MACHINE_XML_FILENAME = $(call qstrip,$(BR2_OPENPOWER_MACHINE_XML_FILENAME))
+$(eval BMC_POWER_TARGET_FILENAME = $$(patsubst %.xml,%.dtb,$(QSTRIP_OP_MACHINE_XML_FILENAME)))
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(SKIBOOT_VERSION)/skiboot.elf \
