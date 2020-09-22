@@ -10,7 +10,7 @@ set -eu
 
 # Define root path of op-build to allow the script to work with any cwd
 readonly OPBUILD_ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
-readonly GIT="git --git-dir=${OPBUILD_ROOT}/.git"
+readonly GIT="git -C ${OPBUILD_ROOT}"
 # Default paths
 readonly DEFAULT_OUTPUT_DIR="${OPBUILD_ROOT}/output"
 readonly DEFAULT_DLCACHE_DIR="${OPBUILD_ROOT}/dl"
@@ -22,7 +22,7 @@ OpenPOWER firmware builder.
 Copyright (c) 2019 YADRO.
 Usage: ${BASH_SOURCE[0]} [options] -- [op-build arguments]
 
-  -m MACHINE  Set target machine name [default: vesnin].
+  -m MACHINE  Set target machine name [default: nicole].
 
   -o DIR      Use DIR as an output directory.
               Default: ${DEFAULT_OUTPUT_DIR}
@@ -60,9 +60,11 @@ EOF
 function version_string {
   local machine="$1"
   local branch="$(${GIT} rev-parse --abbrev-ref HEAD)"
+  local hash="g$(${GIT} rev-parse --short=8 HEAD)"
+  local version=""
   if [[ ${branch} != */* ]] || [[ ${branch%%/*} != release ]]; then
     # Development build
-    local version="${machine}-${branch##*/}-$(${GIT} describe --always --dirty)"
+    version="${machine}-${branch##*/}-${hash}"
   else
     # Release build
     if [[ ! ${branch} =~ release/${machine}/v[0-9]+ ]]; then
@@ -70,31 +72,24 @@ function version_string {
       exit 1
     fi
     local tag="$(${GIT} describe --abbrev=0)"
-    local descr=""
-    if [[ ${tag} =~ ${machine}-v[0-9]+\.[0-9]+ ]]; then
-      local ver_num="${tag##*-}"
-      ver_num="${ver_num%%_*}"
-      if [[ ${tag} =~ _ ]]; then
-        descr="-${tag#*_}"
-      fi
+    if [[ ${tag} =~ ^${machine}-v[0-9]+\.[0-9]+ ]]; then
+      version="${tag}"
       local patchlvl="$(${GIT} rev-list --count ${tag}..${branch})"
     else
-      # Tag hasn't been set yet, use branch name as major version
-      local ver_num="${branch##*/}.0"
+      # Tag hasn't been set yet, use branch name
+      version="${machine}-${branch##*/}"
       local patchlvl="$(${GIT} rev-list --count master..${branch})"
     fi
-    # Construct version string
-    local version="${machine}-${ver_num}${descr}"
     if [[ ${patchlvl} -ne 0 ]]; then
       version+="-p${patchlvl}"
     fi
-    version+="-g$(${GIT} rev-parse --short=7 HEAD)"
+    version+="-${hash}"
     if [[ ${patchlvl} -ne 0 ]]; then
       version+="-unofficial"
     fi
-    if ${GIT} describe --dirty | grep -q dirty; then
-      version+="-dirty"
-    fi
+  fi
+  if ${GIT} describe --dirty | grep -q dirty; then
+    version+="-dirty"
   fi
   echo "${version}"
 }
@@ -182,16 +177,13 @@ function create_packages {
   perl -I "${hbi_dir}" "${hbi_dir}/processMrw.pl" -x "${mrw_dir}/${machine}.xml" -r
   mv "${mrw_dir}/${machine}.rpt" "${dbg_dir}"
   echo "Add HB MRW file..."
-  cp -fu ${mrw_dir}/*.mrw.xml ${dbg_dir} || true
+  cp -fu ${mrw_dir}/*.mrw.xml ${dbg_dir}
 
   echo "Add OCC strings file..."
-  local occ_strings="$(ls ${output}/build/occ-*/obj/occStringFile 2>/dev/null || true)"
+  local occ_strings="$(ls ${output}/build/occ-*/obj/occStringFile 2>/dev/null ||:)"
   if [[ -z "${occ_strings}" ]]; then
-    occ_strings="$(ls ${output}/build/occ-*/src/occStringFile 2>/dev/null || true)"
-    if [[ -z "${occ_strings}" ]]; then
-      echo "OCC strings file not found" >&2
-      return 1
-    fi
+    echo "OCC strings file not found" >&2
+    return 1
   fi
   cp -fu "${occ_strings}" "${dbg_dir}"
 
@@ -205,7 +197,7 @@ function create_packages {
 
 # Main - script's entry point.
 function main {
-  local machine="vesnin"
+  local machine="nicole"
   local output="${DEFAULT_OUTPUT_DIR}"
   local dlcache="${DEFAULT_DLCACHE_DIR}"
   local ccache=""
@@ -228,7 +220,6 @@ function main {
     esac
   done
   shift $((OPTIND - 1))
-  optargs="$*"
 
   # Special actions - print version info only
   if [[ -n "${print_version}" ]]; then
@@ -236,10 +227,10 @@ function main {
     exit 0
   fi
 
-  time build_image "${machine}" "${output}" "${dlcache}" "${ccache}" ${optargs}
+  time build_image "${machine}" "${output}" "${dlcache}" "${ccache}" "$@"
   if [[ -n "${pkgdir}" ]]; then
     create_packages "${machine}" "${output}" "${pkgdir}"
   fi
 }
 
-main $*
+main "$@"
