@@ -1,4 +1,4 @@
 [submodule "buildroot"]
 	path = buildroot
-	branch = 2019.05-op-build
-	url = https://github.com/open-power/buildroot
+	branch = master-p10
+	url = git@github.ibm.com:klausk/buildroot.git
