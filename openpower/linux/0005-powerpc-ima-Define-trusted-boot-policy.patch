@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:29 -0400
-Subject: [PATCH 05/18] powerpc/ima: Define trusted boot policy
+Subject: [PATCH 05/19] powerpc/ima: Define trusted boot policy
 
 This patch defines an arch-specific trusted boot only policy and a
 combined secure and trusted boot policy.

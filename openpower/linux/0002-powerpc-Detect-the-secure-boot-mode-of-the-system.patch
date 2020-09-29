@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Tue, 5 Nov 2019 17:00:22 -0600
-Subject: [PATCH 02/18] powerpc: Detect the secure boot mode of the system
+Subject: [PATCH 02/19] powerpc: Detect the secure boot mode of the system
 
 This patch defines a function to detect the secure boot state of a
 PowerNV system.
@@ -26,10 +26,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  create mode 100644 arch/powerpc/kernel/secure_boot.c
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 44431dc06982..bdf584b85199 100644
+index ad620637cbd1..d654bdc9e4dc 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -934,6 +934,16 @@ config PPC_MEM_KEYS
+@@ -935,6 +935,16 @@ config PPC_MEM_KEYS
  
  	  If unsure, say y.
  

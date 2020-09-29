@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Fri, 1 May 2020 10:16:52 -0400
-Subject: [PATCH 16/18] powerpc/ima: Fix secure boot rules in ima arch policy
+Subject: [PATCH 16/19] powerpc/ima: Fix secure boot rules in ima arch policy
 
 To prevent verifying the kernel module appended signature
 twice (finit_module), once by the module_sig_check() and again by IMA,
