@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mimi Zohar <zohar@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:34 -0400
-Subject: [PATCH 15/18] powerpc/ima: Indicate kernel modules appended
+Subject: [PATCH 15/19] powerpc/ima: Indicate kernel modules appended
  signatures are enforced
 
 The arch specific kernel module policy rule requires kernel modules to

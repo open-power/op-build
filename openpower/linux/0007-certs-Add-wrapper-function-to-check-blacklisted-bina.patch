@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:31 -0400
-Subject: [PATCH 07/18] certs: Add wrapper function to check blacklisted binary
+Subject: [PATCH 07/19] certs: Add wrapper function to check blacklisted binary
  hash
 
 The -EKEYREJECTED error returned by existing is_hash_blacklisted() is

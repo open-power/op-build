@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:32 -0400
-Subject: [PATCH 08/18] ima: Check against blacklisted hashes for files with
+Subject: [PATCH 08/19] ima: Check against blacklisted hashes for files with
  modsig
 
 Asymmetric private keys are used to sign multiple files. The kernel
@@ -104,7 +104,7 @@ index 29ebe9afdac4..29aaedf33246 100644
  			(eg, ima-ng). Only valid when action is "measure".
  			pcr:= decimal value
 diff --git a/security/integrity/ima/ima.h b/security/integrity/ima/ima.h
-index ae124d3a4a4a..c508a65c3fdd 100644
+index 04800f7f2351..7d855f2c80fa 100644
 --- a/security/integrity/ima/ima.h
 +++ b/security/integrity/ima/ima.h
 @@ -258,6 +258,8 @@ int ima_policy_show(struct seq_file *m, void *v);
@@ -130,7 +130,7 @@ index ae124d3a4a4a..c508a65c3fdd 100644
  					   struct integrity_iint_cache *iint,
  					   struct file *file,
 diff --git a/security/integrity/ima/ima_appraise.c b/security/integrity/ima/ima_appraise.c
-index 136ae4e0ee92..300c8d2943c5 100644
+index 23b04c6521b2..176249e4a7ac 100644
 --- a/security/integrity/ima/ima_appraise.c
 +++ b/security/integrity/ima/ima_appraise.c
 @@ -12,6 +12,7 @@
@@ -141,7 +141,7 @@ index 136ae4e0ee92..300c8d2943c5 100644
  
  #include "ima.h"
  
-@@ -303,6 +304,38 @@ static int modsig_verify(enum ima_hooks func, const struct modsig *modsig,
+@@ -309,6 +310,38 @@ static int modsig_verify(enum ima_hooks func, const struct modsig *modsig,
  	return rc;
  }
  
@@ -204,7 +204,7 @@ index bc730e553053..a16c148ed90d 100644
  			rc = mmap_violation_check(func, file, &pathbuf,
  						  &pathname, filename);
 diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
-index 558a7607bf93..24d8aa2cc8ed 100644
+index e725d4187271..42f0970b3054 100644
 --- a/security/integrity/ima/ima_policy.c
 +++ b/security/integrity/ima/ima_policy.c
 @@ -769,8 +769,8 @@ enum {

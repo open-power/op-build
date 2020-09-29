@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:30 -0400
-Subject: [PATCH 06/18] ima: Make process_buffer_measurement() generic
+Subject: [PATCH 06/19] ima: Make process_buffer_measurement() generic
 
 process_buffer_measurement() is limited to measuring the kexec boot
 command line. This patch makes process_buffer_measurement() more
@@ -27,7 +27,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  2 files changed, 43 insertions(+), 18 deletions(-)
 
 diff --git a/security/integrity/ima/ima.h b/security/integrity/ima/ima.h
-index be469fce19e1..ae124d3a4a4a 100644
+index 8173982e00ab..04800f7f2351 100644
 --- a/security/integrity/ima/ima.h
 +++ b/security/integrity/ima/ima.h
 @@ -219,6 +219,9 @@ void ima_store_measurement(struct integrity_iint_cache *iint, struct file *file,

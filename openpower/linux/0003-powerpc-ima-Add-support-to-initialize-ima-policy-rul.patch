@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:27 -0400
-Subject: [PATCH 03/18] powerpc/ima: Add support to initialize ima policy rules
+Subject: [PATCH 03/19] powerpc/ima: Add support to initialize ima policy rules
 
 PowerNV systems use a Linux-based bootloader, which rely on the IMA
 subsystem to enforce different secure boot modes. Since the
@@ -29,10 +29,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  create mode 100644 arch/powerpc/kernel/ima_arch.c
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index bdf584b85199..eea6c358b86c 100644
+index d654bdc9e4dc..32ce6c0b43f1 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -938,6 +938,7 @@ config PPC_SECURE_BOOT
+@@ -939,6 +939,7 @@ config PPC_SECURE_BOOT
  	prompt "Enable secure boot support"
  	bool
  	depends on PPC_POWERNV
