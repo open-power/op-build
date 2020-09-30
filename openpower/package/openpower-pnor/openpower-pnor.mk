@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= d21456f844ee59027a651002ed05e209a1befe03
+OPENPOWER_PNOR_VERSION ?= aa76df051c5196b311039337e757e0fbe1ae78a9
 
 # TODO: WORKAROUND: Need to reenable next line and comment out the two lines
 # after that, when code is propagated to a public repo
@@ -216,7 +216,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         # Make the lids
         if [ "$(BR2_OPENPOWER_MAKE_LIDS)" == "y" ]; then \
             $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
-                 $(OUTPUT_IMAGES_DIR) \
+                 $(OUTPUT_IMAGES_DIR)/ebmc_lids.tar.gz \
                  $(OPENPOWER_PNOR_SCRATCH_DIR); \
         else \
             echo "Not making LIDs"; \
