@@ -1,5 +1,5 @@
 config BR2_PACKAGE_HOST_SB_SIGNING_FRAMEWORK
         bool "OpenPOWER secureboot signing server interface"
-        default y if BR2_OPENPOWER_PLATFORM && ((BR2_OPENPOWER_SECUREBOOT_SIGN_MODE = "production") || (BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION_TO_PROD) )
+        default y if BR2_OPENPOWER_PLATFORM && ((BR2_OPENPOWER_SECUREBOOT_SIGN_MODE = "production") || (BR2_OPENPOWER_SECUREBOOT_KEY_TRANSITION_TO_PROD) || (BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE = "production") || (BR2_OPENPOWER_P10_SECUREBOOT_KEY_TRANSITION_TO_PROD) )
         help
             Client interface to signing server for signing OpenPOWER firmware images

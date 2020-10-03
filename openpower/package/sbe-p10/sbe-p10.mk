@@ -19,6 +19,12 @@ SBE_P10_DEPENDENCIES = host-ppe42-gcc hcode-p10
 SBE_P10_INSTALL_IMAGES = YES
 SBE_P10_INSTALL_TARGET = NO
 
+ifeq ($(BR2_PACKAGE_OPENPOWER_PNOR_P10),y)
+BINARY_SBE_FILENAME=$(BR2_HOSTBOOT_P10_BINARY_SBE_FILENAME)
+else
+BINARY_SBE_FILENAME=$(BR2_HOSTBOOT_BINARY_SBE_FILENAME)
+endif
+
 define SBE_P10_BUILD_CMDS
 	SBE_COMMIT_ID=$(SBE_P10_VERSION) $(MAKE) -C $(@D) \
 		LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib \
@@ -28,7 +34,7 @@ endef
 
 define SBE_P10_INSTALL_IMAGES_CMDS
 	$(INSTALL) -D $(@D)/images/ipl_image_tool $(HOST_DIR)/usr/bin/
-	python $(@D)/src/build/sbeOpDistribute.py  --sbe_binary_dir=$(STAGING_DIR)/sbe_binaries --img_dir=$(@D)/images --sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME)
+	python $(@D)/src/build/sbeOpDistribute.py  --sbe_binary_dir=$(STAGING_DIR)/sbe_binaries --img_dir=$(@D)/images --sbe_binary_filename $(BINARY_SBE_FILENAME)
 	cp $(@D)/src/build/sbeOpDistribute.py $(STAGING_DIR)/sbe_binaries/
 	cp $(@D)/src/build/sbeOpToolsRegister.py $(STAGING_DIR)/sbe_binaries/
 endef
