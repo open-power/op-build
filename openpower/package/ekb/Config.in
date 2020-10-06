@@ -30,7 +30,7 @@ config BR2_EKB_CUSTOM_VERSION_VALUE
 
 config BR2_EKB_VERSION
     string
-    default "be67cfee571e13af01137a9eaa59c20b5110cc75" if BR2_EKB_LATEST_VERSION
+    default "eeb1a8a192491b97e84e5d8fdcbe0aea73da9c7f" if BR2_EKB_LATEST_VERSION
     default BR2_EKB_CUSTOM_VERSION_VALUE if BR2_EKB_CUSTOM_VERSION
 endif
 
