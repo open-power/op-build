@@ -351,6 +351,9 @@ define OPENPOWER_PNOR_P10_INSTALL_IMAGES_CMDS
             $(call OPENPOWER_PNOR_P10_UPDATE_IMAGE,\
                 $(xmlpkg)))
 
+        # Create MMC Tarball
+        tar -zcvf $(BINARIES_DIR)/mmc.tar.gz -C $(BINARIES_DIR) mmc
+
         # Create Debug Tarball (target-agnostic)
         mkdir -p $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
         cp -r $(STAGING_DIR)/hostboot_build_images/* \
