@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_P10_VERSION ?= aa76df051c5196b311039337e757e0fbe1ae78a9
+OPENPOWER_PNOR_P10_VERSION ?= d0abaa0c843f02d6fbbf0a07c445f73d7119ea54
 
 # TODO: WORKAROUND: Need to reenable next line and comment out the two lines
 # after that, when code is propagated to a public repo
