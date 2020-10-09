@@ -1,0 +1,32 @@
+From 7e2f33772358c4f130075c04c7880e3e9ef6f0f2 Mon Sep 17 00:00:00 2001
+From: Artem Senichev <a.senichev@yadro.com>
+Date: Fri, 9 Oct 2020 10:07:10 +0300
+Subject: [PATCH] Disable discover boot devices on Tatlin RootFS
+
+Disable the search for grub.cfg files on root0/root1 partitions of
+the Tatlin boot disk.
+
+Signed-off-by: Artem Senichev <a.senichev@yadro.com>
+---
+ discover/device-handler.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/discover/device-handler.c b/discover/device-handler.c
+index d85f1af..7d0507d 100644
+--- a/discover/device-handler.c
++++ b/discover/device-handler.c
+@@ -189,7 +189,10 @@ struct discover_boot_option *discover_boot_option_create(
+ 
+ static int device_match_uuid(struct discover_device *dev, const char *uuid)
+ {
+-	return dev->uuid && !strcmp(dev->uuid, uuid);
++	const char* tatlin_root0 = "59616472-6f21-726f-6f74-302150415254";
++	const char* tatlin_root1 = "59616472-6f21-726f-6f74-312150415254";
++	return dev->uuid && !strcmp(dev->uuid, uuid) &&
++		strcmp(dev->uuid, tatlin_root0) && strcmp(dev->uuid, tatlin_root1);
+ }
+ 
+ static int device_match_label(struct discover_device *dev, const char *label)
+-- 
+2.29.1
+
