@@ -1,4 +1,4 @@
 [submodule "buildroot"]
 	path = buildroot
 	branch = master-p10
-	url = git@github.ibm.com:klausk/buildroot.git
+	url = git@github.ibm.com:open-power/buildroot.git
