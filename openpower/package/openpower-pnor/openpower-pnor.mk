@@ -82,6 +82,10 @@ DEVTREE_BIN_DIR = $(STAGING_DIR)/usr/share/pdata/
 # The pdata generated device tree file name will be based on machine xml filename
 QSTRIP_OP_MACHINE_XML_FILENAME = $(call qstrip,$(BR2_OPENPOWER_MACHINE_XML_FILENAME))
 $(eval BMC_POWER_TARGET_FILENAME = $$(patsubst %.xml,%.dtb,$(QSTRIP_OP_MACHINE_XML_FILENAME)))
+# See Open-Power's Hostboot repo, file: src/build/buildpnor/PnorUtils.pm,
+# function: loadPnorLayout(); at the end of that function the generated PNOR layout XML file
+# is concatenated with "WithOffsets.xml"
+GENERATED_PNOR_LAYOUT_FILES = $(shell find "$(OPENPOWER_PNOR_SCRATCH_DIR)" -maxdepth 1 -name "*WithOffsets.xml")
 
 FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/skiboot-$(SKIBOOT_VERSION)/skiboot.elf \
@@ -90,7 +94,8 @@ FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/vmlinux \
                $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/System.map \
  	       $(FSP_TRACE_IMAGES_DIR)/fsp-trace \
-               $(OUTPUT_IMAGES_DIR)/zImage.epapr
+               $(OUTPUT_IMAGES_DIR)/zImage.epapr \
+               $(GENERATED_PNOR_LAYOUT_FILES)
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
 OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
