@@ -26,16 +26,6 @@ ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_DEPENDENCIES += ima-catalog
 endif
 
-ifeq ($(BR2_PACKAGE_SKIBOOT_EMBED_PAYLOAD),n)
-
-ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
-OPENPOWER_PNOR_DEPENDENCIES += linux-rebuild-with-initramfs
-else
-OPENPOWER_PNOR_DEPENDENCIES += linux
-endif
-
-endif
-
 ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
 OPENPOWER_PNOR_DEPENDENCIES += host-xz
 XZ_ARG=-xz_compression
