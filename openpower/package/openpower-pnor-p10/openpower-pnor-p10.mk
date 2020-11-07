@@ -14,7 +14,7 @@ OPENPOWER_PNOR_P10_SITE_METHOD=git
 
 OPENPOWER_PNOR_P10_LICENSE = Apache-2.0
 OPENPOWER_PNOR_P10_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_P10_DEPENDENCIES = hostboot-binaries skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util linux-rebuild-with-initramfs host-xz host-sb-signing-utils hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
+OPENPOWER_PNOR_P10_DEPENDENCIES = hostboot-binaries skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util host-xz host-sb-signing-utils hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
 
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_P10_DEPENDENCIES += ima-catalog
