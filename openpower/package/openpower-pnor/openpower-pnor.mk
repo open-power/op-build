@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= 2e68ed6a605d709e09fe268366565a3f10afec31
+OPENPOWER_PNOR_VERSION ?= 3d223ef92100ad689b48ab46cdcfb6ff36755727
 OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
@@ -44,6 +44,10 @@ endif
 
 ifneq ($(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE),"")
 SIGN_MODE_ARG=-sign_mode $(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE)
+endif
+
+ifneq ($(BR2_OPENPOWER_SIGNED_SECURITY_VERSION),"")
+SECURITY_VERSION=-security_version $(BR2_OPENPOWER_SIGNED_SECURITY_VERSION)
 endif
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
@@ -130,7 +134,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -binary_dir $(BINARIES_DIR) \
             -bootkernel_filename $(LINUX_IMAGE_NAME) \
             -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
-            $(XZ_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) \
+            $(XZ_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) $(SECURITY_VERSION) \
 
         mkdir -p $(STAGING_DIR)/pnor/
         $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
