@@ -4,12 +4,11 @@
 #
 ################################################################################
 
-
 SB_SIGNING_UTILS_SITE ?= $(call github,open-power,sb-signing-utils,$(SB_SIGNING_UTILS_VERSION))
 
 SB_SIGNING_UTILS_LICENSE = Apache-2.0
 SB_SIGNING_UTILS_LICENSE_FILES = LICENSE
-SB_SIGNING_UTILS_VERSION ?= v0.9
+SB_SIGNING_UTILS_VERSION ?= v0.5
 
 HOST_SB_SIGNING_UTILS_DEPENDENCIES = host-openssl
 
