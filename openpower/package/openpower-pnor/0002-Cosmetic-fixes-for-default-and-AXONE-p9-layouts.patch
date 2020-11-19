@@ -1,0 +1,583 @@
+From 86714cad8bc1de8deaba6aa488787da341a4ba56 Mon Sep 17 00:00:00 2001
+From: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+Date: Thu, 19 Nov 2020 17:41:50 -0300
+Subject: [PATCH 2/2] Cosmetic fixes for default and AXONE p9 layouts
+
+Use binary prefix (KiB, MiB) in accordance with IEC 60027-2, and also
+fix a couple of minor mistakes in storage sizes descriptions.
+
+Should be cosmetic only.
+
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ p9Layouts/axonePnorLayout_64.xml   | 60 ++++++++++++++--------------
+ p9Layouts/defaultPnorLayout_64.xml | 64 +++++++++++++++---------------
+ 2 files changed, 62 insertions(+), 62 deletions(-)
+
+diff --git a/p9Layouts/axonePnorLayout_64.xml b/p9Layouts/axonePnorLayout_64.xml
+index 32835b0..f6f4aa8 100644
+--- a/p9Layouts/axonePnorLayout_64.xml
++++ b/p9Layouts/axonePnorLayout_64.xml
+@@ -79,7 +79,7 @@ Layout Description
+         </side>
+     </metadata>
+     <section>
+-        <description>Hostboot Error Logs (144K)</description>
++        <description>Hostboot Error Logs (144KiB)</description>
+         <eyeCatch>HBEL</eyeCatch>
+         <physicalOffset>0x8000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+@@ -89,7 +89,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Guard Data (20K)</description>
++        <description>Guard Data (20KiB)</description>
+         <eyeCatch>GUARD</eyeCatch>
+         <physicalOffset>0x2C000</physicalOffset>
+         <physicalRegionSize>0x5000</physicalRegionSize>
+@@ -100,7 +100,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Nvram (576K)</description>
++        <description>Nvram (576KiB)</description>
+         <eyeCatch>NVRAM</eyeCatch>
+         <physicalOffset>0x31000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+@@ -109,7 +109,7 @@ Layout Description
+         <reprovision/>
+     </section>
+     <section>
+-        <description>Secure Boot (144K)</description>
++        <description>Secure Boot (144KiB)</description>
+         <eyeCatch>SECBOOT</eyeCatch>
+         <physicalOffset>0xC1000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+@@ -118,7 +118,7 @@ Layout Description
+         <preserved/>
+     </section>
+     <section>
+-        <description>Eeprom Cache(512K)</description>
++        <description>Eeprom Cache(512KiB)</description>
+         <eyeCatch>EECACHE</eyeCatch>
+         <physicalOffset>0xE5000</physicalOffset>
+         <physicalRegionSize>0x80000</physicalRegionSize>
+@@ -129,7 +129,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Hostboot Base (1MB)</description>
++        <description>Hostboot Base (1MiB)</description>
+         <eyeCatch>HBB</eyeCatch>
+         <physicalOffset>0x165000</physicalOffset>
+         <physicalRegionSize>0x100000</physicalRegionSize>
+@@ -139,7 +139,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Data (2MB)</description>
++        <description>Hostboot Data (2MiB)</description>
+         <eyeCatch>HBD</eyeCatch>
+         <physicalOffset>0x265000</physicalOffset>
+         <physicalRegionSize>0x200000</physicalRegionSize>
+@@ -148,7 +148,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>SBE-IPL (Staging Area) (752K)</description>
++        <description>SBE-IPL (Staging Area) (752KiB)</description>
+         <eyeCatch>SBE</eyeCatch>
+         <physicalOffset>0x465000</physicalOffset>
+         <physicalRegionSize>0xBC000</physicalRegionSize>
+@@ -159,7 +159,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>HCODE Ref Image (1.125MB)</description>
++        <description>HCODE Ref Image (1.125MiB)</description>
+         <eyeCatch>HCODE</eyeCatch>
+         <physicalOffset>0x521000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+@@ -169,7 +169,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Runtime Services for Sapphire (8.0MB)</description>
++        <description>Hostboot Runtime Services for Sapphire (8.0MiB)</description>
+         <eyeCatch>HBRT</eyeCatch>
+         <physicalOffset>0x641000</physicalOffset>
+         <physicalRegionSize>0x800000</physicalRegionSize>
+@@ -179,7 +179,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (0.5MB)</description>
++        <description>Payload (0.5MiB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0xE41000</physicalOffset>
+         <physicalRegionSize>0x80000</physicalRegionSize>
+@@ -188,7 +188,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (16.67MB)</description>
++        <description>Bootloader Kernel (16.67MiB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+         <physicalOffset>0xEC1000</physicalOffset>
+         <physicalRegionSize>0x12C0000</physicalRegionSize>
+@@ -197,7 +197,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>OCC Lid (1.125M)</description>
++        <description>OCC Lid (1.125MiB)</description>
+         <eyeCatch>OCC</eyeCatch>
+         <physicalOffset>0x2181000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+@@ -207,7 +207,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Checkstop FIR data (12K)</description>
++        <description>Checkstop FIR data (12KiB)</description>
+         <eyeCatch>FIRDATA</eyeCatch>
+         <physicalOffset>0x22A1000</physicalOffset>
+         <physicalRegionSize>0x3000</physicalRegionSize>
+@@ -217,7 +217,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>CAPP Lid (144K)</description>
++        <description>CAPP Lid (144KiB)</description>
+         <eyeCatch>CAPP</eyeCatch>
+         <physicalOffset>0x22A4000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+@@ -227,7 +227,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>BMC Inventory (36K)</description>
++        <description>BMC Inventory (36KiB)</description>
+         <eyeCatch>BMC_INV</eyeCatch>
+         <physicalOffset>0x22C8000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+@@ -235,7 +235,7 @@ Layout Description
+         <reprovision/>
+     </section>
+     <section>
+-        <description>Hostboot Bootloader (28K)</description>
++        <description>Hostboot Bootloader (28KiB)</description>
+         <eyeCatch>HBBL</eyeCatch>
+         <physicalOffset>0x22D1000</physicalOffset>
+         <!-- Physical Size includes Header rounded to ECC valid size -->
+@@ -247,7 +247,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Temporary Attribute Override (32K)</description>
++        <description>Temporary Attribute Override (32KiB)</description>
+         <eyeCatch>ATTR_TMP</eyeCatch>
+         <physicalOffset>0x22D8000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+@@ -255,7 +255,7 @@ Layout Description
+         <reprovision/>
+     </section>
+     <section>
+-        <description>PNOR Version (4K)</description>
++        <description>PNOR Version (8KiB)</description>
+         <eyeCatch>VERSION</eyeCatch>
+         <physicalOffset>0x22E0000</physicalOffset>
+         <physicalRegionSize>0x2000</physicalRegionSize>
+@@ -264,7 +264,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Permanent Attribute Override (32K)</description>
++        <description>Permanent Attribute Override (32KiB)</description>
+         <eyeCatch>ATTR_PERM</eyeCatch>
+         <physicalOffset>0x22E2000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+@@ -274,7 +274,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>IMA Catalog (256K)</description>
++        <description>IMA Catalog (256KiB)</description>
+         <eyeCatch>IMA_CATALOG</eyeCatch>
+         <physicalOffset>0x22EA000</physicalOffset>
+         <physicalRegionSize>0x40000</physicalRegionSize>
+@@ -284,14 +284,14 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Ref Image Ring Overrides (128K)</description>
++        <description>Ref Image Ring Overrides (128KiB)</description>
+         <eyeCatch>RINGOVD</eyeCatch>
+         <physicalOffset>0x232A000</physicalOffset>
+         <physicalRegionSize>0x20000</physicalRegionSize>
+         <side>sideless</side>
+     </section>
+     <section>
+-        <description>VFRT data for WOF (3MB)</description>
++        <description>VFRT data for WOF (3MiB)</description>
+         <!-- We need 266KB per module sort, going to support
+                           10 tables by default, plus ECC  -->
+         <eyeCatch>WOFDATA</eyeCatch>
+@@ -303,7 +303,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot deconfig area (20KB)</description>
++        <description>Hostboot deconfig area (20KiB)</description>
+         <eyeCatch>HB_VOLATILE</eyeCatch>
+         <physicalOffset>0x264A000</physicalOffset>
+         <physicalRegionSize>0x5000</physicalRegionSize>
+@@ -314,7 +314,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>SecureBoot Key Transition Partition (16K)</description>
++        <description>SecureBoot Key Transition Partition (16KiB)</description>
+         <eyeCatch>SBKT</eyeCatch>
+         <physicalOffset>0x264F000</physicalOffset>
+         <physicalRegionSize>0x4000</physicalRegionSize>
+@@ -323,7 +323,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>HDAT Data (32K)</description>
++        <description>HDAT Data (32KiB)</description>
+         <eyeCatch>HDAT</eyeCatch>
+         <physicalOffset>0x2653000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+@@ -333,7 +333,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Ultravisor binary image (1MB)</description>
++        <description>Ultravisor binary image (1MiB)</description>
+         <eyeCatch>UVISOR</eyeCatch>
+         <physicalOffset>0x265B000</physicalOffset>
+         <physicalRegionSize>0x100000</physicalRegionSize>
+@@ -342,7 +342,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Open CAPI Memory Buffer (OCMB) Firmware (1164K)</description>
++        <description>Open CAPI Memory Buffer (OCMB) Firmware (1164KiB)</description>
+         <eyeCatch>OCMBFW</eyeCatch>
+         <physicalOffset>0x275B000</physicalOffset>
+         <physicalRegionSize>0x123000</physicalRegionSize>
+@@ -352,7 +352,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Extended image (23.4375 MB w/ ECC)</description>
++        <description>Hostboot Extended image (23.4375 MiB w/ ECC)</description>
+         <eyeCatch>HBI</eyeCatch>
+         <physicalOffset>0x287E000</physicalOffset>
+         <!--Considering HBRT_PROXY below, 0x177A000 Is all the space that is left.
+@@ -364,7 +364,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Runtime Proxy (32KB)</description>
++        <description>Hostboot Runtime Proxy (32KiB)</description>
+         <eyeCatch>HBRT_PROXY</eyeCatch>
+         <physicalOffset>0x3FEE000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+diff --git a/p9Layouts/defaultPnorLayout_64.xml b/p9Layouts/defaultPnorLayout_64.xml
+index ab79a83..d5c71dd 100644
+--- a/p9Layouts/defaultPnorLayout_64.xml
++++ b/p9Layouts/defaultPnorLayout_64.xml
+@@ -78,7 +78,7 @@ Layout Description
+         </side>
+     </metadata>
+     <section>
+-        <description>Hostboot Error Logs (144K)</description>
++        <description>Hostboot Error Logs (144KiB)</description>
+         <eyeCatch>HBEL</eyeCatch>
+         <physicalOffset>0x8000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+@@ -88,7 +88,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Guard Data (20K)</description>
++        <description>Guard Data (20KiB)</description>
+         <eyeCatch>GUARD</eyeCatch>
+         <physicalOffset>0x2C000</physicalOffset>
+         <physicalRegionSize>0x5000</physicalRegionSize>
+@@ -99,7 +99,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Nvram (576K)</description>
++        <description>Nvram (576KiB)</description>
+         <eyeCatch>NVRAM</eyeCatch>
+         <physicalOffset>0x31000</physicalOffset>
+         <physicalRegionSize>0x90000</physicalRegionSize>
+@@ -108,7 +108,7 @@ Layout Description
+         <reprovision/>
+     </section>
+     <section>
+-        <description>Secure Boot (144K)</description>
++        <description>Secure Boot (144KiB)</description>
+         <eyeCatch>SECBOOT</eyeCatch>
+         <physicalOffset>0xC1000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+@@ -117,7 +117,7 @@ Layout Description
+         <preserved/>
+     </section>
+     <section>
+-        <description>DIMM SPD Cache (288K)</description>
++        <description>DIMM SPD Cache (288KiB)</description>
+         <eyeCatch>DJVPD</eyeCatch>
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+          <physicalOffset>0xE5000</physicalOffset>
+@@ -129,7 +129,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Module VPD Cache (576K)</description>
++        <description>Module VPD Cache (576KiB)</description>
+         <eyeCatch>MVPD</eyeCatch>
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+         <physicalOffset>0x12D000</physicalOffset>
+@@ -141,7 +141,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Centaur VPD Cache (288K)</description>
++        <description>Centaur VPD Cache (288KiB)</description>
+         <eyeCatch>CVPD</eyeCatch>
+         <!--NOTE: MUST update standalone.simics if offset changes -->
+         <physicalOffset>0x1BD000</physicalOffset>
+@@ -153,7 +153,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Hostboot Base (1M)</description>
++        <description>Hostboot Base (1MiB)</description>
+         <eyeCatch>HBB</eyeCatch>
+         <physicalOffset>0x205000</physicalOffset>
+         <physicalRegionSize>0x100000</physicalRegionSize>
+@@ -163,7 +163,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Data (1.125M)</description>
++        <description>Hostboot Data (1.125MiB)</description>
+         <eyeCatch>HBD</eyeCatch>
+         <physicalOffset>0x305000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+@@ -172,7 +172,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Extended image (16.67MB w/o ECC)</description>
++        <description>Hostboot Extended image (16.67MiB w/o ECC)</description>
+         <eyeCatch>HBI</eyeCatch>
+         <physicalOffset>0x425000</physicalOffset>
+         <physicalRegionSize>0x12C0000</physicalRegionSize>
+@@ -182,7 +182,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>SBE-IPL (Staging Area) (520K)</description>
++        <description>SBE-IPL (Staging Area) (752KiB)</description>
+         <eyeCatch>SBE</eyeCatch>
+         <physicalOffset>0x16E5000</physicalOffset>
+         <physicalRegionSize>0xBC000</physicalRegionSize>
+@@ -193,7 +193,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>HCODE Ref Image (1.125MB)</description>
++        <description>HCODE Ref Image (1.125MiB)</description>
+         <eyeCatch>HCODE</eyeCatch>
+         <physicalOffset>0x17A1000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+@@ -203,7 +203,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot Runtime Services for Sapphire (8MB)</description>
++        <description>Hostboot Runtime Services for Sapphire (8MiB)</description>
+         <eyeCatch>HBRT</eyeCatch>
+         <physicalOffset>0x18C1000</physicalOffset>
+         <physicalRegionSize>0x800000</physicalRegionSize>
+@@ -213,7 +213,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Payload (1MB)</description>
++        <description>Payload (1MiB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+         <physicalOffset>0x20C1000</physicalOffset>
+         <physicalRegionSize>0x100000</physicalRegionSize>
+@@ -222,7 +222,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Bootloader Kernel (15.5MB)</description>
++        <description>Bootloader Kernel (16.67MiB)</description>
+         <eyeCatch>BOOTKERNEL</eyeCatch>
+         <physicalOffset>0x21C1000</physicalOffset>
+         <physicalRegionSize>0x12C0000</physicalRegionSize>
+@@ -231,7 +231,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>OCC Lid (1.125M)</description>
++        <description>OCC Lid (1.125MiB)</description>
+         <eyeCatch>OCC</eyeCatch>
+         <physicalOffset>0x3481000</physicalOffset>
+         <physicalRegionSize>0x120000</physicalRegionSize>
+@@ -241,7 +241,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Checkstop FIR data (12K)</description>
++        <description>Checkstop FIR data (12KiB)</description>
+         <eyeCatch>FIRDATA</eyeCatch>
+         <physicalOffset>0x35E1000</physicalOffset>
+         <physicalRegionSize>0x3000</physicalRegionSize>
+@@ -251,7 +251,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>CAPP Lid (144K)</description>
++        <description>CAPP Lid (144KiB)</description>
+         <eyeCatch>CAPP</eyeCatch>
+         <physicalOffset>0x35E4000</physicalOffset>
+         <physicalRegionSize>0x24000</physicalRegionSize>
+@@ -261,7 +261,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>BMC Inventory (36K)</description>
++        <description>BMC Inventory (36KiB)</description>
+         <eyeCatch>BMC_INV</eyeCatch>
+         <physicalOffset>0x3608000</physicalOffset>
+         <physicalRegionSize>0x9000</physicalRegionSize>
+@@ -269,7 +269,7 @@ Layout Description
+         <reprovision/>
+     </section>
+     <section>
+-        <description>Hostboot Bootloader (28K)</description>
++        <description>Hostboot Bootloader (28KiB)</description>
+         <eyeCatch>HBBL</eyeCatch>
+         <physicalOffset>0x3611000</physicalOffset>
+         <!-- Physical Size includes Header rounded to ECC valid size -->
+@@ -281,7 +281,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Temporary Attribute Override (32K)</description>
++        <description>Temporary Attribute Override (32KiB)</description>
+         <eyeCatch>ATTR_TMP</eyeCatch>
+         <physicalOffset>0x3618000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+@@ -289,7 +289,7 @@ Layout Description
+         <reprovision/>
+     </section>
+     <section>
+-        <description>Permanent Attribute Override (32K)</description>
++        <description>Permanent Attribute Override (32KiB)</description>
+         <eyeCatch>ATTR_PERM</eyeCatch>
+         <physicalOffset>0x3620000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+@@ -299,7 +299,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>PNOR Version (4K)</description>
++        <description>PNOR Version (8KiB)</description>
+         <eyeCatch>VERSION</eyeCatch>
+         <physicalOffset>0x3628000</physicalOffset>
+         <physicalRegionSize>0x2000</physicalRegionSize>
+@@ -308,7 +308,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>IMA Catalog (256K)</description>
++        <description>IMA Catalog (256KiB)</description>
+         <eyeCatch>IMA_CATALOG</eyeCatch>
+         <physicalOffset>0x362A000</physicalOffset>
+         <physicalRegionSize>0x40000</physicalRegionSize>
+@@ -318,14 +318,14 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Ref Image Ring Overrides (128K)</description>
++        <description>Ref Image Ring Overrides (128KiB)</description>
+         <eyeCatch>RINGOVD</eyeCatch>
+         <physicalOffset>0x366A000</physicalOffset>
+         <physicalRegionSize>0x20000</physicalRegionSize>
+         <side>A</side>
+     </section>
+     <section>
+-        <description>VFRT data for WOF (3MB)</description>
++        <description>VFRT data for WOF (3MiB)</description>
+         <!-- We need 266KB per module sort, going to support
+              10 sorts by default, plus ECC  -->
+         <eyeCatch>WOFDATA</eyeCatch>
+@@ -337,7 +337,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Hostboot deconfig area (64KB)</description>
++        <description>Hostboot deconfig area (20KiB)</description>
+         <eyeCatch>HB_VOLATILE</eyeCatch>
+         <physicalOffset>0x398A000</physicalOffset>
+         <physicalRegionSize>0x5000</physicalRegionSize>
+@@ -348,7 +348,7 @@ Layout Description
+         <clearOnEccErr/>
+     </section>
+     <section>
+-        <description>Memory config data (28K)</description>
++        <description>Memory config data (56KiB)</description>
+         <eyeCatch>MEMD</eyeCatch>
+         <physicalOffset>0x398F000</physicalOffset>
+         <physicalRegionSize>0xE000</physicalRegionSize>
+@@ -358,7 +358,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>SecureBoot Key Transition Partition (16K)</description>
++        <description>SecureBoot Key Transition Partition (16KiB)</description>
+         <eyeCatch>SBKT</eyeCatch>
+         <physicalOffset>0x399D000</physicalOffset>
+         <physicalRegionSize>0x4000</physicalRegionSize>
+@@ -368,7 +368,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>HDAT binary data (32KB)</description>
++        <description>HDAT binary data (32KiB)</description>
+         <eyeCatch>HDAT</eyeCatch>
+         <physicalOffset>0x39A1000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+@@ -378,7 +378,7 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>Ultravisor binary image (1MB)</description>
++        <description>Ultravisor binary image (1MiB)</description>
+         <eyeCatch>UVISOR</eyeCatch>
+         <physicalOffset>0x39A9000</physicalOffset>
+         <physicalRegionSize>0x100000</physicalRegionSize>
+@@ -387,7 +387,7 @@ Layout Description
+         <readOnly/>
+     </section>
+     <section>
+-        <description>Hostboot Runtime Proxy (32KB)</description>
++        <description>Hostboot Runtime Proxy (32KiB)</description>
+         <eyeCatch>HBRT_PROXY</eyeCatch>
+         <physicalOffset>0x3AA9000</physicalOffset>
+         <physicalRegionSize>0x8000</physicalRegionSize>
+-- 
+2.17.1
+
