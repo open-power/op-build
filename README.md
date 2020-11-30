@@ -24,12 +24,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for howto contribute code.
 
 ## Building an image
 
-To build an image for a Palmetto system:
+To build an image for a Blackbird system:
 
 ```
 git clone --recursive https://github.com/open-power/op-build.git
 cd op-build
-./op-build palmetto_defconfig && ./op-build
+./op-build blackbird_defconfig && ./op-build
 ```
 
 There are also default configurations for other platforms in
@@ -68,6 +68,7 @@ a handful of other packages (see below).
           zlib-devel zlib-static texinfo "perl(bigint)" "perl(XML::Simple)" \
           "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" \
           "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" "perl(ExtUtils::MakeMaker)" \
+          "perl(FindBin)" "perl(English)" "perl(Time::localtime)" \
           libxml2-devel which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
           openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname
 
