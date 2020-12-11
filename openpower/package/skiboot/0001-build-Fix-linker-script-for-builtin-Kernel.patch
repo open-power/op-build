@@ -1,0 +1,55 @@
+From 6def8ac06ff34b2232de48e5f9bc3a179199a9ad Mon Sep 17 00:00:00 2001
+From: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+Date: Thu, 10 Dec 2020 15:44:55 -0500
+Subject: [PATCH] build: Fix linker script for builtin Kernel
+
+Commit '6b08928d - build/lds: place debug sections according to
+defaults' introduced a DEBUG_SECTIONS macro that is effectivelly
+resetting the location pointer back to zero, making the next section
+(builtin_kernel) collide with the earlier sections.
+
+Fix by moving these sections to the very end.
+
+Error message:
+$ make KERNEL=zImage.epapr
+        [CC]  asm/asm-offsets.s
+        [GN]  include/asm-offsets.h
+<...>
+        [LD]  skiboot.tmp.elf
+ld: section .builtin_kernel LMA [0000000000000000,0000000000285d87]
+ overlaps section .head LMA [0000000000000000,0000000000003897]
+ld: section .naca LMA [0000000000004000,000000000000505f] overlaps
+ section .builtin_kernel LMA [0000000000000000,0000000000285d87]
+make: *** [/skiboot/Makefile.main:333: skiboot.tmp.elf] Error 1
+
+Fixes: 6b08928d - build/lds: place debug sections according to defaults
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ skiboot.lds.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/skiboot.lds.S b/skiboot.lds.S
+index 5da6f9d8..5a7f9e31 100644
+--- a/skiboot.lds.S
++++ b/skiboot.lds.S
+@@ -233,8 +233,6 @@ SECTIONS
+ 
+ 	ASSERT((HEAP_BASE - SKIBOOT_BASE) >= _end, "Heap collision with image")
+ 
+-	DEBUG_SECTIONS
+-
+ 	/* Optional kernel image */
+        . = ALIGN(PAGE_SIZE);
+        .builtin_kernel : {
+@@ -243,6 +241,8 @@ SECTIONS
+ 		__builtin_kernel_end = .;
+ 	}
+ 
++	DEBUG_SECTIONS
++
+ 	/* Discards */
+ 	/DISCARD/ : {
+ 		*(.note.GNU-stack)
+-- 
+2.27.0
+
