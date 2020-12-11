@@ -1,0 +1,424 @@
+From 8b081c7ab3c4de609f6c51583dbe351fcffdabbb Mon Sep 17 00:00:00 2001
+From: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+Date: Fri, 11 Dec 2020 07:15:15 -0500
+Subject: [PATCH 2/2] Add new builtinKernelPnorLayout_64
+
+Create a new Layout to maximize the PAYLOAD and ROOTFS partitions
+so that we can fit the most things possible in Skiroot without
+going above the 16MiB size for each PNOR partition (so that we
+remain compatible with pseries LIDs). This is a 64MiB Layout.
+
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ p9Layouts/builtinKernelPnorLayout_64.xml | 399 +++++++++++++++++++++++
+ 1 file changed, 399 insertions(+)
+ create mode 100644 p9Layouts/builtinKernelPnorLayout_64.xml
+
+diff --git a/p9Layouts/builtinKernelPnorLayout_64.xml b/p9Layouts/builtinKernelPnorLayout_64.xml
+new file mode 100644
+index 0000000..4b21f30
+--- /dev/null
++++ b/p9Layouts/builtinKernelPnorLayout_64.xml
+@@ -0,0 +1,399 @@
++<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
++<!-- This is an automatically generated prolog.                             -->
++<!--                                                                        -->
++<!-- $Source:  pnor/p9Layouts/defaultPnorLayout_64.xml $                    -->
++<!--                                                                        -->
++<!-- OpenPOWER HostBoot Project                                             -->
++<!--                                                                        -->
++<!-- COPYRIGHT International Business Machines Corp. 2013,2014              -->
++<!--                                                                        -->
++<!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
++<!-- you may not use this file except in compliance with the License.       -->
++<!-- You may obtain a copy of the License at                                -->
++<!--                                                                        -->
++<!--     http://www.apache.org/licenses/LICENSE-2.0                         -->
++<!--                                                                        -->
++<!-- Unless required by applicable law or agreed to in writing, software    -->
++<!-- distributed under the License is distributed on an "AS IS" BASIS,      -->
++<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        -->
++<!-- implied. See the License for the specific language governing           -->
++<!-- permissions and limitations under the License.                         -->
++<!--                                                                        -->
++<!-- IBM_PROLOG_END_TAG                                                     -->
++<!--
++Layout Description
++<metadata> Element -> Contains high-level information about the PNOR layout.
++    <chipSize>     -> Size of the chip that the pnor image will reside on
++    <imageSize>    -> Size of PNOR image in bytes.
++    <blockSize>    -> size of erase blocks in bytes.
++    <tocSize>      -> size of each partition table
++    <!- TODO:RTC:123734 - remove side offsets once hwsv implements new layout ->
++    <sideAOffset>  -> Location of Side A Partition Table
++    <sideBOffset>  -> Location of Side B Partition Table
++    <side>         -> Contains information about the side
++        <id>            -> Id of the side (A or B)
++        <arrangement>   -> Tag that specifies the arrangement of the side
++                           (A-B-D or A-D-B)
++                           A-B-D: Primary TOC (A),Backup TOC (B), and Section Information (Data - D)
++                           A-D-B: Primary TOC (A), Section Information (Data - D), Backup TOC (B)
++        <golden/> -> Indicates that the side of the PNOR is golden
++</metadata>
++<section> Element -> Contains information about a PNOR Partition
++    <description>   -> Text description of the partition.
++                       Does not have to be machine readable.
++    <eyeCatch>      -> Name of the Partition
++    <physicalOffset>-> Offset of the Partition in PNOR
++                       in bytes.
++    <physicalSize>  -> Size of the Partition in bytes.
++    <side>          -> Side that this section is associated with.
++                       could be (A, B, or sideless)
++                       A - Section is associated with side A
++                       B - Section is associated with side B
++                       sideless - Indicates partition will be in both TOCs but
++                                  only one copy of the partition should be created
++    <testonly/>     -> Indicates partition is used for internal testing only.
++                       Partition should be skipped in production environments.
++    <ecc/>          -> Indicates Partition should be ECC protected
++    <sha512Version/>-> Indicates Partition uses SHA512 for version information.
++    <sha512perEC/>  -> Indicates SHA512 is used to indicate version for each
++                       EC-specific image within the Partition.
++    <preserved/>    -> Indicates Partition is preserved across code updates.
++    <volatile/>     -> Indicates Partition is not preserved across power offs,
++                       but is across reboots. BMC will clear on power off/on
++    <clearOnEccErr/>-> Indication that if an ECC error is comsumed on this partition,
++                       clear (write 0xFF with good ECC) to the partition to recover
++    <readOnly/>     -> Indicates that the partition will be marked read only.
++</section>
++-->
++
++<pnor>
++    <metadata>
++        <imageSize>0x4000000</imageSize>
++        <chipSize>0x4000000</chipSize>
++        <blockSize>0x1000</blockSize>
++        <tocSize>0x8000</tocSize>
++        <arrangement>A-D-B</arrangement>
++        <side>
++            <id>A</id>
++        </side>
++    </metadata>
++    <section>
++        <description>Hostboot Error Logs (144KiB)</description>
++        <eyeCatch>HBEL</eyeCatch>
++        <physicalOffset>0x8000</physicalOffset>
++        <physicalRegionSize>0x24000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++        <reprovision/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>Guard Data (20KiB)</description>
++        <eyeCatch>GUARD</eyeCatch>
++        <physicalOffset>0x2C000</physicalOffset>
++        <physicalRegionSize>0x5000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++        <preserved/>
++        <reprovision/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>Nvram (576KiB)</description>
++        <eyeCatch>NVRAM</eyeCatch>
++        <physicalOffset>0x31000</physicalOffset>
++        <physicalRegionSize>0x90000</physicalRegionSize>
++        <side>A</side>
++        <preserved/>
++        <reprovision/>
++    </section>
++    <section>
++        <description>Secure Boot (144KiB)</description>
++        <eyeCatch>SECBOOT</eyeCatch>
++        <physicalOffset>0xC1000</physicalOffset>
++        <physicalRegionSize>0x24000</physicalRegionSize>
++        <side>sideless</side>
++        <ecc/>
++        <preserved/>
++    </section>
++    <section>
++        <description>DIMM SPD Cache (288KiB)</description>
++        <eyeCatch>DJVPD</eyeCatch>
++        <!--NOTE: MUST update standalone.simics if offset changes -->
++         <physicalOffset>0xE5000</physicalOffset>
++        <physicalRegionSize>0x48000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++        <preserved/>
++        <reprovision/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>Module VPD Cache (576KiB)</description>
++        <eyeCatch>MVPD</eyeCatch>
++        <!--NOTE: MUST update standalone.simics if offset changes -->
++        <physicalOffset>0x12D000</physicalOffset>
++        <physicalRegionSize>0x90000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++        <preserved/>
++        <reprovision/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>Centaur VPD Cache (288KiB)</description>
++        <eyeCatch>CVPD</eyeCatch>
++        <!--NOTE: MUST update standalone.simics if offset changes -->
++        <physicalOffset>0x1BD000</physicalOffset>
++        <physicalRegionSize>0x48000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++        <preserved/>
++        <reprovision/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>Hostboot Base (1MiB)</description>
++        <eyeCatch>HBB</eyeCatch>
++        <physicalOffset>0x205000</physicalOffset>
++        <physicalRegionSize>0x100000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Hostboot Data (1.125MiB)</description>
++        <eyeCatch>HBD</eyeCatch>
++        <physicalOffset>0x305000</physicalOffset>
++        <physicalRegionSize>0x120000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Hostboot Extended image (16.67MiB w/o ECC)</description>
++        <eyeCatch>HBI</eyeCatch>
++        <physicalOffset>0x425000</physicalOffset>
++        <physicalRegionSize>0x12C0000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>SBE-IPL (Staging Area) (752KiB)</description>
++        <eyeCatch>SBE</eyeCatch>
++        <physicalOffset>0x16E5000</physicalOffset>
++        <physicalRegionSize>0xBC000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <sha512perEC/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>HCODE Ref Image (1.125MiB)</description>
++        <eyeCatch>HCODE</eyeCatch>
++        <physicalOffset>0x17A1000</physicalOffset>
++        <physicalRegionSize>0x120000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Hostboot Runtime Services for Sapphire (8MiB)</description>
++        <eyeCatch>HBRT</eyeCatch>
++        <physicalOffset>0x18C1000</physicalOffset>
++        <physicalRegionSize>0x800000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Payload + Kernel (3MiB)</description>
++        <eyeCatch>PAYLOAD</eyeCatch>
++        <physicalOffset>0x20C1000</physicalOffset>
++        <physicalRegionSize>0x800000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++    </section>
++    <section>
++        <description>ROOTFS (16MiB -4KiB reserved ECC)</description>
++        <eyeCatch>ROOTFS</eyeCatch>
++        <physicalOffset>0x29C1000</physicalOffset>
++        <physicalRegionSize>0xFFF000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++    </section>
++    <section>
++        <description>OCC Lid (1.125MiB)</description>
++        <eyeCatch>OCC</eyeCatch>
++        <physicalOffset>0x39C0000</physicalOffset>
++        <physicalRegionSize>0x120000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Checkstop FIR data (12KiB)</description>
++        <eyeCatch>FIRDATA</eyeCatch>
++        <physicalOffset>0x3B20000</physicalOffset>
++        <physicalRegionSize>0x3000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++        <reprovision/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>CAPP Lid (144KiB)</description>
++        <eyeCatch>CAPP</eyeCatch>
++        <physicalOffset>0x3B23000</physicalOffset>
++        <physicalRegionSize>0x24000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>BMC Inventory (36KiB)</description>
++        <eyeCatch>BMC_INV</eyeCatch>
++        <physicalOffset>0x3B47000</physicalOffset>
++        <physicalRegionSize>0x9000</physicalRegionSize>
++        <side>sideless</side>
++        <reprovision/>
++    </section>
++    <section>
++        <description>Hostboot Bootloader (28KiB)</description>
++        <eyeCatch>HBBL</eyeCatch>
++        <physicalOffset>0x3B50000</physicalOffset>
++        <!-- Physical Size includes Header rounded to ECC valid size -->
++        <!-- Max size of actual HBBL content is 20K and 22.5K with ECC -->
++        <physicalRegionSize>0x7000</physicalRegionSize>
++        <side>sideless</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Temporary Attribute Override (32KiB)</description>
++        <eyeCatch>ATTR_TMP</eyeCatch>
++        <physicalOffset>0x3B57000</physicalOffset>
++        <physicalRegionSize>0x8000</physicalRegionSize>
++        <side>A</side>
++        <reprovision/>
++    </section>
++    <section>
++        <description>Permanent Attribute Override (32KiB)</description>
++        <eyeCatch>ATTR_PERM</eyeCatch>
++        <physicalOffset>0x3B5F000</physicalOffset>
++        <physicalRegionSize>0x8000</physicalRegionSize>
++        <side>A</side>
++        <ecc/>
++        <reprovision/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>PNOR Version (8KiB)</description>
++        <eyeCatch>VERSION</eyeCatch>
++        <physicalOffset>0x3B67000</physicalOffset>
++        <physicalRegionSize>0x2000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++    </section>
++    <section>
++        <description>IMA Catalog (256KiB)</description>
++        <eyeCatch>IMA_CATALOG</eyeCatch>
++        <physicalOffset>0x3B69000</physicalOffset>
++        <physicalRegionSize>0x40000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Ref Image Ring Overrides (128KiB)</description>
++        <eyeCatch>RINGOVD</eyeCatch>
++        <physicalOffset>0x3BA9000</physicalOffset>
++        <physicalRegionSize>0x20000</physicalRegionSize>
++        <side>A</side>
++    </section>
++    <section>
++        <description>VFRT data for WOF (3MiB)</description>
++        <!-- We need 266KB per module sort, going to support
++             10 sorts by default, plus ECC  -->
++        <eyeCatch>WOFDATA</eyeCatch>
++        <physicalOffset>0x3BC9000</physicalOffset>
++        <physicalRegionSize>0x300000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Hostboot deconfig area (20KiB)</description>
++        <eyeCatch>HB_VOLATILE</eyeCatch>
++        <physicalOffset>0x3EC9000</physicalOffset>
++        <physicalRegionSize>0x5000</physicalRegionSize>
++        <side>A</side>
++        <reprovision/>
++        <ecc/>
++        <volatile/>
++        <clearOnEccErr/>
++    </section>
++    <section>
++        <description>Memory config data (56KiB)</description>
++        <eyeCatch>MEMD</eyeCatch>
++        <physicalOffset>0x3ECE000</physicalOffset>
++        <physicalRegionSize>0xE000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>SecureBoot Key Transition Partition (16KiB)</description>
++        <eyeCatch>SBKT</eyeCatch>
++        <physicalOffset>0x3EDC000</physicalOffset>
++        <physicalRegionSize>0x4000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>HDAT binary data (32KiB)</description>
++        <eyeCatch>HDAT</eyeCatch>
++        <physicalOffset>0x3EE0000</physicalOffset>
++        <physicalRegionSize>0x8000</physicalRegionSize>
++        <side>sideless</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++    <section>
++        <description>Ultravisor binary image (1MiB)</description>
++        <eyeCatch>UVISOR</eyeCatch>
++        <physicalOffset>0x3EE8000</physicalOffset>
++        <physicalRegionSize>0x100000</physicalRegionSize>
++        <side>sideless</side>
++        <sha512Version/>
++        <readOnly/>
++    </section>
++    <section>
++        <description>Hostboot Runtime Proxy (32KiB)</description>
++        <eyeCatch>HBRT_PROXY</eyeCatch>
++        <physicalOffset>0x3FE8000</physicalOffset>
++        <physicalRegionSize>0x8000</physicalRegionSize>
++        <side>A</side>
++        <sha512Version/>
++        <readOnly/>
++        <ecc/>
++    </section>
++</pnor>
+-- 
+2.27.0
+

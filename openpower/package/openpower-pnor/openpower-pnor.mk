@@ -9,7 +9,7 @@ OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util
+OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util linux
 
 ifeq ($(BR2_OPENPOWER_POWER9),y)
 OPENPOWER_PNOR_DEPENDENCIES += hcode
@@ -20,11 +20,17 @@ OPENPOWER_PNOR_DEPENDENCIES += ima-catalog
 endif
 
 ifneq ($(BR2_PACKAGE_SKIBOOT_EMBED_PAYLOAD),y)
-
-ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
-OPENPOWER_PNOR_DEPENDENCIES += linux
+UPDATE_IMAGE_BOOTKERNEL_ARG = -bootkernel_filename $(LINUX_IMAGE_NAME)
+UPDATE_IMAGE_INITRAMFS_ARG =
+CREATE_PNOR_IMAGE_BOOTKERNEL_ARG = -bootkernel $(OPENPOWER_PNOR_SCRATCH_DIR)/$(LINUX_IMAGE_NAME)
+CREATE_PNOR_IMAGE_INITRAMFS_ARG =
 endif
 
+ifneq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
+UPDATE_IMAGE_BOOTKERNEL_ARG =
+UPDATE_IMAGE_INITRAMFS_ARG = -rootfs_filename rootfs.cpio.xz
+CREATE_PNOR_IMAGE_BOOTKERNEL_ARG =
+CREATE_PNOR_IMAGE_INITRAMFS_ARG = -rootfs $(OPENPOWER_PNOR_SCRATCH_DIR)/rootfs.cpio.xz
 endif
 
 ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
@@ -131,7 +137,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_LID_NAME) \
             -payload_filename $(BR2_SKIBOOT_LID_XZ_NAME) \
             -binary_dir $(BINARIES_DIR) \
-            -bootkernel_filename $(LINUX_IMAGE_NAME) \
+            $(UPDATE_IMAGE_BOOTKERNEL_ARG) \
+            $(UPDATE_IMAGE_INITRAMFS_ARG) \
 	    -ocmbfw_version $(OCMB_EXPLORER_FW_VERSION) \
 	    -ocmbfw_url $(OCMB_EXPLORER_FW_URL) \
 	    -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_FILENAME) \
@@ -148,7 +155,8 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -scratch_dir $(OPENPOWER_PNOR_SCRATCH_DIR) \
             -outdir $(STAGING_DIR)/pnor/ \
             -payload $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_SKIBOOT_LID_XZ_NAME) \
-            -bootkernel $(OPENPOWER_PNOR_SCRATCH_DIR)/$(LINUX_IMAGE_NAME) \
+            $(CREATE_PNOR_IMAGE_BOOTKERNEL_ARG) \
+            $(CREATE_PNOR_IMAGE_INITRAMFS_ARG) \
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_BINARY_WINK_FILENAME) \

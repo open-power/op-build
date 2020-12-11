@@ -1,0 +1,153 @@
+From 5f8b4d35ce66be0daec276b28b6da49f5c3261e9 Mon Sep 17 00:00:00 2001
+From: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+Date: Fri, 11 Dec 2020 06:39:45 -0500
+Subject: [PATCH 1/2] Allow for PNORs with builtin BOOTKERNEL
+
+The current PNOR scripts are assuming that the PNOR will always carry
+a BOOTKERNEL partition (usually also bundling an embedded initrd).
+
+However, Skiboot allows us to embed the Kernel on the Skiboot binary
+(which sits on the PAYLOAD partition). When that happens, Skiboot
+will look for a ROOTFS partition for the initrd.
+
+Modify update_image.pl and create_pnor_image.pl so that we allow
+PNOR with no BOOTKERNEL, while also allowing a ROOTFS to be specified.
+
+Also note that a PAYLOAD with embedded Kernel+initrd is entirelly
+possible, so none of those partitions is required.
+
+Signed-off-by: Klaus Heinrich Kiwi <klaus@linux.vnet.ibm.com>
+---
+ create_pnor_image.pl | 19 ++++++++++++++++++-
+ update_image.pl      | 36 ++++++++++++++++++++++++++++++++----
+ 2 files changed, 50 insertions(+), 5 deletions(-)
+
+diff --git a/create_pnor_image.pl b/create_pnor_image.pl
+index dfd1480..a612a53 100755
+--- a/create_pnor_image.pl
++++ b/create_pnor_image.pl
+@@ -12,6 +12,7 @@ my $pnor_data_dir = "";
+ my $pnor_filename = "";
+ my $payload = "";
+ my $bootkernel = "";
++my $rootfs = "";
+ my $hb_image_dir = "";
+ my $xml_layout_file = "";
+ my $targeting_binary_filename = "";
+@@ -72,6 +73,10 @@ while (@ARGV > 0){
+         $bootkernel = $ARGV[1] or die "Bad command line arg given: expecting a filepath to bootloader kernel image.\n";
+         shift;
+     }
++    elsif (/^-rootfs/i){
++        $rootfs = $ARGV[1] or die "Bad command line arg given: expecting a filepath to bootloader rootfs image.\n";
++        shift;
++    }
+     elsif (/^-targeting_binary_filename/i){
+         $targeting_binary_filename = $ARGV[1] or die "Bad command line arg given: expecting a targeting binary filename.\n";
+         shift;
+@@ -170,7 +175,6 @@ $build_pnor_command .= " --binFile_HBRT $scratch_dir/hostboot_runtime.header.bin
+ $build_pnor_command .= " --binFile_HBEL $scratch_dir/hbel.bin.ecc";
+ $build_pnor_command .= " --binFile_GUARD $scratch_dir/guard.bin.ecc";
+ $build_pnor_command .= " --binFile_PAYLOAD $payload";
+-$build_pnor_command .= " --binFile_BOOTKERNEL $bootkernel";
+ $build_pnor_command .= " --binFile_NVRAM $scratch_dir/nvram.bin";
+ $build_pnor_command .= " --binFile_ATTR_TMP $scratch_dir/attr_tmp.bin.ecc";
+ $build_pnor_command .= " --binFile_OCC $occ_binary_filename.ecc";
+@@ -181,6 +185,19 @@ $build_pnor_command .= " --binFile_SECBOOT $scratch_dir/secboot.bin.ecc";
+ $build_pnor_command .= " --binFile_VERSION $scratch_dir/openpower_pnor_version.bin";
+ $build_pnor_command .= " --binFile_IMA_CATALOG $scratch_dir/ima_catalog.bin.ecc";
+ 
++# We add BOOTKERNEL and/or ROOTFS only if specified on the command line
++# Since PAYLOAD can have the Kernel built-in, and the Kernel itself
++# may have the rootfs built-in
++if ($bootkernel ne "")
++{
++    $build_pnor_command .= " --binFile_BOOTKERNEL $bootkernel";
++}
++
++if ($rootfs ne "")
++{
++    $build_pnor_command .= " --binFile_ROOTFS $rootfs";
++}
++
+ # These are optional sections not tied to a specific processor family type
+ if (checkForPnorPartition("DJVPD", $parsed_pnor_layout))
+ {
+diff --git a/update_image.pl b/update_image.pl
+index d636fef..be45a87 100755
+--- a/update_image.pl
++++ b/update_image.pl
+@@ -32,6 +32,7 @@ my $wof_binary_filename = "";
+ my $memd_binary_filename = "";
+ my $payload_filename = "";
+ my $bootkernel_filename = "";
++my $rootfs_filename = "";
+ my $binary_dir = "";
+ my $secureboot = 0;
+ my $key_transition = "";
+@@ -151,6 +152,11 @@ while (@ARGV > 0){
+         $bootkernel_filename = $ARGV[1] or die "Bad command line arg given: expecting a filepath to boot kernel binary file.\n";
+         shift;
+     }
++    elsif (/^-rootfs_filename/i){
++        $rootfs_filename = $ARGV[1] or die "Bad command line arg given: expecting a filepath to rootfs binary file.\n";
++        shift;
++    }
++
+     elsif (/^-key_transition/i){
+         $key_transition = $ARGV[1] or die "Bad command line arg given: expecting string imprint or production.\n";
+         shift;
+@@ -314,8 +320,6 @@ sub processConvergedSections {
+     $sections{HBRT}{out}        = "$scratch_dir/hostboot_runtime.header.bin.ecc";
+     $sections{OCC}{in}          = "$occ_binary_filename";
+     $sections{OCC}{out}         = "$occ_binary_filename.ecc";
+-    $sections{BOOTKERNEL}{in}   = "$binary_dir/$bootkernel_filename";
+-    $sections{BOOTKERNEL}{out}  = "$scratch_dir/$bootkernel_filename";
+     $sections{CAPP}{in}         = "$capp_binary_filename";
+     $sections{CAPP}{out}        = "$scratch_dir/cappucode.bin.ecc";
+     $sections{VERSION}{in}      = "$openpower_version_filename";
+@@ -326,6 +330,21 @@ sub processConvergedSections {
+     # No input file, but special processing to emit optional content
+     $sections{SBKT}{out}        = "$scratch_dir/SBKT.bin";
+ 
++    # We only process BOOTKERNEL or ROOTFS if specified on the input
++    # Since PAYLOAD can have the Kernel built-in, and the Kernel may
++    # itself have the rootfs built-in
++    if ($bootkernel_filename ne "")
++    {
++        $sections{BOOTKERNEL}{in}   = "$binary_dir/$bootkernel_filename";
++        $sections{BOOTKERNEL}{out}  = "$scratch_dir/$bootkernel_filename";
++    }
++
++    if ($rootfs_filename ne "")
++    {
++        $sections{ROOTFS}{in}    = "$binary_dir/$rootfs_filename";
++        $sections{ROOTFS}{out}   = "$scratch_dir/$rootfs_filename";
++    }
++
+     # Blank partitions
+     $sections{HBEL}{out}        = "$scratch_dir/hbel.bin.ecc";
+     $sections{GUARD}{out}       = "$scratch_dir/guard.bin.ecc";
+@@ -585,8 +604,17 @@ else
+     # Stage PAYLOAD partition
+     run_command("cp $payload.bin $scratch_dir/$payload_filename");
+ 
+-    # Stage BOOTKERNEL partition
+-    run_command("cp $binary_dir/$bootkernel_filename $scratch_dir/$bootkernel_filename");
++    # Stage BOOTKERNEL partition if any
++    if ($bootkernel_filename ne  "")
++    {
++        run_command("cp $binary_dir/$bootkernel_filename $scratch_dir/$bootkernel_filename");
++    }
++
++    # Stage ROOTFS partition if any
++    if ($rootfs_filename ne "")
++    {
++        run_command("cp $binary_dir/$rootfs_filename $scratch_dir/$rootfs_filename");
++    }
+ 
+     # Stage WINK partition
+     run_command("cp $hb_binary_dir/$wink_binary_filename $scratch_dir/");
+-- 
+2.27.0
+
