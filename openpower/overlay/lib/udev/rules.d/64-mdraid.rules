@@ -1,0 +1,8 @@
+# Udev rules for mdraid devices.
+#
+# Normally if not all the expected drives are found, then the array will be
+# assembled but not started. The following rule forces an inactive array to
+# start.
+ACTION=="add|change", KERNEL=="md127", SUBSYSTEM=="block", \
+  PROGRAM="/bin/sh -c '/sbin/mdadm --detail --brief /dev/%k | /bin/grep -q INACTIVE'", \
+  RUN+="/sbin/mdadm --run /dev/%k"
