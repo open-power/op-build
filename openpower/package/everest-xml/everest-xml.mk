@@ -70,7 +70,8 @@ define EVEREST_XML_BUILD_CMDS
         # generate the system mrw xml
         perl -I $(EVEREST_XML_MRW_HB_TOOLS) \
         $(EVEREST_XML_MRW_HB_TOOLS)/processMrw.pl -x \
-            $(call qstrip,$(EVEREST_XML_MRW_SCRATCH)/$(BR2_EVEREST_XML_FILENAME))
+            $(call qstrip,$(EVEREST_XML_MRW_SCRATCH)/$(BR2_EVEREST_XML_FILENAME)) \
+            -o $(call qstrip,$(EVEREST_XML_MRW_SCRATCH)/$(BR2_EVEREST_XML_TARGETING_FILENAME))
 
 	$(if $(BR2_EVEREST_XML_FILTER_UNWANTED_ATTRIBUTES), $(call EVEREST_XML_FILTER_UNWANTED_ATTRIBUTES))
 

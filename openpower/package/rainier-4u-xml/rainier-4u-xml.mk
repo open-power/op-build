@@ -70,7 +70,8 @@ define RAINIER_4U_XML_BUILD_CMDS
         # generate the system mrw xml
         perl -I $(RAINIER_4U_XML_MRW_HB_TOOLS) \
         $(RAINIER_4U_XML_MRW_HB_TOOLS)/processMrw.pl -x \
-            $(call qstrip,$(RAINIER_4U_XML_MRW_SCRATCH)/$(BR2_RAINIER_4U_XML_FILENAME))
+            $(call qstrip,$(RAINIER_4U_XML_MRW_SCRATCH)/$(BR2_RAINIER_4U_XML_FILENAME)) \
+            -o $(call qstrip,$(RAINIER_4U_XML_MRW_SCRATCH)/$(BR2_RAINIER_4U_XML_TARGETING_FILENAME))
 
 	$(if $(BR2_RAINIER_4U_XML_FILTER_UNWANTED_ATTRIBUTES), $(call RAINIER_4U_XML_FILTER_UNWANTED_ATTRIBUTES))
 
