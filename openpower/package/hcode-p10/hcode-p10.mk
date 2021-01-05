@@ -49,7 +49,7 @@ define HCODE_P10_INSTALL_IMAGES_CMDS
 endef
 
 define HCODE_P10_BUILD_CMDS
-	$(HCODE_P10_ENV_VARS) bash -c 'cd $(@D) && source ./env.bash && $(MAKE) -j 2 '
+	$(HCODE_P10_ENV_VARS) bash -c 'cd $(@D) && source ./env.bash && $(MAKE) '
 endef
 
 $(eval $(generic-package))
