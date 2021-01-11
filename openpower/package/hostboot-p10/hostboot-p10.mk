@@ -29,7 +29,11 @@ FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 # to be created for src/include/usr/tracinterface.H; so delete it and rebuild it
 # manually
 define HOSTBOOT_P10_BUILD_CMDS
-        $(HOSTBOOT_P10_ENV_VARS) bash -c 'cd $(@D) && rm -f src/include/usr/tracinterface.H && cp src/include/usr/trace/interface.H src/include/usr/tracinterface.H && source ./env.bash && $(MAKE)'
+        $(HOSTBOOT_P10_ENV_VARS) bash -c 'cd $(@D) \
+                                          && if ! cmp --quiet src/include/usr/trace/interface.H src/include/usr/tracinterface.H ; then \
+                                                 rm -f src/include/usr/tracinterface.H && cp src/include/usr/trace/interface.H src/include/usr/tracinterface.H ; \
+                                             fi \
+                                          && source ./env.bash && $(MAKE)'
 endef
 
 define HOSTBOOT_P10_INSTALL_IMAGES_CMDS
