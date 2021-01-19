@@ -14,7 +14,7 @@ OPENPOWER_PNOR_P10_SITE_METHOD=git
 
 OPENPOWER_PNOR_P10_LICENSE = Apache-2.0
 OPENPOWER_PNOR_P10_LICENSE_FILES = LICENSE
-OPENPOWER_PNOR_P10_DEPENDENCIES = hostboot-binaries skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util host-xz host-sb-signing-utils hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
+OPENPOWER_PNOR_P10_DEPENDENCIES = hostboot-binaries skiboot host-openpower-ffs host-openpower-pnor-util host-xz host-sb-signing-utils hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
 
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_P10_DEPENDENCIES += ima-catalog
@@ -35,7 +35,7 @@ OPENPOWER_PNOR_P10_INSTALL_TARGET = NO
 
 # Subpackages we want to include in the version info (do not include openpower-pnor-p10)
 # This is used inside pkg-versions.mk
-OPENPOWER_PNOR_P10_VERSIONED_SUBPACKAGES = skiboot linux petitboot hostboot-binaries capp-ucode pdata hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
+OPENPOWER_PNOR_P10_VERSIONED_SUBPACKAGES = skiboot linux petitboot hostboot-binaries pdata hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
 
 OPENPOWER_PNOR_P10_OCMB_URL = $(call qstrip,$(OCMB_EXPLORER_FW_SITE)/$(OCMB_EXPLORER_FW_SOURCE))
 
@@ -91,7 +91,6 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             -sbec_binary_filename $(BR2_HOSTBOOT_P10_BINARY_SBEC_FILENAME) \
             -wink_binary_filename $(BR2_HOSTBOOT_P10_BINARY_WINK_FILENAME) \
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_P10_BIN_FILENAME) \
-            -capp_binary_filename $(BINARIES_DIR)/$(BR2_CAPP_UCODE_BIN_FILENAME) \
             -ima_catalog_binary_filename $(BINARIES_DIR)/$(BR2_IMA_CATALOG_P10_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_P10_VERSION_FILE) \
             -wof_binary_filename $(STAGING_DIR)/openpower_mrw_scratch/$(WOF_BINARY_FILENAME) \
@@ -211,11 +210,6 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
         test -f "$(BINARIES_DIR)/mmc/BOOTKERNEL.P10" ||\
             $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/$(LINUX_IMAGE_NAME) \
                 $(BINARIES_DIR)/mmc/BOOTKERNEL.P10
-
-        # CAPP
-        test -f "$(BINARIES_DIR)/mmc/CAPP.P10" ||\
-            $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/cappucode.bin.ecc \
-                $(BINARIES_DIR)/mmc/CAPP.P10
 
         # VERSION
         test -f "$(BINARIES_DIR)/mmc/VERSION.P10" ||\
