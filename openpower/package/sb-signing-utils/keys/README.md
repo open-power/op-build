@@ -2,7 +2,7 @@
 
 ## Background
 
-IBM P8 OpenPOWER systems support a limited set of Secure and Trusted Boot
+IBM P9 OpenPOWER systems support a limited set of Secure and Trusted Boot
 functionality.  Secure Boot implements a processor based chain of trust.  The
 chain starts with an implicitly trusted component with other components being
 authenticated and integrity checked before being executed on the host processor
@@ -10,7 +10,7 @@ cores.  At the root of this trust chain is the Host Platform Core Root of Trust
 for Measurement (CRTM).  Immutable Read Only Memory (ROM - fixed in the POWER
 processor chip) verifies the initial firmware load.  That firmware verifies
 cryptographic signatures on all subsequent "to be trusted" firmware that is
-loaded for execution on the P8 cores.  Trusted Boot also makes use of this same
+loaded for execution on the P9 cores.  Trusted Boot also makes use of this same
 CRTM by measuring and recording FW images via a Trusted Platform Module (TPM)
 before control is passed on to the next layer in the boot stack.  The CRTM
 design is based on a Public Key Infrastructure (PKI) process to validate the
@@ -20,7 +20,7 @@ deliver POWER hardware, digitally signed firmware, signed boot code,
 hypervisors, and operating systems.  Each platform manufacturer wants to
 maintain control over its own code and sign it with its own keys.  A single key
 hash is stored in host processor module SEEPROM representing the anchoring root
-set of hardware keys.  The P8 Trusted Boot supports a key management flow that
+set of hardware keys.  The P9 Trusted Boot supports a key management flow that
 makes use of two kinds of hardware root keys, a wide open, well-known, openly
 published public/private key pair (imprint keys) and a set of production keys
 where the private key is protected by a hardware security module (HSM) internal

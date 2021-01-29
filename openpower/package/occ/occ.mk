@@ -18,7 +18,7 @@ OCC_STAGING_DIR = $(STAGING_DIR)/occ
 
 OCC_IMAGE_BIN_PATH = obj/image.bin
 
-OCC_DEPENDENCIES = host-binutils host-ppe42-gcc
+OCC_DEPENDENCIES = host-binutils host-ppe42-toolchain
 ifeq ($(BR2_OCC_GPU_BIN_BUILD),y)
 	OCC_DEPENDENCIES += hostboot-binaries
 endif

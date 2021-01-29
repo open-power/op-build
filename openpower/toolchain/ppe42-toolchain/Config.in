@@ -1,0 +1,33 @@
+
+menuconfig BR2_PACKAGE_PPE42_TOOLCHAIN
+	bool "ppe42-toolchain"
+	default y if (BR2_OPENPOWER_POWER9)
+	help
+	  Build the PPE42 toolchain required to build the
+	  POWER9 firmware for OCC, SBE and HCODE
+
+if BR2_PACKAGE_PPE42_TOOLCHAIN
+
+choice
+	prompt "PPE42 Toolchain Type"
+	help
+	  Select whether to build the PPE42 toolchain or
+	  provide an external one
+
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ppe42-gcc/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ppe42-toolchain-external/Config.in"
+
+endchoice
+
+if BR2_PACKAGE_HOST_PPE42_GCC
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ppe42-binutils/Config.in"
+endif
+
+config BR2_PACKAGE_HAS_PPE42_TOOLCHAIN
+	bool
+
+config BR2_PACKAGE_PROVIDES_PPE42_TOOLCHAIN
+	depends on BR2_PACKAGE_HAS_PPE42_TOOLCHAIN
+	string
+
+endif
