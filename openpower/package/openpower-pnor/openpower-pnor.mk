@@ -4,26 +4,27 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_VERSION ?= aa76df051c5196b311039337e757e0fbe1ae78a9
-
-# TODO: WORKAROUND: Need to reenable next line and comment out the two lines
-# after that, when code is propagated to a public repo
-#OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
-OPENPOWER_PNOR_SITE = git@github.ibm.com:open-power/pnor.git
-OPENPOWER_PNOR_SITE_METHOD=git
+OPENPOWER_PNOR_VERSION ?= aa4c350255616b6406830fd6b564aebefaf7add4
+OPENPOWER_PNOR_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_VERSION))
 
 OPENPOWER_PNOR_LICENSE = Apache-2.0
 OPENPOWER_PNOR_LICENSE_FILES = LICENSE
 OPENPOWER_PNOR_DEPENDENCIES = hostboot-binaries machine-xml skiboot host-openpower-ffs capp-ucode host-openpower-pnor-util
 
-SBE_P10_VERSION = $(call qstrip,$(BR2_SBE_P10_VERSION))
-
 ifeq ($(BR2_OPENPOWER_POWER9),y)
-    OPENPOWER_PNOR_DEPENDENCIES += hcode
+OPENPOWER_PNOR_DEPENDENCIES += hcode
 endif
 
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_DEPENDENCIES += ima-catalog
+endif
+
+ifneq ($(BR2_PACKAGE_SKIBOOT_EMBED_PAYLOAD),y)
+
+ifeq ($(BR2_TARGET_ROOTFS_INITRAMFS),y)
+OPENPOWER_PNOR_DEPENDENCIES += linux
+endif
+
 endif
 
 ifeq ($(BR2_OPENPOWER_PNOR_XZ_ENABLED),y)
@@ -43,12 +44,8 @@ ifneq ($(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE),"")
 SIGN_MODE_ARG=-sign_mode $(BR2_OPENPOWER_SECUREBOOT_SIGN_MODE)
 endif
 
-ifeq ($(BR2_OPENPOWER_POWER10),y)
-    OPENPOWER_RELEASE=p10
-else ifeq ($(BR2_OPENPOWER_POWER9),y)
+ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_RELEASE=p9
-else
-    OPENPOWER_RELEASE=p8
 endif
 
 OPENPOWER_PNOR_INSTALL_IMAGES = YES
@@ -66,14 +63,8 @@ OPENPOWER_MRW_SCRATCH_DIR = $(STAGING_DIR)/openpower_mrw_scratch
 OUTPUT_BUILD_DIR = $(STAGING_DIR)/../../../build/
 OUTPUT_IMAGES_DIR = $(STAGING_DIR)/../../../images/
 HOSTBOOT_BUILD_IMAGES_DIR = $(STAGING_DIR)/hostboot_build_images/
-FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
-SBE_IMAGE_DIR = $(STAGING_DIR)/../../../build/sbe-p10-"$(SBE_P10_VERSION)"/images
-DEVTREE_BIN_DIR = $(STAGING_DIR)/usr/share/pdata/
-# The pdata generated device tree file name will be based on machine xml filename
-QSTRIP_OP_MACHINE_XML_FILENAME = $(call qstrip,$(BR2_OPENPOWER_MACHINE_XML_FILENAME))
-$(eval BMC_POWER_TARGET_FILENAME = $$(patsubst %.xml,%.dtb,$(QSTRIP_OP_MACHINE_XML_FILENAME)))
 # See Open-Power's Hostboot repo, file: src/build/buildpnor/PnorUtils.pm,
-# function: loadPnorLayout(); at the end of that function the generated PNOR layout XML file
+# function: loadPnorLayout(); at the end of that function the generated XML file
 # is concatenated with "WithOffsets.xml"
 GENERATED_PNOR_LAYOUT_FILES = $(shell find "$(OPENPOWER_PNOR_SCRATCH_DIR)" -maxdepth 1 -name "*WithOffsets.xml")
 
@@ -83,22 +74,18 @@ FILES_TO_TAR = $(HOSTBOOT_BUILD_IMAGES_DIR)/* \
                $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/.config \
                $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/vmlinux \
                $(OUTPUT_BUILD_DIR)/linux-$(LINUX_VERSION)/System.map \
- 	       $(FSP_TRACE_IMAGES_DIR)/fsp-trace \
                $(OUTPUT_IMAGES_DIR)/zImage.epapr \
                $(GENERATED_PNOR_LAYOUT_FILES)
 
 # Subpackages we want to include in the version info (do not include openpower-pnor)
 OPENPOWER_VERSIONED_SUBPACKAGES = skiboot
 
-ifeq ($(BR2_PACKAGE_HOSTBOOT_P8),y)
-    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p8 occ-p8
-else ifeq ($(BR2_PACKAGE_HOSTBOOT_P10),y)
-    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw
-	OPENPOWER_PNOR_DEPENDENCIES += hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw
-else ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
-    OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
+ifeq ($(BR2_PACKAGE_HOSTBOOT),y)
+OPENPOWER_VERSIONED_SUBPACKAGES += hostboot occ
 endif
-
+ifeq ($(BR2_PACKAGE_OCMB_EXPLORER_FW),y)
+OPENPOWER_VERSIONED_SUBPACKAGES += ocmb-explorer-fw
+endif
 OPENPOWER_VERSIONED_SUBPACKAGES += linux petitboot machine-xml hostboot-binaries capp-ucode
 OPENPOWER_PNOR = openpower-pnor
 
@@ -107,22 +94,12 @@ ifeq ($(BR2_OPENPOWER_POWER9),y)
     OPENPOWER_VERSIONED_SUBPACKAGES += sbe hcode
 endif
 
-ifeq ($(BR2_PACKAGE_OCC_P10),y)
-    OCC_BIN_FILENAME=$(BR2_OCC_P10_BIN_FILENAME)
-else ifeq ($(BR2_PACKAGE_OCC_P8),y)
-    OCC_BIN_FILENAME=$(BR2_OCC_P8_BIN_FILENAME)
-else
+ifeq ($(BR2_PACKAGE_OCC),y)
     OCC_BIN_FILENAME=$(BR2_OCC_BIN_FILENAME)
 endif
 
 ifeq ($(BR2_PACKAGE_OCMB_EXPLORER_FW),y)
     OCMB_EXPLORER_FW_URL=$(call qstrip,$(OCMB_EXPLORER_FW_SITE)/$(OCMB_EXPLORER_FW_SOURCE))
-endif
-
-DEVTREE_BLOB_FILENAME = ""
-ifeq ($(BR2_OPENPOWER_POWER10),y)
-    DEVTREE_BLOB_FILENAME = $(DEVTREE_BIN_DIR)/$(BMC_POWER_TARGET_FILENAME)
-    OPENPOWER_PNOR_DEPENDENCIES += pdata
 endif
 
 define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
@@ -160,8 +137,6 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
 	    -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_FILENAME) \
 	    -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
             -pnor_layout $(@D)/"$(OPENPOWER_RELEASE)"Layouts/$(BR2_OPENPOWER_PNOR_XML_LAYOUT_FILENAME) \
-            -sbe_img_dir $(SBE_IMAGE_DIR) \
-            -devtree_binary_filename $(DEVTREE_BLOB_FILENAME) \
             $(XZ_ARG) $(KEY_TRANSITION_ARG) $(SIGN_MODE_ARG) \
 
         mkdir -p $(STAGING_DIR)/pnor/
@@ -184,8 +159,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -wofdata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_WOFDATA_BINARY_FILENAME) \
             -memddata_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_MEMDDATA_BINARY_FILENAME) \
             -ocmbfw_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_PROCESSED_FILENAME) \
-            -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin  \
-            -devtree_binary_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/DEVTREE.bin
+            -openpower_version_filename $(OPENPOWER_PNOR_SCRATCH_DIR)/openpower_pnor_version.bin
 
         $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) $(BINARIES_DIR)
 
@@ -201,20 +175,9 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
         if [ "$(BR2_BUILD_PNOR_SQUASHFS)" == "y" ]; then \
             PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i squashfs -m $(BR2_OPENPOWER_CONFIG_NAME) -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar $(BINARIES_DIR); \
-            cd $(STAGING_DIR)/pnor/; PATH=$(HOST_DIR)/usr/sbin:$(PATH) $(HOST_DIR)/usr/bin/generate-ubi $(BR2_OPENPOWER_PNOR_FILENAME).squashfs.tar; \
-            $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).ubi.mtd $(BINARIES_DIR); \
         else \
             PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i static -m $(BR2_OPENPOWER_CONFIG_NAME) -f $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME) -s; \
             $(INSTALL) $(STAGING_DIR)/pnor/$(BR2_OPENPOWER_PNOR_FILENAME).static.tar.gz $(BINARIES_DIR); \
-        fi
-
-        # Make the lids
-        if [ "$(BR2_OPENPOWER_MAKE_LIDS)" == "y" ]; then \
-            $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
-                 $(OUTPUT_IMAGES_DIR)/ebmc_lids.tar.gz \
-                 $(OPENPOWER_PNOR_SCRATCH_DIR); \
-        else \
-            echo "Not making LIDs"; \
         fi
 
 	#Create Debug Tarball
@@ -226,4 +189,4 @@ endef
 
 $(eval $(generic-package))
 # Generate openPOWER pnor version string by combining subpackage version string files
-$(eval $(OPENPOWER_VERSION))
+$(eval $(call OPENPOWER_VERSION,$(OPENPOWER_PNOR)))

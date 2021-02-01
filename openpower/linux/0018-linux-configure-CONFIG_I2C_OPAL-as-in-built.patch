@@ -1,0 +1,56 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@jms.id.au>
+Date: Tue, 29 Sep 2020 16:07:53 +0930
+Subject: [PATCH 18/19] linux: configure CONFIG_I2C_OPAL as in-built.
+
+Currently, skiroot_defconfig CONFIG_I2C_OPAL is built as a loadable
+module rather than builtin, even if CONFIG_I2C=y is defined. This
+results in a delay in the TPM initialization, causing IMA to go into
+TPM bypass mode. As a result, the IMA measurements are added to the
+measurement list, but do not extend the TPM. Because of this, it is
+impossible to verify or attest to the system's integrity, either from
+skiroot or the target Host OS.
+
+Mimi Zohar <zohar@linux.ibm.com> explains more:
+
+  The concept of trusted boot requires the measurement to be added to the
+  measurement list and extend the TPM, prior to allowing access to the
+  file. By allowing access to a file before its measurement is included
+  in the measurement list and extended into the TPM PCR, a malicious file
+  could potentially prevent its own measurement from being added. As the
+  PCRs are tamper proof, measuring and extending the TPM prior to giving
+  access to the file, guarantees that all file measurements are included
+  in the measurement list, including the malicious file.
+
+  IMA needs to be enabled before any files are accessed in order to
+  verify a file's integrity and extend the TPM with the file
+  measurement.  Queueing file measurements breaks the measure and extend,
+  before usage, trusted boot paradigm.
+
+  The ima-evm-utils package includes a test for walking the IMA
+  measurement list, calculating the expected TPM PCRs, and comparing the
+  calculated PCR values with the physical TPM.  Testing is important to
+  ensure the TPM is initialized prior to IMA.  Failure to validate the
+  IMA measurement list may indicate IMA went into TPM bypass mode, like
+  in this case.
+
+Reported-by: Mimi Zohar <zohar@linux.ibm.com>
+Signed-off-by: Nayna Jain <nayna@linux.ibm.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ arch/powerpc/configs/skiroot_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/configs/skiroot_defconfig b/arch/powerpc/configs/skiroot_defconfig
+index 44309e12d84a..a555adb23591 100644
+--- a/arch/powerpc/configs/skiroot_defconfig
++++ b/arch/powerpc/configs/skiroot_defconfig
+@@ -216,7 +216,7 @@ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=y
+ # CONFIG_I2C_HELPER_AUTO is not set
+ CONFIG_I2C_ALGOBIT=y
+-CONFIG_I2C_OPAL=m
++CONFIG_I2C_OPAL=y
+ CONFIG_PPS=y
+ CONFIG_SENSORS_IBMPOWERNV=m
+ CONFIG_DRM=m

@@ -1,0 +1,378 @@
+diff -Nuar hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/phy/mss_training.C hostboot-B/src/import/chips/p9/procedures/hwp/memory/lib/phy/mss_training.C
+--- hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/phy/mss_training.C	2020-06-23 00:00:29.000000000 +0800
++++ hostboot-B/src/import/chips/p9/procedures/hwp/memory/lib/phy/mss_training.C	2020-07-28 14:01:06.787757875 +0800
+@@ -473,6 +473,8 @@
+ 
+     // Sets up the RD VREF sense workaround
+     FAPI_TRY( mss::workarounds::dp16::rd_vref_vref_sense_cleanup( i_target ) );
++    
++    FAPI_TRY( mss::workarounds::dp16::Modify_rd_vref_val( i_target ) );
+ 
+ fapi_try_exit:
+     return fapi2::current_err;
+diff -Nuar hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.C hostboot-B/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.C
+--- hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.C	2020-06-23 00:00:29.000000000 +0800
++++ hostboot-B/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.C	2020-07-28 15:05:57.606781063 +0800
+@@ -130,6 +130,204 @@
+     return fapi2::current_err;
+ }
+ 
++fapi2::ReturnCode delay_setting_registers(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target,const uint64_t i_rp  )
++{
++    // Runs the cleanup here
++    static const std::vector<uint64_t> l_addrs =
++    {
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR0_P0_0, 
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY0_RANK_PAIR3_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR0_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY1_RANK_PAIR3_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR0_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY2_RANK_PAIR3_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR0_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY3_RANK_PAIR3_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR0_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY4_RANK_PAIR3_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR0_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY5_RANK_PAIR3_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR0_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY6_RANK_PAIR3_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR0_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR0_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR0_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR0_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR0_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR1_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR1_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR1_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR1_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR1_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR2_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR2_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR2_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR2_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR2_P0_4,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR3_P0_0,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR3_P0_1,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR3_P0_2,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR3_P0_3,
++        MCA_DDRPHY_DP16_READ_DELAY7_RANK_PAIR3_P0_4,
++    };    
++
++    char dest[19];
++    char ans[]="pu.mca:k0:n0:s0:p00";
++    const char*src = mss::c_str(i_target);
++    strncpy(dest, src, 19);
++    int add = 0;
++
++    if(strncmp(dest,ans,19) == 0){
++          add = 1542;   
++      }
++    else{
++        add = 1028;
++    }
++ 
++    for(const auto& l_reg : l_addrs)
++    {       
++        fapi2::buffer<uint64_t> l_data;
++        
++        // Gets the data
++        FAPI_TRY(mss::getScom(i_target, l_reg, l_data));
++		  
++			  l_data=l_data+add;
++
++        // Writes the data
++        FAPI_TRY(mss::putScom(i_target, l_reg, l_data));       
++    }
++
++    
++fapi_try_exit:
++    return fapi2::current_err;
++}
++
+ } // close namespace nvdimm
+ 
+ namespace dp16
+@@ -216,6 +414,104 @@
+     return fapi2::current_err;
+ }
+ 
++fapi2::ReturnCode MCBIST0_modify_vref_val(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target)
++{
++    // Runs the cleanup here
++    //MCBIST0
++	  static const std::vector<uint64_t> l_addrs_mcbist0 =
++    {
++		// DP0
++        MCA_DDRPHY_DP16_RD_VREF_DAC_0_P0_0,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_1_P0_0,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_2_P0_0,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_3_P0_0,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_4_P0_0,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_5_P0_0,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_6_P0_0,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_7_P0_0,
++
++        // DP1
++        MCA_DDRPHY_DP16_RD_VREF_DAC_0_P0_1,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_1_P0_1,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_2_P0_1,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_3_P0_1,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_4_P0_1,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_5_P0_1,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_6_P0_1,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_7_P0_1,
++
++        // DP2
++        MCA_DDRPHY_DP16_RD_VREF_DAC_0_P0_2,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_1_P0_2,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_2_P0_2,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_3_P0_2,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_4_P0_2,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_5_P0_2,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_6_P0_2,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_7_P0_2,
++
++        // DP3
++        MCA_DDRPHY_DP16_RD_VREF_DAC_0_P0_3,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_1_P0_3,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_2_P0_3,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_3_P0_3,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_4_P0_3,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_5_P0_3,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_6_P0_3,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_7_P0_3,
++
++        // DP4 - we only have 8 bits here, so 4 registers
++        MCA_DDRPHY_DP16_RD_VREF_DAC_0_P0_4,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_1_P0_4,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_2_P0_4,
++        MCA_DDRPHY_DP16_RD_VREF_DAC_3_P0_4,
++    };
++		
++	  char dest[19];
++    char ans[]="pu.mca:k0:n0:s0:p00";
++    const char*src = mss::c_str(i_target);
++    strncpy(dest, src, 19);
++	  int decrease = 0;
++	  if(strncmp(dest,ans,19) == 0){
++        decrease=2;   
++    }
++    else{
++        decrease=3;
++	  }
++	
++    // Note: this bit does not exist in our scom def, so constexpr'ing it here
++    //constexpr uint64_t VREFSENSE_BIT = 62; //62
++	
++    for(const auto& l_reg : l_addrs_mcbist0)
++    {
++        fapi2::buffer<uint64_t> l_data;
++        // Gets the data
++        FAPI_TRY(mss::getScom(i_target, l_reg, l_data));
++					
++			  l_data=l_data-decrease;
++             
++        // Writes the data
++        FAPI_TRY(mss::putScom(i_target, l_reg, l_data));
++    }
++		
++fapi_try_exit:
++    return fapi2::current_err;
++}
++
++fapi2::ReturnCode Modify_rd_vref_val( const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target )
++{
++    // If the workaround does not need to be run, return success
++    if(mss::chip_ec_feature_skip_rd_vref_vrefsense_override(i_target))
++    {
++        return fapi2::FAPI2_RC_SUCCESS;
++    }
++	
++	  //Modify the value for MCBIST0 (decrease p00:5 p01:3)
++	  MCBIST0_modify_vref_val( i_target);
++     
++    return fapi2::FAPI2_RC_SUCCESS;
++}
++
+ ///
+ /// @brief Workarounds for after training
+ /// @param[in] i_target the fapi2 target of the port
+diff -Nuar hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.H hostboot-B/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.H
+--- hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.H	2020-06-23 00:00:29.000000000 +0800
++++ hostboot-B/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.H	2020-07-28 14:01:06.803758043 +0800
+@@ -92,6 +92,8 @@
+ ///
+ fapi2::ReturnCode adjust_rd_dq_delay( const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, const uint64_t i_rp );
+ 
++fapi2::ReturnCode delay_setting_registers(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target,const uint64_t i_rp );
++
+ } // close namespace nvdimm
+ 
+ namespace dp16
+@@ -311,6 +313,14 @@
+ 
+ ///
+ /// @brief Cleans up the VREF sense values after training
++/// @param[in] i_target the fapi2 target of the port
++/// @return fapi2::ReturnCode FAPI2_RC_SUCCESS if ok
++/// @note This function is called after training - it will only be run after coarse wr/rd
++///
++fapi2::ReturnCode Modify_rd_vref_val( const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target );
++
++///
++/// @brief Cleans up the VREF sense values after training
+ /// @param[in] i_target the fapi2 target of the port
+ /// @return fapi2::ReturnCode FAPI2_RC_SUCCESS if ok
+ /// @note This function is called after training - it will only be run after coarse wr/rd
+diff -Nuar hostboot-A/src/import/chips/p9/procedures/hwp/memory/p9_mss_draminit_training_adv.C hostboot-B/src/import/chips/p9/procedures/hwp/memory/p9_mss_draminit_training_adv.C
+--- hostboot-A/src/import/chips/p9/procedures/hwp/memory/p9_mss_draminit_training_adv.C	2020-06-23 00:00:29.000000000 +0800
++++ hostboot-B/src/import/chips/p9/procedures/hwp/memory/p9_mss_draminit_training_adv.C	2020-07-28 14:01:06.767757666 +0800
+@@ -112,9 +112,11 @@
+             // Returned from set_rank_pairs, it tells us how many rank pairs
+             // we configured on this port.
+             std::vector<uint64_t> l_pairs;
+-
++            int size;
++            
+             // Get our rank pairs.
+             FAPI_TRY( mss::rank::get_rank_pairs(p, l_pairs), "Error in p9_mss_draminit_training" );
++            size=l_pairs.size();
+ 
+             // For each rank pair we need to calibrate, pop a ccs instruction in an array and execute it.
+             // NOTE: IF YOU CALIBRATE MORE THAN ONE RANK PAIR PER CCS PROGRAM, MAKE SURE TO CHANGE
+@@ -129,6 +131,12 @@
+ 
+                 // Adjusts values for NVDIMM's
+                 FAPI_TRY(mss::workarounds::nvdimm::adjust_rd_dq_delay(p, rp));
++                
++                if (rp ==l_pairs[size-1])
++                {                  
++                //Modify the value for delay
++                FAPI_TRY( mss::workarounds::nvdimm::delay_setting_registers(p,rp)); 
++                }	

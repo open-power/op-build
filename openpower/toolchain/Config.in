@@ -1,0 +1,5 @@
+menu "OpenPower Toolchain"
+
+source "$BR2_EXTERNAL_OP_BUILD_PATH/toolchain/ppe42-toolchain/Config.in"
+
+endmenu

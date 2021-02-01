@@ -1,0 +1,10 @@
+FROM ubuntu:20.04
+# Don't ask. Ubuntu is awful.
+RUN sed -e 's/main$/main universe/' --in-place=orig /etc/apt/sources.list
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -yy cscope ctags libz-dev libexpat-dev \
+          python-is-python3 language-pack-en texinfo gawk cpio xxd \
+          build-essential g++ git bison flex unzip \
+          libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
+          wget bc rsync
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install eatmydata python3-matplotlib \
+          python3-scipy graphviz bsdmainutils lsb-release

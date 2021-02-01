@@ -1,0 +1,18 @@
+config BR2_PACKAGE_PPE42_TOOLCHAIN_EXTERNAL
+	bool "ppe42-toolchain-external"
+	select BR2_PACKAGE_HAS_PPE42_TOOLCHAIN
+	help
+	  Use an external PPE42 toolchain
+
+if BR2_PACKAGE_PPE42_TOOLCHAIN_EXTERNAL
+config BR2_PACKAGE_PROVIDES_PPE42_TOOLCHAIN
+	default "ppe42-toolchain-external"
+
+config BR2_PPE42_TOOLCHAIN_EXTERNAL_PATH
+	string "External PPE42 toolchain path"
+	help
+	  Pathname to where the external PPE42 toolchain is
+	  installed. The compiler is expected to be fully
+	  contained within the "sysroot/ppe42-toolchain"
+	  directory
+endif

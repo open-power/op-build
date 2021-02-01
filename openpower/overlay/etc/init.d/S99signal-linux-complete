@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Copyright © 2020 Stewart Smith
+# Released under the GNU GPL v3
+
+COMPAT_NODE=/sys/bus/platform/devices/ibm,opal:oppanel/of_node/compatible
+
+case "$1" in
+    start)
+	# Only talk to the rcs,ipl-observer device this way
+	# it's a little bit of a hack, but it's functionally
+	# equivalent to the Raptor build but not relying on debugfs
+	grep rcs,ipl-observer $COMPAT_NODE > /dev/null \
+	    && printf '\xfe\xfe\xfe' > /dev/op_panel
+	;;
+esac
+
+exit 0
