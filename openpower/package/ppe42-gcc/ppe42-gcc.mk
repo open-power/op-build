@@ -26,6 +26,8 @@ define HOST_PPE42_GCC_BUILD_CMDS
                     --with-gnu-ld \
                     --with-gmp=$(HOST_DIR)/usr \
                     --with-mpfr=$(HOST_DIR)/usr \
+                    --with-sysroot=$(STAGING_DIR) \
+                    --with-build-time-tools=$(PPE42_TOOLCHAIN_BIN)/bin \
                     && \
         $(MAKE) configure-host && \
         $(MAKE) CFLAGS=-Wno-error all-gcc
