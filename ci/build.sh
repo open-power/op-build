@@ -3,7 +3,7 @@
 set -ex
 set -eo pipefail
 
-CONTAINERS="ubuntu2004 fedora32"
+CONTAINERS="ubuntu2004 fedora33"
 SDK_ONLY=0
 
 opt=$(getopt -o 's:Sab:p:c:hr' -- "$@")
