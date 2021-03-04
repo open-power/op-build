@@ -68,7 +68,7 @@ a handful of other packages (see below).
           zlib-devel zlib-static texinfo "perl(bigint)" "perl(XML::Simple)" \
           "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" \
           "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" "perl(ExtUtils::MakeMaker)" \
-          "perl(FindBin)" "perl(English)" "perl(Time::localtime)" \
+          "perl(FindBin)" "perl(English)" "perl(Time::localtime)" "perl(open)" \
           libxml2-devel which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
-          openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname
+          openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname diffutils
 
