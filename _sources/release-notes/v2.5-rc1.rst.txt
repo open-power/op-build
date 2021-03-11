@@ -1,0 +1,2678 @@
+Release Notes for OpenPower Firmware v2.5-rc1
+=============================================
+
+op-build v2.5-rc1 was released on Thursday, April 30th, 2020. It should become the next stable release of op-build, following on
+from v2.4, first released on July 28th, 2019.
+
+In addition to a number of bugfixes and re-factors, plus the 3 new platforms listed below, this release also brings new features
+since v2.4, to highlight a few:
+
+-  Memory Preserving Initial Program Load (MPIPL): a Power feature where the contents of memory are preserved while the system
+   reboots after a failure.
+-  Support for a new Power9 processor variant: Axone, aka P9P, with NPU3 hardware.
+-  OpenCAPI reset support: allow FPGA-based OpenCAPI devices to be re-flashed with a new device image, then reset to activate the
+   new image.
+
+Please note that this is a RELEASE CANDIDATE and not the final v2.5 release. We expect to do a final v2.5 tagged release in late May
+2020. Please test this release candidate heavily!
+
+New platforms
+-------------
+
+-  mihawk
+-  blackbird
+-  swift
+
+Updated Packages
+----------------
+
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| Package             | Old Version       | New Version       | Platforms                                                          |
++=====================+===================+===================+====================================================================+
+| elfutils            | 0.174             | 0.176             | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| glibc               | 2.29-11-ge28ad44  | 2.29-30-g2d3fefd  | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| hcode               | hw071319a.940     | hw042820a.opmst   | zaius, witherspoon, p9dsu, nicole, romulus                         |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| hostboot            | 8abecc2           | e27c350           | zaius, witherspoon, p9dsu, nicole, romulus                         |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| hostboot-binaries   | hw062819a.940     | hw013120a.opmst   | zaius, habanero, witherspoon, p9dsu, nicole, barreleye, romulus,   |
+|                     |                   |                   | firestone, p8dtu, palmetto, vesnin, garrison                       |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| hostboot-p8         | 27dda29           | 3267aff           | habanero, barreleye, firestone, p8dtu, palmetto, vesnin, garrison  |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| ima-catalog         | 3d30c7a           | 89e00ee           | zaius, habanero, witherspoon, p9dsu, nicole, barreleye, romulus,   |
+|                     |                   |                   | firestone, p8dtu, palmetto, vesnin, garrison                       |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| kexec-lite          | 87d044a           | 6b0130b           | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| libflash            | v6.4              | v6.6              | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| linux               | 5.2.1             | 5.4.33            | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| linux-firmware      | 1baa348           | 20190717          | firenze, zaius, habanero, witherspoon, p9dsu, barreleye, romulus,  |
+|                     |                   |                   | opal, firestone, pseries, p8dtu, palmetto, zz, vesnin, garrison    |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| linux-headers       | 5.2.1             | 5.4.33            | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| machine-xml         | 26b2092           | 1ac78dd           | nicole                                                             |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| machine-xml         | eac9377           | 5b3fbca           | romulus                                                            |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| machine-xml         | a6f4df3           | 0f9b366           | witherspoon                                                        |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| occ                 | e5a2afd           | ab4dc96           | zaius, witherspoon, p9dsu, nicole, romulus                         |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| openpower-pnor      | 0346930           | 175f00d           | zaius, habanero, witherspoon, p9dsu, nicole, barreleye, romulus,   |
+|                     |                   |                   | firestone, p8dtu, palmetto, vesnin, garrison                       |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| petitboot           | v1.10.4           | v1.12             | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| sbe                 | b96edc8           | 78fb783           | zaius, witherspoon, p9dsu, nicole, romulus                         |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+| skiboot             | v6.4              | v6.6              | firenze, zaius, habanero, witherspoon, p9dsu, nicole, barreleye,   |
+|                     |                   |                   | romulus, opal, firestone, pseries, p8dtu, palmetto, zz, vesnin,    |
+|                     |                   |                   | garrison                                                           |
++---------------------+-------------------+-------------------+--------------------------------------------------------------------+
+
+New Packages
+------------
+
+======= ======= =========
+Package Version Platforms
+======= ======= =========
+======= ======= =========
+
+Removed Packages
+----------------
+
+======== ======== ===============================================================================================================
+Package  Version  Platforms
+======== ======== ===============================================================================================================
+iprutils 2.4.15.1 zaius,habanero,witherspoon,p9dsu,nicole,barreleye,romulus,opal,firestone,pseries,p8dtu,palmetto,vesnin,garrison
+libsysfs 2.1.0    zaius,habanero,witherspoon,p9dsu,nicole,barreleye,romulus,opal,firestone,pseries,p8dtu,palmetto,vesnin,garrison
+======== ======== ===============================================================================================================
+
+Package: barreleye-xml
+----------------------
+
+`Repository <https://github.com/open-power/barreleye-xml>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: firestone-xml
+----------------------
+
+`Repository <https://github.com/open-power/firestone-xml>`__
+
+.. _patches-1:
+
+Patches
+~~~~~~~
+
+.. _commits-1:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: garrison-xml
+---------------------
+
+`Repository <https://github.com/open-power/garrison-xml>`__
+
+.. _patches-2:
+
+Patches
+~~~~~~~
+
+.. _commits-2:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: habanero-xml
+---------------------
+
+`Repository <https://github.com/open-power/habanero-xml>`__
+
+.. _patches-3:
+
+Patches
+~~~~~~~
+
+.. _commits-3:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+.. _patches-4:
+
+Patches
+~~~~~~~
+
+.. _commits-4:
+
+Commits
+~~~~~~~
+
+Amit Tendolkar (2):
+
+-  `7b72e51e <https://github.com/open-power/hcode/commit/7b72e51e>`__ HCode Error Logs - Final structure change for PGPE-OCC API
+-  `be8d21b4 <https://github.com/open-power/hcode/commit/be8d21b4>`__ OCC assisted PGPE, SGPE Error Logging
+
+Chris Steffen (1):
+
+-  `a3c009c8 <https://github.com/open-power/hcode/commit/a3c009c8>`__ Abus PPE TSX Fix
+
+Gregory S Still (1):
+
+-  `396561e6 <https://github.com/open-power/hcode/commit/396561e6>`__ Revert “Hcode: hcode changes for STOP exit in SMF enabled HV
+   mode”
+
+Jenny Huynh (1):
+
+-  `d1862ef5 <https://github.com/open-power/hcode/commit/d1862ef5>`__ Make COREFIR(63) unit checkstop for Cumulus
+
+Luis Fernandez (1):
+
+-  `8df77fd2 <https://github.com/open-power/hcode/commit/8df77fd2>`__ HB Implement Static Analysis with cppcheck
+
+Prem Shanker Jha (8):
+
+-  `04f9cd2b <https://github.com/open-power/hcode/commit/04f9cd2b>`__ Img Build: Updated STOP API version to reflect SPR self save
+   availability.
+-  `b3180c3a <https://github.com/open-power/hcode/commit/b3180c3a>`__ STOP API: API to verify API and image compatibility.
+-  `beaaeb86 <https://github.com/open-power/hcode/commit/beaaeb86>`__ UV Support : Augmented STOP API and self restore for enabling
+   ultravisor.
+-  `737919b4 <https://github.com/open-power/hcode/commit/737919b4>`__ Revert “UV Support : Augmented STOP API and self restore for
+   enabling UV”
+-  `b7658f97 <https://github.com/open-power/hcode/commit/b7658f97>`__ Self Restore: Changes for SMF and SPR self save.
+-  `065c07cb <https://github.com/open-power/hcode/commit/065c07cb>`__ Self Save: Fixing self save of core SPR.
+-  `9eca2072 <https://github.com/open-power/hcode/commit/9eca2072>`__ Hcode: hcode changes for STOP exit in SMF enabled HV mode
+-  `214ef8b2 <https://github.com/open-power/hcode/commit/214ef8b2>`__ HWP: Fixed HV-UV and UV transition during STOP entry in case
+   of LE.
+
+Rahul Batra (4):
+
+-  `9a22b25d <https://github.com/open-power/hcode/commit/9a22b25d>`__ PGPE: Optrace fixes
+-  `1096b337 <https://github.com/open-power/hcode/commit/1096b337>`__ PM: Fix DB0 Hang
+-  `13b47242 <https://github.com/open-power/hcode/commit/13b47242>`__ PGPE: Fix bad volt updt upon nack
+-  `e8d3ed8d <https://github.com/open-power/hcode/commit/e8d3ed8d>`__ PGPE: Multiple Droop Handling Fix
+
+Yue Du (4):
+
+-  `a3362cd2 <https://github.com/open-power/hcode/commit/a3362cd2>`__ CME: Reduce Image Size
+-  `bd92fe00 <https://github.com/open-power/hcode/commit/bd92fe00>`__ CME: Perform SMF Self Save After RAM Psscr.PLS in STOP Entry
+-  `694afd66 <https://github.com/open-power/hcode/commit/694afd66>`__ Self Save: Added support for SPR self save in CME hcode(func
+   ver)
+-  `b1c57628 <https://github.com/open-power/hcode/commit/b1c57628>`__ Axone: Disable Stop L3 Purge Abort to avoid disabling L3 hash
+
+hostboot (139):
+
+-  `e753ab63 <https://github.com/open-power/hcode/commit/e753ab63>`__ Release tag information updated for hw071719a.940
+-  `b7076783 <https://github.com/open-power/hcode/commit/b7076783>`__ Release tag information updated for hw071919a.940
+-  `faebbb83 <https://github.com/open-power/hcode/commit/faebbb83>`__ Release tag information updated for hw072219a.940
+-  `87e44f2b <https://github.com/open-power/hcode/commit/87e44f2b>`__ Release tag information updated for hw072419a.940
+-  `2b1e4726 <https://github.com/open-power/hcode/commit/2b1e4726>`__ Release tag information updated for hw072719a.940
+-  `8111338f <https://github.com/open-power/hcode/commit/8111338f>`__ Release tag information updated for hw073019a.940
+-  `3478a0b5 <https://github.com/open-power/hcode/commit/3478a0b5>`__ Release tag information updated for hw073119a.940
+-  `93d4ce16 <https://github.com/open-power/hcode/commit/93d4ce16>`__ Release tag information updated for hw080119a.940
+-  `cfaad693 <https://github.com/open-power/hcode/commit/cfaad693>`__ Release tag information updated for hw080219a.940
+-  `a4178079 <https://github.com/open-power/hcode/commit/a4178079>`__ Release tag information updated for hw081019a.940
+-  `6383eed4 <https://github.com/open-power/hcode/commit/6383eed4>`__ Release tag information updated for hw081319a.940
+-  `e34887db <https://github.com/open-power/hcode/commit/e34887db>`__ Release tag information updated for hw081419a.940
+-  `c7e1ca8c <https://github.com/open-power/hcode/commit/c7e1ca8c>`__ Release tag information updated for hw081619a.940
+-  `5dbebecf <https://github.com/open-power/hcode/commit/5dbebecf>`__ Release tag information updated for hw082819a.950
+-  `56f778b6 <https://github.com/open-power/hcode/commit/56f778b6>`__ Release tag information updated for hw082819b.950
+-  `3cf46f78 <https://github.com/open-power/hcode/commit/3cf46f78>`__ Release tag information updated for hw083019a.950
+-  `c01997e6 <https://github.com/open-power/hcode/commit/c01997e6>`__ Release tag information updated for hw090119a.950
+-  `5c34aed8 <https://github.com/open-power/hcode/commit/5c34aed8>`__ Release tag information updated for hw090319a.950
+-  `f5a4f0ca <https://github.com/open-power/hcode/commit/f5a4f0ca>`__ Release tag information updated for hw090419a.opmst
+-  `b2b481c6 <https://github.com/open-power/hcode/commit/b2b481c6>`__ Release tag information updated for hw090619a.opmst
+-  `70a95c69 <https://github.com/open-power/hcode/commit/70a95c69>`__ Release tag information updated for hw091019a.opmst
+-  `e016bbb5 <https://github.com/open-power/hcode/commit/e016bbb5>`__ Release tag information updated for hw091119a.opmst
+-  `bd6572db <https://github.com/open-power/hcode/commit/bd6572db>`__ Release tag information updated for hw091319a.opmst
+-  `a9791bdb <https://github.com/open-power/hcode/commit/a9791bdb>`__ Release tag information updated for hw091719a.opmst
+-  `0229050e <https://github.com/open-power/hcode/commit/0229050e>`__ Release tag information updated for hw091919a.opmst
+-  `3f12b2d6 <https://github.com/open-power/hcode/commit/3f12b2d6>`__ Release tag information updated for hw092019a.opmst
+-  `b7ef293f <https://github.com/open-power/hcode/commit/b7ef293f>`__ Release tag information updated for hw092119a.opmst
+-  `c136490e <https://github.com/open-power/hcode/commit/c136490e>`__ Release tag information updated for hw092519a.opmst
+-  `f0fd894e <https://github.com/open-power/hcode/commit/f0fd894e>`__ Release tag information updated for hw092619a.opmst
+-  `ffd6bf1a <https://github.com/open-power/hcode/commit/ffd6bf1a>`__ Release tag information updated for hw092719a.opmst
+-  `d0caf465 <https://github.com/open-power/hcode/commit/d0caf465>`__ Release tag information updated for hw092819a.opmst
+-  `6e5cf597 <https://github.com/open-power/hcode/commit/6e5cf597>`__ Release tag information updated for hw100119a.opmst
+-  `4e4150a8 <https://github.com/open-power/hcode/commit/4e4150a8>`__ Release tag information updated for hw100219a.opmst
+-  `b89376bb <https://github.com/open-power/hcode/commit/b89376bb>`__ Release tag information updated for hw100319a.opmst
+-  `8f9fe01d <https://github.com/open-power/hcode/commit/8f9fe01d>`__ Release tag information updated for hw100419a.opmst
+-  `eda2b054 <https://github.com/open-power/hcode/commit/eda2b054>`__ Release tag information updated for hw100519a.opmst
+-  `b199e0c9 <https://github.com/open-power/hcode/commit/b199e0c9>`__ Release tag information updated for hw100819a.opmst
+-  `cf7d20a8 <https://github.com/open-power/hcode/commit/cf7d20a8>`__ Release tag information updated for hw100919a.opmst
+-  `278684d5 <https://github.com/open-power/hcode/commit/278684d5>`__ Release tag information updated for hw101219a.opmst
+-  `2211d6ea <https://github.com/open-power/hcode/commit/2211d6ea>`__ Release tag information updated for hw101519a.opmst
+-  `ea8c716f <https://github.com/open-power/hcode/commit/ea8c716f>`__ Release tag information updated for hw101619a.opmst
+-  `925882fd <https://github.com/open-power/hcode/commit/925882fd>`__ Release tag information updated for hw101719a.opmst
+-  `a2f7b4ce <https://github.com/open-power/hcode/commit/a2f7b4ce>`__ Release tag information updated for hw101819a.opmst
+-  `b4200fb8 <https://github.com/open-power/hcode/commit/b4200fb8>`__ Release tag information updated for hw102319a.opmst
+-  `afddb39b <https://github.com/open-power/hcode/commit/afddb39b>`__ Release tag information updated for hw102419a.opmst
+-  `c240bed5 <https://github.com/open-power/hcode/commit/c240bed5>`__ Release tag information updated for hw102519a.opmst
+-  `2fd4b164 <https://github.com/open-power/hcode/commit/2fd4b164>`__ Release tag information updated for hw102619a.opmst
+-  `c1e42a5d <https://github.com/open-power/hcode/commit/c1e42a5d>`__ Release tag information updated for hw102919a.opmst
+-  `af8209da <https://github.com/open-power/hcode/commit/af8209da>`__ Release tag information updated for hw103019a.opmst
+-  `f5cfc834 <https://github.com/open-power/hcode/commit/f5cfc834>`__ Release tag information updated for hw110119a.opmst
+-  `be19b686 <https://github.com/open-power/hcode/commit/be19b686>`__ Release tag information updated for hw110219a.opmst
+-  `b7f2b8f2 <https://github.com/open-power/hcode/commit/b7f2b8f2>`__ Release tag information updated for hw110519a.opmst
+-  `fa49d180 <https://github.com/open-power/hcode/commit/fa49d180>`__ Release tag information updated for hw110719a.opmst
+-  `cf37b0ab <https://github.com/open-power/hcode/commit/cf37b0ab>`__ Release tag information updated for hw110819a.opmst
+-  `486d807e <https://github.com/open-power/hcode/commit/486d807e>`__ Release tag information updated for hw110919b.opmst
+-  `653be77b <https://github.com/open-power/hcode/commit/653be77b>`__ Release tag information updated for hw111319a.opmst
+-  `5fbc0759 <https://github.com/open-power/hcode/commit/5fbc0759>`__ Release tag information updated for hw111819a.opmst
+-  `23e6cff8 <https://github.com/open-power/hcode/commit/23e6cff8>`__ Release tag information updated for hw111919a.opmst
+-  `84d2649d <https://github.com/open-power/hcode/commit/84d2649d>`__ Release tag information updated for hw112019a.opmst
+-  `f22c2cdf <https://github.com/open-power/hcode/commit/f22c2cdf>`__ Release tag information updated for hw112219a.opmst
+-  `877d7b06 <https://github.com/open-power/hcode/commit/877d7b06>`__ Release tag & head commit information updated for
+   hw112619a.opmst
+-  `740156c3 <https://github.com/open-power/hcode/commit/740156c3>`__ Release tag & head commit information updated for
+   hw120419a.opmst
+-  `24b70f41 <https://github.com/open-power/hcode/commit/24b70f41>`__ Release tag & head commit information updated for
+   hw120919a.opmst
+-  `fb423b83 <https://github.com/open-power/hcode/commit/fb423b83>`__ Release tag & head commit information updated for
+   hw121019a.opmst
+-  `9658287f <https://github.com/open-power/hcode/commit/9658287f>`__ Release tag & head commit information updated for
+   hw121219a.opmst
+-  `7dc3ec6e <https://github.com/open-power/hcode/commit/7dc3ec6e>`__ Release tag & head commit information updated for
+   hw121919a.opmst
+-  `abb3817e <https://github.com/open-power/hcode/commit/abb3817e>`__ Release tag & head commit information updated for
+   hw122019a.opmst
+-  `0c8a19f1 <https://github.com/open-power/hcode/commit/0c8a19f1>`__ Release tag & head commit information updated for
+   hw123020a.opmst
+-  `b8defe1b <https://github.com/open-power/hcode/commit/b8defe1b>`__ Release tag & head commit information updated for
+   hw010220a.opmst
+-  `8628f1a4 <https://github.com/open-power/hcode/commit/8628f1a4>`__ Release tag & head commit information updated for
+   hw010620a.opmst
+-  `4d14a3df <https://github.com/open-power/hcode/commit/4d14a3df>`__ Release tag & head commit information updated for
+   hw010720a.opmst
+-  `0b5d50ff <https://github.com/open-power/hcode/commit/0b5d50ff>`__ Release tag & head commit information updated for
+   hw010820a.opmst
+-  `fae5994b <https://github.com/open-power/hcode/commit/fae5994b>`__ Release tag & head commit information updated for
+   hw010920a.opmst
+-  `ea3e3e75 <https://github.com/open-power/hcode/commit/ea3e3e75>`__ Release tag & head commit information updated for
+   hw011020a.opmst
+-  `3e2164c0 <https://github.com/open-power/hcode/commit/3e2164c0>`__ Release tag & head commit information updated for
+   hw011120a.opmst
+-  `e57fe736 <https://github.com/open-power/hcode/commit/e57fe736>`__ Release tag & head commit information updated for
+   hw011320a.opmst
+-  `8f6fdad9 <https://github.com/open-power/hcode/commit/8f6fdad9>`__ Release tag & head commit information updated for
+   hw011420a.opmst
+-  `99cffa02 <https://github.com/open-power/hcode/commit/99cffa02>`__ Release tag & head commit information updated for
+   hw011520a.opmst
+-  `cc7e95de <https://github.com/open-power/hcode/commit/cc7e95de>`__ Hcode: hcode changes for STOP exit in SMF enabled HV mode
+-  `af1e535c <https://github.com/open-power/hcode/commit/af1e535c>`__ Release tag & head commit information updated for
+   hw011620a.opmst
+-  `5b1e9a29 <https://github.com/open-power/hcode/commit/5b1e9a29>`__ Release tag & head commit information updated for
+   hw012120a.opmst
+-  `0e6b5b4f <https://github.com/open-power/hcode/commit/0e6b5b4f>`__ Release tag & head commit information updated for
+   hw012320a.opmst
+-  `2779192c <https://github.com/open-power/hcode/commit/2779192c>`__ Release tag & head commit information updated for
+   hw012420a.opmst
+-  `105a2313 <https://github.com/open-power/hcode/commit/105a2313>`__ Release tag & head commit information updated for
+   hw012720a.opmst
+-  `ef7c3d86 <https://github.com/open-power/hcode/commit/ef7c3d86>`__ Release tag & head commit information updated for
+   hw012820a.opmst
+-  `e7971b5b <https://github.com/open-power/hcode/commit/e7971b5b>`__ Release tag & head commit information updated for
+   hw012920a.opmst
+-  `4a5305fc <https://github.com/open-power/hcode/commit/4a5305fc>`__ Release tag & head commit information updated for
+   hw013020a.opmst
+-  `dba5f033 <https://github.com/open-power/hcode/commit/dba5f033>`__ Revert “Hcode: hcode changes for STOP exit in SMF enabled HV
+   mode”
+-  `c03f6bd5 <https://github.com/open-power/hcode/commit/c03f6bd5>`__ Release tag & head commit information updated for
+   hw013120a.opmst
+-  `d6a5e753 <https://github.com/open-power/hcode/commit/d6a5e753>`__ Release tag & head commit information updated for
+   hw020420a.opmst
+-  `c1708e3c <https://github.com/open-power/hcode/commit/c1708e3c>`__ Release tag & head commit information updated for
+   hw020520a.opmst
+-  `ff142255 <https://github.com/open-power/hcode/commit/ff142255>`__ Release tag & head commit information updated for
+   hw021120a.opmst
+-  `64c963de <https://github.com/open-power/hcode/commit/64c963de>`__ Release tag & head commit information updated for
+   hw021120b.opmst
+-  `727a2859 <https://github.com/open-power/hcode/commit/727a2859>`__ Release tag & head commit information updated for
+   hw021320a.opmst
+-  `6b19c24e <https://github.com/open-power/hcode/commit/6b19c24e>`__ Release tag & head commit information updated for
+   hw021420a.opmst
+-  `d3a9bfad <https://github.com/open-power/hcode/commit/d3a9bfad>`__ Release tag & head commit information updated for
+   hw021720a.opmst
+-  `2bbe1ddd <https://github.com/open-power/hcode/commit/2bbe1ddd>`__ Release tag & head commit information updated for
+   hw021820a.opmst
+-  `90a62283 <https://github.com/open-power/hcode/commit/90a62283>`__ Release tag & head commit information updated for
+   hw021920a.opmst
+-  `c02c9362 <https://github.com/open-power/hcode/commit/c02c9362>`__ Release tag & head commit information updated for
+   hw022020a.opmst
+-  `e2b9f7ba <https://github.com/open-power/hcode/commit/e2b9f7ba>`__ Release tag & head commit information updated for
+   hw022420a.opmst
+-  `2cf1d512 <https://github.com/open-power/hcode/commit/2cf1d512>`__ Release tag & head commit information updated for
+   hw022420b.opmst
+-  `ad88dac2 <https://github.com/open-power/hcode/commit/ad88dac2>`__ Release tag & head commit information updated for
+   hw022620a.opmst
+-  `7586c895 <https://github.com/open-power/hcode/commit/7586c895>`__ Release tag & head commit information updated for
+   hw022620b.opmst
+-  `2c1f3f88 <https://github.com/open-power/hcode/commit/2c1f3f88>`__ Release tag & head commit information updated for
+   hw022820a.opmst
+-  `3ea6aa70 <https://github.com/open-power/hcode/commit/3ea6aa70>`__ Release tag & head commit information updated for
+   hw030220a.opmst
+-  `5633c6eb <https://github.com/open-power/hcode/commit/5633c6eb>`__ Release tag & head commit information updated for
+   hw030320a.opmst
+-  `1a1280a8 <https://github.com/open-power/hcode/commit/1a1280a8>`__ Release tag & head commit information updated for
+   hw030420a.opmst
+-  `356145d8 <https://github.com/open-power/hcode/commit/356145d8>`__ Release tag & head commit information updated for
+   hw030520a.opmst
+-  `f4d730d9 <https://github.com/open-power/hcode/commit/f4d730d9>`__ Release tag & head commit information updated for
+   hw030620a.opmst
+-  `460e29ed <https://github.com/open-power/hcode/commit/460e29ed>`__ Release tag & head commit information updated for
+   hw030920a.opmst
+-  `ac97ba7a <https://github.com/open-power/hcode/commit/ac97ba7a>`__ Release tag & head commit information updated for
+   hw031020a.opmst
+-  `7bdcd32c <https://github.com/open-power/hcode/commit/7bdcd32c>`__ Release tag & head commit information updated for
+   hw031120a.opmst
+-  `63e6d024 <https://github.com/open-power/hcode/commit/63e6d024>`__ Release tag & head commit information updated for
+   hw031220a.opmst
+-  `e6e0c962 <https://github.com/open-power/hcode/commit/e6e0c962>`__ Release tag & head commit information updated for
+   hw031320a.opmst
+-  `6adfbb52 <https://github.com/open-power/hcode/commit/6adfbb52>`__ Release tag & head commit information updated for
+   hw031620a.opmst
+-  `d27dc42b <https://github.com/open-power/hcode/commit/d27dc42b>`__ Release tag & head commit information updated for
+   hw032020a.opmst
+-  `f96da34e <https://github.com/open-power/hcode/commit/f96da34e>`__ Release tag & head commit information updated for
+   hw032020b.opmst
+-  `56bc2678 <https://github.com/open-power/hcode/commit/56bc2678>`__ Release tag & head commit information updated for
+   hw032320a.opmst
+-  `69fb7bd3 <https://github.com/open-power/hcode/commit/69fb7bd3>`__ Release tag & head commit information updated for
+   hw032520a.opmst
+-  `1a795c98 <https://github.com/open-power/hcode/commit/1a795c98>`__ Release tag & head commit information updated for
+   hw032620a.opmst
+-  `e52088b0 <https://github.com/open-power/hcode/commit/e52088b0>`__ Release tag & head commit information updated for
+   hw032720a.opmst
+-  `d3d7eccf <https://github.com/open-power/hcode/commit/d3d7eccf>`__ Release tag & head commit information updated for
+   hw033020a.opmst
+-  `b4b0c9b9 <https://github.com/open-power/hcode/commit/b4b0c9b9>`__ Release tag & head commit information updated for
+   hw033120a.opmst
+-  `186d7570 <https://github.com/open-power/hcode/commit/186d7570>`__ Release tag & head commit information updated for
+   hw040120a.opmst
+-  `c5fb9e98 <https://github.com/open-power/hcode/commit/c5fb9e98>`__ Release tag & head commit information updated for
+   hw040220a.opmst
+-  `ef11f4b5 <https://github.com/open-power/hcode/commit/ef11f4b5>`__ Release tag & head commit information updated for
+   hw040320a.opmst
+-  `db8a373e <https://github.com/open-power/hcode/commit/db8a373e>`__ Release tag & head commit information updated for
+   hw040820a.opmst
+-  `5655a99d <https://github.com/open-power/hcode/commit/5655a99d>`__ Release tag & head commit information updated for
+   hw040920a.opmst
+-  `bb72cdc4 <https://github.com/open-power/hcode/commit/bb72cdc4>`__ Release tag & head commit information updated for
+   hw041020a.opmst
+-  `28c3f110 <https://github.com/open-power/hcode/commit/28c3f110>`__ Release tag & head commit information updated for
+   hw041420a.opmst
+-  `fec3f5ce <https://github.com/open-power/hcode/commit/fec3f5ce>`__ Release tag & head commit information updated for
+   hw041520a.opmst
+-  `bae922f5 <https://github.com/open-power/hcode/commit/bae922f5>`__ Release tag & head commit information updated for
+   hw041620a.opmst
+-  `105d09ad <https://github.com/open-power/hcode/commit/105d09ad>`__ Release tag & head commit information updated for
+   hw041720a.opmst
+-  `cd456911 <https://github.com/open-power/hcode/commit/cd456911>`__ Release tag & head commit information updated for
+   hw042020a.opmst
+-  `b43c5809 <https://github.com/open-power/hcode/commit/b43c5809>`__ Release tag & head commit information updated for
+   hw042220a.opmst
+-  `16ee9a3a <https://github.com/open-power/hcode/commit/16ee9a3a>`__ Release tag & head commit information updated for
+   hw042320a.opmst
+-  `c8ce6e1a <https://github.com/open-power/hcode/commit/c8ce6e1a>`__ Release tag & head commit information updated for
+   hw042420a.opmst
+-  `b742f96b <https://github.com/open-power/hcode/commit/b742f96b>`__ Release tag & head commit information updated for
+   hw042720a.opmst
+-  `e5f8c726 <https://github.com/open-power/hcode/commit/e5f8c726>`__ Release tag & head commit information updated for
+   hw042820a.opmst
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _patches-5:
+
+Patches
+~~~~~~~
+
+.. _commits-5:
+
+Commits
+~~~~~~~
+
+Adam Hale (13):
+
+-  `505d05255 <https://github.com/open-power/hostboot/commit/505d05255>`__ Move to long term CLSCOM workaround
+-  `a690cdb01 <https://github.com/open-power/hostboot/commit/a690cdb01>`__ Axone setup changes to disable bumpy toothpaste
+   workaround
+-  `aeaa72448 <https://github.com/open-power/hostboot/commit/aeaa72448>`__ Axone Gemini MDI issue workaround
+-  `c796d2cf8 <https://github.com/open-power/hostboot/commit/c796d2cf8>`__ Disable MC Channel Timeout because Gemini too slow
+-  `074a2dd38 <https://github.com/open-power/hostboot/commit/074a2dd38>`__ Axone int updates
+-  `23d883c6d <https://github.com/open-power/hostboot/commit/23d883c6d>`__ HW508066 - interleave granularity not setup for group of
+   3/6 in Axone
+-  `8b1553db4 <https://github.com/open-power/hostboot/commit/8b1553db4>`__ HW508063: Fix Mirrored BAR setup for SMF and Holes,set
+   map_mode when flipped
+-  `3655c1760 <https://github.com/open-power/hostboot/commit/3655c1760>`__ Disable fast act for power savings - no performance
+   benefit
+-  `74609673f <https://github.com/open-power/hostboot/commit/74609673f>`__ enable commandlists on non-gemini systems
+-  `f83a8c5d6 <https://github.com/open-power/hostboot/commit/f83a8c5d6>`__ Set TL Credit limit to 18 for dcp0 credit return
+   improvement
+-  `31dd0024d <https://github.com/open-power/hostboot/commit/31dd0024d>`__ Correct chiplet target for mc_omi_fir_reg xml
+-  `875d8fcca <https://github.com/open-power/hostboot/commit/875d8fcca>`__ Remove OMIDL FIR setup from procedures, is done in
+   initfiles
+-  `b481ff043 <https://github.com/open-power/hostboot/commit/b481ff043>`__ Init OMIC FIRs as masked
+
+Alvin Wang (2):
+
+-  `870098a4e <https://github.com/open-power/hostboot/commit/870098a4e>`__ Move MCBIST lib to generic folder
+-  `d236a4d9f <https://github.com/open-power/hostboot/commit/d236a4d9f>`__ Move kind library to generic
+
+Amit Tendolkar (2):
+
+-  `18aa5d9e3 <https://github.com/open-power/hostboot/commit/18aa5d9e3>`__ HCode Error Logs - Final structure change for PGPE-OCC
+   API
+-  `f40b75296 <https://github.com/open-power/hostboot/commit/f40b75296>`__ OCC assisted PGPE, SGPE Error Logging
+
+Andre A. Marin (15):
+
+-  `8e08836ea <https://github.com/open-power/hostboot/commit/8e08836ea>`__ Add DDR4 RCD attributes from the EXP resp structure
+-  `17867d02c <https://github.com/open-power/hostboot/commit/17867d02c>`__ Update TRFC_DLR to uint16 for 16Gb support
+-  `a76d69766 <https://github.com/open-power/hostboot/commit/a76d69766>`__ Clean up PPE character format and target
+-  `bc4196fe7 <https://github.com/open-power/hostboot/commit/bc4196fe7>`__ Add unit tests for mss field_t and macro def
+-  `0d474d644 <https://github.com/open-power/hostboot/commit/0d474d644>`__ Add bounds check API to generic_check library
+-  `80ecda0c5 <https://github.com/open-power/hostboot/commit/80ecda0c5>`__ Add DDR4 RCD attributes from the EXP resp structure
+-  `3b661be89 <https://github.com/open-power/hostboot/commit/3b661be89>`__ Add supported_rcd attribute from SPD + tests
+-  `f1c57ddcd <https://github.com/open-power/hostboot/commit/f1c57ddcd>`__ Update index_within_bounds() API
+-  `c5c86d25e <https://github.com/open-power/hostboot/commit/c5c86d25e>`__ Update get_dimm_target() api to get_target()
+-  `f92ebb1bd <https://github.com/open-power/hostboot/commit/f92ebb1bd>`__ Update get_ocmb_target() api to get_target()
+-  `81fe4816a <https://github.com/open-power/hostboot/commit/81fe4816a>`__ Update attr_engine to handle more cases
+-  `9ba2723f1 <https://github.com/open-power/hostboot/commit/9ba2723f1>`__ Add empty explorer_rc_resp_fields file for HB mirroring
+-  `6110ede07 <https://github.com/open-power/hostboot/commit/6110ede07>`__ Add explorer rc response to eff_config
+-  `f30db0976 <https://github.com/open-power/hostboot/commit/f30db0976>`__ Update API for std::begin and std::end
+-  `dcb88fdc5 <https://github.com/open-power/hostboot/commit/dcb88fdc5>`__ Add explorer rc response to eff_config
+
+Andre Marin (15):
+
+-  `831f9e0d8 <https://github.com/open-power/hostboot/commit/831f9e0d8>`__ Fix HB error with -Os compile flag due to eff_config
+-  `ab9139914 <https://github.com/open-power/hostboot/commit/ab9139914>`__ Move pre_eff_config specific code to chip specific
+   folders
+-  `0e26522ec <https://github.com/open-power/hostboot/commit/0e26522ec>`__ Add nimbus and cumulus empty files for find
+   specialization
+-  `06ed7403d <https://github.com/open-power/hostboot/commit/06ed7403d>`__ Move find_magic from generic to Nimbus subdir path
+-  `9fb424b8a <https://github.com/open-power/hostboot/commit/9fb424b8a>`__ Change return size of the DDR4 DDIMM SPD
+-  `1061da027 <https://github.com/open-power/hostboot/commit/1061da027>`__ Add missing attributes needed to be set for generic
+   mss_kind
+-  `491ac02e8 <https://github.com/open-power/hostboot/commit/491ac02e8>`__ Split nimbus and cumulus find API away from generic
+-  `86f11d17e <https://github.com/open-power/hostboot/commit/86f11d17e>`__ Add mss throttle files L1
+-  `f3b51d33a <https://github.com/open-power/hostboot/commit/f3b51d33a>`__ Move find API to share among memory controllers
+-  `85dce0de2 <https://github.com/open-power/hostboot/commit/85dce0de2>`__ Disable mem clk stop when in STR for DD2.\* only
+-  `a87142ef6 <https://github.com/open-power/hostboot/commit/a87142ef6>`__ Remove logic to disable memory clocks in STR if in
+   PD_AND_STR_CLK_STOP mode
+-  `cdc14bcd3 <https://github.com/open-power/hostboot/commit/cdc14bcd3>`__ Split nimbus and cumulus find API away from generic
+-  `f8776311e <https://github.com/open-power/hostboot/commit/f8776311e>`__ Add call to exp_mss_thermal_init to step 14.2
+-  `daeac77bf <https://github.com/open-power/hostboot/commit/daeac77bf>`__ Add RC A2, B3, and C3 for 16Gb RDIMMs
+-  `b403e6730 <https://github.com/open-power/hostboot/commit/b403e6730>`__ Clean up for p10 porting dependency errors
+
+Artem Senichev (3):
+
+-  `ad8653d6a <https://github.com/open-power/hostboot/commit/ad8653d6a>`__ errl: Fix data reading from unaligned pointers
+-  `c79620afd <https://github.com/open-power/hostboot/commit/c79620afd>`__ errl: Free memory allocated for parsers
+-  `b47fb5983 <https://github.com/open-power/hostboot/commit/b47fb5983>`__ Replace descriptions with JEDEC register names
+
+Ben Gass (8):
+
+-  `111b6f0e6 <https://github.com/open-power/hostboot/commit/111b6f0e6>`__ p9_nv_ref_clk_enable, NV refclk bits moved to ROOT_CTRL7
+   for Axone.
+-  `fad02a31a <https://github.com/open-power/hostboot/commit/fad02a31a>`__ Translate logical mca regisers in mcs chiplet as mca
+   target type
+-  `6c4acfedf <https://github.com/open-power/hostboot/commit/6c4acfedf>`__ Move NPU_ENABLE to its own initfile and call from
+   p9_npu_scominit for p9a.
+-  `38845b646 <https://github.com/open-power/hostboot/commit/38845b646>`__ Call p9_fbc_ioo_dl_npu_scom from p9_npu_scominit
+-  `d534ac32b <https://github.com/open-power/hostboot/commit/d534ac32b>`__ Update explorer scom header files with newer figtree
+   data.
+-  `98bf4ecbd <https://github.com/open-power/hostboot/commit/98bf4ecbd>`__ Update OMI DS template support
+-  `51aae2461 <https://github.com/open-power/hostboot/commit/51aae2461>`__ Adding obj_handle values for attentions to
+   explorer.scom.initfile
+-  `4b0d4cb36 <https://github.com/open-power/hostboot/commit/4b0d4cb36>`__ Translate OMIC DL register correctly
+
+Bill Hoffa (12):
+
+-  `6abe77368 <https://github.com/open-power/hostboot/commit/6abe77368>`__ Parse MEM_PORT target type out of Machine Readable
+   Workbook (MRW)
+-  `07b05592e <https://github.com/open-power/hostboot/commit/07b05592e>`__ Add HUID value to DDIMM parsing
+-  `7cfa513f0 <https://github.com/open-power/hostboot/commit/7cfa513f0>`__ Process MRW MC Targets Correctly
+-  `05007faa4 <https://github.com/open-power/hostboot/commit/05007faa4>`__ Ignore OMIC connections for OCMB_CHIP MRW processing
+-  `5825828fa <https://github.com/open-power/hostboot/commit/5825828fa>`__ Fix MMIO Addressing and Attributes on Non-Master Proc
+-  `e05083bbd <https://github.com/open-power/hostboot/commit/e05083bbd>`__ Skip Alternate PNOR Validation on alt-master proc if lpc
+   init fails
+-  `6c12d1ea9 <https://github.com/open-power/hostboot/commit/6c12d1ea9>`__ Update Sim level to 08_23_19_f5e686_simics.tar.gz
+-  `e22e362f3 <https://github.com/open-power/hostboot/commit/e22e362f3>`__ Axone 2-Proc Standalone Sim Enablement
+-  `75aa7d0bd <https://github.com/open-power/hostboot/commit/75aa7d0bd>`__ Remove Unused clearPoreBars function in Istep 21.3
+-  `c283187cd <https://github.com/open-power/hostboot/commit/c283187cd>`__ Modify INTRP Initialization Order to route LSI interrupts
+   over PSHIHB
+-  `7da5f5914 <https://github.com/open-power/hostboot/commit/7da5f5914>`__ Enable Serial Testcases
+-  `c13c81ff9 <https://github.com/open-power/hostboot/commit/c13c81ff9>`__ Fix HB Simulation Startup Script for using vexec
+
+Bradley Pepper (1):
+
+-  `504aa7ff8 <https://github.com/open-power/hostboot/commit/504aa7ff8>`__ Adds plug rule for dependent DIMM slots on Swift
+
+Brian Silver (4):
+
+-  `127c22d27 <https://github.com/open-power/hostboot/commit/127c22d27>`__ Add dump_regs for MC
+-  `bb6571fca <https://github.com/open-power/hostboot/commit/bb6571fca>`__ Add mcbist L2 function
+-  `67a37edc8 <https://github.com/open-power/hostboot/commit/67a37edc8>`__ Change include paths in memory/lib, tests
+-  `a123070b9 <https://github.com/open-power/hostboot/commit/a123070b9>`__ Add support for dynamic MC PERF2 register setup
+
+Caleb Palmer (66):
+
+-  `6751459c3 <https://github.com/open-power/hostboot/commit/6751459c3>`__ PRD: Axone MemEccAnalysis Updates
+-  `b731bda96 <https://github.com/open-power/hostboot/commit/b731bda96>`__ PRD: Axone Restore DRAM Repairs support
+-  `4128797da <https://github.com/open-power/hostboot/commit/4128797da>`__ PRD: Axone sim support and test cases
+-  `e65958555 <https://github.com/open-power/hostboot/commit/e65958555>`__ PRD: Add OCMB support for ROW_REPAIR code
+-  `ddf90e53a <https://github.com/open-power/hostboot/commit/ddf90e53a>`__ PRD: Cumulus Add PLL Slave Error Regs
+-  `37af28e05 <https://github.com/open-power/hostboot/commit/37af28e05>`__ PRD: NVDIMM avoid gard for general mem errors only for
+   IPL
+-  `9de71650f <https://github.com/open-power/hostboot/commit/9de71650f>`__ PRD: Axone OMIC to OMI connection and log parser updates
+-  `4ced77592 <https://github.com/open-power/hostboot/commit/4ced77592>`__ PRD: NVDIMM RDR no gard only for all repairs used case
+-  `a51a38812 <https://github.com/open-power/hostboot/commit/a51a38812>`__ PRD: Add Axone background scrubbing framework
+-  `b1090a522 <https://github.com/open-power/hostboot/commit/b1090a522>`__ PRD: Axone more MEM_PORT cleanup and misc updates
+-  `8aa5e5fb9 <https://github.com/open-power/hostboot/commit/8aa5e5fb9>`__ PRD: NVDIMM signature and Warning Threshold update
+-  `248c0df21 <https://github.com/open-power/hostboot/commit/248c0df21>`__ PRD: NVDIMM don’t check threshold unless no errors found
+-  `84e076b71 <https://github.com/open-power/hostboot/commit/84e076b71>`__ PRD: Axone MemoryMru Updates
+-  `285dc2bbe <https://github.com/open-power/hostboot/commit/285dc2bbe>`__ PRD: Uncomment OMI bus callout and cleanup getSlaveRanks
+-  `ea5da88b0 <https://github.com/open-power/hostboot/commit/ea5da88b0>`__ MDIA: Update mdiatestmba.H test case
+-  `cbd250000 <https://github.com/open-power/hostboot/commit/cbd250000>`__ PRD: Don’t dealloc NVDIMMs set to NO_GARD in a predictive
+   log
+-  `6034efa84 <https://github.com/open-power/hostboot/commit/6034efa84>`__ PRD: Skip callouts without trgts when clearing NVDIMM
+   gard
+-  `78c527c5e <https://github.com/open-power/hostboot/commit/78c527c5e>`__ PRD: NVDIMM signatures use MCA HUID instead of DIMM
+-  `f7aeced78 <https://github.com/open-power/hostboot/commit/f7aeced78>`__ PRD: NVDIMM Fix negative temperature check
+-  `8d0f324f7 <https://github.com/open-power/hostboot/commit/8d0f324f7>`__ PRD: Do not clear VPD at RDR when avoiding NVDIMM gard
+-  `8e9808de5 <https://github.com/open-power/hostboot/commit/8e9808de5>`__ PRD: Fix reading of NVDIMM ES_TEMP value
+-  `f5de75d9d <https://github.com/open-power/hostboot/commit/f5de75d9d>`__ PRD: NVDIMM Additional FFDC for error analysis
+-  `b08fe621d <https://github.com/open-power/hostboot/commit/b08fe621d>`__ PRD: Update NVDIMM warning threshold adjustment
+-  `bfe56382f <https://github.com/open-power/hostboot/commit/bfe56382f>`__ PRD: NVDIMM keep log hidden if no error found during
+   analysis
+-  `d9057b40a <https://github.com/open-power/hostboot/commit/d9057b40a>`__ PRD: Fix UNIT_CS analysis in OCMB chiplet FIR
+-  `d0f0ff1e5 <https://github.com/open-power/hostboot/commit/d0f0ff1e5>`__ PRD: Lane repair OMI bus callout changes
+-  `b93f63ad3 <https://github.com/open-power/hostboot/commit/b93f63ad3>`__ PRD: NVDIMM workaround for ES TEMP glitches
+-  `b99004fb7 <https://github.com/open-power/hostboot/commit/b99004fb7>`__ PRD: Initial Axone Channel Fail support
+-  `70a4b6bf1 <https://github.com/open-power/hostboot/commit/70a4b6bf1>`__ PRD: Add threshold for stopping on UEs/CEs during BgScrub
+-  `3920d160e <https://github.com/open-power/hostboot/commit/3920d160e>`__ PRD: Fix returning port position in dynamic mem dealloc
+-  `9d750b3d9 <https://github.com/open-power/hostboot/commit/9d750b3d9>`__ PRD: Add additional FFDC to runtime NVDIMM analysis
+-  `2dbc30966 <https://github.com/open-power/hostboot/commit/2dbc30966>`__ PRD: Axone UE/CE threshold for background scrub
+-  `195dd6a15 <https://github.com/open-power/hostboot/commit/195dd6a15>`__ PRD: Axone VCM Updates
+-  `e017df4c9 <https://github.com/open-power/hostboot/commit/e017df4c9>`__ PRD: Axone Two Phase Scrub (TPS) support
+-  `e3407c1b4 <https://github.com/open-power/hostboot/commit/e3407c1b4>`__ PRD: OCMB handling for checkstop analysis path
+-  `d8c686118 <https://github.com/open-power/hostboot/commit/d8c686118>`__ MDIA: Uncomment HWP calls
+-  `fcbb09411 <https://github.com/open-power/hostboot/commit/fcbb09411>`__ Uncomment the remainder of hwp_wrappers.H
+-  `0247cc5fb <https://github.com/open-power/hostboot/commit/0247cc5fb>`__ Update ATTR_MEM_VPD_DQ_MAPs default to a 1-to-1 mapping
+-  `e3870cb85 <https://github.com/open-power/hostboot/commit/e3870cb85>`__ Add DIMM_BAD_DQ_DATA field for DDR4 DDIMM SPD and bad dq
+   tests
+-  `574346780 <https://github.com/open-power/hostboot/commit/574346780>`__ PRD: Update CE/UE flood threshold to reset on new ranks
+-  `bcdae9c49 <https://github.com/open-power/hostboot/commit/bcdae9c49>`__ PRD: Axone Dynamic Mem Dealloc Addr Translate Port Addr
+-  `d65563f09 <https://github.com/open-power/hostboot/commit/d65563f09>`__ PRD: Axone Dynamic Mem Dealloc addr translate insert Grp
+   ID
+-  `d1b590057 <https://github.com/open-power/hostboot/commit/d1b590057>`__ PRD: Uncomment Axone HWP code
+-  `70ef78700 <https://github.com/open-power/hostboot/commit/70ef78700>`__ PRD: NVDIMM only update status bits for predictive logs
+-  `1f4ac83bb <https://github.com/open-power/hostboot/commit/1f4ac83bb>`__ PRD: Add check for OCMBs to MemDealloc::dimmList
+-  `cbb2bd756 <https://github.com/open-power/hostboot/commit/cbb2bd756>`__ PRD: Fix checkEccFirs template problem
+-  `da3c3ba33 <https://github.com/open-power/hostboot/commit/da3c3ba33>`__ PRD: Add workaround for OMIDLFIR channel fails
+-  `c10eba828 <https://github.com/open-power/hostboot/commit/c10eba828>`__ PRD: Change MCC to OCMB chip connection lookup
+-  `a3fec9cb1 <https://github.com/open-power/hostboot/commit/a3fec9cb1>`__ MDIA: Reenable PRD memdiags instead of cronus version
+-  `7e9fe96af <https://github.com/open-power/hostboot/commit/7e9fe96af>`__ PRD: Workarounds to avoid HIO during checkstops
+-  `1b10af06e <https://github.com/open-power/hostboot/commit/1b10af06e>`__ Fix getting all OCMBs for mss_scrub
+-  `51440d90c <https://github.com/open-power/hostboot/commit/51440d90c>`__ PRD: NVDIMM callouts for register access errors
+-  `a91c5531f <https://github.com/open-power/hostboot/commit/a91c5531f>`__ PRD: Add default callout for chip connection lookup fails
+-  `f07d459fb <https://github.com/open-power/hostboot/commit/f07d459fb>`__ PRD: Disable OCMB UCS check and clear subchnl specific
+   attn
+-  `b6badfcb9 <https://github.com/open-power/hostboot/commit/b6badfcb9>`__ MDIA: Update timeout FFDC gathering for OCMBs
+-  `004dbbae7 <https://github.com/open-power/hostboot/commit/004dbbae7>`__ PRD: Channel Fail fix OCMB UCS query
+-  `e8491f368 <https://github.com/open-power/hostboot/commit/e8491f368>`__ PRD: Dyn mem dealloc fix getting ocmb channel pos
+-  `d89b3e7bb <https://github.com/open-power/hostboot/commit/d89b3e7bb>`__ MDIA: Enable restore dram repairs for Axone
+-  `638312ea6 <https://github.com/open-power/hostboot/commit/638312ea6>`__ MDIA: Update mdiatestmba test cases
+-  `cec911056 <https://github.com/open-power/hostboot/commit/cec911056>`__ MDIA: Add MCC registers to timeout FFDC
+-  `cff27861a <https://github.com/open-power/hostboot/commit/cff27861a>`__ MDIA: Disable restoreDramRepairs until we get updated HWP
+   call
+-  `e64493c22 <https://github.com/open-power/hostboot/commit/e64493c22>`__ Make mss::ccs::execute static inline
+-  `cf23c9a46 <https://github.com/open-power/hostboot/commit/cf23c9a46>`__ PRD: Add dependencies for restore_repair in hwp_wrappers
+-  `9ed3a8c72 <https://github.com/open-power/hostboot/commit/9ed3a8c72>`__ MDIA: For OCMBs avoid getting parent chip
+-  `7bf1bbfec <https://github.com/open-power/hostboot/commit/7bf1bbfec>`__ PRD: Ignore mainline IUE if on at same time as mainline
+   UE
+-  `cc929c6fd <https://github.com/open-power/hostboot/commit/cc929c6fd>`__ PRD: Update OCMB_LFIR[38] to defaultMaskedError
+
+Chen Du (2):
+
+-  `e783d1e86 <https://github.com/open-power/hostboot/commit/e783d1e86>`__ Dynamically generate ocmb cmd/rsp seq id
+-  `85992ee55 <https://github.com/open-power/hostboot/commit/85992ee55>`__ Split nvdimm vendor logs
+
+Chris Cain (1):
+
+-  `ceef10b02 <https://github.com/open-power/hostboot/commit/ceef10b02>`__ HTMGT: Update to support new PGPE elog structure
+
+Chris Steffen (1):
+
+-  `2619526af <https://github.com/open-power/hostboot/commit/2619526af>`__ P9A Tx Fifo Init + Init Settings Update
+
+Christian Geddes (60):
+
+-  `e7f8781ee <https://github.com/open-power/hostboot/commit/e7f8781ee>`__ Force sbe update loop if a change in OMI freq is detected
+-  `73acf956a <https://github.com/open-power/hostboot/commit/73acf956a>`__ Support reading from EECACHE during runtime
+-  `c865c731a <https://github.com/open-power/hostboot/commit/c865c731a>`__ Register EEPROM_CACHE device route for NODE targets for
+   PVPD support
+-  `81c225bca <https://github.com/open-power/hostboot/commit/81c225bca>`__ Enable runtime test for Axone
+-  `be772a1e3 <https://github.com/open-power/hostboot/commit/be772a1e3>`__ Break out of loop if we fail to load reserved mem section
+-  `b3c0accfe <https://github.com/open-power/hostboot/commit/b3c0accfe>`__ Remove MVPD,MEMD and CENHWIMG section from Axone pnor
+   layout
+-  `f9d0c39c1 <https://github.com/open-power/hostboot/commit/f9d0c39c1>`__ Skip phase 2 of IDEC check for ocmb targets for gemini
+-  `7e05c2e69 <https://github.com/open-power/hostboot/commit/7e05c2e69>`__ Always update EECACHE header when we find a new eeprom
+   entry
+-  `ed0430e90 <https://github.com/open-power/hostboot/commit/ed0430e90>`__ OR mux select with the “enable” bit 0b1000 when making
+   selection
+-  `119219fbd <https://github.com/open-power/hostboot/commit/119219fbd>`__ Skip mss_scrub with axone system for until we get it
+   working
+-  `311f9e017 <https://github.com/open-power/hostboot/commit/311f9e017>`__ Add temp workaround to force Axone to use Nimbus’s hcode
+   lid
+-  `650345ffb <https://github.com/open-power/hostboot/commit/650345ffb>`__ Switch which OMI init hwp we call for GEMINI ocmb targets
+-  `9bdc8a41d <https://github.com/open-power/hostboot/commit/9bdc8a41d>`__ Temp workaround to skip filling in TPM info for RT on
+   axone systems
+-  `b424be0fc <https://github.com/open-power/hostboot/commit/b424be0fc>`__ Set Gemini EC level to be 0x10 if 0x00 is found in SPD
+   revision field
+-  `aade92abb <https://github.com/open-power/hostboot/commit/aade92abb>`__ Add workaround to ignore MC channel hangs for Swift
+   bringup
+-  `a7892148b <https://github.com/open-power/hostboot/commit/a7892148b>`__ Only compare a proc’s omi freq if it has functional OCMB
+   children
+-  `c98af339b <https://github.com/open-power/hostboot/commit/c98af339b>`__ Do not unload modules loaded for unit tests
+-  `0f996208d <https://github.com/open-power/hostboot/commit/0f996208d>`__ Use REL_POS of OMI and not OCMB for calculating hdat DIMM
+   ID’s
+-  `ca543f732 <https://github.com/open-power/hostboot/commit/ca543f732>`__ Add OSYS record MM/SS keyword checks for PVPD
+-  `b1ec6c18b <https://github.com/open-power/hostboot/commit/b1ec6c18b>`__ Update ocmb i2c driver to send address in read command
+   sequence
+-  `a950157bf <https://github.com/open-power/hostboot/commit/a950157bf>`__ Update sim scripts to use $proc_chip_type to lookup chip
+   for Axone
+-  `4e839856d <https://github.com/open-power/hostboot/commit/4e839856d>`__ Lookup ID/EC register on Gemini OCBMs for comparison to
+   SPD
+-  `3bbc07ee0 <https://github.com/open-power/hostboot/commit/3bbc07ee0>`__ Introduce exp_getidec HWP
+-  `00fa8005d <https://github.com/open-power/hostboot/commit/00fa8005d>`__ Compile new ioo_dl_npu_scominit HWP so its ready to use
+-  `6ba5510b7 <https://github.com/open-power/hostboot/commit/6ba5510b7>`__ Add “Not Wired” option for OPTICS_CONFIG_MODE attrs
+-  `59a241514 <https://github.com/open-power/hostboot/commit/59a241514>`__ Update DIMM mux_select to match their OCMB counterparts
+-  `bafe5de9d <https://github.com/open-power/hostboot/commit/bafe5de9d>`__ Account for Explorer’s DMB_REVISION format in its SPD
+-  `e85d6dd64 <https://github.com/open-power/hostboot/commit/e85d6dd64>`__ Re-enable mss_scrub in istep16 for axone systems
+-  `8ab48e774 <https://github.com/open-power/hostboot/commit/8ab48e774>`__ Apply MC_HANG timeout workaround to all processors
+-  `147018379 <https://github.com/open-power/hostboot/commit/147018379>`__ Skip OCMB targets while decidng what targets to process
+   for IpmiFruInv
+-  `69f3bd253 <https://github.com/open-power/hostboot/commit/69f3bd253>`__ Update axone pnor layout to move eecache to the begining
+-  `b7c4af200 <https://github.com/open-power/hostboot/commit/b7c4af200>`__ Add wrapper to exp_getidec HWP so we can call it in
+   platform code
+-  `1b3bc0e6a <https://github.com/open-power/hostboot/commit/1b3bc0e6a>`__ Disable OMI deconfig tests
+-  `0f3e041cb <https://github.com/open-power/hostboot/commit/0f3e041cb>`__ Add new DDR4 DDIMM keyword ENTIRE_SPD_WITHOUT_EFD
+-  `e1de8adbd <https://github.com/open-power/hostboot/commit/e1de8adbd>`__ Increase hostboot standalone timeout to be 75 minutes
+-  `bce435643 <https://github.com/open-power/hostboot/commit/bce435643>`__ Add call to fapi wrapper of exp_getidec into hwasPlat
+   code
+-  `51c6d68c1 <https://github.com/open-power/hostboot/commit/51c6d68c1>`__ Update dimmspd used by explorers in axone simics
+-  `1629aca37 <https://github.com/open-power/hostboot/commit/1629aca37>`__ Increase timeout for OCMB inband communication doorbell
+-  `5b6b984fa <https://github.com/open-power/hostboot/commit/5b6b984fa>`__ Reorganize omi training steps accounting for new omi
+   training hwps
+-  `8b524caae <https://github.com/open-power/hostboot/commit/8b524caae>`__ Set endianess attributes in hb_customized_attrs instead
+   of in code
+-  `2dc7d1457 <https://github.com/open-power/hostboot/commit/2dc7d1457>`__ Update Part Number field side for DDR4 DDIMM spd layout
+-  `a058d0e23 <https://github.com/open-power/hostboot/commit/a058d0e23>`__ Call cronus version of memdiags for explorer until prd
+   version works
+-  `aa122e3e9 <https://github.com/open-power/hostboot/commit/aa122e3e9>`__ Don’t consider processor’s OMI freq if it is 0 when freq
+   restrictions
+-  `9c4be0da9 <https://github.com/open-power/hostboot/commit/9c4be0da9>`__ Only call memdiags on Explorer ocmb chips
+-  `632582f10 <https://github.com/open-power/hostboot/commit/632582f10>`__ Allow dynmic i2c device addresses and set up PMIC targets
+   to do this
+-  `22b39d874 <https://github.com/open-power/hostboot/commit/22b39d874>`__ Adjust deadman timeout request time to be 10.5 seconds
+-  `d1260d0c7 <https://github.com/open-power/hostboot/commit/d1260d0c7>`__ Fix ipmifruinv calls for dimms in swift systems
+-  `c016e9860 <https://github.com/open-power/hostboot/commit/c016e9860>`__ Avoid commiting errors inside fapi2_i2c device driver
+-  `c3689a691 <https://github.com/open-power/hostboot/commit/c3689a691>`__ Fixes to PMIC presence detection
+-  `6d6b8ced5 <https://github.com/open-power/hostboot/commit/6d6b8ced5>`__ Allow HWPs that send BOOT_CONFIG command to ocbm to run
+   in simics
+-  `7cb71794b <https://github.com/open-power/hostboot/commit/7cb71794b>`__ Correct ptr math and force CI i/o in kernal for machchk
+   escalation
+-  `b80205824 <https://github.com/open-power/hostboot/commit/b80205824>`__ Filter out i2c slaves that are not associated with a
+   given master
+-  `946a75dff <https://github.com/open-power/hostboot/commit/946a75dff>`__ Add calls to p9a_disable_ocmb_i2c HWP in istep 8.12
+-  `ea01d258c <https://github.com/open-power/hostboot/commit/ea01d258c>`__ Introduce eecache_editor.pl tool
+-  `2a1b24baf <https://github.com/open-power/hostboot/commit/2a1b24baf>`__ Correct target hiearchy in axone system xml
+-  `d712b65d7 <https://github.com/open-power/hostboot/commit/d712b65d7>`__ Remove workaround setting EFUSE3 power-on value
+-  `2a806047e <https://github.com/open-power/hostboot/commit/2a806047e>`__ Remove workaround added to increment MCS timeout for
+   gemini’s
+-  `582071097 <https://github.com/open-power/hostboot/commit/582071097>`__ Add hwp retry loop as workaround until we resolve timeout
+   issue
+-  `f32aff51f <https://github.com/open-power/hostboot/commit/f32aff51f>`__ Make RT_TARG id generation code common between IPL time
+   and runtime
+-  `7866a7cc7 <https://github.com/open-power/hostboot/commit/7866a7cc7>`__ Add API to get OCMB’s mmio information, used to build
+   HDAT
+
+Claus Michael Olsen (1):
+
+-  `aea300c8e <https://github.com/open-power/hostboot/commit/aea300c8e>`__ Fix to SW473350: p9_xip_customize Vpd core fill bug
+
+Corey Swenson (20):
+
+-  `f088a0dc2 <https://github.com/open-power/hostboot/commit/f088a0dc2>`__ Miscellaneous NVDIMM cleanup
+-  `af4454c30 <https://github.com/open-power/hostboot/commit/af4454c30>`__ NVDIMM unlock error DELAYED_DECONFIG
+-  `f691dc23a <https://github.com/open-power/hostboot/commit/f691dc23a>`__ HBRT command from SBE to trigger NVDIMM operations
+-  `0856a71d6 <https://github.com/open-power/hostboot/commit/0856a71d6>`__ Fix NVDIMM update error log comments
+-  `2ad648b98 <https://github.com/open-power/hostboot/commit/2ad648b98>`__ NVDIMM: Load warning thresholds, after FW_UPDATE, on
+   every IPL
+-  `d8db346a1 <https://github.com/open-power/hostboot/commit/d8db346a1>`__ Add Encryption Enabled bit to NV_STATUS_FLAG
+-  `26c32cba6 <https://github.com/open-power/hostboot/commit/26c32cba6>`__ NVDIMM: Additional FFDC for NVDIMM/BPM callouts
+-  `ce0d29c96 <https://github.com/open-power/hostboot/commit/ce0d29c96>`__ Add vendor log data to FFDC for all NVDIMM HW errors
+-  `1434b8952 <https://github.com/open-power/hostboot/commit/1434b8952>`__ NVDIMM: FW_UPDATE: New FFDC for SECURITY_ERROR
+-  `adc61f1bd <https://github.com/open-power/hostboot/commit/adc61f1bd>`__ Attempt to unlock encryption in NVDIMM Arm function
+-  `7fb809d19 <https://github.com/open-power/hostboot/commit/7fb809d19>`__ Re-enable NV_STATUS notification for Opal
+-  `f41f71705 <https://github.com/open-power/hostboot/commit/f41f71705>`__ Fix linker Object init
+-  `d8decc681 <https://github.com/open-power/hostboot/commit/d8decc681>`__ Add support for NULL char in vendor log
+-  `7e66117da <https://github.com/open-power/hostboot/commit/7e66117da>`__ Add NVDIMM opertions to rt_cmds
+-  `d432c4503 <https://github.com/open-power/hostboot/commit/d432c4503>`__ Fix auto-arming NVDIMMs for ESS systems
+-  `5eaa67a66 <https://github.com/open-power/hostboot/commit/5eaa67a66>`__ Always send NV_STATUS to Opal when opal-prd starts
+-  `c3d65931f <https://github.com/open-power/hostboot/commit/c3d65931f>`__ Fix for missing HBRT error log after error injected
+-  `634b78532 <https://github.com/open-power/hostboot/commit/634b78532>`__ NVDIMM : Catch save error during MPIPL
+-  `a96914fab <https://github.com/open-power/hostboot/commit/a96914fab>`__ Add support for NVDIMM secure erase verify
+-  `e69d7d9ff <https://github.com/open-power/hostboot/commit/e69d7d9ff>`__ ARM/DISARM NVDIMMs by proc
+
+Dan Crowell (56):
+
+-  `d0e2fddc7 <https://github.com/open-power/hostboot/commit/d0e2fddc7>`__ Add option to factory reset nvdimms
+-  `f2281d448 <https://github.com/open-power/hostboot/commit/f2281d448>`__ Enable URMOR hack for Axone
+-  `2dc572888 <https://github.com/open-power/hostboot/commit/2dc572888>`__ Add type to adapt mrw version of i2c mux to hb mux type
+-  `0d622822e <https://github.com/open-power/hostboot/commit/0d622822e>`__ Enable URMOR hack for Axone in shutdown path
+-  `7a758c4ef <https://github.com/open-power/hostboot/commit/7a758c4ef>`__ Handle processor swap between slots to 1-socket system
+-  `6c712843a <https://github.com/open-power/hostboot/commit/6c712843a>`__ Force NO_SWAP for Explorer MMIO word swap for now
+-  `0606bb795 <https://github.com/open-power/hostboot/commit/0606bb795>`__ Honor DDIMM EFD metadata to choose OMI frequencies
+-  `b4b84d189 <https://github.com/open-power/hostboot/commit/b4b84d189>`__ Fix BPM script to put temp files into obj tree
+-  `fae196d66 <https://github.com/open-power/hostboot/commit/fae196d66>`__ Add Axone comment to grouping attribute
+-  `c0426a12d <https://github.com/open-power/hostboot/commit/c0426a12d>`__ Remove a file to remirror it
+-  `6d14af625 <https://github.com/open-power/hostboot/commit/6d14af625>`__ Add subsystem translations for NVDIMM part callouts
+-  `4b8fb565e <https://github.com/open-power/hostboot/commit/4b8fb565e>`__ Fix OMIC MRW processing
+-  `cd820b662 <https://github.com/open-power/hostboot/commit/cd820b662>`__ Final solution for Axone HCODE lid id
+-  `2ceefa096 <https://github.com/open-power/hostboot/commit/2ceefa096>`__ Do not allow PNOR partition adjustments when not in test
+   mode
+-  `5f27f36ed <https://github.com/open-power/hostboot/commit/5f27f36ed>`__ Enable SMF tests for Axone
+-  `56b1dbc3c <https://github.com/open-power/hostboot/commit/56b1dbc3c>`__ Skip hardware delays when running in Simics
+-  `8ad37b962 <https://github.com/open-power/hostboot/commit/8ad37b962>`__ Add support for DMI-MEMBUF bus failures to fapi
+-  `a3a392385 <https://github.com/open-power/hostboot/commit/a3a392385>`__ Add OMI bus support to callouts
+-  `ed40af7bc <https://github.com/open-power/hostboot/commit/ed40af7bc>`__ Enable rolling counter and verification of req id for
+   Explorer
+-  `e9c4e6ad6 <https://github.com/open-power/hostboot/commit/e9c4e6ad6>`__ Remove ibm prefix from reserved memory spaces
+-  `70b54e6ae <https://github.com/open-power/hostboot/commit/70b54e6ae>`__ Automatically set VPD cache flags based on EEPROM cache
+   setting
+-  `a0207ea10 <https://github.com/open-power/hostboot/commit/a0207ea10>`__ Add attribute to explicitly force OCMB Firmware update
+   behavior
+-  `576b16849 <https://github.com/open-power/hostboot/commit/576b16849>`__ Add plug-rule callout to memory vpd lookup failure
+-  `a7739158a <https://github.com/open-power/hostboot/commit/a7739158a>`__ Support scoms to MEM_PORT targets
+-  `38949a9bb <https://github.com/open-power/hostboot/commit/38949a9bb>`__ Do not crash if we have no functional nodes
+-  `4924154e6 <https://github.com/open-power/hostboot/commit/4924154e6>`__ Create FW interfaces to execute memory diagnostics
+-  `9c7a264f8 <https://github.com/open-power/hostboot/commit/9c7a264f8>`__ Fix fapi spd testcases
+-  `d519d2911 <https://github.com/open-power/hostboot/commit/d519d2911>`__ Fix timestamp parser for OpenBMC ESELs
+-  `95bb7028e <https://github.com/open-power/hostboot/commit/95bb7028e>`__ Move HBRT reserved memory off of NVDIMMs
+-  `1f46cc39f <https://github.com/open-power/hostboot/commit/1f46cc39f>`__ Increase size of default printk buffer in error logs
+-  `06b4ead53 <https://github.com/open-power/hostboot/commit/06b4ead53>`__ Mark bootloader RCs for FSP export
+-  `dfba68af8 <https://github.com/open-power/hostboot/commit/dfba68af8>`__ Update simics level to
+   f0c3530f4fefad5236391e61ae29b1a2582636ca
+-  `4235f2f22 <https://github.com/open-power/hostboot/commit/4235f2f22>`__ Add missing trace point to BlTrace.pm tool
+-  `aad465f4b <https://github.com/open-power/hostboot/commit/aad465f4b>`__ For ATTR_MSS_OCMB_HALF_DIMM_MODE to full dimm mode
+-  `c46f1ee5b <https://github.com/open-power/hostboot/commit/c46f1ee5b>`__ Automatically include config.h
+-  `75c0908b9 <https://github.com/open-power/hostboot/commit/75c0908b9>`__ Switch DECONFIG over to DELAYED_DECONFIG
+-  `4638dc513 <https://github.com/open-power/hostboot/commit/4638dc513>`__ Add current istep into TI SRC
+-  `ddad6a525 <https://github.com/open-power/hostboot/commit/ddad6a525>`__ Call p9a_throttle_sync inside mss_scominit
+-  `4198ffbc2 <https://github.com/open-power/hostboot/commit/4198ffbc2>`__ Force a Hostboot dump on any TI in Simics
+-  `91f6cf741 <https://github.com/open-power/hostboot/commit/91f6cf741>`__ Enhancements to default console output
+-  `6ceeb473d <https://github.com/open-power/hostboot/commit/6ceeb473d>`__ Move p9a_omi_setup_bars from 12.4 to 12.3
+-  `03db83368 <https://github.com/open-power/hostboot/commit/03db83368>`__ Handle automatic interleaving between OMI sub-channels
+-  `c6aaded09 <https://github.com/open-power/hostboot/commit/c6aaded09>`__ Support for ATTR_TMP and GUARD in standalone simics
+-  `fd4e73a22 <https://github.com/open-power/hostboot/commit/fd4e73a22>`__ Add obj tree to EXTRAINCDIR for istep10
+-  `14a51c828 <https://github.com/open-power/hostboot/commit/14a51c828>`__ Add more rc values to vmmpagetest
+-  `1cb00f7e0 <https://github.com/open-power/hostboot/commit/1cb00f7e0>`__ Add fir subdir to Axone mss HWP compile path
+-  `3b5bb9f2e <https://github.com/open-power/hostboot/commit/3b5bb9f2e>`__ Adjust idec algorithm for Explorer B.0 format
+-  `1a19ea2ae <https://github.com/open-power/hostboot/commit/1a19ea2ae>`__ Change p9a_mss_freq from MEM_PORT to PROC_CHIP targets
+   (HB)
+-  `4a69880fa <https://github.com/open-power/hostboot/commit/4a69880fa>`__ Better handling of end-of-year mirrored commits
+-  `dced790c1 <https://github.com/open-power/hostboot/commit/dced790c1>`__ ZZ Gen4 WOFDATA
+-  `541200528 <https://github.com/open-power/hostboot/commit/541200528>`__ Do not truncate error log at runtime when using
+   firmware_request
+-  `4e31bed66 <https://github.com/open-power/hostboot/commit/4e31bed66>`__ Convert DECONFIG to DELAYED_DECONFIG on FSP systems
+-  `c815997b7 <https://github.com/open-power/hostboot/commit/c815997b7>`__ Pass complete mmio address into runtime ocmb scom
+   interface
+-  `0b49c1912 <https://github.com/open-power/hostboot/commit/0b49c1912>`__ Add translation for SuperWOF lid id
+-  `9f4f5c89e <https://github.com/open-power/hostboot/commit/9f4f5c89e>`__ Allow very long attribute names
+-  `f6f86c539 <https://github.com/open-power/hostboot/commit/f6f86c539>`__ Removing files to force a remirror…
+
+Dan Larson (1):
+
+-  `514dce81c <https://github.com/open-power/hostboot/commit/514dce81c>`__ HCBI-239 Enable static analysis
+
+Daniel M Crowell (3):
+
+-  `4a6e20386 <https://github.com/open-power/hostboot/commit/4a6e20386>`__ Revert “Compile Hostboot with -Os”
+-  `35cc764a1 <https://github.com/open-power/hostboot/commit/35cc764a1>`__ Revert “Remove ibm prefix from reserved memory spaces”
+-  `6332cbac6 <https://github.com/open-power/hostboot/commit/6332cbac6>`__ Revert “Add DDR4 RCD attributes from the EXP resp
+   structure”
+
+Dean Sanner (10):
+
+-  `a22884e07 <https://github.com/open-power/hostboot/commit/a22884e07>`__ Correctly form LX record/keyword for OpenPOWER
+-  `449d1fabb <https://github.com/open-power/hostboot/commit/449d1fabb>`__ Fix bug in attribute sync
+-  `cd1e5c91e <https://github.com/open-power/hostboot/commit/cd1e5c91e>`__ Compile Hostboot with -Os
+-  `c4e7bcba0 <https://github.com/open-power/hostboot/commit/c4e7bcba0>`__ Compile Hostboot with -Os
+-  `7c03d51c2 <https://github.com/open-power/hostboot/commit/7c03d51c2>`__ Always position HOMER in HV space for istep 16
+-  `b28407123 <https://github.com/open-power/hostboot/commit/b28407123>`__ Add missing target types for OCMB
+-  `81abe97b7 <https://github.com/open-power/hostboot/commit/81abe97b7>`__ Support direct load of POWERVM from BOOTKERNEL partition
+-  `d99b1eddc <https://github.com/open-power/hostboot/commit/d99b1eddc>`__ Add SBE Arch dump area for both OPAL & PHYP
+-  `334617066 <https://github.com/open-power/hostboot/commit/334617066>`__ Replace spr/gpr numbers with names for arch dump
+-  `c16b08724 <https://github.com/open-power/hostboot/commit/c16b08724>`__ Update HDAT flags to indicate memory dump
+
+Devon Baughen (1):
+
+-  `df80bf43c <https://github.com/open-power/hostboot/commit/df80bf43c>`__ add function to turn on adaptation in bootconfig
+
+Emmanuel Sacristan (1):
+
+-  `eb3d4239b <https://github.com/open-power/hostboot/commit/eb3d4239b>`__ adding iss 768 init for p9 behaviour in nmmu
+
+Giridhari Krishnan (1):
+
+-  `d507b6f85 <https://github.com/open-power/hostboot/commit/d507b6f85>`__ Merging of Serverwiz and hostboot repo Targets.pm
+
+Glenn Miles (2):
+
+-  `9f92316f3 <https://github.com/open-power/hostboot/commit/9f92316f3>`__ Do nothing with error logs after shutdown event is
+   received.
+-  `68ba813f2 <https://github.com/open-power/hostboot/commit/68ba813f2>`__ Fix invalid use of vector iterator
+
+Ilya Smirnov (11):
+
+-  `3ab493b69 <https://github.com/open-power/hostboot/commit/3ab493b69>`__ Account For TPM Not Required in Node Comm
+-  `33dcae3a2 <https://github.com/open-power/hostboot/commit/33dcae3a2>`__ Set SMF_CONFIG Attribute in MBOX Scratch Reg
+-  `4ea0824d8 <https://github.com/open-power/hostboot/commit/4ea0824d8>`__ Update SBE In Istep7.5 In SMF Mode
+-  `3db6c1479 <https://github.com/open-power/hostboot/commit/3db6c1479>`__ Cache VERSION Partition
+-  `b9cb9f771 <https://github.com/open-power/hostboot/commit/b9cb9f771>`__ Update SYS’s ATTR_XSCOM_BASE_ADDRESS in SMF Paths
+-  `fc0e2ceee <https://github.com/open-power/hostboot/commit/fc0e2ceee>`__ HDAT: Add SMF Memory Region
+-  `c049efe44 <https://github.com/open-power/hostboot/commit/c049efe44>`__ Update startup.simics To Disable SBE Updates
+-  `d2bcdefb2 <https://github.com/open-power/hostboot/commit/d2bcdefb2>`__ Add Printk Traces to ThreadPool Unit Tests
+-  `0e5621232 <https://github.com/open-power/hostboot/commit/0e5621232>`__ Fix ThreadPool Memory Corruption
+-  `1cee7cd49 <https://github.com/open-power/hostboot/commit/1cee7cd49>`__ Fix UVBWLIST SBE Chip Op
+-  `58930a38e <https://github.com/open-power/hostboot/commit/58930a38e>`__ HB TI Area Parser
+
+Jacob Harvey (6):
+
+-  `9fc60d7a2 <https://github.com/open-power/hostboot/commit/9fc60d7a2>`__ Fixed doxygen errors and typos
+-  `53b580bab <https://github.com/open-power/hostboot/commit/53b580bab>`__ Implementing thermal_init
+-  `f26b88c04 <https://github.com/open-power/hostboot/commit/f26b88c04>`__ Power Thermal init
+-  `85b7c42f1 <https://github.com/open-power/hostboot/commit/85b7c42f1>`__ Disable memory throttle change_after_sync
+-  `7bb1c0030 <https://github.com/open-power/hostboot/commit/7bb1c0030>`__ Change power controll settings for PD/STR
+-  `e7de009de <https://github.com/open-power/hostboot/commit/e7de009de>`__ L3 draminit and mss_lib
+
+Jayashankar Padath (3):
+
+-  `103d85c96 <https://github.com/open-power/hostboot/commit/103d85c96>`__ HDAT: Support for Swift/Axone memory sub system
+-  `50c349b5a <https://github.com/open-power/hostboot/commit/50c349b5a>`__ HDAT: Add MMIO information of OCMB in to Ms Area
+-  `8e9344fa0 <https://github.com/open-power/hostboot/commit/8e9344fa0>`__ HDAT: Update on MMIO range address
+
+Jenny Huynh (2):
+
+-  `1c64cf3cb <https://github.com/open-power/hostboot/commit/1c64cf3cb>`__ Wilted Apple: Disable SMT2 prefetch for NDD2.2+, CDD1.1+,
+   ADD1.0+
+-  `39854a32f <https://github.com/open-power/hostboot/commit/39854a32f>`__ Add slbv, slbe extraction to p9_ram_core procedure
+
+Jet Li (1):
+
+-  `4e071c333 <https://github.com/open-power/hostboot/commit/4e071c333>`__ Create submodule in hostboot repo for mctp
+
+Joachim Fenkes (1):
+
+-  `60d3cb8b4 <https://github.com/open-power/hostboot/commit/60d3cb8b4>`__ Streamline the way PIB/NET are initialized between SBE
+   and Cronus
+
+Joe McGill (2):
+
+-  `bd473add8 <https://github.com/open-power/hostboot/commit/bd473add8>`__ p9_fbc_ioo_tdm_recovery – post spare lane FIR after final
+   FIR clearing, unmask
+-  `1fb1c42e4 <https://github.com/open-power/hostboot/commit/1fb1c42e4>`__ p9_proc_gettracearray – updates for Axone
+
+Kahn Evans (1):
+
+-  `66af054d9 <https://github.com/open-power/hostboot/commit/66af054d9>`__ Fix for missing putCMD symbols
+
+Klaus Heinrich Kiwi (1):
+
+-  `caaf22c3e <https://github.com/open-power/hostboot/commit/caaf22c3e>`__ Debug Scripts: Remove deprecated defined(@array)
+
+Louis Stermole (37):
+
+-  `dd6aa0faa <https://github.com/open-power/hostboot/commit/dd6aa0faa>`__ Lengthen polling duration for Explorer outbound doorbell
+-  `a911c8a49 <https://github.com/open-power/hostboot/commit/a911c8a49>`__ Fix polling timeouts for exp_omi_train and
+   exp_check_for_ready
+-  `eed860207 <https://github.com/open-power/hostboot/commit/eed860207>`__ Add attribute to control word swapping over OMI MMIO
+-  `77397c404 <https://github.com/open-power/hostboot/commit/77397c404>`__ Change description and default for
+   ATTR_MSS_OCMB_EXP_BOOT_CONFIG_DFE_DISABLE
+-  `51aebe563 <https://github.com/open-power/hostboot/commit/51aebe563>`__ Change p9a_mss_eff_config to use rank-specific RTT values
+   from SPD
+-  `3e7974342 <https://github.com/open-power/hostboot/commit/3e7974342>`__ Updates to Explorer FW upload tools
+-  `4cbe15e36 <https://github.com/open-power/hostboot/commit/4cbe15e36>`__ Rename p9a_mss_memdiag to exp_mss_memdiag
+-  `9d7ab6bb2 <https://github.com/open-power/hostboot/commit/9d7ab6bb2>`__ Skip running EXP_FW_TEMP_SENSOR_CONFIG_INTERVAL_READ in
+   exp_mss_thermal_init
+-  `ff05444dd <https://github.com/open-power/hostboot/commit/ff05444dd>`__ Remove unmask of MCBISTFIRQ[12]
+-  `994392964 <https://github.com/open-power/hostboot/commit/994392964>`__ Remove unused procedure p9a_mss_eff_config_thermal
+-  `3502d6036 <https://github.com/open-power/hostboot/commit/3502d6036>`__ Add deconfigure of memory port if mss_freq can’t find
+   consensus freq
+-  `2f808f21c <https://github.com/open-power/hostboot/commit/2f808f21c>`__ Skip setting up emergency throttle settings for Explorer
+   in Cronus mode
+-  `ef6600cc1 <https://github.com/open-power/hostboot/commit/ef6600cc1>`__ Add empty file for exp_port_traits
+-  `7b91b9596 <https://github.com/open-power/hostboot/commit/7b91b9596>`__ Add attribute to specify polling timeout for
+   exp_check_for_ready
+-  `a801fcf53 <https://github.com/open-power/hostboot/commit/a801fcf53>`__ Fix exp_draminit to print response structure and error
+   code when training fails
+-  `a69715d78 <https://github.com/open-power/hostboot/commit/a69715d78>`__ Add p9a_mss_utils_to_throttle
+-  `6b29b3829 <https://github.com/open-power/hostboot/commit/6b29b3829>`__ Change p9a_mss_freq to work on PROC_CHIP target
+-  `f51ad1f24 <https://github.com/open-power/hostboot/commit/f51ad1f24>`__ Add blank file for exp_port.C
+-  `a9b71d90c <https://github.com/open-power/hostboot/commit/a9b71d90c>`__ Don’t assert from ddimm_get_efd for unsupported freq if
+   ffdc_enabled not set
+-  `c49249c72 <https://github.com/open-power/hostboot/commit/c49249c72>`__ Add Explorer specific MCBIST settings before scrub and
+   maint
+-  `19e0f82a3 <https://github.com/open-power/hostboot/commit/19e0f82a3>`__ Add blank file exp_fir.C for HB mirror
+-  `46174931e <https://github.com/open-power/hostboot/commit/46174931e>`__ Add blank files for P9A plug rules
+-  `c4fd28507 <https://github.com/open-power/hostboot/commit/c4fd28507>`__ Add Axone FIR unmasking after p9_chiplet_scominit
+-  `288f7babe <https://github.com/open-power/hostboot/commit/288f7babe>`__ Add unmask_after_exp_omi_setup and FIR checks
+-  `3a26734f8 <https://github.com/open-power/hostboot/commit/3a26734f8>`__ Add ATTR_MEM_IGNORE_PLUG_RULES to skip Axone plug rules
+-  `f40c41f81 <https://github.com/open-power/hostboot/commit/f40c41f81>`__ Increase exp_draminit polling timeout for MDS
+-  `9c2a95eab <https://github.com/open-power/hostboot/commit/9c2a95eab>`__ Add some FIR unmask updates for p9a and explorer
+-  `fde4c9f63 <https://github.com/open-power/hostboot/commit/fde4c9f63>`__ Add periodic mem cal to end of exp_draminit_mc
+-  `513da3116 <https://github.com/open-power/hostboot/commit/513da3116>`__ Set reorder mode after read-only subtest in exp_memdiag
+-  `e9687ad70 <https://github.com/open-power/hostboot/commit/e9687ad70>`__ Add unmasks for REG1 and REG2 versions of OMI_FIR for
+   Axone
+-  `6ed0290da <https://github.com/open-power/hostboot/commit/6ed0290da>`__ Change “ALL EFDs have been exhausted” trace from error to
+   info
+-  `eed98f14e <https://github.com/open-power/hostboot/commit/eed98f14e>`__ Fix DL_OMI_FIR unmasks after p9_chiplet_scominit to be DL
+   specific
+-  `445272ea4 <https://github.com/open-power/hostboot/commit/445272ea4>`__ Fix Swift plug rule for DDIMM channel dependency
+-  `044ece9cc <https://github.com/open-power/hostboot/commit/044ece9cc>`__ Add PRD helper functions for restore_repairs on Nimbus
+   and Explorer
+-  `129a80acf <https://github.com/open-power/hostboot/commit/129a80acf>`__ Fix MC_OMI_FIR_REG_DL0_FLIT_CE unmask in p9a_omi_init
+-  `d97ea2280 <https://github.com/open-power/hostboot/commit/d97ea2280>`__ Add initial masking to Explorer MC_OMI_FIR in
+   exp_omi_setup
+-  `e27c350a6 <https://github.com/open-power/hostboot/commit/e27c350a6>`__ Add include for find.H in gen_mss_port.H
+
+Luis Fernandez (6):
+
+-  `6faf10f43 <https://github.com/open-power/hostboot/commit/6faf10f43>`__ HB Implement Static Analysis with cppcheck
+-  `5474e9200 <https://github.com/open-power/hostboot/commit/5474e9200>`__ Fixes from HB for GCC 8 Compiler
+-  `163b6d077 <https://github.com/open-power/hostboot/commit/163b6d077>`__ (Fix for:) Alert when a partition’s space utilization
+   exceeds a threshold
+-  `08501bc65 <https://github.com/open-power/hostboot/commit/08501bc65>`__ Patch For: Implement Static Analysis with cppcheck
+-  `5dd26a01e <https://github.com/open-power/hostboot/commit/5dd26a01e>`__ New Optional Argument to PnorUtils.pm’s loadPnorLayout
+-  `1f76bfa23 <https://github.com/open-power/hostboot/commit/1f76bfa23>`__ Add call to p9_throttle_sync inside
+   cumulus_call_mss_scominit
+
+MATTHEW I. HICKMAN (9):
+
+-  `01ac1b8dc <https://github.com/open-power/hostboot/commit/01ac1b8dc>`__ Added security bit and fir handling, gard and trace fixes
+-  `1cd7d1c78 <https://github.com/open-power/hostboot/commit/1cd7d1c78>`__ Fix for offset traces due to merge bug
+-  `b0cd81c61 <https://github.com/open-power/hostboot/commit/b0cd81c61>`__ Fixed several small bugs found via code review
+-  `913c6fde1 <https://github.com/open-power/hostboot/commit/913c6fde1>`__ Fixed several Arm error handling bugs
+-  `b23632654 <https://github.com/open-power/hostboot/commit/b23632654>`__ Fixed pre-req check during NVDimm Arm
+-  `36a6a52a5 <https://github.com/open-power/hostboot/commit/36a6a52a5>`__ Added additional erase error handling
+-  `746ec708f <https://github.com/open-power/hostboot/commit/746ec708f>`__ Fixed the restore status flag bug
+-  `5db287b6e <https://github.com/open-power/hostboot/commit/5db287b6e>`__ Fixed NOT_ENOUGH_ENERGY_FOR_CSAVE check
+-  `7b8722652 <https://github.com/open-power/hostboot/commit/7b8722652>`__ Fixed error handling issues in arm path
+
+Mark Pizzutillo (57):
+
+-  `3a513ca00 <https://github.com/open-power/hostboot/commit/3a513ca00>`__ Split omi setup & train for new DL_TRAIN cmd
+-  `5ccea20bd <https://github.com/open-power/hostboot/commit/5ccea20bd>`__ Add omi_workarounds blank files for PRBS OMI training
+   workarounds
+-  `5fffa914a <https://github.com/open-power/hostboot/commit/5fffa914a>`__ Add blank files for exp_inband move to memory/lib/
+-  `cf4b39c85 <https://github.com/open-power/hostboot/commit/cf4b39c85>`__ Add PRBS training sequence to exp_omi_setup
+-  `52ccb29ce <https://github.com/open-power/hostboot/commit/52ccb29ce>`__ Fix FAPI_INF segfault in exp_omi_setup
+-  `bca5cf6af <https://github.com/open-power/hostboot/commit/bca5cf6af>`__ Create workaround for gemini MENTERP register bug
+-  `79c45f4da <https://github.com/open-power/hostboot/commit/79c45f4da>`__ Move exp_inband to lib directory
+-  `00d4530ee <https://github.com/open-power/hostboot/commit/00d4530ee>`__ Add rank API support in axone_mss_freq
+-  `4b5c78b95 <https://github.com/open-power/hostboot/commit/4b5c78b95>`__ Add support for MCHP dmb revision ids in ddimm_get_efd
+-  `24762ab00 <https://github.com/open-power/hostboot/commit/24762ab00>`__ Fix issue in pmic_enable where VR_ENABLE did not kick off
+-  `3c930cf14 <https://github.com/open-power/hostboot/commit/3c930cf14>`__ Add workaround for gemini OMI config settings
+-  `d43de0d64 <https://github.com/open-power/hostboot/commit/d43de0d64>`__ Add pmic_status_tool
+-  `75ac15f71 <https://github.com/open-power/hostboot/commit/75ac15f71>`__ Fix bug causing get_mmio index overflow for swift
+-  `ae8c69b80 <https://github.com/open-power/hostboot/commit/ae8c69b80>`__ Zero out command argument field to fix exp_draminit
+   issues
+-  `7a27f4603 <https://github.com/open-power/hostboot/commit/7a27f4603>`__ Add ekb dual drop support for p9a
+-  `3cdd4fbe9 <https://github.com/open-power/hostboot/commit/3cdd4fbe9>`__ Add pmic_i2c_addr_get function for platform code use
+-  `b2be220bb <https://github.com/open-power/hostboot/commit/b2be220bb>`__ Add blank files for p9a_omi_setup procedure
+-  `d80f7fc83 <https://github.com/open-power/hostboot/commit/d80f7fc83>`__ Fix dmb_revision size in ddimm_get_efd
+-  `04d5973be <https://github.com/open-power/hostboot/commit/04d5973be>`__ Add blank files for exp_omi_train_check procedure
+-  `48abe5e8a <https://github.com/open-power/hostboot/commit/48abe5e8a>`__ Add support for new pmic sequencing SPD fields
+-  `c349ba997 <https://github.com/open-power/hostboot/commit/c349ba997>`__ Check PMIC error and enable statuses after pmic_enable
+-  `104c2dc59 <https://github.com/open-power/hostboot/commit/104c2dc59>`__ Disable & clear PMIC status codes in beginning of
+   pmic_enable
+-  `822fea83d <https://github.com/open-power/hostboot/commit/822fea83d>`__ Add MDS attribute & draminit support
+-  `8f549e754 <https://github.com/open-power/hostboot/commit/8f549e754>`__ Add code and workarounds for \*_omi_setup and
+   \*_omi_train for Swift
+-  `9546b72bc <https://github.com/open-power/hostboot/commit/9546b72bc>`__ Increase default PRBS_TIME for FW
+-  `1745eed20 <https://github.com/open-power/hostboot/commit/1745eed20>`__ Make explorer endian attributes platInit
+-  `d639a5a45 <https://github.com/open-power/hostboot/commit/d639a5a45>`__ Add printout of ECID in exp_getecid
+-  `4921bf245 <https://github.com/open-power/hostboot/commit/4921bf245>`__ Update exp_draminit results display for new response
+   structs
+-  `4b9dc024e <https://github.com/open-power/hostboot/commit/4b9dc024e>`__ Add assert for RSP extended data buffer size in
+   exp_draminit
+-  `0b50210ae <https://github.com/open-power/hostboot/commit/0b50210ae>`__ Reverse mcbist address buffer fields
+-  `3f280b8d2 <https://github.com/open-power/hostboot/commit/3f280b8d2>`__ Fix odt RD/WR fields
+-  `eddd46a88 <https://github.com/open-power/hostboot/commit/eddd46a88>`__ Add MCBIST infinite tests
+-  `30077cd8b <https://github.com/open-power/hostboot/commit/30077cd8b>`__ Add blank files for explorer plug rules libs
+-  `7e3eaedff <https://github.com/open-power/hostboot/commit/7e3eaedff>`__ Add check for compatible upstream templates before
+   enabling Explorer metadata
+-  `1ac7a33a9 <https://github.com/open-power/hostboot/commit/1ac7a33a9>`__ Fix EFD processor indexing error
+-  `291768968 <https://github.com/open-power/hostboot/commit/291768968>`__ Remove vin_bulk check before status clears in pmic_enable
+-  `ecac8199d <https://github.com/open-power/hostboot/commit/ecac8199d>`__ Add asserts for invalid states of enterprise & half dimm
+   mode
+-  `0921b80a5 <https://github.com/open-power/hostboot/commit/0921b80a5>`__ Add new DDIMM spd version 0_3 and update UTs
+-  `149d7cc96 <https://github.com/open-power/hostboot/commit/149d7cc96>`__ Fix pmic_status_tool exiting before checking both PMICs
+-  `d3c8aa5e5 <https://github.com/open-power/hostboot/commit/d3c8aa5e5>`__ Update \*_train_check procedure errors to print status
+   info
+-  `00950f87a <https://github.com/open-power/hostboot/commit/00950f87a>`__ Fix DFIMRL_DDRCLK_trained draminit result display
+   printout log level
+-  `779761d1c <https://github.com/open-power/hostboot/commit/779761d1c>`__ Add read only subtest at the end of exp_mss_memdiags
+-  `dc407ba49 <https://github.com/open-power/hostboot/commit/dc407ba49>`__ Add blank file for hwpf i2cslave attributes
+-  `798af67f2 <https://github.com/open-power/hostboot/commit/798af67f2>`__ Add attribute for SPD_REVISION (byte 1)
+-  `be69d0cb3 <https://github.com/open-power/hostboot/commit/be69d0cb3>`__ Add TARGET_TYPE_GENERICI2CSLAVE and relevant attributes
+-  `6579e15ca <https://github.com/open-power/hostboot/commit/6579e15ca>`__ Refactor PMIC attributes to be at OCMB level
+-  `921a602d7 <https://github.com/open-power/hostboot/commit/921a602d7>`__ Add deconfigure for OCMB_TARGET if no doorbell
+-  `ac2efc87f <https://github.com/open-power/hostboot/commit/ac2efc87f>`__ Add SPD, ATTR, and code support for thermal sensor fields
+-  `f5813785b <https://github.com/open-power/hostboot/commit/f5813785b>`__ Move p9a_omi_init from nimbus to axone directory
+-  `87f140959 <https://github.com/open-power/hostboot/commit/87f140959>`__ Fix incorrect polling rate in exp_mss_thermal_init
+-  `42f6285e7 <https://github.com/open-power/hostboot/commit/42f6285e7>`__ Update pmic_bias_tool percentage bias to be relative to
+   nominal
+-  `ba560090b <https://github.com/open-power/hostboot/commit/ba560090b>`__ Update RAS DQ Inject tool with new MCHP squence
+-  `18ef7916f <https://github.com/open-power/hostboot/commit/18ef7916f>`__ pmic_enable: Add additional clear for error status bits
+   in R04-R07
+-  `50da7a4fa <https://github.com/open-power/hostboot/commit/50da7a4fa>`__ Update explorer CCS to handle A vs B side ranks
+-  `5e3449aed <https://github.com/open-power/hostboot/commit/5e3449aed>`__ Update explorer CCS ODTs to support mirroring A-B
+-  `f25313313 <https://github.com/open-power/hostboot/commit/f25313313>`__ Add FFDC and trace for DL0_ERROR_HOLD in
+   \*_omi_train_checks
+-  `09ee51cf9 <https://github.com/open-power/hostboot/commit/09ee51cf9>`__ Add check for matching PMIC vendor and IDT revisions
+
+Matt Derksen (35):
+
+-  `2e406cadf <https://github.com/open-power/hostboot/commit/2e406cadf>`__ Remove CONFIG_AXONE_BRING_UP from xscomtest
+-  `b3043ae16 <https://github.com/open-power/hostboot/commit/b3043ae16>`__ Enable testpreverifiedlidmgr for Axone
+-  `3a146159c <https://github.com/open-power/hostboot/commit/3a146159c>`__ Enable secure boot in Axone simics
+-  `256d3e0a8 <https://github.com/open-power/hostboot/commit/256d3e0a8>`__ Enable prdf_hb_common_test for Axone
+-  `199b35573 <https://github.com/open-power/hostboot/commit/199b35573>`__ Call new p9a_throttle_sync procedure
+-  `fc5fa5842 <https://github.com/open-power/hostboot/commit/fc5fa5842>`__ Runtime scom support for OCMBs
+-  `51b7478d2 <https://github.com/open-power/hostboot/commit/51b7478d2>`__ Fix calling eepromddtest.H
+-  `794efce0c <https://github.com/open-power/hostboot/commit/794efce0c>`__ Fix retry failure in nvdimmWriteData()
+-  `052182c0d <https://github.com/open-power/hostboot/commit/052182c0d>`__ Test runtime scom support in Axone
+-  `b0f0228ff <https://github.com/open-power/hostboot/commit/b0f0228ff>`__ Remove verbose option from handle_duplicates call
+-  `c4df5e918 <https://github.com/open-power/hostboot/commit/c4df5e918>`__ Update SPD_DDR4 size to be 640 bytes
+-  `582ed66b3 <https://github.com/open-power/hostboot/commit/582ed66b3>`__ Implement std::begin() and std::end() for base types
+-  `8664b9adb <https://github.com/open-power/hostboot/commit/8664b9adb>`__ Add exp_mss_eff_config_thermal call to istep7 for Axone
+-  `feef0389e <https://github.com/open-power/hostboot/commit/feef0389e>`__ Dummy commit to prime hwsv for new Explorer FFDC
+   collection
+-  `56574b602 <https://github.com/open-power/hostboot/commit/56574b602>`__ Support EXP_FW_LOG command to get Explorer FW logs
+-  `8e6285e72 <https://github.com/open-power/hostboot/commit/8e6285e72>`__ Support EXP_FW_LOG command to get Explorer Firmware logs
+-  `09016a8a7 <https://github.com/open-power/hostboot/commit/09016a8a7>`__ Hostboot platform support for Explorer inband commands
+   via i2c
+-  `f5796a5fa <https://github.com/open-power/hostboot/commit/f5796a5fa>`__ Add NVDIMM node controller readme text
+-  `63989a514 <https://github.com/open-power/hostboot/commit/63989a514>`__ Create error for unsuspected target in
+   configureHbrtHypIds
+-  `b221671e5 <https://github.com/open-power/hostboot/commit/b221671e5>`__ NVDIMM Erase error handle not working in IPL Arm handling
+-  `68ab1e874 <https://github.com/open-power/hostboot/commit/68ab1e874>`__ Prevent pre-3.0 level NVDIMMs from being in systems
+-  `e01fc4be9 <https://github.com/open-power/hostboot/commit/e01fc4be9>`__ NVDIMM update - Clear FW Ops Status verification
+-  `027b53647 <https://github.com/open-power/hostboot/commit/027b53647>`__ NVDIMM FW update region write retry
+-  `12f57c203 <https://github.com/open-power/hostboot/commit/12f57c203>`__ Slot check after firmware update
+-  `a50115980 <https://github.com/open-power/hostboot/commit/a50115980>`__ Remove excessive NVDIMM tracing from normal path
+-  `e22bb40fb <https://github.com/open-power/hostboot/commit/e22bb40fb>`__ Fix reporting eecache if no record specified
+-  `45cb27519 <https://github.com/open-power/hostboot/commit/45cb27519>`__ NVDIMM: Mask mbacalfir at the beginning of restore step
+   during mpipl
+-  `829e56fb1 <https://github.com/open-power/hostboot/commit/829e56fb1>`__ NVDIMM: Use block write for nvdimm update
+-  `a42605426 <https://github.com/open-power/hostboot/commit/a42605426>`__ NVDIMM: correct the RC for BLOCK write failure
+-  `d45a9393d <https://github.com/open-power/hostboot/commit/d45a9393d>`__ NVDIMM: poll for updated SET_EVENT_NOTIFICATION_STATUS in
+   nvdimmArm
+-  `fffe69ad3 <https://github.com/open-power/hostboot/commit/fffe69ad3>`__ Remove nvdimmAddVendorLog calls from checksum errors
+-  `820a09943 <https://github.com/open-power/hostboot/commit/820a09943>`__ NVDIMM update: retry all region failures
+-  `10a83636b <https://github.com/open-power/hostboot/commit/10a83636b>`__ Improvements to testing NVDIMM update path
+-  `e53402c0f <https://github.com/open-power/hostboot/commit/e53402c0f>`__ Explorer update hash fix
+-  `27e689c2f <https://github.com/open-power/hostboot/commit/27e689c2f>`__ Enable the inband Explorer update
+
+Matt K. Light (1):
+
+-  `da8e96ea0 <https://github.com/open-power/hostboot/commit/da8e96ea0>`__ remove relative path to p9_lpc_utils.H from
+   p9_collect_lpc_regs.C
+
+Matthew Hickman (13):
+
+-  `fd400b157 <https://github.com/open-power/hostboot/commit/fd400b157>`__ Added p9a memdiags implementation
+-  `4d3e1f11e <https://github.com/open-power/hostboot/commit/4d3e1f11e>`__ Added PRD Wrapper file for hwp invoke commands
+-  `afeaf784d <https://github.com/open-power/hostboot/commit/afeaf784d>`__ Fixed the ccs port merge conflicts and added lab code
+-  `d57798877 <https://github.com/open-power/hostboot/commit/d57798877>`__ Added error checking and handling to nvdimm ipl
+-  `d88e41a26 <https://github.com/open-power/hostboot/commit/d88e41a26>`__ Added fir unmasking after exp_scrub
+-  `9965b521f <https://github.com/open-power/hostboot/commit/9965b521f>`__ Added unmasking to exp_memdiags
+-  `abf673285 <https://github.com/open-power/hostboot/commit/abf673285>`__ Added blank files for mrs and row repair
+-  `0106eaa7d <https://github.com/open-power/hostboot/commit/0106eaa7d>`__ Added port of MRS engine to generic
+-  `6db3d460e <https://github.com/open-power/hostboot/commit/6db3d460e>`__ Added MRS attributes and MRS data handling for Explorer
+-  `5adf9d688 <https://github.com/open-power/hostboot/commit/5adf9d688>`__ Added blank files for mrs and row repair
+-  `470b8f500 <https://github.com/open-power/hostboot/commit/470b8f500>`__ Added port of MRS engine to generic
+-  `bbeb38c59 <https://github.com/open-power/hostboot/commit/bbeb38c59>`__ Added MRS attributes and MRS data handling for Explorer
+-  `cc7fb146a <https://github.com/open-power/hostboot/commit/cc7fb146a>`__ Added MRS attributes and MRS data handling for Explorer
+
+Matthew Raybuck (24):
+
+-  `44fe892dc <https://github.com/open-power/hostboot/commit/44fe892dc>`__ Add BPM utility scripts to support additional firmware
+   update requirements
+-  `72f32c4cb <https://github.com/open-power/hostboot/commit/72f32c4cb>`__ Update buildBpmFlashImages.pl to support configuration
+   data binary generation
+-  `f18f9f2d1 <https://github.com/open-power/hostboot/commit/f18f9f2d1>`__ Add BPM firmware update procedure
+-  `beeb7f5f9 <https://github.com/open-power/hostboot/commit/beeb7f5f9>`__ re-enable CRC generation for BPM firmware binary
+-  `0f0b7c641 <https://github.com/open-power/hostboot/commit/0f0b7c641>`__ Fix BPM flash image script to properly calculate line
+   length
+-  `c03117c7b <https://github.com/open-power/hostboot/commit/c03117c7b>`__ Add BPM config update procedure
+-  `5617bb84a <https://github.com/open-power/hostboot/commit/5617bb84a>`__ Add update verification and recovery procedures
+-  `3dc237792 <https://github.com/open-power/hostboot/commit/3dc237792>`__ Add error logs to BPM update procedure
+-  `3c440fe6d <https://github.com/open-power/hostboot/commit/3c440fe6d>`__ Add multiple error handling to BPM update procedure
+-  `56a3ce983 <https://github.com/open-power/hostboot/commit/56a3ce983>`__ Add code to run BPM update procedure from nvdimm_update.C
+-  `e28bd663f <https://github.com/open-power/hostboot/commit/e28bd663f>`__ Correct BPM update flow to match SMARTs flow
+-  `a2118008d <https://github.com/open-power/hostboot/commit/a2118008d>`__ Add attribute to force/skip BPM updates
+-  `0ea4fac25 <https://github.com/open-power/hostboot/commit/0ea4fac25>`__ Enable BPM Updates
+-  `deb984133 <https://github.com/open-power/hostboot/commit/deb984133>`__ Fix lingering error log issues for BPM updates
+-  `f609640a7 <https://github.com/open-power/hostboot/commit/f609640a7>`__ Add more FFDC to BPM Update Error logs
+-  `f88b6bc4a <https://github.com/open-power/hostboot/commit/f88b6bc4a>`__ BPM Updates: Extend the reset device wait to 15 seconds
+   from 10
+-  `25e1157f5 <https://github.com/open-power/hostboot/commit/25e1157f5>`__ Fix misleading trace output for BPM attribute overrides
+-  `d329c59bc <https://github.com/open-power/hostboot/commit/d329c59bc>`__ BPM Updates: Move NVDIMM controller reset and final fw
+   check to end of update
+-  `60fbee21b <https://github.com/open-power/hostboot/commit/60fbee21b>`__ Fix bad arguments to additional FFDC capture in BPM
+   Update code
+-  `fec74df97 <https://github.com/open-power/hostboot/commit/fec74df97>`__ Add a ReadMe to explain high level BPM Update Process
+-  `a2b260834 <https://github.com/open-power/hostboot/commit/a2b260834>`__ BPM Update Tweaks
+-  `ae388288d <https://github.com/open-power/hostboot/commit/ae388288d>`__ Add check to see if BPM is connected before attempting
+   Updates
+-  `7ddeb4d31 <https://github.com/open-power/hostboot/commit/7ddeb4d31>`__ Add 100ms wait to disable write protection for BPM
+-  `acdff8a39 <https://github.com/open-power/hostboot/commit/acdff8a39>`__ BPM: Bpm::issueCommand() fixes
+
+Maxim Polyakov (1):
+
+-  `e8665007c <https://github.com/open-power/hostboot/commit/e8665007c>`__ ipmidcmi: Get DCMI capabilities info to check PM support
+
+Megan (3):
+
+-  `845fb4492 <https://github.com/open-power/hostboot/commit/845fb4492>`__ Allow defining a partition with automatic starting offset
+-  `ade048149 <https://github.com/open-power/hostboot/commit/ade048149>`__ Alert when a partition’s space utilization exceeds a
+   threshold
+-  `1d4530dac <https://github.com/open-power/hostboot/commit/1d4530dac>`__ Implement Static Analysis with cppcheck
+
+Michael Baiocchi (1):
+
+-  `ed42128c7 <https://github.com/open-power/hostboot/commit/ed42128c7>`__ Revert “Terminate the IPL for Physical Presence Detection
+   Erros in Mnfg Mode”
+
+Michael Pardeik (3):
+
+-  `333d66b55 <https://github.com/open-power/hostboot/commit/333d66b55>`__ pmic status tool updates
+-  `fe09e7b9d <https://github.com/open-power/hostboot/commit/fe09e7b9d>`__ exp_mss_eff_config_thermal fixes
+-  `d0a45a3eb <https://github.com/open-power/hostboot/commit/d0a45a3eb>`__ pmic_status_tool updates
+
+Mike Baiocchi (15):
+
+-  `bcd6d6f29 <https://github.com/open-power/hostboot/commit/bcd6d6f29>`__ Secureboot: Enable verifying OPAL Payload before starting
+   instructions
+-  `de0e45306 <https://github.com/open-power/hostboot/commit/de0e45306>`__ Remove Forced Update of UCD Devices
+-  `1dbb91e5e <https://github.com/open-power/hostboot/commit/1dbb91e5e>`__ Add new Key Clear Request Attribute
+-  `eace166aa <https://github.com/open-power/hostboot/commit/eace166aa>`__ Support GPIO Physical Presence Detect Devices
+-  `35964668f <https://github.com/open-power/hostboot/commit/35964668f>`__ Add Physical Presence Check and Window Open Features
+-  `845513c74 <https://github.com/open-power/hostboot/commit/845513c74>`__ Move KEY_CLEAR_REQUEST attribute from node level to
+   system level
+-  `26554a3e5 <https://github.com/open-power/hostboot/commit/26554a3e5>`__ Move definition of TRACE_ERR_FMT and TRACE_ERR_ARGS
+-  `20b285f63 <https://github.com/open-power/hostboot/commit/20b285f63>`__ Add README.md files to the secureboot component
+-  `131e6e15f <https://github.com/open-power/hostboot/commit/131e6e15f>`__ Base support for Key Clear Requests (not enabled at this
+   time)
+-  `01b7ddff2 <https://github.com/open-power/hostboot/commit/01b7ddff2>`__ Enable Key Clear Requests for FSP Systems
+-  `a8368a4f4 <https://github.com/open-power/hostboot/commit/a8368a4f4>`__ Create CONFIG_NO_FAPI_TRACE to ignore all FAPI traces
+-  `14846f049 <https://github.com/open-power/hostboot/commit/14846f049>`__ Key Clear Request Sensor Support
+-  `74d68472d <https://github.com/open-power/hostboot/commit/74d68472d>`__ Terminate the IPL for Physical Presence Detection Erros
+   in Mnfg Mode
+-  `d4e588d22 <https://github.com/open-power/hostboot/commit/d4e588d22>`__ Skip UCD Updates on fips950
+-  `23374658f <https://github.com/open-power/hostboot/commit/23374658f>`__ Properly Commit Physical Presence Detection Error Logs
+
+Milton Miller (1):
+
+-  `f7dab51ab <https://github.com/open-power/hostboot/commit/f7dab51ab>`__ p9_tod_setup: always set edge doubling
+
+Murulidhar Nataraju (5):
+
+-  `4e5e486a1 <https://github.com/open-power/hostboot/commit/4e5e486a1>`__ Enable copying of architected registers for OPAL
+-  `39a6f147b <https://github.com/open-power/hostboot/commit/39a6f147b>`__ Update MPIPL Supported Bit
+-  `3dbe6a196 <https://github.com/open-power/hostboot/commit/3dbe6a196>`__ MPIPL: For PHYP based system replace spr/gpr numbers with
+   names
+-  `2ba85f05b <https://github.com/open-power/hostboot/commit/2ba85f05b>`__ MPIPL:Fix the condition for copyArchitectedRegs()
+-  `d348d7c2d <https://github.com/open-power/hostboot/commit/d348d7c2d>`__ MPIPL: ZZ-L, Update copyArchitectedRegs() for non-HW dump
+   flow
+
+Nico Fajardo (10):
+
+-  `1c830e13d <https://github.com/open-power/hostboot/commit/1c830e13d>`__ Add FAPI_ASSERT for unsupported SPD rank in RTT fetch
+-  `5616a5a99 <https://github.com/open-power/hostboot/commit/5616a5a99>`__ Adding blank exp_fir\* files and unmask unit test
+-  `43f41edb7 <https://github.com/open-power/hostboot/commit/43f41edb7>`__ Adding blank p9a fir folder and files
+-  `5318cf7e4 <https://github.com/open-power/hostboot/commit/5318cf7e4>`__ Porting repair_state class and related functions
+-  `596206610 <https://github.com/open-power/hostboot/commit/596206610>`__ Unmask after draminit and draminit_mc; cmd complete
+-  `7a7bd8440 <https://github.com/open-power/hostboot/commit/7a7bd8440>`__ host_mc_traits blank file commit for after_p9a_omi_init
+-  `8e19c8c4e <https://github.com/open-power/hostboot/commit/8e19c8c4e>`__ Adding after_p9a_omi_init.C and p9a-specific fir traits
+-  `9b510640b <https://github.com/open-power/hostboot/commit/9b510640b>`__ Adding after exp_omi_init unmask procedures and unit test
+-  `4991558f9 <https://github.com/open-power/hostboot/commit/4991558f9>`__ Adding unmasks after exp_scominit and unit test
+-  `9b6bd57a1 <https://github.com/open-power/hostboot/commit/9b6bd57a1>`__ exp draminit & draminit_mc phase 3 update for PRD logging
+
+Prasad Bg Ranganath (1):
+
+-  `f79d885bb <https://github.com/open-power/hostboot/commit/f79d885bb>`__ OCC firinit: Bug fix in reset path
+
+Prem Shanker Jha (4):
+
+-  `1adf7486a <https://github.com/open-power/hostboot/commit/1adf7486a>`__ PM: Modified FFDC to avoid corruption of RC in error
+   path.
+-  `a4f8acbeb <https://github.com/open-power/hostboot/commit/a4f8acbeb>`__ Img Build: Updated STOP API version to reflect SPR self
+   save availability.
+-  `6ab72d5c3 <https://github.com/open-power/hostboot/commit/6ab72d5c3>`__ STOP API: API to verify API and image compatibility.
+-  `af3984c4f <https://github.com/open-power/hostboot/commit/af3984c4f>`__ HWP: Fixed HV-UV and UV transition during STOP entry in
+   case of LE.
+
+Rahul Batra (1):
+
+-  `12fdf6499 <https://github.com/open-power/hostboot/commit/12fdf6499>`__ PM: Fix DB0 Hang
+
+Roland Veloz (13):
+
+-  `44c6d599b <https://github.com/open-power/hostboot/commit/44c6d599b>`__ Replaced invalid trace buffer with a valid one
+-  `eafe3e3d5 <https://github.com/open-power/hostboot/commit/eafe3e3d5>`__ Added support for checking on the health status of an
+   NVDIMM
+-  `86e12de69 <https://github.com/open-power/hostboot/commit/86e12de69>`__ Fix to not send a NVDIMM protection state change to OPAL
+-  `7e5007180 <https://github.com/open-power/hostboot/commit/7e5007180>`__ NVDIMM: Fix issue where a deviceRead of a register is
+   returning bad data
+-  `08db2d6a3 <https://github.com/open-power/hostboot/commit/08db2d6a3>`__ Increased the BMC timeout from 5 seconds to 30 seconds
+-  `7dce74704 <https://github.com/open-power/hostboot/commit/7dce74704>`__ Adding a routine to do the double to string conversion
+-  `96be9fd64 <https://github.com/open-power/hostboot/commit/96be9fd64>`__ In regards to health check errors, removed the software
+   callout
+-  `453670491 <https://github.com/open-power/hostboot/commit/453670491>`__ Updated the HBRT reserved trace buffer code to compensate
+   for relocation
+-  `153dcaa15 <https://github.com/open-power/hostboot/commit/153dcaa15>`__ Implement an HBRT interface to log a gard event from
+   PHYP/OPAL
+-  `c3d8cfd06 <https://github.com/open-power/hostboot/commit/c3d8cfd06>`__ Added code to support doing an NVM health check
+-  `fa1e0b136 <https://github.com/open-power/hostboot/commit/fa1e0b136>`__ Changed the callout in the call NVM Health Status to be
+   an NVDIMM
+-  `532e4d358 <https://github.com/open-power/hostboot/commit/532e4d358>`__ ffdcExpander bash utility tool, written for December,
+   2019 Hackathon
+-  `1559c893b <https://github.com/open-power/hostboot/commit/1559c893b>`__ The HOMER address is colliding with an NVDIMM address and
+   should not
+
+Ryan Black (3):
+
+-  `77ab77a26 <https://github.com/open-power/hostboot/commit/77ab77a26>`__ Mask NPU2FIR bits 15/16 & let consumer of SUE report/act
+   on error
+-  `6b24abd70 <https://github.com/open-power/hostboot/commit/6b24abd70>`__ unit xstop npu firs/sys xstop ocapi firs -> recoverable
+   with fence
+-  `f70454687 <https://github.com/open-power/hostboot/commit/f70454687>`__ set OTL Err Rpt Mask Reg 0 bit 21, OTL TX ECC UE on CQ
+   buffer read data.
+
+Sheng-Hao Huang (1):
+
+-  `0571992d6 <https://github.com/open-power/hostboot/commit/0571992d6>`__ for defect number HW476620
+
+Sneha Kadam (1):
+
+-  `3eaf02929 <https://github.com/open-power/hostboot/commit/3eaf02929>`__ Renamed MCBIST subtest to clarify the test
+
+Stephen Glancy (35):
+
+-  `de35db8a7 <https://github.com/open-power/hostboot/commit/de35db8a7>`__ Fixes MCBIST ecc/spare data pattern bug
+-  `0978a1a32 <https://github.com/open-power/hostboot/commit/0978a1a32>`__ Adds lab MCBIST compare masking functionality
+-  `1552e3875 <https://github.com/open-power/hostboot/commit/1552e3875>`__ Adds MCBIST beat/byte signature data patterns
+-  `4a69b7534 <https://github.com/open-power/hostboot/commit/4a69b7534>`__ Adds LRDIMM shadow register workaround
+-  `5e8d01aad <https://github.com/open-power/hostboot/commit/5e8d01aad>`__ Adds blank files for ecc traps and fwms addresses
+-  `15b0afe89 <https://github.com/open-power/hostboot/commit/15b0afe89>`__ Moves ecc::trap_address and fwms::address to new files
+-  `0d1f65bf2 <https://github.com/open-power/hostboot/commit/0d1f65bf2>`__ Adds explorer MCBIST address/data traps processing
+-  `cfad3552a <https://github.com/open-power/hostboot/commit/cfad3552a>`__ Fixes maintenance pattern load bug
+-  `3048b4b16 <https://github.com/open-power/hostboot/commit/3048b4b16>`__ Updates RDTAG for NVDIMM at 2400
+-  `67fcaa2aa <https://github.com/open-power/hostboot/commit/67fcaa2aa>`__ Adds explorer primary_ranks function for sf_init
+-  `7b8bfcc23 <https://github.com/open-power/hostboot/commit/7b8bfcc23>`__ Adds NVDIMM RD DQ delay workaround
+-  `4f1f71a47 <https://github.com/open-power/hostboot/commit/4f1f71a47>`__ Adds power control access functions for NVDIMM
+-  `2a3012ab7 <https://github.com/open-power/hostboot/commit/2a3012ab7>`__ Updates exp access delay regs to set delays
+-  `5d5d91e2f <https://github.com/open-power/hostboot/commit/5d5d91e2f>`__ Adds explorer shmoo traits
+-  `a95709f74 <https://github.com/open-power/hostboot/commit/a95709f74>`__ Adds explorer exerciser MCBIST for shmoo
+-  `7148b00bf <https://github.com/open-power/hostboot/commit/7148b00bf>`__ Fixes explorer accessor bugs
+-  `ca56ad521 <https://github.com/open-power/hostboot/commit/ca56ad521>`__ Adds eff config blank workaround files
+-  `50b0357dd <https://github.com/open-power/hostboot/commit/50b0357dd>`__ Adds NVDIMM RCW drive strength workaround
+-  `78426ddee <https://github.com/open-power/hostboot/commit/78426ddee>`__ Disables broadcast mode in memdiags::continue_cmd
+-  `f96eba016 <https://github.com/open-power/hostboot/commit/f96eba016>`__ Adds explorer RD VREF to access delay regs
+-  `d277b5e5d <https://github.com/open-power/hostboot/commit/d277b5e5d>`__ Adds explorer CAC shmoo
+-  `5b24dd1c6 <https://github.com/open-power/hostboot/commit/5b24dd1c6>`__ Updates MCBIST print statements
+-  `9431cc09d <https://github.com/open-power/hostboot/commit/9431cc09d>`__ Fixes MCBIST lab random addressing bug
+-  `aae5b3e33 <https://github.com/open-power/hostboot/commit/aae5b3e33>`__ Fixes explorer FIR check to preserve bad RC
+-  `7ed4ddefa <https://github.com/open-power/hostboot/commit/7ed4ddefa>`__ Fixes MCBIST lab DIMM select configuration
+-  `c5263088b <https://github.com/open-power/hostboot/commit/c5263088b>`__ Updates MMIO to use FAPI_DBG
+-  `97fc5523b <https://github.com/open-power/hostboot/commit/97fc5523b>`__ Adds MCBIST functional verification tests
+-  `f6336baa2 <https://github.com/open-power/hostboot/commit/f6336baa2>`__ Updates centaur initfiles for 16Gb
+-  `28614a19e <https://github.com/open-power/hostboot/commit/28614a19e>`__ Adds Centaur MCBIST 16Gb support
+-  `5f5573b5b <https://github.com/open-power/hostboot/commit/5f5573b5b>`__ Adds utility to read explorer delay tap size
+-  `2ff0e4392 <https://github.com/open-power/hostboot/commit/2ff0e4392>`__ Adds 16Gb support to centaur maintenance engine
+-  `151a9b61a <https://github.com/open-power/hostboot/commit/151a9b61a>`__ Add blankfiles for explorer MRS specialization
+-  `085223bff <https://github.com/open-power/hostboot/commit/085223bff>`__ Disables explorer low power mode for CCS
+-  `11793f86a <https://github.com/open-power/hostboot/commit/11793f86a>`__ Fixes galois out of bounds bug
+-  `a9774d7ae <https://github.com/open-power/hostboot/commit/a9774d7ae>`__ Updates WR VREF accessors to be generic
+
+Steven Janssen (3):
+
+-  `1be056a58 <https://github.com/open-power/hostboot/commit/1be056a58>`__ Update pmic header files
+-  `43fbaa4a3 <https://github.com/open-power/hostboot/commit/43fbaa4a3>`__ Fix library dependancy
+-  `8ea9d8d3d <https://github.com/open-power/hostboot/commit/8ea9d8d3d>`__ update include path to resolve compiler warning in cronus
+
+Stewart Smith (1):
+
+-  `ba9db9d33 <https://github.com/open-power/hostboot/commit/ba9db9d33>`__ memd_creation.pl: glob on \*.rvpd to allow README in
+   memd_binaries
+
+Sumit Kumar (1):
+
+-  `f1074af21 <https://github.com/open-power/hostboot/commit/f1074af21>`__ Fapi_Infra:Add new member to structure ErrorInfoCDG
+
+Sunil Kumar (1):
+
+-  `6b0389447 <https://github.com/open-power/hostboot/commit/6b0389447>`__ OCMB changes to suit PPE compilation.
+
+Thi Tran (3):
+
+-  `bf2951c9b <https://github.com/open-power/hostboot/commit/bf2951c9b>`__ Fix HTM trace setup problem
+-  `b3047ddb1 <https://github.com/open-power/hostboot/commit/b3047ddb1>`__ Fix bug injected by
+   https://rchgit01.rchland.ibm.com/gerrit1/#/c/82196/
+-  `599bd468c <https://github.com/open-power/hostboot/commit/599bd468c>`__ Fix OCC sandbox base address overlapped with SMF in FLIP
+   mode.
+
+Tsung Yeung (12):
+
+-  `533e20087 <https://github.com/open-power/hostboot/commit/533e20087>`__ Stop mcbist during nvdimm restore to prevent broadcast
+   out of sync
+-  `8cc600d32 <https://github.com/open-power/hostboot/commit/8cc600d32>`__ Re-order NVDIMM MRS restore sequence to comply with Jedec
+   spec
+-  `d97b70655 <https://github.com/open-power/hostboot/commit/d97b70655>`__ Invalidate BAR during MPIPL NVDIMM restore
+-  `b94854d1f <https://github.com/open-power/hostboot/commit/b94854d1f>`__ Fix restore fail due to restore attempt on empty flash
+-  `80f6d1dc0 <https://github.com/open-power/hostboot/commit/80f6d1dc0>`__ Replaces nvdimmWrite() to reset controller with
+   nvdimmResetController()
+-  `c7a3665d1 <https://github.com/open-power/hostboot/commit/c7a3665d1>`__ Double the NVDIMM_READY timeout to prevent erroneous
+   error
+-  `34f119b59 <https://github.com/open-power/hostboot/commit/34f119b59>`__ Add nvdimm arm retry logic in case of glitches
+-  `3f41702fb <https://github.com/open-power/hostboot/commit/3f41702fb>`__ Replaces NVDIMM flush sequence with CCS
+-  `be49aca6d <https://github.com/open-power/hostboot/commit/be49aca6d>`__ Improper element erase during loop causing post-restore
+   being skipped on nvdimm
+-  `7ef7ab2d8 <https://github.com/open-power/hostboot/commit/7ef7ab2d8>`__ Updates RD_VREF CMD_PRECEDE_TIME for 16GB NVDIMM
+-  `75798874c <https://github.com/open-power/hostboot/commit/75798874c>`__ Set ES policy before setting nvdimm thresholds
+-  `f198534f2 <https://github.com/open-power/hostboot/commit/f198534f2>`__ Do not deconfig on nvdimm erase fail
+
+Vasant Hegde (2):
+
+-  `76571f381 <https://github.com/open-power/hostboot/commit/76571f381>`__ MPIPL: Copy all SBE data to hypervisor memory
+-  `ae8ef5dfe <https://github.com/open-power/hostboot/commit/ae8ef5dfe>`__ MPIPL: Make sure destination size does not cross 32GB
+
+Zach Clark (6):
+
+-  `5091387d6 <https://github.com/open-power/hostboot/commit/5091387d6>`__ Cache objdump output for build performance
+-  `af5c391af <https://github.com/open-power/hostboot/commit/af5c391af>`__ Fix GCOV build errors for AXONE configuration
+-  `62c252e5b <https://github.com/open-power/hostboot/commit/62c252e5b>`__ Fix race condition in BufferPage allocation function
+-  `19f75b84d <https://github.com/open-power/hostboot/commit/19f75b84d>`__ Make snprintf always terminate the output buffer
+-  `a50e4ddfe <https://github.com/open-power/hostboot/commit/a50e4ddfe>`__ Add register file dump to kernel backtrace printout for
+   crashed tasks
+-  `60210d3dd <https://github.com/open-power/hostboot/commit/60210d3dd>`__ Fix bug in crash handler register dump
+
+Zane Shelley (11):
+
+-  `9eaf71aa2 <https://github.com/open-power/hostboot/commit/9eaf71aa2>`__ PRD: disable mask/clear for SMP failures on FSP
+-  `2870f766e <https://github.com/open-power/hostboot/commit/2870f766e>`__ PRD: Temp fix to ignore lane repair attns in OpenCAPI
+   mode
+-  `b4074ba8d <https://github.com/open-power/hostboot/commit/b4074ba8d>`__ PRD: removed unused MopRegisterAccess code
+-  `69ad22663 <https://github.com/open-power/hostboot/commit/69ad22663>`__ PRD: removed redundant header iipbits.h
+-  `e32c176c5 <https://github.com/open-power/hostboot/commit/e32c176c5>`__ PRD: fix OBUS workaround for non-SMP mode
+-  `1db43a814 <https://github.com/open-power/hostboot/commit/1db43a814>`__ PRD: updates to IOOLFIR based on recent OpenCAPI FIR
+   review
+-  `d94c2cb45 <https://github.com/open-power/hostboot/commit/d94c2cb45>`__ PRD: add virtual destructor to ScomRegister class
+-  `f3f0a8ff4 <https://github.com/open-power/hostboot/commit/f3f0a8ff4>`__ PRD: fix Explorer FSI address workaround in FIRDATA code
+-  `a23e7f84b <https://github.com/open-power/hostboot/commit/a23e7f84b>`__ PRD: boolean logic error in Axone chnl fail code
+-  `1e1c8039a <https://github.com/open-power/hostboot/commit/1e1c8039a>`__ Fixed portabiliy issue in pre-commit hook
+-  `b684d89ee <https://github.com/open-power/hostboot/commit/b684d89ee>`__ Minor fixes to addCopyright and pre-commit hooks
+
+lixg (1):
+
+-  `ba790597a <https://github.com/open-power/hostboot/commit/ba790597a>`__ Verify manufacture date (MB) from PVPD before using
+
+manichow (1):
+
+-  `d1797443d <https://github.com/open-power/hostboot/commit/d1797443d>`__ Quiesce procedure for NPU serving openCapi links
+
+rblack (1):
+
+-  `8407dc2cc <https://github.com/open-power/hostboot/commit/8407dc2cc>`__ Speculative patch for NYU ATR timeouts update.
+
+Package: nicole-xml
+-------------------
+
+`Repository <https://github.com/open-power/nicole-xml>`__
+
+.. _patches-6:
+
+Patches
+~~~~~~~
+
+.. _commits-6:
+
+Commits
+~~~~~~~
+
+Artem Senichev (3):
+
+-  `ad9f0ab <https://github.com/open-power/nicole-xml/commit/ad9f0ab>`__ Set XBus frequency to default value (2000MHz)
+-  `c592dee <https://github.com/open-power/nicole-xml/commit/c592dee>`__ Add WOF table for POWER9 Sforza module
+-  `1ac78dd <https://github.com/open-power/nicole-xml/commit/1ac78dd>`__ Add WOF table for POWER9 Sforza module
+
+Package: occ
+------------
+
+`Repository <https://github.com/open-power/occ>`__
+
+.. _patches-7:
+
+Patches
+~~~~~~~
+
+.. _commits-7:
+
+Commits
+~~~~~~~
+
+Caleb Palmer (1):
+
+-  `bae814c <https://github.com/open-power/occ/commit/bae814c>`__ NPU target SCOM translation non-instance 0 fix
+
+Chris Cain (5):
+
+-  `b230076 <https://github.com/open-power/occ/commit/b230076>`__ Pick up latest pgpe elog structure
+-  `5c32e77 <https://github.com/open-power/occ/commit/5c32e77>`__ NVDIMM: Invalidate MCFGP facility at start of procedure
+-  `e4597ab <https://github.com/open-power/occ/commit/e4597ab>`__ Ignore IPMI_SMS_ATN during fir data collection and remove 8k
+   buffer
+-  `3ab2921 <https://github.com/open-power/occ/commit/3ab2921>`__ FIR data collection updates
+-  `1bf0c8c <https://github.com/open-power/occ/commit/1bf0c8c>`__ Minor updates to occtoolp9
+
+Douglas Gilbert (2):
+
+-  `0ac1770 <https://github.com/open-power/occ/commit/0ac1770>`__ P9a GPE support for up to 16 OCMBs
+-  `e11f3af <https://github.com/open-power/occ/commit/e11f3af>`__ OCMB sensor enabled fix
+
+Sumit Kumar (1):
+
+-  `8d4e7fa <https://github.com/open-power/occ/commit/8d4e7fa>`__ Corrected Alink scom address in PMU_CONFIGS_16
+
+William Bryan (1):
+
+-  `8a315b7 <https://github.com/open-power/occ/commit/8a315b7>`__ Remove unused sensors to free up needed SRAM space
+
+joy_chu (1):
+
+-  `1e8731f <https://github.com/open-power/occ/commit/1e8731f>`__ Modify: modify amec power sensor calculation
+
+mbroyles (6):
+
+-  `e447be8 <https://github.com/open-power/occ/commit/e447be8>`__ Delete debug sensors to save SRAM
+-  `8bbfabe <https://github.com/open-power/occ/commit/8bbfabe>`__ New WOF sensor for final adjusted Ceff Ratio Vdd
+-  `d467852 <https://github.com/open-power/occ/commit/d467852>`__ Fix incorrect hw callout in Centaur DIMM OT errors
+-  `7888141 <https://github.com/open-power/occ/commit/7888141>`__ Support for 16 OCMBs
+-  `e3c65ee <https://github.com/open-power/occ/commit/e3c65ee>`__ Explorer internal sensor workaround
+-  `ab4dc96 <https://github.com/open-power/occ/commit/ab4dc96>`__ Fix Vdd ceff ratio calculation when active cores is less than sort
+   cores
+
+Package: op-build
+-----------------
+
+`Repository <https://github.com/open-power/op-build>`__
+
+.. _patches-8:
+
+Patches
+~~~~~~~
+
+.. _commits-8:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: p8dtu-xml
+------------------
+
+`Repository <https://github.com/open-power/p8dtu-xml>`__
+
+.. _patches-9:
+
+Patches
+~~~~~~~
+
+.. _commits-9:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: p9dsu-xml
+------------------
+
+`Repository <https://github.com/open-power/p9dsu-xml>`__
+
+.. _patches-10:
+
+Patches
+~~~~~~~
+
+.. _commits-10:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: palmetto-xml
+---------------------
+
+`Repository <https://github.com/open-power/palmetto-xml>`__
+
+.. _patches-11:
+
+Patches
+~~~~~~~
+
+.. _commits-11:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: petitboot
+------------------
+
+`Repository <https://github.com/open-power/petitboot>`__
+
+.. _patches-12:
+
+Patches
+~~~~~~~
+
+.. _commits-12:
+
+Commits
+~~~~~~~
+
+Jeremy Kerr (26):
+
+-  `514a9a1 <https://github.com/open-power/petitboot/commit/514a9a1>`__ pb-console: start shell as a login shell
+-  `6f23e17 <https://github.com/open-power/petitboot/commit/6f23e17>`__ pb-console: don’t modify PATH unless it’s empty
+-  `e558da1 <https://github.com/open-power/petitboot/commit/e558da1>`__ discover/grub2: ‘search’ set-variable defaults to root
+-  `61ede5e <https://github.com/open-power/petitboot/commit/61ede5e>`__ discover/grub2: Use getopt for ``search`` argument parsing
+-  `76e97c5 <https://github.com/open-power/petitboot/commit/76e97c5>`__ discover/grub2: test for (ignored) –no-floppy argument
+-  `1580c65 <https://github.com/open-power/petitboot/commit/1580c65>`__ discover/grub2: Add support for UUID and label for ‘search’
+   command
+-  `8cb74c4 <https://github.com/open-power/petitboot/commit/8cb74c4>`__ discover/grub2: expose a struct for grub2 file references
+-  `51f7117 <https://github.com/open-power/petitboot/commit/51f7117>`__ discover/grub2: Add parsing code for grub2 file specifiers
+-  `9fc2ac6 <https://github.com/open-power/petitboot/commit/9fc2ac6>`__ discover/grub2: add support for grub2-style path specifiers
+   in resources
+-  `b224457 <https://github.com/open-power/petitboot/commit/b224457>`__ discover/grub2: Allow (device)/path references in general
+   script usage
+-  `a9a9d57 <https://github.com/open-power/petitboot/commit/a9a9d57>`__ discover/grub2: Add a reference from script to parser
+-  `2c132eb <https://github.com/open-power/petitboot/commit/2c132eb>`__ discover/grub2: expose internal parse function
+-  `9711179 <https://github.com/open-power/petitboot/commit/9711179>`__ discover/grub2: make statements_execute non-static
+-  `967cfa7 <https://github.com/open-power/petitboot/commit/967cfa7>`__ discover/grub2: implement ‘source’ command
+-  `1ef95c2 <https://github.com/open-power/petitboot/commit/1ef95c2>`__ test/parser: Add test for recent RHCOS grub2 config
+-  `057dce2 <https://github.com/open-power/petitboot/commit/057dce2>`__ test/parser: Add RHEL8 grub config test
+-  `6ee9cbc <https://github.com/open-power/petitboot/commit/6ee9cbc>`__ lib/pb-protocol: fix ordering of system info length
+   calculation
+-  `b2e5a7b <https://github.com/open-power/petitboot/commit/b2e5a7b>`__ lib/types: consolidate struct system_info layout with
+   serialised version
+-  `aa2d71a <https://github.com/open-power/petitboot/commit/aa2d71a>`__ protocol,types: Add secure & trusted boot state to system
+   info
+-  `05d9b9b <https://github.com/open-power/petitboot/commit/05d9b9b>`__ discover/powerpc: detect secureboot enforcing mode
+-  `e9340b7 <https://github.com/open-power/petitboot/commit/e9340b7>`__ ui/ncurses: Add secure & trusted boot status
+-  `2f6259d <https://github.com/open-power/petitboot/commit/2f6259d>`__ discover/boot: add support for ``kexec -s`` for
+   kexec_file_load
+-  `059cc51 <https://github.com/open-power/petitboot/commit/059cc51>`__ discover/boot: unify verification failure messages
+-  `9383652 <https://github.com/open-power/petitboot/commit/9383652>`__ Remove unused ‘s’ file
+-  `9cf513f <https://github.com/open-power/petitboot/commit/9cf513f>`__ docker: build petitboot outside of the source dir
+-  `0ed84c0 <https://github.com/open-power/petitboot/commit/0ed84c0>`__ test/parser: Add rhel8 test data to check_DATA
+
+Maxim Polyakov (5):
+
+-  `43813e6 <https://github.com/open-power/petitboot/commit/43813e6>`__ discover/platform-powerpc: add missing mbox block selector
+-  `1088a8a <https://github.com/open-power/petitboot/commit/1088a8a>`__ discover/platform-powerpc: limit mailbox response size
+-  `5f8321e <https://github.com/open-power/petitboot/commit/5f8321e>`__ discover/platform-powerpc: return the actual mailbox size
+-  `eb027e7 <https://github.com/open-power/petitboot/commit/eb027e7>`__ discover/platform-powerpc: add mailbox message structure
+-  `3c818a2 <https://github.com/open-power/petitboot/commit/3c818a2>`__ discover/platform-powerpc: don’t copy IANA from mbox to
+   buffer
+
+Maxiwell S. Garcia (4):
+
+-  `827a7af <https://github.com/open-power/petitboot/commit/827a7af>`__ configure: Add libelf as a requirement
+-  `0c07402 <https://github.com/open-power/petitboot/commit/0c07402>`__ discover: Add helper functions to read ELF notes
+-  `3513c7f <https://github.com/open-power/petitboot/commit/3513c7f>`__ ui/ncurses: Add preboot check option in the config screen
+-  `7b108df <https://github.com/open-power/petitboot/commit/7b108df>`__ discover: Check if the kernel image has Ultravisor support
+
+Package: pnor
+-------------
+
+`Repository <https://github.com/open-power/pnor>`__
+
+.. _patches-13:
+
+Patches
+~~~~~~~
+
+.. _commits-13:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: romulus-xml
+--------------------
+
+`Repository <https://github.com/open-power/romulus-xml>`__
+
+.. _patches-14:
+
+Patches
+~~~~~~~
+
+.. _commits-14:
+
+Commits
+~~~~~~~
+
+Nickolaus Gruendler (1):
+
+-  `5b3fbca <https://github.com/open-power/romulus-xml/commit/5b3fbca>`__ Update to ATTR_MSS_VPD_MR_DPHY_RLO for 2400 speed
+
+Package: sbe
+------------
+
+`Repository <https://github.com/open-power/sbe>`__
+
+.. _patches-15:
+
+Patches
+~~~~~~~
+
+.. _commits-15:
+
+Commits
+~~~~~~~
+
+Adam Hale (5):
+
+-  `70858c2e <https://github.com/open-power/sbe/commit/70858c2e>`__ temporary mc inits to enable wider team
+-  `51a69f51 <https://github.com/open-power/sbe/commit/51a69f51>`__ Move to long term CLSCOM workaround
+-  `38af071c <https://github.com/open-power/sbe/commit/38af071c>`__ Axone setup changes to disable bumpy toothpaste workaround
+-  `94f9bc2a <https://github.com/open-power/sbe/commit/94f9bc2a>`__ Axone Gemini MDI issue workaround
+-  `3225e80a <https://github.com/open-power/sbe/commit/3225e80a>`__ Axone int updates
+
+Alvin Wang (13):
+
+-  `518a1b2f <https://github.com/open-power/sbe/commit/518a1b2f>`__ Adds exp_draminit_mc
+-  `9f94a4f1 <https://github.com/open-power/sbe/commit/9f94a4f1>`__ Reinstates exp_draminit_mc with change_addr_mux_sel fix
+-  `a19089ef <https://github.com/open-power/sbe/commit/a19089ef>`__ Move MCBIST lib to generic folder
+-  `37a8bf54 <https://github.com/open-power/sbe/commit/37a8bf54>`__ Move the mcbist lab library to generic folder
+-  `73c86947 <https://github.com/open-power/sbe/commit/73c86947>`__ Move power_thermal lib to generic
+-  `2932b6fa <https://github.com/open-power/sbe/commit/2932b6fa>`__ Update setup_fw_boot_config() to read out actual values from
+   attributes
+-  `180d29ec <https://github.com/open-power/sbe/commit/180d29ec>`__ Adds exp_draminit_mc
+-  `d48d771b <https://github.com/open-power/sbe/commit/d48d771b>`__ Reinstates exp_draminit_mc with change_addr_mux_sel fix
+-  `eb69df41 <https://github.com/open-power/sbe/commit/eb69df41>`__ Move MCBIST lib to generic folder
+-  `54d02bc2 <https://github.com/open-power/sbe/commit/54d02bc2>`__ Move power_thermal lib to generic
+-  `cee5767f <https://github.com/open-power/sbe/commit/cee5767f>`__ Move the mcbist lab library to generic folder
+-  `61979222 <https://github.com/open-power/sbe/commit/61979222>`__ Adds empty files for exp_draminit_mc and p9a_omi_train
+-  `0bb6050f <https://github.com/open-power/sbe/commit/0bb6050f>`__ Adds p9a_omi_train procedure(START)
+
+Andre A. Marin (10):
+
+-  `e1257e44 <https://github.com/open-power/sbe/commit/e1257e44>`__ Fix c_str and pos DIMM specialization
+-  `20805cd4 <https://github.com/open-power/sbe/commit/20805cd4>`__ Add mem_size and misc attrs, unit tests enable
+-  `a17eb3a5 <https://github.com/open-power/sbe/commit/a17eb3a5>`__ Fix c_str and pos DIMM specialization
+-  `253e6fcf <https://github.com/open-power/sbe/commit/253e6fcf>`__ Add mem_size and misc attrs, unit tests enable
+-  `d6698496 <https://github.com/open-power/sbe/commit/d6698496>`__ Clean up PPE character format and target
+-  `0a776030 <https://github.com/open-power/sbe/commit/0a776030>`__ Add unit tests for mss field_t and macro def
+-  `2dd4b6bd <https://github.com/open-power/sbe/commit/2dd4b6bd>`__ Add bounds check API to generic_check library
+-  `ebcc0c09 <https://github.com/open-power/sbe/commit/ebcc0c09>`__ Add supported_rcd attribute from SPD + tests
+-  `81d3ad9c <https://github.com/open-power/sbe/commit/81d3ad9c>`__ Update index_within_bounds() API
+-  `ceefc24e <https://github.com/open-power/sbe/commit/ceefc24e>`__ Add explorer rc response to eff_config
+
+Andre Marin (37):
+
+-  `730e7a76 <https://github.com/open-power/sbe/commit/730e7a76>`__ Add empty files for refactored SPD read API
+-  `71405bb5 <https://github.com/open-power/sbe/commit/71405bb5>`__ Add SPD reader and traits DDR4 def
+-  `6a0ab353 <https://github.com/open-power/sbe/commit/6a0ab353>`__ Add empty explorer “check_for_ready” procedure files
+-  `d3a9c6e7 <https://github.com/open-power/sbe/commit/d3a9c6e7>`__ Add empty memory explorer error XML
+-  `08f9043a <https://github.com/open-power/sbe/commit/08f9043a>`__ Add empty mss_byte.H and mss_generic_check to ease HB mirroring
+-  `35af1e35 <https://github.com/open-power/sbe/commit/35af1e35>`__ Remove Nimbus dependencies from the SPD decoder
+-  `50a5bf7b <https://github.com/open-power/sbe/commit/50a5bf7b>`__ Add emtpy exp_i2c_fields.H file for mirroring
+-  `e454167d <https://github.com/open-power/sbe/commit/e454167d>`__ Generalize byte reading from SPD reading, for exp i2c reuse
+-  `adc384e6 <https://github.com/open-power/sbe/commit/adc384e6>`__ Added I2C fields, EXP_FW_STATUS API
+-  `2d3e83ab <https://github.com/open-power/sbe/commit/2d3e83ab>`__ Implement exp_check_for_ready
+-  `09a9a40d <https://github.com/open-power/sbe/commit/09a9a40d>`__ Initial mss_field endian modification
+-  `e66830b6 <https://github.com/open-power/sbe/commit/e66830b6>`__ Add exp_draminit and fix data_structs constants
+-  `0f8b9522 <https://github.com/open-power/sbe/commit/0f8b9522>`__ Add L1 for p9a_mss_bulk_pwr_throttles and
+   p9a_mss_utils_to_throttle
+-  `4338c9db <https://github.com/open-power/sbe/commit/4338c9db>`__ Generalize set fields in pre_data_init
+-  `63dc7cda <https://github.com/open-power/sbe/commit/63dc7cda>`__ Add SPD DDIMM DDR4 module except for PMIC fields
+-  `2edbcc69 <https://github.com/open-power/sbe/commit/2edbcc69>`__ Add attribute engine algorithm for eff_config and pre_eff_config
+-  `052f732f <https://github.com/open-power/sbe/commit/052f732f>`__ Fix HB error with -Os compile flag due to eff_config
+-  `3366f35e <https://github.com/open-power/sbe/commit/3366f35e>`__ Add missing attributes needed to be set for generic mss_kind
+-  `bbbee5d9 <https://github.com/open-power/sbe/commit/bbbee5d9>`__ Add empty files for refactored SPD read API
+-  `c4942627 <https://github.com/open-power/sbe/commit/c4942627>`__ Add SPD reader and traits DDR4 def
+-  `4c69aba1 <https://github.com/open-power/sbe/commit/4c69aba1>`__ Add empty explorer “check_for_ready” procedure files
+-  `646a51c8 <https://github.com/open-power/sbe/commit/646a51c8>`__ Add empty memory explorer error XML
+-  `119f2896 <https://github.com/open-power/sbe/commit/119f2896>`__ Add empty mss_byte.H and mss_generic_check to ease HB mirroring
+-  `59a5245f <https://github.com/open-power/sbe/commit/59a5245f>`__ Remove Nimbus dependencies from the SPD decoder
+-  `c0f3e0a8 <https://github.com/open-power/sbe/commit/c0f3e0a8>`__ Add emtpy exp_i2c_fields.H file for mirroring
+-  `d74733f0 <https://github.com/open-power/sbe/commit/d74733f0>`__ Generalize byte reading from SPD reading, for exp i2c reuse
+-  `17441d0b <https://github.com/open-power/sbe/commit/17441d0b>`__ Added I2C fields, EXP_FW_STATUS API
+-  `f52536b5 <https://github.com/open-power/sbe/commit/f52536b5>`__ Implement exp_check_for_ready
+-  `ad9f7963 <https://github.com/open-power/sbe/commit/ad9f7963>`__ Initial mss_field endian modification
+-  `82fbc51a <https://github.com/open-power/sbe/commit/82fbc51a>`__ Add exp_draminit and fix data_structs constants
+-  `0248d119 <https://github.com/open-power/sbe/commit/0248d119>`__ Generalize set fields in pre_data_init
+-  `13e163d1 <https://github.com/open-power/sbe/commit/13e163d1>`__ Add SPD DDIMM DDR4 module except for PMIC fields
+-  `0f79843b <https://github.com/open-power/sbe/commit/0f79843b>`__ Add L1 for p9a_mss_bulk_pwr_throttles and
+   p9a_mss_utils_to_throttle
+-  `0a037363 <https://github.com/open-power/sbe/commit/0a037363>`__ Add attribute engine algorithm for eff_config and pre_eff_config
+-  `ab24d311 <https://github.com/open-power/sbe/commit/ab24d311>`__ Fix HB error with -Os compile flag due to eff_config
+-  `d2f662b2 <https://github.com/open-power/sbe/commit/d2f662b2>`__ Add missing attributes needed to be set for generic mss_kind
+-  `1e5e13ce <https://github.com/open-power/sbe/commit/1e5e13ce>`__ Clean up for p10 porting dependency errors
+
+Ben Gass (6):
+
+-  `0a616016 <https://github.com/open-power/sbe/commit/0a616016>`__ Adding p9a_get/put_mmio and explorer_inband
+-  `3c6ffc5b <https://github.com/open-power/sbe/commit/3c6ffc5b>`__ Update cmd/rsp endian handling in exp_inband
+-  `201278b9 <https://github.com/open-power/sbe/commit/201278b9>`__ Adding p9a_get/put_mmio and explorer_inband
+-  `52715d66 <https://github.com/open-power/sbe/commit/52715d66>`__ Update cmd/rsp endian handling in exp_inband
+-  `db05b035 <https://github.com/open-power/sbe/commit/db05b035>`__ Adding Axone register header files.
+-  `dfae3a84 <https://github.com/open-power/sbe/commit/dfae3a84>`__ Update p9_mss_eff_grouping for Axone support
+
+Bradley Pepper (1):
+
+-  `547f0a27 <https://github.com/open-power/sbe/commit/547f0a27>`__ Adds plug rule for dependent DIMM slots on Swift
+
+Chris Steffen (1):
+
+-  `6d59ceee <https://github.com/open-power/sbe/commit/6d59ceee>`__ P9A Tx Fifo Init + Init Settings Update
+
+Christian Geddes (13):
+
+-  `5df3896a <https://github.com/open-power/sbe/commit/5df3896a>`__ Add exp_i2c_scom driver that will be consumed by HB/SBE
+   platforms
+-  `4da70777 <https://github.com/open-power/sbe/commit/4da70777>`__ Add forceBE option to endian_utils.H
+-  `07684ec0 <https://github.com/open-power/sbe/commit/07684ec0>`__ Update i2c driver for OCMB chip
+-  `117e3fb9 <https://github.com/open-power/sbe/commit/117e3fb9>`__ Make some FAPI_INF traces that are spamming FW logs into
+   FAPI_DBG
+-  `226899a2 <https://github.com/open-power/sbe/commit/226899a2>`__ Add exp_i2c_scom driver that will be consumed by HB/SBE
+   platforms
+-  `f8a9eff2 <https://github.com/open-power/sbe/commit/f8a9eff2>`__ Add forceBE option to endian_utils.H
+-  `c3b35f40 <https://github.com/open-power/sbe/commit/c3b35f40>`__ Update i2c driver for OCMB chip
+-  `bfe4eb7d <https://github.com/open-power/sbe/commit/bfe4eb7d>`__ Make some FAPI_INF traces that are spamming FW logs into
+   FAPI_DBG
+-  `aa9068ab <https://github.com/open-power/sbe/commit/aa9068ab>`__ Account for OMI technology in initial mcs setup for Axone
+-  `793283f0 <https://github.com/open-power/sbe/commit/793283f0>`__ Update ocmb i2c driver to send address in read command sequence
+-  `50895b93 <https://github.com/open-power/sbe/commit/50895b93>`__ Introduce exp_getidec HWP
+-  `60330e0e <https://github.com/open-power/sbe/commit/60330e0e>`__ Add “Not Wired” option for OPTICS_CONFIG_MODE attrs
+-  `13627efc <https://github.com/open-power/sbe/commit/13627efc>`__ Add exp_i2c_scom driver that will be consumed by HB/SBE
+   platforms
+
+Dan Crowell (5):
+
+-  `0209c872 <https://github.com/open-power/sbe/commit/0209c872>`__ Update Explorer FW Command IDs
+-  `aa5c5ff1 <https://github.com/open-power/sbe/commit/aa5c5ff1>`__ Update Explorer FW Command IDs
+-  `3624a993 <https://github.com/open-power/sbe/commit/3624a993>`__ Add Axone comment to grouping attribute
+-  `2b61547b <https://github.com/open-power/sbe/commit/2b61547b>`__ Enable rolling counter and verification of req id for Explorer
+-  `512f9246 <https://github.com/open-power/sbe/commit/512f9246>`__ Adjust idec algorithm for Explorer B.0 format
+
+Dean Sanner (1):
+
+-  `c05bb41d <https://github.com/open-power/sbe/commit/c05bb41d>`__ Run LPC Init to clean up errors on MPIPL
+
+Devon Baughen (1):
+
+-  `c6c08ec5 <https://github.com/open-power/sbe/commit/c6c08ec5>`__ add function to turn on adaptation in bootconfig
+
+Emmanuel Sacristan (1):
+
+-  `debfec25 <https://github.com/open-power/sbe/commit/debfec25>`__ adding iss 768 init for p9 behaviour in nmmu
+
+Evan Lojewski (2):
+
+-  `e9924f12 <https://github.com/open-power/sbe/commit/e9924f12>`__ Update to allow DDR4-SORDIMM modules to be used [3].
+-  `caacd24f <https://github.com/open-power/sbe/commit/caacd24f>`__ Update to allow DDR4-SORDIMM modules to be used [3].
+
+Glenn Miles (3):
+
+-  `d3157de4 <https://github.com/open-power/sbe/commit/d3157de4>`__ Add procedures for updating explorer firmware image
+-  `a6a2279a <https://github.com/open-power/sbe/commit/a6a2279a>`__ Add procedures for updating explorer firmware image
+-  `d266398f <https://github.com/open-power/sbe/commit/d266398f>`__ Add HWP for entering Explorer TWI mode
+
+Greg Still (1):
+
+-  `78fb7838 <https://github.com/open-power/sbe/commit/78fb7838>`__ PM Suspend: add halting of OCC GPEs
+
+Jennifer A. Stofer (2):
+
+-  `1a12dc03 <https://github.com/open-power/sbe/commit/1a12dc03>`__ Revert “Adds exp_draminit_mc”
+-  `af190d18 <https://github.com/open-power/sbe/commit/af190d18>`__ Revert “Adds exp_draminit_mc”
+
+Jenny Huynh (2):
+
+-  `909eb261 <https://github.com/open-power/sbe/commit/909eb261>`__ Wilted Apple: Disable SMT2 prefetch for NDD2.2+, CDD1.1+,
+   ADD1.0+
+-  `ca5cbf31 <https://github.com/open-power/sbe/commit/ca5cbf31>`__ Add slbv, slbe extraction to p9_ram_core procedure
+
+Joachim Fenkes (1):
+
+-  `ace80025 <https://github.com/open-power/sbe/commit/ace80025>`__ Streamline the way PIB/NET are initialized between SBE and
+   Cronus
+
+Joe McGill (1):
+
+-  `bd520255 <https://github.com/open-power/sbe/commit/bd520255>`__ p9_proc_gettracearray – updates for Axone
+
+Li Meng (2):
+
+-  `5890dd91 <https://github.com/open-power/sbe/commit/5890dd91>`__ Creates LRDIMM mrep/dwl calibration recorder class
+-  `c700a05f <https://github.com/open-power/sbe/commit/c700a05f>`__ Creates LRDIMM mrep/dwl calibration recorder class
+
+Louis Stermole (27):
+
+-  `5b8210bf <https://github.com/open-power/sbe/commit/5b8210bf>`__ Fix polling timeouts for exp_omi_train and exp_check_for_ready
+-  `1cb0d8de <https://github.com/open-power/sbe/commit/1cb0d8de>`__ Move MSS volt attr setters to generic folder
+-  `352d99be <https://github.com/open-power/sbe/commit/352d99be>`__ Add p9a_mss_volt procedure
+-  `b6f6fb58 <https://github.com/open-power/sbe/commit/b6f6fb58>`__ Add p9a version of eff_memory_size API
+-  `303dd8b9 <https://github.com/open-power/sbe/commit/303dd8b9>`__ Add retry of EXP_FW_STATUS when status is FW_BUSY
+-  `7ef569b0 <https://github.com/open-power/sbe/commit/7ef569b0>`__ Add check for BOOT_STAGE == runtime fw in exp_check_for_ready
+-  `5c3f1d99 <https://github.com/open-power/sbe/commit/5c3f1d99>`__ Fix polling timeouts for exp_omi_train and exp_check_for_ready
+-  `95d92195 <https://github.com/open-power/sbe/commit/95d92195>`__ Fix duplicate symbol errors from DEFAULT_MC_TYPE
+-  `cd9a1a6c <https://github.com/open-power/sbe/commit/cd9a1a6c>`__ Add p9a_mss_freq procedure
+-  `25f753d8 <https://github.com/open-power/sbe/commit/25f753d8>`__ Update exp_omi_train for testing
+-  `e9cd754f <https://github.com/open-power/sbe/commit/e9cd754f>`__ Add missing timing attrs to p9a_eff_config
+-  `aab9c442 <https://github.com/open-power/sbe/commit/aab9c442>`__ Move MSS volt attr setters to generic folder
+-  `c7096f6f <https://github.com/open-power/sbe/commit/c7096f6f>`__ Add p9a_mss_volt procedure
+-  `4ccbdb85 <https://github.com/open-power/sbe/commit/4ccbdb85>`__ Add p9a version of eff_memory_size API
+-  `82ad5ef7 <https://github.com/open-power/sbe/commit/82ad5ef7>`__ Fix duplicate symbol errors from DEFAULT_MC_TYPE
+-  `55554d3a <https://github.com/open-power/sbe/commit/55554d3a>`__ Add p9a_mss_freq procedure
+-  `851a68c4 <https://github.com/open-power/sbe/commit/851a68c4>`__ Add debug params to exp_check_for_ready_wrap
+-  `fee0ceed <https://github.com/open-power/sbe/commit/fee0ceed>`__ Update exp_omi_train for testing
+-  `713899e8 <https://github.com/open-power/sbe/commit/713899e8>`__ Add retry of EXP_FW_STATUS when status is FW_BUSY
+-  `56c9d506 <https://github.com/open-power/sbe/commit/56c9d506>`__ Add check for BOOT_STAGE == runtime fw in exp_check_for_ready
+-  `21be781f <https://github.com/open-power/sbe/commit/21be781f>`__ Add missing timing attrs to p9a_eff_config
+-  `03efd459 <https://github.com/open-power/sbe/commit/03efd459>`__ Fix polling timeouts for exp_omi_train and exp_check_for_ready
+-  `9a430ddf <https://github.com/open-power/sbe/commit/9a430ddf>`__ Updates to Explorer FW upload tools
+-  `8b06b5c1 <https://github.com/open-power/sbe/commit/8b06b5c1>`__ Add deconfigure of memory port if mss_freq can’t find consensus
+   freq
+-  `6cad7d02 <https://github.com/open-power/sbe/commit/6cad7d02>`__ Add Axone FIR unmasking after p9_chiplet_scominit
+-  `c318ab00 <https://github.com/open-power/sbe/commit/c318ab00>`__ Add unmask_after_exp_omi_setup and FIR checks
+-  `2f535c87 <https://github.com/open-power/sbe/commit/2f535c87>`__ Add unmasks for REG1 and REG2 versions of OMI_FIR for Axone
+
+Luis Fernandez (1):
+
+-  `9acbf9f3 <https://github.com/open-power/sbe/commit/9acbf9f3>`__ HB Implement Static Analysis with cppcheck
+
+Mark Pizzutillo (24):
+
+-  `c130fb5d <https://github.com/open-power/sbe/commit/c130fb5d>`__ Added code for exp_getecid and unit tests
+-  `1d80cb57 <https://github.com/open-power/sbe/commit/1d80cb57>`__ Fix exp_getecid register accesses
+-  `9ca91c9e <https://github.com/open-power/sbe/commit/9ca91c9e>`__ Add API for axone p10 dimm rank
+-  `b06099df <https://github.com/open-power/sbe/commit/b06099df>`__ Add PMIC enable procedure code and UTs
+-  `745d8711 <https://github.com/open-power/sbe/commit/745d8711>`__ Fix exp_draminit phy_params
+-  `c257cb57 <https://github.com/open-power/sbe/commit/c257cb57>`__ Added code for exp_getecid and unit tests
+-  `f68b0a02 <https://github.com/open-power/sbe/commit/f68b0a02>`__ Add API for axone p10 dimm rank
+-  `68e02713 <https://github.com/open-power/sbe/commit/68e02713>`__ Fix exp_getecid register accesses
+-  `72a62b5a <https://github.com/open-power/sbe/commit/72a62b5a>`__ Add PMIC enable procedure code and UTs
+-  `39a198fb <https://github.com/open-power/sbe/commit/39a198fb>`__ Fix exp_draminit phy_params
+-  `34778bc0 <https://github.com/open-power/sbe/commit/34778bc0>`__ Add PRBS training sequence to exp_omi_setup
+-  `be05ce9e <https://github.com/open-power/sbe/commit/be05ce9e>`__ Create workaround for gemini MENTERP register bug
+-  `71852bfe <https://github.com/open-power/sbe/commit/71852bfe>`__ Add workaround for gemini OMI config settings
+-  `9346ae92 <https://github.com/open-power/sbe/commit/9346ae92>`__ Add code and workarounds for \*_omi_setup and \*_omi_train for
+   Swift
+-  `27423190 <https://github.com/open-power/sbe/commit/27423190>`__ Update exp_draminit results display for new response structs
+-  `2938d54f <https://github.com/open-power/sbe/commit/2938d54f>`__ Add assert for RSP extended data buffer size in exp_draminit
+-  `c2b97f24 <https://github.com/open-power/sbe/commit/c2b97f24>`__ Add MCBIST infinite tests
+-  `e1637c7d <https://github.com/open-power/sbe/commit/e1637c7d>`__ Add asserts for invalid states of enterprise & half dimm mode
+-  `5f7d221a <https://github.com/open-power/sbe/commit/5f7d221a>`__ Add new DDIMM spd version 0_3 and update UTs
+-  `2132642e <https://github.com/open-power/sbe/commit/2132642e>`__ Add TARGET_TYPE_GENERICI2CSLAVE and relevant attributes
+-  `972885f1 <https://github.com/open-power/sbe/commit/972885f1>`__ Add attribute for SPD_REVISION (byte 1)
+-  `b72e88b9 <https://github.com/open-power/sbe/commit/b72e88b9>`__ Refactor PMIC attributes to be at OCMB level
+-  `7247b205 <https://github.com/open-power/sbe/commit/7247b205>`__ Add SPD, ATTR, and code support for thermal sensor fields
+-  `2d51dbbb <https://github.com/open-power/sbe/commit/2d51dbbb>`__ Update RAS DQ Inject tool with new MCHP squence
+
+Marty E. Plummer (6):
+
+-  `629327db <https://github.com/open-power/sbe/commit/629327db>`__ updateBuildTag: convert proc.stdout.read() to str.
+-  `1ccc5eff <https://github.com/open-power/sbe/commit/1ccc5eff>`__ sbeCompression: add a python3 compatible fallback
+-  `04a2b51f <https://github.com/open-power/sbe/commit/04a2b51f>`__ sbeCompression: use floor division
+-  `e7dccb09 <https://github.com/open-power/sbe/commit/e7dccb09>`__ securityRegListGen: use io.open and read in text mode.
+-  `2615d39b <https://github.com/open-power/sbe/commit/2615d39b>`__ parsAndCutElf: convert line to str
+-  `e0e6c72e <https://github.com/open-power/sbe/commit/e0e6c72e>`__ treewide: use print function instead of statement
+
+Matt Derksen (1):
+
+-  `245b9cef <https://github.com/open-power/sbe/commit/245b9cef>`__ Support EXP_FW_LOG command to get Explorer FW logs
+
+Matthew Hickman (2):
+
+-  `c4bf31c0 <https://github.com/open-power/sbe/commit/c4bf31c0>`__ Ported ecc engine to generic
+-  `f811ed4a <https://github.com/open-power/sbe/commit/f811ed4a>`__ Ported ecc engine to generic
+
+Murulidhar Nataraju (3):
+
+-  `462aea8b <https://github.com/open-power/sbe/commit/462aea8b>`__ Update the Simics release path
+-  `98d8d616 <https://github.com/open-power/sbe/commit/98d8d616>`__ Update EnterMPIPL to collect architected dumps and
+-  `099e7402 <https://github.com/open-power/sbe/commit/099e7402>`__ MPIPL:SW485350
+
+Nico Fajardo (3):
+
+-  `2e2e7ec7 <https://github.com/open-power/sbe/commit/2e2e7ec7>`__ Add FAPI_ASSERT for unsupported SPD rank in RTT fetch
+-  `f95319e0 <https://github.com/open-power/sbe/commit/f95319e0>`__ Adding after_p9a_omi_init.C and p9a-specific fir traits
+-  `e6cfaaee <https://github.com/open-power/sbe/commit/e6cfaaee>`__ exp draminit & draminit_mc phase 3 update for PRD logging
+
+Prem Shanker Jha (1):
+
+-  `b05b7eb2 <https://github.com/open-power/sbe/commit/b05b7eb2>`__ PM: Modified FFDC to avoid corruption of RC in error path.
+
+Rahul Batra (1):
+
+-  `49f59681 <https://github.com/open-power/sbe/commit/49f59681>`__ PM: Fix DB0 Hang
+
+Raja Das (6):
+
+-  `8ee58f3e <https://github.com/open-power/sbe/commit/8ee58f3e>`__ Removed FlushNVDIMM from MPIPL Path
+-  `7d3fabc4 <https://github.com/open-power/sbe/commit/7d3fabc4>`__ Updated the pibmem length for Axone in sbe-debug.py
+-  `8fe7586c <https://github.com/open-power/sbe/commit/8fe7586c>`__ Updated backing build
+-  `1120e327 <https://github.com/open-power/sbe/commit/1120e327>`__ Updated backing build
+-  `1d411055 <https://github.com/open-power/sbe/commit/1d411055>`__ Optimized the Control Instruction Chip-op
+-  `230eeb0e <https://github.com/open-power/sbe/commit/230eeb0e>`__ Updated backing build in customrc
+
+Ryan Black (1):
+
+-  `166b70c6 <https://github.com/open-power/sbe/commit/166b70c6>`__ set OTL Err Rpt Mask Reg 0 bit 21, OTL TX ECC UE on CQ buffer
+   read data.
+
+Ryan King (2):
+
+-  `2ce7e143 <https://github.com/open-power/sbe/commit/2ce7e143>`__ Add sensor cache read as an explorer inband command
+-  `e9fa3aa1 <https://github.com/open-power/sbe/commit/e9fa3aa1>`__ Add sensor cache read as an explorer inband command
+
+Sharath Manjunath (4):
+
+-  `2e5302df <https://github.com/open-power/sbe/commit/2e5302df>`__ Update exp_draminit to read values from attributes
+-  `91c77b9f <https://github.com/open-power/sbe/commit/91c77b9f>`__ Add exp_thermal_init for Explorer FW
+-  `d35148fa <https://github.com/open-power/sbe/commit/d35148fa>`__ Update exp_draminit to read values from attributes
+-  `b44d7913 <https://github.com/open-power/sbe/commit/b44d7913>`__ Add exp_thermal_init for Explorer FW
+
+Sheng-Hao Huang (1):
+
+-  `26de8811 <https://github.com/open-power/sbe/commit/26de8811>`__ for defect number HW476620
+
+Sneha Kadam (1):
+
+-  `4181f3d4 <https://github.com/open-power/sbe/commit/4181f3d4>`__ Renamed MCBIST subtest to clarify the test
+
+Stephen Glancy (42):
+
+-  `2198e3d3 <https://github.com/open-power/sbe/commit/2198e3d3>`__ Adds Explorer OMI setup - step 12.8a
+-  `9c255556 <https://github.com/open-power/sbe/commit/9c255556>`__ Moves conversions to be in the generic code space
+-  `1b311f24 <https://github.com/open-power/sbe/commit/1b311f24>`__ Moves generic xml directories to be in generic/procedures
+-  `8ece46a5 <https://github.com/open-power/sbe/commit/8ece46a5>`__ Adds explorer OMI training code
+-  `7e7b430a <https://github.com/open-power/sbe/commit/7e7b430a>`__ Moves CAS latency algorithm to generic folder
+-  `d51e3d14 <https://github.com/open-power/sbe/commit/d51e3d14>`__ Moves sync code to generic folder
+-  `1f492888 <https://github.com/open-power/sbe/commit/1f492888>`__ Moves set bad bitmap into generic
+-  `41a5e258 <https://github.com/open-power/sbe/commit/41a5e258>`__ Moves blame a FIR API to generic
+-  `1fac7c34 <https://github.com/open-power/sbe/commit/1fac7c34>`__ Adds explorer post-draminit bad bits processing
+-  `5d6711c6 <https://github.com/open-power/sbe/commit/5d6711c6>`__ Updates the LRDIMM to use SPD SI values
+-  `234734a3 <https://github.com/open-power/sbe/commit/234734a3>`__ Adds explorer training response display functions
+-  `8a98c662 <https://github.com/open-power/sbe/commit/8a98c662>`__ Fixes MCBIST compile fails
+-  `a3d5f865 <https://github.com/open-power/sbe/commit/a3d5f865>`__ Adds DDIMM EFD decoder API
+-  `ba55b796 <https://github.com/open-power/sbe/commit/ba55b796>`__ Adds process training response to exp draminit
+-  `4ece76d0 <https://github.com/open-power/sbe/commit/4ece76d0>`__ Adds explorer CCS specialization
+-  `0425da34 <https://github.com/open-power/sbe/commit/0425da34>`__ Adds EFD decode updates for 07MAY19 spec updates
+-  `98807cd3 <https://github.com/open-power/sbe/commit/98807cd3>`__ Fixes FFDC for files moved to generic
+-  `9ea40719 <https://github.com/open-power/sbe/commit/9ea40719>`__ Adds new attributes for 07MAY19 explorer specification
+-  `5fb7dbd2 <https://github.com/open-power/sbe/commit/5fb7dbd2>`__ Adds Explorer OMI setup - step 12.8a
+-  `856ef301 <https://github.com/open-power/sbe/commit/856ef301>`__ Moves conversions to be in the generic code space
+-  `e5d4f0e7 <https://github.com/open-power/sbe/commit/e5d4f0e7>`__ Moves generic xml directories to be in generic/procedures
+-  `dbef65eb <https://github.com/open-power/sbe/commit/dbef65eb>`__ Adds explorer OMI training code
+-  `603999f3 <https://github.com/open-power/sbe/commit/603999f3>`__ Moves CAS latency algorithm to generic folder
+-  `8fb1ba1e <https://github.com/open-power/sbe/commit/8fb1ba1e>`__ Moves sync code to generic folder
+-  `92b5c676 <https://github.com/open-power/sbe/commit/92b5c676>`__ Adds DDIMM EFD decoder API
+-  `337abf1d <https://github.com/open-power/sbe/commit/337abf1d>`__ Moves set bad bitmap into generic
+-  `4d5e0e5b <https://github.com/open-power/sbe/commit/4d5e0e5b>`__ Adds process training response to exp draminit
+-  `d5d815fe <https://github.com/open-power/sbe/commit/d5d815fe>`__ Moves blame a FIR API to generic
+-  `9f315343 <https://github.com/open-power/sbe/commit/9f315343>`__ Adds explorer post-draminit bad bits processing
+-  `8628f61e <https://github.com/open-power/sbe/commit/8628f61e>`__ Updates the LRDIMM to use SPD SI values
+-  `135ec660 <https://github.com/open-power/sbe/commit/135ec660>`__ Adds explorer training response display functions
+-  `33da4f84 <https://github.com/open-power/sbe/commit/33da4f84>`__ Adds new attributes for 07MAY19 explorer specification
+-  `76bddf79 <https://github.com/open-power/sbe/commit/76bddf79>`__ Fixes MCBIST compile fails
+-  `f9ce236f <https://github.com/open-power/sbe/commit/f9ce236f>`__ Adds explorer CCS specialization
+-  `db6107b7 <https://github.com/open-power/sbe/commit/db6107b7>`__ Adds EFD decode updates for 07MAY19 spec updates
+-  `87bb3373 <https://github.com/open-power/sbe/commit/87bb3373>`__ Fixes FFDC for files moved to generic
+-  `49aa0e41 <https://github.com/open-power/sbe/commit/49aa0e41>`__ Adds MCBIST beat/byte signature data patterns
+-  `05669c55 <https://github.com/open-power/sbe/commit/05669c55>`__ Adds explorer MCBIST address/data traps processing
+-  `09fdf35a <https://github.com/open-power/sbe/commit/09fdf35a>`__ Fixes maintenance pattern load bug
+-  `8187226a <https://github.com/open-power/sbe/commit/8187226a>`__ Updates exp access delay regs to set delays
+-  `056538d3 <https://github.com/open-power/sbe/commit/056538d3>`__ Adds explorer shmoo traits
+-  `03fbb688 <https://github.com/open-power/sbe/commit/03fbb688>`__ Fixes explorer accessor bugs
+
+Stewart Smith (1):
+
+-  `7c74ddae <https://github.com/open-power/sbe/commit/7c74ddae>`__ Use full UART TX buffer (shave 5s off booting)
+
+Sumit Kumar (1):
+
+-  `84c88858 <https://github.com/open-power/sbe/commit/84c88858>`__ Fapi_Infra:Add new member to structure ErrorInfoCDG
+
+Sunil Kumar (3):
+
+-  `b1415469 <https://github.com/open-power/sbe/commit/b1415469>`__ OCMB changes to suit PPE compilation.
+-  `be6e9acb <https://github.com/open-power/sbe/commit/be6e9acb>`__ Remove i2cSupport
+-  `1921f40c <https://github.com/open-power/sbe/commit/1921f40c>`__ OCMB changes to suit PPE compilation.
+
+Tsung Yeung (1):
+
+-  `435e4111 <https://github.com/open-power/sbe/commit/435e4111>`__ Replaces NVDIMM flush sequence with CCS
+
+manichow (1):
+
+-  `247a18dc <https://github.com/open-power/sbe/commit/247a18dc>`__ Quiesce procedure for NPU serving openCapi links
+
+vinaybs6 (2):
+
+-  `54d447a8 <https://github.com/open-power/sbe/commit/54d447a8>`__ Updating the customrc file
+-  `54f3205f <https://github.com/open-power/sbe/commit/54f3205f>`__ Setting the HRMOR value for OPAL based systems.
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _patches-16:
+
+Patches
+~~~~~~~
+
+.. _commits-16:
+
+Commits
+~~~~~~~
+
+Aaron Sawdey (1):
+
+-  `f1234170 <https://github.com/open-power/skiboot/commit/f1234170>`__ external/mambo: support mambo COW mode for PMEM disk
+
+Alexey Kardashevskiy (3):
+
+-  `2a0455ba <https://github.com/open-power/skiboot/commit/2a0455ba>`__ npu2: Invalidate entire TCE cache if many entries requested
+-  `9be9a77a <https://github.com/open-power/skiboot/commit/9be9a77a>`__ npu2: Clear fence on all bricks
+-  `08cd61e9 <https://github.com/open-power/skiboot/commit/08cd61e9>`__ phb4: Add PHB options get/set OPAL calls
+
+Alistair Popple (1):
+
+-  `518ab49f <https://github.com/open-power/skiboot/commit/518ab49f>`__ skiboot.tcl: Add chip-id to pmem device tree node
+
+Andrew Donnellan (2):
+
+-  `e85e2e2b <https://github.com/open-power/skiboot/commit/e85e2e2b>`__ npu2-opencapi: Fix integer promotion bug in LPC allocation
+-  `bc72973d <https://github.com/open-power/skiboot/commit/bc72973d>`__ hw/npu2-opencapi: Support multiple LPC devices
+
+Andrew Geissler (1):
+
+-  `2554cac8 <https://github.com/open-power/skiboot/commit/2554cac8>`__ Support BMC IPMI heartbeat command
+
+Andrew Jeffery (10):
+
+-  `e08fee36 <https://github.com/open-power/skiboot/commit/e08fee36>`__ gard: Fix data corruption when clearing single records
+-  `8f204c12 <https://github.com/open-power/skiboot/commit/8f204c12>`__ blocklevel: smart_write: Terminate line for debug output in
+   no-change case
+-  `5c935e78 <https://github.com/open-power/skiboot/commit/5c935e78>`__ blocklevel: smart_write: Rename write buffer
+-  `518db2b2 <https://github.com/open-power/skiboot/commit/518db2b2>`__ blocklevel: smart_write: Rename size variable for clarity
+-  `6867bd54 <https://github.com/open-power/skiboot/commit/6867bd54>`__ blocklevel: smart_write: Avoid indirectly testing formal
+   parameters
+-  `bdbbfcac <https://github.com/open-power/skiboot/commit/bdbbfcac>`__ blocklevel: smart_write: Deny writes intersecting ECC
+   protected regions
+-  `aa52f943 <https://github.com/open-power/skiboot/commit/aa52f943>`__ blocklevel: smart_write: Avoid reuse of formal parameters
+-  `a950fd78 <https://github.com/open-power/skiboot/commit/a950fd78>`__ blocklevel: smart_write: Tidy local variable declarations
+-  `96ddf4b5 <https://github.com/open-power/skiboot/commit/96ddf4b5>`__ blocklevel: smart_write: Fix unaligned writes to ECC
+   partitions
+-  `7853fc53 <https://github.com/open-power/skiboot/commit/7853fc53>`__ libflash: ipmi-hiomap: Document error handling strategy in
+   write path
+
+Artem Senichev (1):
+
+-  `f9292037 <https://github.com/open-power/skiboot/commit/f9292037>`__ platforms/nicole: Fixup the system VPD EEPROM size
+
+Balamuruhan S (2):
+
+-  `61ec8655 <https://github.com/open-power/skiboot/commit/61ec8655>`__ occ-sensor: clean dt properties if sensor is not available
+-  `bb0f098c <https://github.com/open-power/skiboot/commit/bb0f098c>`__ chip: enable HOMER/OCC common area region in Qemu emulated
+   PowerNV host
+
+Cédric Le Goater (20):
+
+-  `e97391ae <https://github.com/open-power/skiboot/commit/e97391ae>`__ xive: fix return value of opal_xive_allocate_irq()
+-  `99557228 <https://github.com/open-power/skiboot/commit/99557228>`__ xive/p9: introduce header files for the registers
+-  `75829014 <https://github.com/open-power/skiboot/commit/75829014>`__ xive/p9: minor cleanup of the interface
+-  `f9f3bb0a <https://github.com/open-power/skiboot/commit/f9f3bb0a>`__ xive/p9: use MMIO access for VC_EQC_CONFIG
+-  `0649e551 <https://github.com/open-power/skiboot/commit/0649e551>`__ xive/p9: remove code not using indirect mode
+-  `71ad5938 <https://github.com/open-power/skiboot/commit/71ad5938>`__ xive/p9: remove code not using block group mode
+-  `1f269bc0 <https://github.com/open-power/skiboot/commit/1f269bc0>`__ xive/p9: remove dead code
+-  `a10f1502 <https://github.com/open-power/skiboot/commit/a10f1502>`__ xive/p9: obsolete OPAL_XIVE_IRQ_*_VIA_FW flags
+-  `ad7e9a67 <https://github.com/open-power/skiboot/commit/ad7e9a67>`__ xive/p9: obsolete OPAL_XIVE_IRQ_SHIFT_BUG flags
+-  `4f0a5633 <https://github.com/open-power/skiboot/commit/4f0a5633>`__ xive/p9: fix EQ bitmap assignment when allocation fails
+-  `f0e2746e <https://github.com/open-power/skiboot/commit/f0e2746e>`__ xive/p9: introduce definitions for priorities
+-  `e26a866f <https://github.com/open-power/skiboot/commit/e26a866f>`__ xive/p9: fix silent escalation EQ setup
+-  `0118b0a2 <https://github.com/open-power/skiboot/commit/0118b0a2>`__ xive/p9: cleanup all EQs when a VP block is freed.
+-  `4f194e77 <https://github.com/open-power/skiboot/commit/4f194e77>`__ xive/p9: remove ACK# setting in the NVT
+-  `5d0a4134 <https://github.com/open-power/skiboot/commit/5d0a4134>`__ xive/p9: introduce NVT_SHIFT
+-  `ca46415e <https://github.com/open-power/skiboot/commit/ca46415e>`__ xive/p9: remove XIVE_INT_SAFETY_GAP
+-  `2354857f <https://github.com/open-power/skiboot/commit/2354857f>`__ xive/p9: use predefined bitmasks to manipulate EQ addresses
+-  `6214cb80 <https://github.com/open-power/skiboot/commit/6214cb80>`__ xive/p9: introduce the ESB magic MMIO offsets
+-  `721ef0d0 <https://github.com/open-power/skiboot/commit/721ef0d0>`__ plat/qemu: use “/qemu” device tree node to identify the QEMU
+   platform
+-  `d807288d <https://github.com/open-power/skiboot/commit/d807288d>`__ plat/qemu: add a POWER10 platform
+
+Dan Crowell (1):
+
+-  `1b638f89 <https://github.com/open-power/skiboot/commit/1b638f89>`__ Updating shared constants for HBRT
+
+Dan Horák (2):
+
+-  `1a02a189 <https://github.com/open-power/skiboot/commit/1a02a189>`__ xscom-utils: refer only objects not sources for getscom
+-  `53baedfd <https://github.com/open-power/skiboot/commit/53baedfd>`__ gard: fix installation rule
+
+Eric Richter (9):
+
+-  `e023d6b9 <https://github.com/open-power/skiboot/commit/e023d6b9>`__ hw/test: include -gcov binaries in clean target
+-  `04f0cdb9 <https://github.com/open-power/skiboot/commit/04f0cdb9>`__ doc: add opal secure variable documentation
+-  `484bdc5d <https://github.com/open-power/skiboot/commit/484bdc5d>`__ libstb/secvar: add secure variable internal abstraction
+-  `bc1f1e44 <https://github.com/open-power/skiboot/commit/bc1f1e44>`__ libstb/secvar: add secvar api implementation
+-  `127db3a6 <https://github.com/open-power/skiboot/commit/127db3a6>`__ secvar/test: add rudimentary secvar API unit testing
+-  `a55c46d5 <https://github.com/open-power/skiboot/commit/a55c46d5>`__ secvar_devtree: add generic compatible, and new format
+   device tree property
+-  `6cdbf1ad <https://github.com/open-power/skiboot/commit/6cdbf1ad>`__ secvar_api: check that enqueue_update writes successfully
+   before returning success
+-  `0dfaf110 <https://github.com/open-power/skiboot/commit/0dfaf110>`__ secvar_main: increase verbosity of the main entrypoint
+-  `c2ba08e8 <https://github.com/open-power/skiboot/commit/c2ba08e8>`__ tpm_i2c_nuvoton: check TPM vendor id register during probe
+
+Frederic Barrat (26):
+
+-  `f6f247a8 <https://github.com/open-power/skiboot/commit/f6f247a8>`__ core/pci: Refactor common paths on slot hotplug
+-  `38e51a31 <https://github.com/open-power/skiboot/commit/38e51a31>`__ core/pci: Add missing lock in set_power_timer
+-  `8bae2376 <https://github.com/open-power/skiboot/commit/8bae2376>`__ core/pci: Use proper phandle during hotplug for PHB slots
+-  `30642155 <https://github.com/open-power/skiboot/commit/30642155>`__ core/pci: Train link of PHB slots when hotplugging
+-  `94bc2d7a <https://github.com/open-power/skiboot/commit/94bc2d7a>`__ core/pci: Fix scan of devices for opencapi slots
+-  `13e1a7e5 <https://github.com/open-power/skiboot/commit/13e1a7e5>`__ npu2-hw-procedures: Move some opencapi PHY settings in
+   one-off init
+-  `544ce7ef <https://github.com/open-power/skiboot/commit/544ce7ef>`__ npu2-opencapi: Make sure the PCI slot has the proper ID
+-  `fed081dc <https://github.com/open-power/skiboot/commit/fed081dc>`__ npu2-hw-procedures: Fix link retraining on reset
+-  `2600cfac <https://github.com/open-power/skiboot/commit/2600cfac>`__ npu2-opencapi: Rework link training timeout
+-  `c5db8325 <https://github.com/open-power/skiboot/commit/c5db8325>`__ npu2-opencapi: Tweak fundamental reset sequence
+-  `7989d6ed <https://github.com/open-power/skiboot/commit/7989d6ed>`__ npu2-opencapi: Simplify freset states
+-  `dbc70aea <https://github.com/open-power/skiboot/commit/dbc70aea>`__ npu2-opencapi: Detect PHY reset errors
+-  `40bc636e <https://github.com/open-power/skiboot/commit/40bc636e>`__ npu2-opencapi: Improve error reporting to the OS
+-  `6299d3e5 <https://github.com/open-power/skiboot/commit/6299d3e5>`__ npu2-opencapi: Activate PCI hotplug on opencapi slot
+-  `9d5faafc <https://github.com/open-power/skiboot/commit/9d5faafc>`__ npu2-opencapi: Handle OPAL_UNMAP_PE operation on set_pe()
+   callback
+-  `233e863c <https://github.com/open-power/skiboot/commit/233e863c>`__ npu2-opencapi: Log a warning when resetting a broken device
+-  `425340bd <https://github.com/open-power/skiboot/commit/425340bd>`__ platform/mihawk: Detect old system compatible string
+-  `da28a664 <https://github.com/open-power/skiboot/commit/da28a664>`__ npu2: Rework phb-index assignments for virtual PHBs
+-  `57d43efd <https://github.com/open-power/skiboot/commit/57d43efd>`__ npu3: Don’t use the device tree to assign the phb-index of
+   the PHB
+-  `bbb4777f <https://github.com/open-power/skiboot/commit/bbb4777f>`__ npu2, npu3: Remove ibm, phb-index property from the NPU dt
+   node
+-  `8b9be491 <https://github.com/open-power/skiboot/commit/8b9be491>`__ npu3: Register virtual PHBs with static IDs
+-  `09478eae <https://github.com/open-power/skiboot/commit/09478eae>`__ npu2-opencapi: don’t fence on masked XSL errors
+-  `53408440 <https://github.com/open-power/skiboot/commit/53408440>`__ npu2-opencapi: Don’t drive reset signal permanently
+-  `9de4f228 <https://github.com/open-power/skiboot/commit/9de4f228>`__ npu2-opencapi: Allow platforms to identify physical slots
+-  `59482b92 <https://github.com/open-power/skiboot/commit/59482b92>`__ capp: Add lid definition for P9 DD2.3
+-  `e876514b <https://github.com/open-power/skiboot/commit/e876514b>`__ hw/phb4: Tune GPU direct performance on witherspoon in PCI
+   mode
+
+Frédéric Bonnard (1):
+
+-  `470ffb5f <https://github.com/open-power/skiboot/commit/470ffb5f>`__ external/common: Use file operation used on x86 for
+   ARCH_UNKNOWN
+
+Gavin Shan (2):
+
+-  `8f33688a <https://github.com/open-power/skiboot/commit/8f33688a>`__ core/pci: Use cached VDID when populating device node
+-  `c9c68152 <https://github.com/open-power/skiboot/commit/c9c68152>`__ core/pci: Check PCIe cap version in
+   pci_disable_completion_timeout()
+
+Haren Myneni (1):
+
+-  `ad8cdd0f <https://github.com/open-power/skiboot/commit/ad8cdd0f>`__ VAS: Alloc IRQ and port address for each VAS instance
+
+Ilya Kuznetsov (1):
+
+-  `dab352ee <https://github.com/open-power/skiboot/commit/dab352ee>`__ pci-slot: Allow to create slot for downstream port of any
+   switch
+
+Jordan Niethe (8):
+
+-  `4acb8fe7 <https://github.com/open-power/skiboot/commit/4acb8fe7>`__ core/pci-dt-slots: Remove duplicate PCIDBG() definition
+-  `df15dcfc <https://github.com/open-power/skiboot/commit/df15dcfc>`__ pci: Use a macro for accessing PCI BDF Bus Number
+-  `f68639c6 <https://github.com/open-power/skiboot/commit/f68639c6>`__ pci: Use a macro for accessing PCI BDF Device Number
+-  `e4e2aa9c <https://github.com/open-power/skiboot/commit/e4e2aa9c>`__ pci: Use a macro for accessing PCI BDF Function Number
+-  `41f6c806 <https://github.com/open-power/skiboot/commit/41f6c806>`__ hw/phb4: Use standard MIN/MAX macro definitions
+-  `851ce56c <https://github.com/open-power/skiboot/commit/851ce56c>`__ ipmi: Use standard MIN() macro definition
+-  `a7864968 <https://github.com/open-power/skiboot/commit/a7864968>`__ core/flash: Use pr_fmt macro for tagging log messages
+-  `9f0af279 <https://github.com/open-power/skiboot/commit/9f0af279>`__ ccan: Add CCAN heap license
+
+Joy Chu (3):
+
+-  `52952aca <https://github.com/open-power/skiboot/commit/52952aca>`__ platform/mihawk: Add system VPD EEPROM to I2C bus
+-  `d6ab89db <https://github.com/open-power/skiboot/commit/d6ab89db>`__ platform/mihawk: add nvme devices slot table
+-  `68260957 <https://github.com/open-power/skiboot/commit/68260957>`__ platform/mihawk: support dynamic PCIe slot table
+
+Klaus Heinrich Kiwi (3):
+
+-  `99ce1bef <https://github.com/open-power/skiboot/commit/99ce1bef>`__ ibm-fsp/lxvpd: check for upstream port on slot labeling
+-  `ab1b05d2 <https://github.com/open-power/skiboot/commit/ab1b05d2>`__ PCI: create optional loc-code platform callback
+-  `b8b1ebc1 <https://github.com/open-power/skiboot/commit/b8b1ebc1>`__ core/pci.c: cleanup pci_add_loc_code()
+
+Madhavan Srinivasan (2):
+
+-  `7066a9c2 <https://github.com/open-power/skiboot/commit/7066a9c2>`__ hdat/spira: export abc and wxyz bus speeds
+-  `37941672 <https://github.com/open-power/skiboot/commit/37941672>`__ hw/imc: Add error message on failing cases for imc_init
+
+Mahesh Salgaonkar (2):
+
+-  `a810d1fe <https://github.com/open-power/skiboot/commit/a810d1fe>`__ IPMI: Trigger OPAL TI in abort path.
+-  `53944d45 <https://github.com/open-power/skiboot/commit/53944d45>`__ opal-gard: Add support for new PVR POWER9P.
+
+Mauro S. M. Rodrigues (1):
+
+-  `e4113f94 <https://github.com/open-power/skiboot/commit/e4113f94>`__ tpm_i2c_nuvoton: fix tpm_read_fifo overflow check
+
+Michael Ellerman (1):
+
+-  `387ffa75 <https://github.com/open-power/skiboot/commit/387ffa75>`__ mambo: Add more tweakable security flags
+
+Michal Suchanek (1):
+
+-  `6080c106 <https://github.com/open-power/skiboot/commit/6080c106>`__ errorlog: Prevent alignment error building with gcc9.
+
+Nicholas Piggin (47):
+
+-  `4cf05f35 <https://github.com/open-power/skiboot/commit/4cf05f35>`__ asm/head: set skiboot TOC in interrupt handler entry
+-  `a2c9babb <https://github.com/open-power/skiboot/commit/a2c9babb>`__ core/cpu.c: current_radix_mode should be initialised to true
+-  `6266148e <https://github.com/open-power/skiboot/commit/6266148e>`__ build: use -mcpu=power8
+-  `b70e8afd <https://github.com/open-power/skiboot/commit/b70e8afd>`__ core/exceptions.c: rearrange code to allow more interrupt
+   types
+-  `9ddc1a6b <https://github.com/open-power/skiboot/commit/9ddc1a6b>`__ core/util: trap based assertions
+-  `216433af <https://github.com/open-power/skiboot/commit/216433af>`__ core/util: branch-to-NULL assert for ELFv2 ABI
+-  `1785745d <https://github.com/open-power/skiboot/commit/1785745d>`__ core/exceptions.c: do not include handler code in exception
+   backtrace
+-  `6b512fce <https://github.com/open-power/skiboot/commit/6b512fce>`__ slw: slw_reinit fix array overrun
+-  `3734172b <https://github.com/open-power/skiboot/commit/3734172b>`__ build: fix non-constant build asserts
+-  `2501c3f6 <https://github.com/open-power/skiboot/commit/2501c3f6>`__ xive/p9: improve cache watch type checking
+-  `154e4eed <https://github.com/open-power/skiboot/commit/154e4eed>`__ xive/p9: use predefined bitmasks to manipulate EQ addresses
+-  `192d5865 <https://github.com/open-power/skiboot/commit/192d5865>`__ xive/p9: sbe size debug print fix
+-  `40558797 <https://github.com/open-power/skiboot/commit/40558797>`__ fsp: map trace areas on P9
+-  `ef7c7de8 <https://github.com/open-power/skiboot/commit/ef7c7de8>`__ psi: update registers to reflect >= P8 PHBSCR
+-  `bb445088 <https://github.com/open-power/skiboot/commit/bb445088>`__ hdata/test/hdata_to_dt.c: use P8E PVR when -8E is given
+-  `3fbfb0e3 <https://github.com/open-power/skiboot/commit/3fbfb0e3>`__ Remove dead POWER7 code
+-  `26657393 <https://github.com/open-power/skiboot/commit/26657393>`__ asm/cvc_entry.S: r2 save fix
+-  `ca412e3e <https://github.com/open-power/skiboot/commit/ca412e3e>`__ capp: fix endian conversion
+-  `0ed09ec1 <https://github.com/open-power/skiboot/commit/0ed09ec1>`__ cpu: use dt accessor device tree access
+-  `1b9a449d <https://github.com/open-power/skiboot/commit/1b9a449d>`__ opal-api: add endian conversions to most opal calls
+-  `789624ff <https://github.com/open-power/skiboot/commit/789624ff>`__ opal-msg: endian fixes for opal-msg.c and opal_queue_msg
+   callers
+-  `c47b2ffd <https://github.com/open-power/skiboot/commit/c47b2ffd>`__ elf: endian conversions
+-  `518e5542 <https://github.com/open-power/skiboot/commit/518e5542>`__ spira: fix endian conversions in spira data structures
+-  `8d49ff53 <https://github.com/open-power/skiboot/commit/8d49ff53>`__ hdata: endian conversions
+-  `0d12f0c8 <https://github.com/open-power/skiboot/commit/0d12f0c8>`__ naca: move naca definition from asm to C
+-  `bb9aebc6 <https://github.com/open-power/skiboot/commit/bb9aebc6>`__ io: endian conversions for io accessors
+-  `08801245 <https://github.com/open-power/skiboot/commit/08801245>`__ hmi: endian conversions
+-  `b5c22130 <https://github.com/open-power/skiboot/commit/b5c22130>`__ cvc: allow BE cvc code to be called from LE context
+-  `1504bf98 <https://github.com/open-power/skiboot/commit/1504bf98>`__ xive: make endian-clean
+-  `e73cf72d <https://github.com/open-power/skiboot/commit/e73cf72d>`__ phb4: make endian-clean
+-  `61800f2d <https://github.com/open-power/skiboot/commit/61800f2d>`__ occ sensors: make endian-clean
+-  `45c1436a <https://github.com/open-power/skiboot/commit/45c1436a>`__ memconsole: make endian-clean
+-  `1959efa6 <https://github.com/open-power/skiboot/commit/1959efa6>`__ debug descriptor: make endian-clean
+-  `a2c74d83 <https://github.com/open-power/skiboot/commit/a2c74d83>`__ ipmi: endian conversion
+-  `390c4f5e <https://github.com/open-power/skiboot/commit/390c4f5e>`__ sbe-p9: endian conversion
+-  `e3934d8c <https://github.com/open-power/skiboot/commit/e3934d8c>`__ fsp: endian conversions
+-  `4ec92ece <https://github.com/open-power/skiboot/commit/4ec92ece>`__ errorlog: endian conversion
+-  `f27d32f1 <https://github.com/open-power/skiboot/commit/f27d32f1>`__ pel: endian conversion
+-  `8d9d63b9 <https://github.com/open-power/skiboot/commit/8d9d63b9>`__ libflash: ecc endian conversions
+-  `9c72bbb6 <https://github.com/open-power/skiboot/commit/9c72bbb6>`__ prd: endian conversions
+-  `752b2a2d <https://github.com/open-power/skiboot/commit/752b2a2d>`__ opal-dump: MPIPL endan conversions
+-  `d71bb898 <https://github.com/open-power/skiboot/commit/d71bb898>`__ sfc-ctrl: endian conversions
+-  `35776a29 <https://github.com/open-power/skiboot/commit/35776a29>`__ add little endian support
+-  `a0cf95fe <https://github.com/open-power/skiboot/commit/a0cf95fe>`__ dt: assorted cleanups
+-  `5178691d <https://github.com/open-power/skiboot/commit/5178691d>`__ add more sparse endian annotations
+-  `e04a34af <https://github.com/open-power/skiboot/commit/e04a34af>`__ fix simple sparse warnings
+-  `bca23d31 <https://github.com/open-power/skiboot/commit/bca23d31>`__ i2c: fix dereference beyond the end of buffer
+
+Oliver O’Halloran (80):
+
+-  `ba10ce12 <https://github.com/open-power/skiboot/commit/ba10ce12>`__ Makefiles: Remove –Wno-stringop-truncation
+-  `0f9371da <https://github.com/open-power/skiboot/commit/0f9371da>`__ hw: Put SPDX on new files
+-  `9142bb3b <https://github.com/open-power/skiboot/commit/9142bb3b>`__ core/pci-quirk: Re-order struct members
+-  `452a9a46 <https://github.com/open-power/skiboot/commit/452a9a46>`__ core/pci: Export pci_check_clear_freeze()
+-  `a7c613eb <https://github.com/open-power/skiboot/commit/a7c613eb>`__ core/pci-quirk: Microsemi switch UR workaround
+-  `e9a30df7 <https://github.com/open-power/skiboot/commit/e9a30df7>`__ hw/sbe-p9: Fix multi-line log messages
+-  `e96635d4 <https://github.com/open-power/skiboot/commit/e96635d4>`__ include/xscom: Remove duplicate p8 definitions
+-  `abf3e4c6 <https://github.com/open-power/skiboot/commit/abf3e4c6>`__ include/xscom: Remove duplicate p9 definitions
+-  `b03906a9 <https://github.com/open-power/skiboot/commit/b03906a9>`__ include/xscom: Use the name EQ rather than EP
+-  `b310e8f7 <https://github.com/open-power/skiboot/commit/b310e8f7>`__ hw/phb4: Prevent register accesses when in reset
+-  `a1fced25 <https://github.com/open-power/skiboot/commit/a1fced25>`__ skiboot 6.5 release notes
+-  `e2018d2a <https://github.com/open-power/skiboot/commit/e2018d2a>`__ core/flash: Validate secure boot content size
+-  `1af237bc <https://github.com/open-power/skiboot/commit/1af237bc>`__ pci: recheck pci nvram hacks on fast-reboot
+-  `f945230b <https://github.com/open-power/skiboot/commit/f945230b>`__ hdata: Add Axone IOHUB support
+-  `8bb0ae35 <https://github.com/open-power/skiboot/commit/8bb0ae35>`__ core/pci: Only hack class code for root ports
+-  `7b12d548 <https://github.com/open-power/skiboot/commit/7b12d548>`__ hw/lpc: Configure SerIRQ interrupts on P9P
+-  `4017085c <https://github.com/open-power/skiboot/commit/4017085c>`__ hw/psi: Add chip ID to interrupt names
+-  `fb2f03ea <https://github.com/open-power/skiboot/commit/fb2f03ea>`__ hw/psi-p9: Make interrupt name array global
+-  `fa161cd8 <https://github.com/open-power/skiboot/commit/fa161cd8>`__ hw/psi-p9: Mask OPAL-owned LSIs without handlers
+-  `9c9375fd <https://github.com/open-power/skiboot/commit/9c9375fd>`__ hw/psi: Remove explicit external IRQ policy
+-  `923b5a53 <https://github.com/open-power/skiboot/commit/923b5a53>`__ core/platform: Actually disable fast-reboot on P8
+-  `a4e0f636 <https://github.com/open-power/skiboot/commit/a4e0f636>`__ core/init: Don’t checksum MPIPL data areas
+-  `cc34635d <https://github.com/open-power/skiboot/commit/cc34635d>`__ core/init: Checksum romem after patching out traps
+-  `6cf9ace9 <https://github.com/open-power/skiboot/commit/6cf9ace9>`__ hw/port80: Squash No SYNC error
+-  `1c282887 <https://github.com/open-power/skiboot/commit/1c282887>`__ memory: Add NUMA associtivity information to DT
+-  `f9eb53d2 <https://github.com/open-power/skiboot/commit/f9eb53d2>`__ hdata: Add a generic compatible to ibm,secureboot
+-  `a0340a09 <https://github.com/open-power/skiboot/commit/a0340a09>`__ libstb/secvar: Ensure secvar_set_status() is called once
+-  `ca11072a <https://github.com/open-power/skiboot/commit/ca11072a>`__ libstb/secvar: Fix makefile
+-  `24813aa2 <https://github.com/open-power/skiboot/commit/24813aa2>`__ core/trace: Move trace buffer exports to a subnode
+-  `628158b2 <https://github.com/open-power/skiboot/commit/628158b2>`__ core/trace: Rename boot trace buffer
+-  `446f9f03 <https://github.com/open-power/skiboot/commit/446f9f03>`__ core/pci: Squash warning from devices with no ecaps
+-  `bbe5f003 <https://github.com/open-power/skiboot/commit/bbe5f003>`__ platforms/astbmc: Add more slot helper macros
+-  `1ed21a83 <https://github.com/open-power/skiboot/commit/1ed21a83>`__ platforms/qemu: Add slot table
+-  `83a92e3b <https://github.com/open-power/skiboot/commit/83a92e3b>`__ platforms/qemu: Add slot table entries for a PCIe switch
+-  `7fddf42c <https://github.com/open-power/skiboot/commit/7fddf42c>`__ hdata/test: Remove all temp files
+-  `46fac469 <https://github.com/open-power/skiboot/commit/46fac469>`__ test/mambo: Skip restoring the old ulimit
+-  `9e87ef7f <https://github.com/open-power/skiboot/commit/9e87ef7f>`__ hw/test: Make tests quieter
+-  `d6fc2fb3 <https://github.com/open-power/skiboot/commit/d6fc2fb3>`__ makefiles: Make attribute suggestions non-errors
+-  `0b8f5ea3 <https://github.com/open-power/skiboot/commit/0b8f5ea3>`__ tests: Squash \__attrconst related warnings
+-  `2899bda5 <https://github.com/open-power/skiboot/commit/2899bda5>`__ include/cpu: Move \__nomcount attribute
+-  `7abb0ef5 <https://github.com/open-power/skiboot/commit/7abb0ef5>`__ opal-ci: Remove clang builds on 18.04
+-  `0990e822 <https://github.com/open-power/skiboot/commit/0990e822>`__ boottests: Print the simulator output if V=1 is set
+-  `dc85bd46 <https://github.com/open-power/skiboot/commit/dc85bd46>`__ witherspoon: Squash spurious I2C errors
+-  `8b3012e1 <https://github.com/open-power/skiboot/commit/8b3012e1>`__ hw/p8-i2c: Don’t print warnings when dumping registers
+-  `b449782d <https://github.com/open-power/skiboot/commit/b449782d>`__ hw/p8-i2c: Clean up interrupt masking
+-  `9f7b726c <https://github.com/open-power/skiboot/commit/9f7b726c>`__ libstb/tpm: block access to unknown i2c devs on the tpm bus
+-  `80fd2e96 <https://github.com/open-power/skiboot/commit/80fd2e96>`__ xscom: Don’t log xscom errors caused by OPAL calls
+-  `a4fbdbc6 <https://github.com/open-power/skiboot/commit/a4fbdbc6>`__ doc: Add skiboot-5.2.0 ref
+-  `f04000d7 <https://github.com/open-power/skiboot/commit/f04000d7>`__ doc/secvar: Fix table markup
+-  `06a90e9b <https://github.com/open-power/skiboot/commit/06a90e9b>`__ doc/mpipl: Fix warnings
+-  `c76b1c19 <https://github.com/open-power/skiboot/commit/c76b1c19>`__ doc/secvar: Fix indentation warnings
+-  `93ea4773 <https://github.com/open-power/skiboot/commit/93ea4773>`__ doc: Fix code blocks in v6.3.3 release notes
+-  `8be8d98e <https://github.com/open-power/skiboot/commit/8be8d98e>`__ doc/sbe: Fix block indentation
+-  `58d51527 <https://github.com/open-power/skiboot/commit/58d51527>`__ doc: Remove duplicate OPAL_ELOG_WRITE label
+-  `962f6d78 <https://github.com/open-power/skiboot/commit/962f6d78>`__ doc: Fix block in 6.3.2 release notes
+-  `7b4619a6 <https://github.com/open-power/skiboot/commit/7b4619a6>`__ doc/opal-api: Remove spurious indent
+-  `0f46e5ca <https://github.com/open-power/skiboot/commit/0f46e5ca>`__ doc/dt: Fix memory-heirachy block
+-  `192efa9b <https://github.com/open-power/skiboot/commit/192efa9b>`__ doc/opal-api: Remove ref to OPAL_HMI_FLAGS_TOD_TB_FAIL
+-  `7afd41b7 <https://github.com/open-power/skiboot/commit/7afd41b7>`__ doc/device-tree: Add secvar bindings to the toctree
+-  `e23e0053 <https://github.com/open-power/skiboot/commit/e23e0053>`__ doc: Add VAS stuff into the tree
+-  `f59b2f6b <https://github.com/open-power/skiboot/commit/f59b2f6b>`__ doc: Use parallel builds
+-  `4a8b45a6 <https://github.com/open-power/skiboot/commit/4a8b45a6>`__ doc: Remove bonus CONTRIBUTING.md from the index
+-  `275c73fc <https://github.com/open-power/skiboot/commit/275c73fc>`__ doc: Fix some errors in platforms-and-cpus
+-  `a02072d0 <https://github.com/open-power/skiboot/commit/a02072d0>`__ doc/imc: Fix sphinx warning
+-  `d332d419 <https://github.com/open-power/skiboot/commit/d332d419>`__ README.md: Add information on docs
+-  `10bbcd07 <https://github.com/open-power/skiboot/commit/10bbcd07>`__ core/platform: Add an explicit fast-reboot type
+-  `ee07f2c6 <https://github.com/open-power/skiboot/commit/ee07f2c6>`__ core/fast-reset: Do not enable by default
+-  `82aed17a <https://github.com/open-power/skiboot/commit/82aed17a>`__ firenze-pci: Fix infinite loop in firenze_pci_add_loc_code()
+-  `2e122fba <https://github.com/open-power/skiboot/commit/2e122fba>`__ hw/fsp: Remove stray va_end() in \__fsp_fillmsg()
+-  `b776bb0f <https://github.com/open-power/skiboot/commit/b776bb0f>`__ hw/fsp: Fix GENERIC_FAILURE mailbox status code
+-  `e19dddc5 <https://github.com/open-power/skiboot/commit/e19dddc5>`__ Re-license contributions from Raptor Computer Systems
+-  `a5764dd3 <https://github.com/open-power/skiboot/commit/a5764dd3>`__ Re-license contributions from Dan Horák
+-  `504f4f08 <https://github.com/open-power/skiboot/commit/504f4f08>`__ Re-license contributions from Yadro
+-  `d703ad5b <https://github.com/open-power/skiboot/commit/d703ad5b>`__ hw/prd: Hold FSP notifications while PRD is inactive
+-  `ec7be089 <https://github.com/open-power/skiboot/commit/ec7be089>`__ docs: Fix ref to skiboot-6.4 in 6.5 release notes
+-  `7b57002d <https://github.com/open-power/skiboot/commit/7b57002d>`__ hw/xscom: Add scom infrastructure
+-  `9b612fff <https://github.com/open-power/skiboot/commit/9b612fff>`__ hw/centaur: Convert to use the new scom API
+-  `38b5c317 <https://github.com/open-power/skiboot/commit/38b5c317>`__ hdata/memory: Add support for memory-buffer mmio
+-  `e991415a <https://github.com/open-power/skiboot/commit/e991415a>`__ hw/ocmb: Add OCMB SCOM support
+-  `0f1937ef <https://github.com/open-power/skiboot/commit/0f1937ef>`__ skiboot v6.6 release notes
+
+Reza Arbab (19):
+
+-  `7ff5558c <https://github.com/open-power/skiboot/commit/7ff5558c>`__ Dedup $(HW_OBJS)
+-  `e7f76b4e <https://github.com/open-power/skiboot/commit/e7f76b4e>`__ hw/phys-map: Add pvr argument to phys_map_init()
+-  `6db75f1d <https://github.com/open-power/skiboot/commit/6db75f1d>`__ hw/phys-map: Add Axone memory map
+-  `8279e529 <https://github.com/open-power/skiboot/commit/8279e529>`__ npu2: Prepare purge_l2_l3_caches() for reuse
+-  `d9ecf61c <https://github.com/open-power/skiboot/commit/d9ecf61c>`__ npu2: Refactor NPU OPAL calls
+-  `d9b06b85 <https://github.com/open-power/skiboot/commit/d9b06b85>`__ npu2: Add checks to npu2-only codepaths
+-  `aa3fc69f <https://github.com/open-power/skiboot/commit/aa3fc69f>`__ hw: Introduce npu3
+-  `6017ba6a <https://github.com/open-power/skiboot/commit/6017ba6a>`__ Add Swift platform
+-  `3e334fbb <https://github.com/open-power/skiboot/commit/3e334fbb>`__ npu3: Rename NPU3_SM_MISC_CFGn register macros
+-  `82b57688 <https://github.com/open-power/skiboot/commit/82b57688>`__ npu3: Initialize NPU3_SNP_MISC_CFG0
+-  `2422c100 <https://github.com/open-power/skiboot/commit/2422c100>`__ npu3: Expose remaining ATSD launch registers
+-  `a36a4944 <https://github.com/open-power/skiboot/commit/a36a4944>`__ npu: Fix device binding error message
+-  `38e1c73f <https://github.com/open-power/skiboot/commit/38e1c73f>`__ npu3: Delay enablement of DL parity checking
+-  `3f5ecfb3 <https://github.com/open-power/skiboot/commit/3f5ecfb3>`__ devicetree: Remove lpc interrupt properties
+-  `91b4be52 <https://github.com/open-power/skiboot/commit/91b4be52>`__ platforms/swift: Remove spurious error message
+-  `03e7420e <https://github.com/open-power/skiboot/commit/03e7420e>`__ npu3: Add ibm, ioda2-npu3-phb to compatible property
+-  `3ea336e7 <https://github.com/open-power/skiboot/commit/3ea336e7>`__ npu3: Improve SALT log output
+-  `ece4109b <https://github.com/open-power/skiboot/commit/ece4109b>`__ npu3: Make SALT CMD_REG writable
+-  `24664b48 <https://github.com/open-power/skiboot/commit/24664b48>`__ npu2/hw-procedures: Remove assertion from check_credits()
+
+Ryan Grimm (1):
+
+-  `689f4469 <https://github.com/open-power/skiboot/commit/689f4469>`__ slw: Enable stop states on P9P
+
+Shilpasri G Bhat (1):
+
+-  `1fa6e85a <https://github.com/open-power/skiboot/commit/1fa6e85a>`__ occ: Add pstate corresponding to base frequency to DT
+
+Stewart Smith (23):
+
+-  `648c7cfd <https://github.com/open-power/skiboot/commit/648c7cfd>`__ Silence sparse warning for version.c
+-  `2c256c68 <https://github.com/open-power/skiboot/commit/2c256c68>`__ sparse: Silence “directive in argument list” for version
+   string
+-  `c7737655 <https://github.com/open-power/skiboot/commit/c7737655>`__ sparse: fix (main|secondar)_cpu_entry declaration types
+-  `ae9fb433 <https://github.com/open-power/skiboot/commit/ae9fb433>`__ sparse: fix endian types of struct imc_chip_cb members
+-  `64b30ec5 <https://github.com/open-power/skiboot/commit/64b30ec5>`__ sparse: various SPIRA structures, declare them.
+-  `4b2af1e5 <https://github.com/open-power/skiboot/commit/4b2af1e5>`__ sparse: lpc uart interrupt pointer endianness
+-  `352738f7 <https://github.com/open-power/skiboot/commit/352738f7>`__ sparse: hdata/fsp: u8 doesn’t have endian
+-  `4bec3e9e <https://github.com/open-power/skiboot/commit/4bec3e9e>`__ sparse: hdata/iohub: correctly convert endianness
+-  `33753c98 <https://github.com/open-power/skiboot/commit/33753c98>`__ sparse: hdata/spira sw_xstop_fir_bitpos is uint8_t, has no
+   endian
+-  `62ceded3 <https://github.com/open-power/skiboot/commit/62ceded3>`__ sparse: libstb/container: fix endian type for magic number
+-  `0ee242b9 <https://github.com/open-power/skiboot/commit/0ee242b9>`__ gcov: Fix skiboot size to dump out from simulators
+-  `067de39a <https://github.com/open-power/skiboot/commit/067de39a>`__ Move ec/ code to Rhesus platform
+-  `5ef3dd30 <https://github.com/open-power/skiboot/commit/5ef3dd30>`__ SPDX-ify all skiboot code
+-  `5826c0a2 <https://github.com/open-power/skiboot/commit/5826c0a2>`__ travis: Enable fedora30 for ppc64le
+-  `468a2dc1 <https://github.com/open-power/skiboot/commit/468a2dc1>`__ travis: remove fedora29
+-  `85b94f12 <https://github.com/open-power/skiboot/commit/85b94f12>`__ travis: do gcov builds on fedora30
+-  `8995ad61 <https://github.com/open-power/skiboot/commit/8995ad61>`__ doc/requirements.txt: pin docutils at 0.14
+-  `73ded8c7 <https://github.com/open-power/skiboot/commit/73ded8c7>`__ doc/device-tree/ibm, opal/firmware/version: clarify timeline
+   of git-id vs version
+-  `0e1db80c <https://github.com/open-power/skiboot/commit/0e1db80c>`__ SPDX fixups and Copyright date fixes
+-  `12610da1 <https://github.com/open-power/skiboot/commit/12610da1>`__ libstb: export CVC/securerom code memory range
+-  `70047661 <https://github.com/open-power/skiboot/commit/70047661>`__ mambo: enable use of real Container Verification Code
+-  `49496485 <https://github.com/open-power/skiboot/commit/49496485>`__ Re-license IBM written files as Apache 2.0 OR GPLv2+
+-  `57c451dd <https://github.com/open-power/skiboot/commit/57c451dd>`__ platform: add Raptor Blackbird support
+
+Thiago Jung Bauermann (2):
+
+-  `528b72fa <https://github.com/open-power/skiboot/commit/528b72fa>`__ core/init: Add ibm,processor-storage-keys property to CPU DT
+   node
+-  `9cd556ca <https://github.com/open-power/skiboot/commit/9cd556ca>`__ Makefile: Search for distro-provided cross-compiler
+
+Vasant Hegde (64):
+
+-  `ca222757 <https://github.com/open-power/skiboot/commit/ca222757>`__ OPAL: Add OPAL boot entry address to device tree
+-  `af98c563 <https://github.com/open-power/skiboot/commit/af98c563>`__ FSP/MDST: Rename fsp-mdst-table.c -> fsp-sysdump.c
+-  `9d57eb46 <https://github.com/open-power/skiboot/commit/9d57eb46>`__ hdata: Split MDST ‘type’ field to accommodate MPIPL
+-  `0b667811 <https://github.com/open-power/skiboot/commit/0b667811>`__ hdata: Define various DUMP related structures
+-  `f10e629c <https://github.com/open-power/skiboot/commit/f10e629c>`__ mem-map: Setup memory for MDDT table
+-  `bbe6e969 <https://github.com/open-power/skiboot/commit/bbe6e969>`__ mem-map: Setup memory for MDRT table
+-  `935fccb0 <https://github.com/open-power/skiboot/commit/935fccb0>`__ hdata: Update spirah structure
+-  `ed7110ee <https://github.com/open-power/skiboot/commit/ed7110ee>`__ hdata: Adjust various structure offset after relocation
+-  `0cadc985 <https://github.com/open-power/skiboot/commit/0cadc985>`__ hdata: Create /ibm, opal/dump device tree node
+-  `1ba3198b <https://github.com/open-power/skiboot/commit/1ba3198b>`__ MPIPL: Register for OPAL dump
+-  `4f94bda6 <https://github.com/open-power/skiboot/commit/4f94bda6>`__ MPIPL: Define OPAL metadata area
+-  `ef6da5f6 <https://github.com/open-power/skiboot/commit/ef6da5f6>`__ MPIPL: Add OPAL API to register for dump region
+-  `8d0c8ae5 <https://github.com/open-power/skiboot/commit/8d0c8ae5>`__ MPIPL: Add OPAL API to register tags
+-  `166eda4e <https://github.com/open-power/skiboot/commit/166eda4e>`__ SBE: Send OPAL relocated base address to SBE
+-  `0a17e674 <https://github.com/open-power/skiboot/commit/0a17e674>`__ MPIPL: Add support to trigger MPIPL on BMC system
+-  `fbd875d7 <https://github.com/open-power/skiboot/commit/fbd875d7>`__ MPIPL: Save crashing PIR
+-  `aa694ea0 <https://github.com/open-power/skiboot/commit/aa694ea0>`__ HIOMAP: Reset bmc mbox in MPIPL path
+-  `4a669d0f <https://github.com/open-power/skiboot/commit/4a669d0f>`__ platform: Introduce new reboot type
+-  `6326c712 <https://github.com/open-power/skiboot/commit/6326c712>`__ hdata: Add “mpipl-boot” property to “dump” node
+-  `3d85abd9 <https://github.com/open-power/skiboot/commit/3d85abd9>`__ MPIPL: Prepare OPAL data tag
+-  `19a8694f <https://github.com/open-power/skiboot/commit/19a8694f>`__ MPIPL: Add OPAL API to query saved tags
+-  `7fa3c1ec <https://github.com/open-power/skiboot/commit/7fa3c1ec>`__ MPIPL: Clear tags and metadata
+-  `fa5cb006 <https://github.com/open-power/skiboot/commit/fa5cb006>`__ MPIPL: Reserve memory to capture architected registers data
+-  `4ddf1144 <https://github.com/open-power/skiboot/commit/4ddf1144>`__ MPIPL: Prepare architected registers data tag
+-  `11cb51ab <https://github.com/open-power/skiboot/commit/11cb51ab>`__ MPIPL: Add documentation
+-  `cc028857 <https://github.com/open-power/skiboot/commit/cc028857>`__ MPIPL: struct opal_mpipl_fadump doesn’t needs to be packed
+-  `d75e82db <https://github.com/open-power/skiboot/commit/d75e82db>`__ core/ipmi: Fix use-after-free
+-  `a0c996e4 <https://github.com/open-power/skiboot/commit/a0c996e4>`__ core/ipmi: Remove redundant variable
+-  `49be3377 <https://github.com/open-power/skiboot/commit/49be3377>`__ gard: Add support to run gard tests on FSP platform
+-  `fc455b94 <https://github.com/open-power/skiboot/commit/fc455b94>`__ skiboot v6.3.4 release notes
+-  `66ab3cbd <https://github.com/open-power/skiboot/commit/66ab3cbd>`__ skiboot v6.5.1 release notes
+-  `b8bac56a <https://github.com/open-power/skiboot/commit/b8bac56a>`__ hostservices: Silence special wakeup assert/release logs
+-  `c3bfa320 <https://github.com/open-power/skiboot/commit/c3bfa320>`__ hdata: Fix reserved node label search
+-  `f1557795 <https://github.com/open-power/skiboot/commit/f1557795>`__ prd: Improve debug logs
+-  `790a604e <https://github.com/open-power/skiboot/commit/790a604e>`__ prd: Fix prd message queuing interface
+-  `7af08f2f <https://github.com/open-power/skiboot/commit/7af08f2f>`__ prd: Fix FSP - HBRT firmware_notify message
+-  `2a63db65 <https://github.com/open-power/skiboot/commit/2a63db65>`__ FSP/IPMI: Handle FSP reset reload
+-  `13c2f98e <https://github.com/open-power/skiboot/commit/13c2f98e>`__ skiboot 5.4.11 release notes
+-  `87a470c2 <https://github.com/open-power/skiboot/commit/87a470c2>`__ skiboot v6.5.2 release notes
+-  `28eab7cd <https://github.com/open-power/skiboot/commit/28eab7cd>`__ skiboot v6.3.3 release notes
+-  `120b1b7d <https://github.com/open-power/skiboot/commit/120b1b7d>`__ skiboot v6.0.21 release notes
+-  `a448c4e2 <https://github.com/open-power/skiboot/commit/a448c4e2>`__ hdata: Update MPIPL support IPL parameter
+-  `179d53df <https://github.com/open-power/skiboot/commit/179d53df>`__ stable/build: Do not convert warnings to error
+-  `eebee394 <https://github.com/open-power/skiboot/commit/eebee394>`__ hdata: Fix SP attention area address
+-  `457f9635 <https://github.com/open-power/skiboot/commit/457f9635>`__ mpipl: Release cpu data memory in free reserved memory path
+-  `b858aef5 <https://github.com/open-power/skiboot/commit/b858aef5>`__ mpipl: Disable fast-reboot during post MPIPL boot
+-  `958769d1 <https://github.com/open-power/skiboot/commit/958769d1>`__ FSP: Remove flash hook after completing code update
+-  `b0e02421 <https://github.com/open-power/skiboot/commit/b0e02421>`__ mpipl: Rework memory reservation for OPAL dump
+-  `c53e3394 <https://github.com/open-power/skiboot/commit/c53e3394>`__ platform: Log error to BMC even if diag data is missing
+-  `c8418ac7 <https://github.com/open-power/skiboot/commit/c8418ac7>`__ errorlog: Replace hardcode value with macro
+-  `caae4d47 <https://github.com/open-power/skiboot/commit/caae4d47>`__ list: Add list_add_after()
+-  `16d186cf <https://github.com/open-power/skiboot/commit/16d186cf>`__ memory: Sort memory regions list
+-  `841874b6 <https://github.com/open-power/skiboot/commit/841874b6>`__ ipmi-sel: Free ipmi_msg in error path
+-  `20101950 <https://github.com/open-power/skiboot/commit/20101950>`__ esel: Fix OEM SEL generator ID
+-  `033e797c <https://github.com/open-power/skiboot/commit/033e797c>`__ eSEL: Make sure PANIC logs are sent to BMC before calling
+   assert
+-  `daf9215c <https://github.com/open-power/skiboot/commit/daf9215c>`__ errorlog: Increase the severity of abnormal reboot events
+-  `2700092e <https://github.com/open-power/skiboot/commit/2700092e>`__ skiboot v6.5.3 release notes
+-  `d0043ee2 <https://github.com/open-power/skiboot/commit/d0043ee2>`__ skiboot v6.5.4 release notes
+-  `4ccfb4b3 <https://github.com/open-power/skiboot/commit/4ccfb4b3>`__ skiboot v6.0.22 release notes
+-  `3a4daeca <https://github.com/open-power/skiboot/commit/3a4daeca>`__ Revert “FSP: Disable PSI link whenever FSP tells OPAL about
+   impending R/R”
+-  `33323055 <https://github.com/open-power/skiboot/commit/33323055>`__ skiboot v6.0.23 release notes
+-  `d6eb510d <https://github.com/open-power/skiboot/commit/d6eb510d>`__ fsp: Ignore platform dump notification on P9
+-  `34664746 <https://github.com/open-power/skiboot/commit/34664746>`__ MPIPL: Add support to save crash CPU details on FSP system
+-  `9547b3da <https://github.com/open-power/skiboot/commit/9547b3da>`__ ZZ: Fix System Attention Indicator location code
+
+acsawdey (1):
+
+-  `a08549a9 <https://github.com/open-power/skiboot/commit/a08549a9>`__ external/mambo: rename env var PMEM_MODES to PMEM_MODE
+
+joy_chu (1):
+
+-  `9570730f <https://github.com/open-power/skiboot/commit/9570730f>`__ Add: add mihawk platform file
+
+Package: vesnin-xml
+-------------------
+
+`Repository <https://github.com/open-power/vesnin-xml>`__
+
+.. _patches-17:
+
+Patches
+~~~~~~~
+
+.. _commits-17:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: witherspoon-xml
+------------------------
+
+`Repository <https://github.com/open-power/witherspoon-xml>`__
+
+.. _patches-18:
+
+Patches
+~~~~~~~
+
+.. _commits-18:
+
+Commits
+~~~~~~~
+
+Uma Yadlapati (1):
+
+-  `c622cb5 <https://github.com/open-power/witherspoon-xml/commit/c622cb5>`__ Add IPMI Key Clear sensor (#84)
+
+nmuruli (1):
+
+-  `0f9b366 <https://github.com/open-power/witherspoon-xml/commit/0f9b366>`__ Set IS_MPIPL_SUPPORTED to TRUE by default (#88)
+
+Package: zaius-xml
+------------------
+
+`Repository <https://github.com/open-power/zaius-xml>`__
+
+.. _patches-19:
+
+Patches
+~~~~~~~
+
+.. _commits-19:
+
+Commits
+~~~~~~~
+
+No changes.

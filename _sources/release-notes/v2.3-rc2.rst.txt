@@ -1,0 +1,208 @@
+Release Notes for OpenPower Firmware v2.3-rc2
+=============================================
+
+op-build v2.3-rc2 was released on Friday April 5th, 2019. It will become the new stable release of
+op-build, following on from v2.2, first released on March 9th, 2019.
+
+The op-build v2.3 release cycle is a uniquely shorter one as we’ve been working on getting ready to
+have a more reliably predictable release schedule going for future releases.
+
+op-build v2.3-rc2 contains all the fixes as of op-build v2.0.15, and we expect to continue to do
+stable 2.0.y releases of v2.0 into the forseeable future.
+
+Please note that this is a RELEASE CANDIDATE and not the final v2.3 release. We expect to do a final
+v2.3 tagged release early April 2019. Please test this release candidate heavily!
+
+Known Bugs
+----------
+
+We have one known bug (carried over from rc1) that are currently release blockers for the final
+v2.3.
+
+-  There exists a bug where Control-C behaviour in the petitboot shell has changed, which may cause
+   some test scripts to get confused.
+
+Fixed Bugs
+----------
+
+One of the two bugs listed in “known bugs” for rc1 has been fixed:
+
+-  There exists a bug where boot devices *may* not show up in petitboot until “Rescan Devices” is
+   selected.
+
+Updated Packages
+----------------
+
++----------------+------------------+---------------+---------------------------------------------+
+| Package        | Old Version      | New Version   | Platforms                                   |
++================+==================+===============+=============================================+
+| hcode          | hw032919a.940    | hw040319a.940 | witherspoon, p9dsu, zaius, romulus          |
++----------------+------------------+---------------+---------------------------------------------+
+| hostboot       | ca03643dd893     | e5622fb032dc  | witherspoon, p9dsu, zaius, romulus          |
++----------------+------------------+---------------+---------------------------------------------+
+| hostboot-p8    | c2074ad87972     | dc218d94c57b9 | habanero, garrison, barreleye, firestone,   |
+|                |                  |               | palmetto, vesnin                            |
++----------------+------------------+---------------+---------------------------------------------+
+| linux          | 4.19.30          | 5.0.5         | witherspoon, p9dsu, zaius, habanero,        |
+|                |                  |               | firenze, garrison, barreleye, pseries,      |
+|                |                  |               | opal, firestone, palmetto, vesnin, zz,      |
+|                |                  |               | romulus                                     |
++----------------+------------------+---------------+---------------------------------------------+
+| linux-headers  | 4.19.30          | 5.0.5         | witherspoon, p9dsu, zaius, habanero,        |
+|                |                  |               | firenze, garrison, barreleye, pseries,      |
+|                |                  |               | opal, firestone, palmetto, vesnin, zz,      |
+|                |                  |               | romulus                                     |
++----------------+------------------+---------------+---------------------------------------------+
+| petitboot      | v1.10.2          | v1.10.3       | witherspoon, p9dsu, zaius, habanero,        |
+|                |                  |               | firenze, garrison, barreleye, pseries,      |
+|                |                  |               | opal, firestone, palmetto, vesnin, zz,      |
+|                |                  |               | romulus                                     |
++----------------+------------------+---------------+---------------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+hostboot (2):
+
+-  `f89e3fc16469 <https://github.com/open-power/hcode/commit/f89e3fc16469>`__ Release tag
+   information updated for hw040219a.940
+-  `2e3a283588c1 <https://github.com/open-power/hcode/commit/2e3a283588c1>`__ Release tag
+   information updated for hw040319a.940
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _v2.3-rc2-patches-1:
+
+Patches
+~~~~~~~
+
+.. _v2.3-rc2-commits-1:
+
+Commits
+~~~~~~~
+
+Andre A. Marin (1):
+
+-  `ee76c2ca5927 <https://github.com/open-power/hostboot/commit/ee76c2ca5927>`__ Fix c_str and pos
+   DIMM specialization
+
+Andre Marin (1):
+
+-  `8daf280f7d24 <https://github.com/open-power/hostboot/commit/8daf280f7d24>`__ Fix true_type and
+   false\_ type typdef with integral_constant
+
+Caleb Palmer (1):
+
+-  `f7937e802748 <https://github.com/open-power/hostboot/commit/f7937e802748>`__ PRD: Fix isEccSp
+   capture data check
+
+Chen Du (1):
+
+-  `5da79e14c316 <https://github.com/open-power/hostboot/commit/5da79e14c316>`__ Get ring override
+   failing
+
+Christian Geddes (4):
+
+-  `9882fe3c773b <https://github.com/open-power/hostboot/commit/9882fe3c773b>`__ Set REL_POS to 0 on
+   all DIMM target in simics Axone
+-  `215eaa2074f5 <https://github.com/open-power/hostboot/commit/215eaa2074f5>`__ Stop overwriting
+   OCMB vpd info in standalone and handle DDIMM modules
+-  `9fd0af32313c <https://github.com/open-power/hostboot/commit/9fd0af32313c>`__ Set
+   ATTR_MSS_INTERLEAVE_ENABLE to be 0xAF to allow all grouping sizes
+-  `16378af2527d <https://github.com/open-power/hostboot/commit/16378af2527d>`__ Compile Explorer
+   MSS libs in our istepsmss lib
+
+Corey Swenson (2):
+
+-  `201a39f54be6 <https://github.com/open-power/hostboot/commit/201a39f54be6>`__ Add part callout
+   for the Backup Power Module
+-  `e5622fb032dc <https://github.com/open-power/hostboot/commit/e5622fb032dc>`__ Insufficient
+   Resources check needs to handle NVDIMM logic
+
+Dan Crowell (1):
+
+-  `54178321414b <https://github.com/open-power/hostboot/commit/54178321414b>`__ Constants for
+   future DIMMs
+
+Ilya Smirnov (1):
+
+-  `25c1b412b86a <https://github.com/open-power/hostboot/commit/25c1b412b86a>`__ Process Core and EQ
+   Gard Records in MPIPL Path
+
+Jennifer A. Stofer (1):
+
+-  `12b139b58521 <https://github.com/open-power/hostboot/commit/12b139b58521>`__ Revert “P9 Xbus/DMI
+   CM Workaround”
+
+Mike Baiocchi (1):
+
+-  `1b5381224824 <https://github.com/open-power/hostboot/commit/1b5381224824>`__ Cleanup UCD Update
+   Algorithm Code
+
+Murulidhar Nataraju (1):
+
+-  `ed1208121086 <https://github.com/open-power/hostboot/commit/ed1208121086>`__ Istep 18 - MPIPL on
+   OPAL System update
+
+Nick Bofferding (1):
+
+-  `ec86a5683941 <https://github.com/open-power/hostboot/commit/ec86a5683941>`__ Decrease WOFDATA
+   partition by 1 MB until HBI space can be reduced
+
+Package: occ
+------------
+
+`Repository <https://github.com/open-power/occ>`__
+
+.. _v2.3-rc2-patches-2:
+
+Patches
+~~~~~~~
+
+.. _v2.3-rc2-commits-2:
+
+Commits
+~~~~~~~
+
+No changes.
+
+Package: petitboot
+------------------
+
+`Repository <https://github.com/open-power/petitboot>`__
+
+.. _v2.3-rc2-patches-3:
+
+Patches
+~~~~~~~
+
+.. _v2.3-rc2-commits-3:
+
+Commits
+~~~~~~~
+
+Samuel Mendoza-Jonas (6):
+
+-  `df1a234c15fb <https://github.com/open-power/petitboot/commit/df1a234c15fb>`__ lib/system: Add
+   cryptsetup utility
+-  `ba8144f917f5 <https://github.com/open-power/petitboot/commit/ba8144f917f5>`__ lib/process: Add
+   option to pipe to process stdin
+-  `5f8fa2c151b8 <https://github.com/open-power/petitboot/commit/5f8fa2c151b8>`__ lib: Add
+   AUTH_MSG_DECRYPT
+-  `f583f0cf35fc <https://github.com/open-power/petitboot/commit/f583f0cf35fc>`__ discover:
+   Recognise and open LUKS encrypted partitions
+-  `1ad18bf128c4 <https://github.com/open-power/petitboot/commit/1ad18bf128c4>`__ ui/ncurses: Add
+   prompt for LUKS device password
+-  `1cd261748c00 <https://github.com/open-power/petitboot/commit/1cd261748c00>`__ utils/pb-console:
+   Use -m to run shell in own process group

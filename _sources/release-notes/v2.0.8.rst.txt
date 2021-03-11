@@ -1,0 +1,113 @@
+Release Notes for OpenPower Firmware v2.0.8
+===========================================
+
+op-build v2.0.8 was released on Monday August 6th, 2018 and replaces op-build v2.0.7 as the current stable release in
+the 2.0.x series.
+
+It is recommended that v2.0.8 be used over any previous v2.0.x version on POWER9 systems due to the bug fixes contained
+within.
+
+Updated Packages
+----------------
+
++--------------------+-------------------------+------------------------------+----------------------------------------+
+| Package            | Old Version             | New Version                  | Platforms                              |
++====================+=========================+==============================+========================================+
+| hcode              | hw072318a.op920         | hw080418a.op920              | zaius, p9dsu, witherspoon, romulus     |
++--------------------+-------------------------+------------------------------+----------------------------------------+
+| hostboot           | 58b3d491a4354           | d0332131ea0c0                | zaius, p9dsu, witherspoon, romulus     |
++--------------------+-------------------------+------------------------------+----------------------------------------+
+| hostboot-binaries  | hw072318a.op920         | hw080418a.op920              | firestone, garrison, zaius, p9dsu,     |
+|                    |                         |                              | palmetto, vesnin, witherspoon,         |
+|                    |                         |                              | habanero, barreleye, romulus           |
++--------------------+-------------------------+------------------------------+----------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+Yue Du (1):
+
+-  `fa7d3943af91 <https://github.com/open-power/hcode/commit/fa7d3943af91>`__ STOP: Fix incorrect solution in 61385
+
+hostboot (3):
+
+-  `7903b32b3d7e <https://github.com/open-power/hcode/commit/7903b32b3d7e>`__ Release tag information updated for
+   hw080118a.op920
+-  `b7536dec8c2a <https://github.com/open-power/hcode/commit/b7536dec8c2a>`__ Release tag information updated for
+   hw080318a.op920
+-  `9b0cff5c99d7 <https://github.com/open-power/hcode/commit/9b0cff5c99d7>`__ Release tag information updated for
+   hw080418a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _v2.0.8-patches-1:
+
+Patches
+~~~~~~~
+
+.. _v2.0.8-commits-1:
+
+Commits
+~~~~~~~
+
+Andres Lugo-Reyes (1):
+
+-  `52d75b98b6b4 <https://github.com/open-power/hostboot/commit/52d75b98b6b4>`__ HTMGT: WOF Reset Disable Flag
+
+Greg Still (1):
+
+-  `716483393aec <https://github.com/open-power/hostboot/commit/716483393aec>`__ PM: Move PBAFIR checkstops to
+   recoverable attentions
+
+Nick Bofferding (1):
+
+-  `af6f77c1aab7 <https://github.com/open-power/hostboot/commit/af6f77c1aab7>`__ i2c: Don’t wait for SDA to go high
+   before sending slave stop command
+
+Nick Klazynski (1):
+
+-  `efb7cc5f4a17 <https://github.com/open-power/hostboot/commit/efb7cc5f4a17>`__ Clockgate disable workaround for
+   HW452921
+
+Prem Shanker Jha (1):
+
+-  `c5efa55e3247 <https://github.com/open-power/hostboot/commit/c5efa55e3247>`__ STOP_Recovery: Added hwp changes to
+   support error log parser.
+
+Raja Das (1):
+
+-  `5de34dd6c24d <https://github.com/open-power/hostboot/commit/5de34dd6c24d>`__ Inverted logic of hasClock bit in Clock
+   Status register
+
+Rick Ward (1):
+
+-  `25d11acf0292 <https://github.com/open-power/hostboot/commit/25d11acf0292>`__ Host went to kernel panic after
+   gard’ing PEC0/PHB0 (PCIFIR CS)
+
+Yue Du (1):
+
+-  `a83a93a35943 <https://github.com/open-power/hostboot/commit/a83a93a35943>`__ PM: Prevent Core-L2 Quiesce from
+   removing PM_EXIT upon SPWU
+
+Zane Shelley (2):
+
+-  `14ae5a21b925 <https://github.com/open-power/hostboot/commit/14ae5a21b925>`__ PRD: Disable reading/writing lane
+   repair VPD
+-  `bd04abf36c3f <https://github.com/open-power/hostboot/commit/bd04abf36c3f>`__ PRD: change threshold for L3FIR[28] LRU
+   parity error
+
+nagurram-in (1):
+
+-  `d0332131ea0c <https://github.com/open-power/hostboot/commit/d0332131ea0c>`__ attribute ECID value updation in hdat
+   pcrd structure

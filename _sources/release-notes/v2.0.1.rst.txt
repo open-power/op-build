@@ -1,0 +1,71 @@
+Release Notes for OpenPower Firmware v2.0.1
+===========================================
+
+Updated Packages
+----------------
+
++------+------------+------------+------------------------------------------------+
+| Pack | Old        | New        | Platforms                                      |
+| age  | Version    | Version    |                                                |
++======+============+============+================================================+
+| hcod | hw051018a. | hw051718a. | p9dsu, romulus, witherspoon, zaius             |
+| e    | op920      | op920      |                                                |
++------+------------+------------+------------------------------------------------+
+| host | 8e05a4399b | a4eb7f02f9 | p9dsu, romulus, witherspoon, zaius             |
+| boot | f567a49f91 | 9742a24596 |                                                |
+|      | cfee8ad24b | 474467e0dd |                                                |
+|      | 3896e96982 | 51c21cd932 |                                                |
++------+------------+------------+------------------------------------------------+
+| host | 20119f0868 | hw051718a. | barreleye, firestone, garrison, habanero,      |
+| boot | 7783a87862 | op920      | p9dsu, palmetto, romulus, vesnin, witherspoon, |
+| -bin | cee268df12 |            | zaius                                          |
+| arie | 60f914c01e |            |                                                |
+| s    |            |            |                                                |
++------+------------+------------+------------------------------------------------+
+| skib | v6.0.1     | v6.0.2     | barreleye, firenze, firestone, garrison,       |
+| oot  |            |            | habanero, openpower\_mambo,                    |
+|      |            |            | openpower\_p9\_mambo, p9dsu, p9dsu\_dev,       |
+|      |            |            | palmetto, pseries, romulus, vesnin,            |
+|      |            |            | witherspoon, witherspoon\_dev, zaius, zz       |
++------+------------+------------+------------------------------------------------+
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+Patches
+~~~~~~~
+
+-  `0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch>`__
+-  `hostboot-0002-Revert-Mark-Read-Only-Partitions-as-Such.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-0002-Revert-Mark-Read-Only-Partitions-as-Such.patch>`__
+-  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
+
+Commits
+~~~~~~~
+
+Andres Lugo-Reyes (1):
+
+-  `a4eb7f02f997 <https://github.com/open-power/hostboot/commit/a4eb7f02f997>`__
+   Fix off-by-one error when counting WOF reset counts
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+Michael Neuling (1):
+
+-  `b179d8ff62a8 <https://github.com/open-power/skiboot/commit/b179d8ff62a8>`__
+   cpu: Clear PCR SPR in opal\_reinit\_cpus()
+
+Stewart Smith (1):
+
+-  `e05b3fb62d44 <https://github.com/open-power/skiboot/commit/e05b3fb62d44>`__
+   skiboot 6.0.2 release notes

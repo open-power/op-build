@@ -1,0 +1,136 @@
+Release Notes for OpenPower Firmware v2.0.15
+============================================
+
+Updated Packages
+----------------
+
++-------------------+------------------+---------------+-----------------------------------------+
+| Package           | Old Version      | New Version   | Platforms                               |
++===================+==================+===============+=========================================+
+| hcode             | hw022419a.op920  | hw031819a.op9 | witherspoon, p9dsu, zaius, romulus      |
+|                   |                  | 20            |                                         |
++-------------------+------------------+---------------+-----------------------------------------+
+| hostboot          | 879d21d3cd70f    | c00d44a9ad03  | witherspoon, p9dsu, zaius, romulus      |
++-------------------+------------------+---------------+-----------------------------------------+
+| hostboot-binaries | hw022419a.op920  | hw031819a.op9 | witherspoon, p9dsu, zaius, habanero,    |
+|                   |                  | 20            | garrison, barreleye, firestone,         |
+|                   |                  |               | palmetto, vesnin, romulus               |
++-------------------+------------------+---------------+-----------------------------------------+
+| sbe               | 9515af0355bc0    | b6ee17b168d8  | witherspoon, p9dsu, zaius, romulus      |
++-------------------+------------------+---------------+-----------------------------------------+
+| skiboot           | v6.0.18          | v6.0.19       | witherspoon, p9dsu, zaius, habanero,    |
+|                   |                  |               | firenze, garrison, barreleye,           |
+|                   |                  |               | openpower_mambo, witherspoon_dev,       |
+|                   |                  |               | pseries, firestone, palmetto,           |
+|                   |                  |               | openpower_p9_mambo, vesnin, zz, romulus |
++-------------------+------------------+---------------+-----------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+hostboot (10):
+
+-  `8dda62b91c31 <https://github.com/open-power/hcode/commit/8dda62b91c31>`__ Release tag
+   information updated for hw030819a.op920
+-  `efaccccbfa44 <https://github.com/open-power/hcode/commit/efaccccbfa44>`__ Release tag
+   information updated for hw030919a.op920
+-  `1113169cfa3c <https://github.com/open-power/hcode/commit/1113169cfa3c>`__ Release tag
+   information updated for hw031019a.op920
+-  `e6b6afd59e41 <https://github.com/open-power/hcode/commit/e6b6afd59e41>`__ Release tag
+   information updated for hw031119a.op920
+-  `5efba036dd35 <https://github.com/open-power/hcode/commit/5efba036dd35>`__ Release tag
+   information updated for hw031219a.op920
+-  `ebc36ceff4a7 <https://github.com/open-power/hcode/commit/ebc36ceff4a7>`__ Release tag
+   information updated for hw031319a.op920
+-  `c4a91021e44f <https://github.com/open-power/hcode/commit/c4a91021e44f>`__ Release tag
+   information updated for hw031419a.op920
+-  `68ae13f9635c <https://github.com/open-power/hcode/commit/68ae13f9635c>`__ Release tag
+   information updated for hw031619a.op920
+-  `60cb47dae2ca <https://github.com/open-power/hcode/commit/60cb47dae2ca>`__ Release tag
+   information updated for hw031719a.op920
+-  `478978b7819d <https://github.com/open-power/hcode/commit/478978b7819d>`__ Release tag
+   information updated for hw031819a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _patches-1:
+
+Patches
+~~~~~~~
+
+-  `0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch>`__
+-  `0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch>`__
+-  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
+
+.. _commits-1:
+
+Commits
+~~~~~~~
+
+Christian Geddes (1):
+
+-  `a40b4b4f688d <https://github.com/open-power/hostboot/commit/a40b4b4f688d>`__ Load HWAS module
+   earlier in ext init tasks
+
+Jenny Huynh (1):
+
+-  `c00d44a9ad03 <https://github.com/open-power/hostboot/commit/c00d44a9ad03>`__ Mask NMMUFIR(7),
+   NMMUFIR(36:39)
+
+Package: sbe
+------------
+
+`Repository <https://github.com/open-power/sbe>`__
+
+.. _patches-2:
+
+Patches
+~~~~~~~
+
+.. _commits-2:
+
+Commits
+~~~~~~~
+
+Jenny Huynh (1):
+
+-  `b6ee17b168d8 <https://github.com/open-power/sbe/commit/b6ee17b168d8>`__ Mask NMMUFIR(7),
+   NMMUFIR(36:39)
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _patches-3:
+
+Patches
+~~~~~~~
+
+.. _commits-3:
+
+Commits
+~~~~~~~
+
+Deb McLemore (2):
+
+-  `6fda4bc333e4 <https://github.com/open-power/skiboot/commit/6fda4bc333e4>`__ p9dsu: Fix slot
+   labels for p9dsu2u
+-  `af316fed0205 <https://github.com/open-power/skiboot/commit/af316fed0205>`__ p9dsu: Undo slot
+   label name changes
+
+Vasant Hegde (1):
+
+-  `3d135fe39a6a <https://github.com/open-power/skiboot/commit/3d135fe39a6a>`__ skiboot v6.0.19
+   release notes
