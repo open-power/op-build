@@ -27,7 +27,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  2 files changed, 43 insertions(+), 18 deletions(-)
 
 diff --git a/security/integrity/ima/ima.h b/security/integrity/ima/ima.h
-index 8173982e00ab..04800f7f2351 100644
+index 5fae6cfe8d91..b235467b219c 100644
 --- a/security/integrity/ima/ima.h
 +++ b/security/integrity/ima/ima.h
 @@ -219,6 +219,9 @@ void ima_store_measurement(struct integrity_iint_cache *iint, struct file *file,

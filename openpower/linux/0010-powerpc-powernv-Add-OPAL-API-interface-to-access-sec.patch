@@ -112,7 +112,7 @@ index 000000000000..4cc35b58b986
 +
 +#endif
 diff --git a/arch/powerpc/kernel/Makefile b/arch/powerpc/kernel/Makefile
-index b82f7f5e5121..93b0336090f2 100644
+index a23db0cd8473..e60d3ce046de 100644
 --- a/arch/powerpc/kernel/Makefile
 +++ b/arch/powerpc/kernel/Makefile
 @@ -158,7 +158,7 @@ ifneq ($(CONFIG_PPC_POWERNV)$(CONFIG_PPC_SVM),)

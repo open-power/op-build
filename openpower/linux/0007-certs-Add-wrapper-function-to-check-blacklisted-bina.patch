@@ -23,7 +23,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  2 files changed, 15 insertions(+)
 
 diff --git a/certs/blacklist.c b/certs/blacklist.c
-index ec00bf337eb6..6514f9ebc943 100644
+index 025a41de28fd..f1c434b04b5e 100644
 --- a/certs/blacklist.c
 +++ b/certs/blacklist.c
 @@ -135,6 +135,15 @@ int is_hash_blacklisted(const u8 *hash, size_t hash_len, const char *type)

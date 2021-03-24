@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
-Date: Tue, 29 Sep 2020 15:39:53 +0930
+Date: Wed, 24 Mar 2021 14:48:20 +1030
 Subject: [PATCH 19/19] Release OpenPower kernel
 
 Signed-off-by: Joel Stanley <joel@jms.id.au>
@@ -9,13 +9,13 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index acb2499d9b05..6f2e1028c57b 100644
+index 43159b21a83f..00326dcb8d4d 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 5
  PATCHLEVEL = 4
- SUBLEVEL = 68
+ SUBLEVEL = 107
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Kleptomaniac Octopus

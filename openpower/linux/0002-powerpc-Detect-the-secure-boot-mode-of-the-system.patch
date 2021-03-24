@@ -26,10 +26,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  create mode 100644 arch/powerpc/kernel/secure_boot.c
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index ad620637cbd1..d654bdc9e4dc 100644
+index c4cbb65e742f..1a2db06962c7 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -935,6 +935,16 @@ config PPC_MEM_KEYS
+@@ -936,6 +936,16 @@ config PPC_MEM_KEYS
  
  	  If unsure, say y.
  
@@ -76,7 +76,7 @@ index 000000000000..07d0fe0ca81f
 +#endif
 +#endif
 diff --git a/arch/powerpc/kernel/Makefile b/arch/powerpc/kernel/Makefile
-index dc0780f930d5..40170ee52178 100644
+index afbd47b0a75c..36605a7b6ef2 100644
 --- a/arch/powerpc/kernel/Makefile
 +++ b/arch/powerpc/kernel/Makefile
 @@ -158,6 +158,8 @@ ifneq ($(CONFIG_PPC_POWERNV)$(CONFIG_PPC_SVM),)

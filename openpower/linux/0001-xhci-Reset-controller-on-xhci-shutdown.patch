@@ -14,7 +14,7 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index bad154f446f8..19a9bde309a6 100644
+index b5080bc1689e..f9ed0f784a1b 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
 @@ -789,6 +789,9 @@ void xhci_shutdown(struct usb_hcd *hcd)
