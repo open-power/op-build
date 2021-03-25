@@ -104,7 +104,7 @@ index 29ebe9afdac4..29aaedf33246 100644
  			(eg, ima-ng). Only valid when action is "measure".
  			pcr:= decimal value
 diff --git a/security/integrity/ima/ima.h b/security/integrity/ima/ima.h
-index 04800f7f2351..7d855f2c80fa 100644
+index b235467b219c..e5597a02f74f 100644
 --- a/security/integrity/ima/ima.h
 +++ b/security/integrity/ima/ima.h
 @@ -258,6 +258,8 @@ int ima_policy_show(struct seq_file *m, void *v);

@@ -80,10 +80,10 @@ index 000000000000..feebb8c57294
 +		variable. The size of the file represents the maximum size of
 +		the variable data that can be written.
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 32ce6c0b43f1..cc6cdf821604 100644
+index 9a5b15ab93b6..159a25017c7f 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -946,6 +946,17 @@ config PPC_SECURE_BOOT
+@@ -947,6 +947,17 @@ config PPC_SECURE_BOOT
  	  to enable OS secure boot on systems that have firmware support for
  	  it. If in doubt say N.
  
@@ -102,7 +102,7 @@ index 32ce6c0b43f1..cc6cdf821604 100644
  
  config ISA_DMA_API
 diff --git a/arch/powerpc/kernel/Makefile b/arch/powerpc/kernel/Makefile
-index 93b0336090f2..b97c018a2f53 100644
+index e60d3ce046de..01eafcb86a37 100644
 --- a/arch/powerpc/kernel/Makefile
 +++ b/arch/powerpc/kernel/Makefile
 @@ -159,6 +159,7 @@ obj-y				+= ucall.o

@@ -29,10 +29,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  create mode 100644 arch/powerpc/kernel/ima_arch.c
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index d654bdc9e4dc..32ce6c0b43f1 100644
+index 1a2db06962c7..9a5b15ab93b6 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -939,6 +939,7 @@ config PPC_SECURE_BOOT
+@@ -940,6 +940,7 @@ config PPC_SECURE_BOOT
  	prompt "Enable secure boot support"
  	bool
  	depends on PPC_POWERNV
@@ -41,7 +41,7 @@ index d654bdc9e4dc..32ce6c0b43f1 100644
  	  Systems with firmware secure boot enabled need to define security
  	  policies to extend secure boot to the OS. This config allows a user
 diff --git a/arch/powerpc/kernel/Makefile b/arch/powerpc/kernel/Makefile
-index 40170ee52178..b82f7f5e5121 100644
+index 36605a7b6ef2..a23db0cd8473 100644
 --- a/arch/powerpc/kernel/Makefile
 +++ b/arch/powerpc/kernel/Makefile
 @@ -158,7 +158,7 @@ ifneq ($(CONFIG_PPC_POWERNV)$(CONFIG_PPC_SVM),)
