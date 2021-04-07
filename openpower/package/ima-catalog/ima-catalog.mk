@@ -3,7 +3,7 @@
 # ima-catalog.mk
 #
 ################################################################################
-IMA_CATALOG_VERSION ?= af8bd5ffaed1615c072d4fc6fd436e8f56a5792e
+IMA_CATALOG_VERSION ?= 4e2dc4d8d34e504c94298724d1b0e3eaadc815b6
 #IMA_CATALOG_SITE ?= $(call github,open-power,ima-catalog,$(IMA_CATALOG_VERSION))
 IMA_CATALOG_SITE ?= git@github.ibm.com:open-power/ima-catalog.git
 IMA_CATALOG_SITE_METHOD ?= git
