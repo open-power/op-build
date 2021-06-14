@@ -1,0 +1,151 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Release Notes for OpenPower Firmware v1.21.1 &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Notes for OpenPower Firmware v1.21.2" href="v1.21.2.html" />
+    <link rel="prev" title="Release Notes for OpenPower Firmware v1.21" href="v1.21.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes-for-openpower-firmware-v1-21-1">
+<h1>Release Notes for OpenPower Firmware v1.21.1<a class="headerlink" href="#release-notes-for-openpower-firmware-v1-21-1" title="Permalink to this headline">¶</a></h1>
+<p>This is a point release on top of op-build v1.21.</p>
+<p>Like v1.21, this release is NOT intended for GA POWER9 platforms, for that,
+op-build v2.0 is <em>required</em>.</p>
+<p>Changes since v1.21:</p>
+<ul class="simple">
+<li>skiboot v5.10.1<ul>
+<li>libflash/blocklevel: Correct miscalculation in blocklevel_smart_erase()</li>
+<li>NPU2 HMIs: dump out a <em>LOT</em> of npu2 registers for debugging</li>
+</ul>
+</li>
+<li>linux 4.14.22-openpower1<ul>
+<li>40be210c830e powerpc: Fix DABR match on hash based systems</li>
+<li>3b09911d3beb powerpc/xive: Use hw CPU ids when configuring the CPU queues</li>
+<li>892674b5058a powerpc/mm: Flush radix process translations when setting MMU type</li>
+<li>4386f223b418 powerpc/numa: Invalidate numa_cpu_lookup_table on cpu remove</li>
+<li>5b98d31481f9 powerpc/radix: Remove trace_tlbie call from radix__flush_tlb_all</li>
+<li>c3bdd547042f rtc-opal: Fix handling of firmware error codes, prevent busy loops</li>
+<li>8e56a935a4b7 cpufreq: powernv: Dont assume distinct pstate values for nominal and pmin</li>
+</ul>
+</li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../process/index.html">Development Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">op-build Release Notes</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#v1-21">v1.21</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-22">v1.22</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-0">v2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-1">v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-2">v2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-3">v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-4">v2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-5">v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-6">v2.6</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">op-build Release Notes</a><ul>
+      <li>Previous: <a href="v1.21.html" title="previous chapter">Release Notes for OpenPower Firmware v1.21</a></li>
+      <li>Next: <a href="v1.21.2.html" title="next chapter">Release Notes for OpenPower Firmware v1.21.2</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/release-notes/v1.21.1.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

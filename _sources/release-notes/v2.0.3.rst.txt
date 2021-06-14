@@ -1,0 +1,219 @@
+Release Notes for OpenPower Firmware v2.0.3
+===========================================
+
+op-build v2.0.3 was released on Friday June 1st, 2018 and replaces
+op-build v2.0.2 as the current stable release in the 2.0.x series.
+
+It is recommended that v2.0.3 be used over any previous v2.0.x version
+due to the bug fixes contained within.
+
+
+
+Updated Packages
+----------------
+
++----------+----------+----------+-------------------------------------------+
+| Package  | Old      | New      | Platforms                                 |
+|          | Version  | Version  |                                           |
++==========+==========+==========+===========================================+
+| hcode    | hw051718 | hw052418 | zaius, p9dsu, witherspoon, romulus        |
+|          | a.op920  | a.op920  |                                           |
++----------+----------+----------+-------------------------------------------+
+| hostboot | a4eb7f02 | acedcb2b | zaius, p9dsu, witherspoon, romulus        |
++----------+----------+----------+-------------------------------------------+
+| linux    | 4.16.8   | 4.16.13  | openpower_mambo, firestone, firenze,      |
+|          |          |          | garrison, zaius, p9dsu, palmetto,         |
+|          |          |          | pseries, vesnin, witherspoon, habanero,   |
+|          |          |          | openpower_p9_mambo, zz, barreleye,        |
+|          |          |          | romulus                                   |
++----------+----------+----------+-------------------------------------------+
+| linux-   | 4.16.8   | 4.16.13  | openpower_mambo, firestone, firenze,      |
+| headers  |          |          | garrison, zaius, p9dsu, palmetto,         |
+|          |          |          | pseries, vesnin, witherspoon, habanero,   |
+|          |          |          | openpower_p9_mambo, zz, barreleye,        |
+|          |          |          | romulus                                   |
++----------+----------+----------+-------------------------------------------+
+| occ      | 77bb5e60 | 90208bbb | zaius, p9dsu, witherspoon, zz, romulus    |
++----------+----------+----------+-------------------------------------------+
+| sbe      | 8e0105e5 | a5969753 | zaius, p9dsu, witherspoon, romulus        |
++----------+----------+----------+-------------------------------------------+
+| skiboot  | v6.0.3   | v6.0.4   | openpower_mambo, firestone, firenze,      |
+|          |          |          | garrison, zaius, p9dsu, palmetto,         |
+|          |          |          | pseries, vesnin, witherspoon, habanero,   |
+|          |          |          | openpower_p9_mambo, zz, barreleye,        |
+|          |          |          | romulus                                   |
++----------+----------+----------+-------------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+hostboot (1):
+
+-  `e7a16c0c8685 <https://github.com/open-power/hcode/commit/e7a16c0c8685>`__
+   Release tag information updated for hw052418a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _op-build-v2.0.3-patches-1:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.3-commits-1:
+
+Commits
+~~~~~~~
+
+Ben Gass (2):
+
+-  `7395b3d68c7d <https://github.com/open-power/hostboot/commit/7395b3d68c7d>`__
+   Build p9n 10 and 20 by default.
+-  `5ccd37ccb190 <https://github.com/open-power/hostboot/commit/5ccd37ccb190>`__
+   Shorten A-link timers for sim. Add polling for A-link training.
+
+CHRISTINA L. GRAVES (1):
+
+-  `064aabffd3fc <https://github.com/open-power/hostboot/commit/064aabffd3fc>`__
+   p9_fab_iovalid fix to clear action0/1 bits corresponding w/ link
+   being enabled
+
+Dan Crowell (3):
+
+-  `5ad4c1b7c7c2 <https://github.com/open-power/hostboot/commit/5ad4c1b7c7c2>`__
+   Modify debug framework to be build-independent
+-  `b74ac8a05e42 <https://github.com/open-power/hostboot/commit/b74ac8a05e42>`__
+   Remove some files to remirror
+-  `f0648a1fff9a <https://github.com/open-power/hostboot/commit/f0648a1fff9a>`__
+   Increase default watchdog timeout to 10 minutes
+
+Daniel Howe (1):
+
+-  `95b92ae46750 <https://github.com/open-power/hostboot/commit/95b92ae46750>`__
+   dd1.1+ DL training procedure updates
+
+Jim Yuan (1):
+
+-  `a19b501b6f44 <https://github.com/open-power/hostboot/commit/a19b501b6f44>`__
+   Fix FRU board mfg date and time.
+
+Joe McGill (9):
+
+-  `5ee0dcd495f9 <https://github.com/open-power/hostboot/commit/5ee0dcd495f9>`__
+   FBC Level 1 procedures
+-  `ac3743759da3 <https://github.com/open-power/hostboot/commit/ac3743759da3>`__
+   L2 HWPs – p9_smp_link_layer and p9_fab_iovalid
+-  `5310a333a942 <https://github.com/open-power/hostboot/commit/5310a333a942>`__
+   L2 - Fabric updates for multi-chip support
+-  `fc24bef6f147 <https://github.com/open-power/hostboot/commit/fc24bef6f147>`__
+   p9_fab_iovalid – invoke link validation subroutine
+-  `d6f8088eaffb <https://github.com/open-power/hostboot/commit/d6f8088eaffb>`__
+   L3 update – p9_fab_iovalid
+-  `be6b65540fef <https://github.com/open-power/hostboot/commit/be6b65540fef>`__
+   update HWP level metadata for nest, common files
+-  `22160ff310f2 <https://github.com/open-power/hostboot/commit/22160ff310f2>`__
+   IO, FBC updates to enable ABUS for Fleetwood
+-  `29144e081adb <https://github.com/open-power/hostboot/commit/29144e081adb>`__
+   shift XBUS FIR programming inits for secure boot
+-  `fa7073699742 <https://github.com/open-power/hostboot/commit/fa7073699742>`__
+   p9_fab_iovalid – secure ABUS mailboxes after iovalid is asserted
+
+Louis Stermole (1):
+
+-  `acedcb2b0fb2 <https://github.com/open-power/hostboot/commit/acedcb2b0fb2>`__
+   Add extra DRAM reset after RCD load on Nimbus
+
+Mike Baiocchi (1):
+
+-  `8ab6717da706 <https://github.com/open-power/hostboot/commit/8ab6717da706>`__
+   Skip Diagnostic Mode for I2C Resets over FSI In All Cases
+
+Nick Klazynski (1):
+
+-  `714f4c95797c <https://github.com/open-power/hostboot/commit/714f4c95797c>`__
+   Disable 2-for-1 on NDD2.2- and CDD1.2-
+
+dchowe (1):
+
+-  `0a40c1b23c1a <https://github.com/open-power/hostboot/commit/0a40c1b23c1a>`__
+   Initfile updates for FBC DD2
+
+Package: occ
+------------
+
+`Repository <https://github.com/open-power/occ>`__
+
+.. _op-build-v2.0.3-patches-2:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.3-commits-2:
+
+Commits
+~~~~~~~
+
+Douglas Gilbert (1):
+
+-  `90208bbb6260 <https://github.com/open-power/occ/commit/90208bbb6260>`__
+   captureFir: Add delay and sbefifo reset
+
+Package: sbe
+------------
+
+`Repository <https://github.com/open-power/sbe>`__
+
+.. _op-build-v2.0.3-patches-3:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.3-commits-3:
+
+Commits
+~~~~~~~
+
+Nick Klazynski (1):
+
+-  `a59697535068 <https://github.com/open-power/sbe/commit/a59697535068>`__
+   Disable 2-for-1 on NDD2.2- and CDD1.2-
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _op-build-v2.0.3-patches-4:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.3-commits-4:
+
+Commits
+~~~~~~~
+
+Akshay Adiga (1):
+
+-  `cc52c5620095 <https://github.com/open-power/skiboot/commit/cc52c5620095>`__
+   SLW: Remove stop1_lite and stop2_lite
+
+Mahesh Salgaonkar (1):
+
+-  `3efceb169184 <https://github.com/open-power/skiboot/commit/3efceb169184>`__
+   opal-prd: Do not error out on first failure for soft/hard offline.
+
+Stewart Smith (1):
+
+-  `c55a54bbf38b <https://github.com/open-power/skiboot/commit/c55a54bbf38b>`__
+   skiboot 6.0.4 release notes

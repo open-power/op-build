@@ -1,0 +1,273 @@
+Release Notes for OpenPower Firmware v2.0.10
+============================================
+
+Updated Packages
+----------------
+
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| Package  | Old Version                       | New Version                      | Platforms                                                                                                          |
++==========+===================================+==================================+====================================================================================================================+
+| busybox  | 1.27.2                            | 1.29.0                           | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+|          |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| dropbear | 2017.75                           | 2018.76                          | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+|          |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| ethtool  | 4.13                              | 4.15                             | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+|          |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| glibc    | glibc-2.26-146-gd300041c533a3d837 | glibc-2.27-57-g6c99e37f6fb640a50 | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, witherspoon_dev, vesnin,           |
+|          | c9f37a099bcc95466860e98           | a3113b2dbee5d5389843c1e          | p9dsu_dev, witherspoon, habanero, openpower_p9_mambo, zz, barreleye, romulus                                       |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| hcode    | hw080418a.op920                   | hw101018a.op920                  | zaius, p9dsu, witherspoon, romulus                                                                                 |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| hostboot | d0332131ea0c                      | 7a402b0bc32d                     | zaius, p9dsu, witherspoon, romulus                                                                                 |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| hostboot | hw080418a.op920                   | hw101018a.op920                  | firestone, garrison, zaius, p9dsu, palmetto, vesnin, witherspoon, habanero, barreleye, romulus                     |
+| -binarie |                                   |                                  |                                                                                                                    |
+| s        |                                   |                                  |                                                                                                                    |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| linux    | 4.16.13                           | 4.17.12                          | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+|          |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| linux-he | 4.16.13                           | 4.17.12                          | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+| aders    |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| ncurses  | 6.0                               | 6.1                              | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+|          |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| occ      | 084756c397c4                      | 3cb1ba3042e25                    | zaius, p9dsu, witherspoon, zz, romulus                                                                             |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| openpowe | f6d970c6a600a                     | 491ac2632f951                    | firestone, garrison, zaius, p9dsu, palmetto, vesnin, witherspoon, habanero, barreleye, romulus                     |
+| r-pnor   |                                   |                                  |                                                                                                                    |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| petitboo | v1.7.2                            | v1.7.3                           | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+| t        |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| powerpc- | v1.3.4                            | v1.3.5                           | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+| utils    |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| sbe      | 55d6eb23ddd28                     | eae2a18c584d4                    | zaius, p9dsu, witherspoon, romulus                                                                                 |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| skiboot  | v6.0.8                            | v6.0.9                           | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+|          |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| util-lin | 2.31.1                            | 2.32                             | openpower_mambo, firestone, firenze, garrison, zaius, p9dsu, palmetto, pseries, vesnin, witherspoon, habanero,     |
+| ux       |                                   |                                  | openpower_p9_mambo, zz, barreleye, romulus                                                                         |
++----------+-----------------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+Rahul Batra (2):
+
+-  `ab011048f27e <https://github.com/open-power/hcode/commit/ab011048f27e>`__ PGPE: ACK pending IPCs upon fault with Pstates Stopped
+-  `32e76479fef7 <https://github.com/open-power/hcode/commit/32e76479fef7>`__ PGPE: Use correct VPD Pts for VDD to Pstate intp.
+
+Yue Du (2):
+
+-  `f725f73c0ebc <https://github.com/open-power/hcode/commit/f725f73c0ebc>`__ IPL/STOP: Disable LCO when only two EXes are configured
+-  `f28eff65784d <https://github.com/open-power/hcode/commit/f28eff65784d>`__ STOP: Fix Bug introduced by 66511
+
+hostboot (8):
+
+-  `34f21518d4e3 <https://github.com/open-power/hcode/commit/34f21518d4e3>`__ Release tag information updated for hw080718a.op920
+-  `ed48bcbb653d <https://github.com/open-power/hcode/commit/ed48bcbb653d>`__ Release tag information updated for hw081618a.op920
+-  `a7e462f2d2b7 <https://github.com/open-power/hcode/commit/a7e462f2d2b7>`__ Release tag information updated for hw082318a.op920
+-  `3e6276ed0cd6 <https://github.com/open-power/hcode/commit/3e6276ed0cd6>`__ Release tag information updated for hw082718a.op920
+-  `9c51b2eacfae <https://github.com/open-power/hcode/commit/9c51b2eacfae>`__ Release tag information updated for hw082918a.op920
+-  `9d306560d45d <https://github.com/open-power/hcode/commit/9d306560d45d>`__ Release tag information updated for hw091818a.op920
+-  `6e8c3186b35a <https://github.com/open-power/hcode/commit/6e8c3186b35a>`__ Release tag information updated for hw100318a.op920
+-  `9a2560e8ecc3 <https://github.com/open-power/hcode/commit/9a2560e8ecc3>`__ Release tag information updated for hw101018a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _op-build-v2.0.10-patches-1:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.10-commits-1:
+
+Commits
+~~~~~~~
+
+Bill Hoffa (1):
+
+-  `220c3a7a2206 <https://github.com/open-power/hostboot/commit/220c3a7a2206>`__ Update p9_sbe_i2c_bit_rate_divisor_setting to set I2C Rate Valid bit
+
+Christian Geddes (2):
+
+-  `b43117d2f234 <https://github.com/open-power/hostboot/commit/b43117d2f234>`__ SBE retry handler FFDC parsing support
+-  `7a402b0bc32d <https://github.com/open-power/hostboot/commit/7a402b0bc32d>`__ Correctly handle psu FFDC on OpenPower Systems
+
+Corey Swenson (1):
+
+-  `2316b6e7074d <https://github.com/open-power/hostboot/commit/2316b6e7074d>`__ Add part number and serial number to error log hw callout data
+
+Dan Crowell (3):
+
+-  `81b1a6475edc <https://github.com/open-power/hostboot/commit/81b1a6475edc>`__ Fix symsmode check to allow in-memory lookup
+-  `1ba805a1c809 <https://github.com/open-power/hostboot/commit/1ba805a1c809>`__ Another fix to symsmode parms for debug mode
+-  `bac79e21bb6f <https://github.com/open-power/hostboot/commit/bac79e21bb6f>`__ Check capability bit before using wakeup for OPAL in OpenPOWER
+
+Matt Derksen (2):
+
+-  `7ac05d6914bb <https://github.com/open-power/hostboot/commit/7ac05d6914bb>`__ Use hostservice to do special wakeup at runtime for open-power systems
+-  `0264f86378cf <https://github.com/open-power/hostboot/commit/0264f86378cf>`__ Additional tracing for shutdown events
+
+Nick Bofferding (1):
+
+-  `dc4b7141d372 <https://github.com/open-power/hostboot/commit/dc4b7141d372>`__ MRW: If bus object doesn’t have I2C_ADDRESS property, get it from I2C slave
+
+Prasad Bg Ranganath (1):
+
+-  `0428fd0f8472 <https://github.com/open-power/hostboot/commit/0428fd0f8472>`__ PM:Clear GPE2 error bit in OISR/IMR register before SGPE boots
+
+Richard J. Knight (2):
+
+-  `c39be448afac <https://github.com/open-power/hostboot/commit/c39be448afac>`__ Modify the getFfdc routine to consider the SBE proc
+-  `13e0a663f93e <https://github.com/open-power/hostboot/commit/13e0a663f93e>`__ get FAPI_POS for all valid target types passed in SBE FIFO ffdc
+
+Zane Shelley (3):
+
+-  `ada2c16282bb <https://github.com/open-power/hostboot/commit/ada2c16282bb>`__ PRD: RX trgt used for TX trgt in XBUS lane repair VPD write
+-  `2c26c165ad0c <https://github.com/open-power/hostboot/commit/2c26c165ad0c>`__ PRD: fix input parameters for lane repair power down HWPs
+-  `bc25f5c2407a <https://github.com/open-power/hostboot/commit/bc25f5c2407a>`__ PRD: Fix lane repair FFDC for XBUS clock 1 domain
+
+Package: occ
+------------
+
+`Repository <https://github.com/open-power/occ>`__
+
+.. _op-build-v2.0.10-patches-2:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.10-commits-2:
+
+Commits
+~~~~~~~
+
+Douglas Gilbert (1):
+
+-  `3cb1ba3042e2 <https://github.com/open-power/occ/commit/3cb1ba3042e2>`__ Write firdata to PNOR over IPMI
+
+Package: petitboot
+------------------
+
+`Repository <https://github.com/open-power/petitboot>`__
+
+.. _op-build-v2.0.10-patches-3:
+
+Patches
+~~~~~~~
+
+-  `petitboot-01-autotools-Add-autopoint-generated-files.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/petitboot/petitboot-01-autotools-Add-autopoint-generated-files.patch>`__
+
+.. _op-build-v2.0.10-commits-3:
+
+Commits
+~~~~~~~
+
+Samuel Mendoza-Jonas (1):
+
+-  `93d41f97eedc <https://github.com/open-power/petitboot/commit/93d41f97eedc>`__ discover/device-handler: Restore autoboot setting on requery
+
+Package: sbe
+------------
+
+`Repository <https://github.com/open-power/sbe>`__
+
+.. _op-build-v2.0.10-patches-4:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.10-commits-4:
+
+Commits
+~~~~~~~
+
+Jennifer A. Stofer (1):
+
+-  `d9f81027a01f <https://github.com/open-power/sbe/commit/d9f81027a01f>`__ Revert “lpc_init: Correct LPC host controller timeout value”
+
+Joachim Fenkes (1):
+
+-  `2d9a9fd8298a <https://github.com/open-power/sbe/commit/2d9a9fd8298a>`__ lpc_init: Correct LPC host controller timeout value
+
+Raja Das (1):
+
+-  `93d06c7baa33 <https://github.com/open-power/sbe/commit/93d06c7baa33>`__ Updated 910 backing build
+
+Richard J. Knight (2):
+
+-  `16a190f0f9e8 <https://github.com/open-power/sbe/commit/16a190f0f9e8>`__ Modify the getFfdc routine to consider the SBE proc
+-  `47d44552667b <https://github.com/open-power/sbe/commit/47d44552667b>`__ get FAPI_POS for all valid target types passed in SBE FIFO ffdc
+
+Sachin Gupta (2):
+
+-  `bc0a70e3b2ec <https://github.com/open-power/sbe/commit/bc0a70e3b2ec>`__ Update backing build
+-  `2ade52d005f0 <https://github.com/open-power/sbe/commit/2ade52d005f0>`__ Updating backing build
+
+Yue Du (3):
+
+-  `8c3bf7ae730f <https://github.com/open-power/sbe/commit/8c3bf7ae730f>`__ PM: Prevent Core-L2 Quiesce from removing PM_EXIT upon SPWU
+-  `0c77051b6568 <https://github.com/open-power/sbe/commit/0c77051b6568>`__ IPL/STOP: Disable LCO when only two EXes are configured
+-  `eae2a18c584d <https://github.com/open-power/sbe/commit/eae2a18c584d>`__ STOP: Fix Bug introduced by 66511
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _op-build-v2.0.10-patches-5:
+
+Patches
+~~~~~~~
+
+.. _op-build-v2.0.10-commits-5:
+
+Commits
+~~~~~~~
+
+Alexey Kardashevskiy (1):
+
+-  `a281e8c2bbf3 <https://github.com/open-power/skiboot/commit/a281e8c2bbf3>`__ npu2: Use correct kill type for TCE invalidation
+
+Andrew Donnellan (1):
+
+-  `d79bb8c176de <https://github.com/open-power/skiboot/commit/d79bb8c176de>`__ hw/npu2-opencapi: Fix setting of supported OpenCAPI templates
+
+Benjamin Herrenschmidt (3):
+
+-  `ecd2b6cd20a0 <https://github.com/open-power/skiboot/commit/ecd2b6cd20a0>`__ phb4: Don’t try to access non-existent PEST entries
+-  `a20833de7e2f <https://github.com/open-power/skiboot/commit/a20833de7e2f>`__ phb4: Handle allocation errors in phb4_eeh_dump_regs()
+-  `9e03e6fe7ba7 <https://github.com/open-power/skiboot/commit/9e03e6fe7ba7>`__ phb4: Workaround PHB errata with CFG write UR/CA errors
+
+Mahesh Salgaonkar (2):
+
+-  `25b571b72b15 <https://github.com/open-power/skiboot/commit/25b571b72b15>`__ opal/hmi: Handle early HMIs on thread0 when secondaries are still in OPAL.
+-  `d597d8d99616 <https://github.com/open-power/skiboot/commit/d597d8d99616>`__ opal/hmi: Ignore debug trigger inject core FIR.
+
+Stewart Smith (2):
+
+-  `beee2cbc2f07 <https://github.com/open-power/skiboot/commit/beee2cbc2f07>`__ hw/bt.c: quieten all the noisy BT/IPMI messages
+-  `19484fa4338f <https://github.com/open-power/skiboot/commit/19484fa4338f>`__ skiboot 6.0.9 release notes
+
+Vaibhav Jain (1):
+
+-  `54ac06ff404b <https://github.com/open-power/skiboot/commit/54ac06ff404b>`__ phb4: Don’t probe a PHB if its garded

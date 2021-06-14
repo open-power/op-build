@@ -1,0 +1,183 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Release Notes for OpenPower Firmware v2.0.9 &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Notes for OpenPower Firmware v2.0.10" href="v2.0.10.html" />
+    <link rel="prev" title="Release Notes for OpenPower Firmware v2.0.8" href="v2.0.8.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes-for-openpower-firmware-v2-0-9">
+<h1>Release Notes for OpenPower Firmware v2.0.9<a class="headerlink" href="#release-notes-for-openpower-firmware-v2-0-9" title="Permalink to this headline">¶</a></h1>
+<p>op-build v2.0.9 was released on Thursday August 16th, 2018 and replaces op-build v2.0.8 as the current stable release in
+the 2.0.x series.</p>
+<p>It is recommended that v2.0.9 be used over any previous v2.0.x version on POWER9 systems due to the bug fixes contained within.</p>
+<p>The only update in this release is to skiboot. Skiboot v6.0.8 includes the following bug fixes:</p>
+<ul>
+<li><p class="first">i2c: Ensure ordering between i2c_request_send() and completion</p>
+<p>i2c_request_send loops waiting for a flag “uc.done” set by
+the completion routine, and then look for a result code
+also set by that same completion.</p>
+<p>There is no synchronization, the completion can happen on another
+processor, so we need to order the stores to uc and the reads
+from uc so that uc.done is stored last and tested first using
+memory barriers.</p>
+</li>
+<li><p class="first">i2c: Fix multiple-enqueue of the same request on NACK</p>
+<p>i2c_request_send() will retry the request if the error is a NAK,
+however it forgets to clear the “ud.done” flag. It will thus
+loop again and try to re-enqueue the same request causing internal
+request list corruption.</p>
+</li>
+<li><p class="first">phb4: Disable 32-bit MSI in capi mode</p>
+<p>If a capi device does a DMA write targeting an address lower than 4GB,
+it does so through a 32-bit operation, per the PCI spec. In capi mode,
+the first TVE entry is configured in bypass mode, so the address is
+valid. But with any (bad) luck, the address could be 0xFFFFxxxx, thus
+looking like a 32-bit MSI.</p>
+<p>We currently enable both 32-bit and 64-bit MSIs, so the PHB will
+interpret the DMA write as a MSI, which very likely results in an EEH
+(MSI with a bad payload size).</p>
+<p>We can fix it by disabling 32-bit MSI when switching the PHB to capi
+mode. Capi devices are 64-bit.</p>
+</li>
+<li><p class="first">capp: Fix the capp recovery timeout comparison</p>
+<p>The current capp recovery timeout control loop in
+do_capp_recovery_scoms() uses a wrong comparison for return value of
+tb_compare(). This may cause do_capp_recovery_scoms() to report an
+timeout earlier than the 168ms stipulated time.</p>
+<p>The patch fixes this by updating the loop timeout control branch in
+do_capp_recovery_scoms() to use the correct enum tb_cmpval.</p>
+</li>
+<li><p class="first">phb4/capp: Update DMA read engines set in APC_FSM_READ_MASK based on link-width</p>
+<p>Commit 47c09cdfe7a3(“phb4/capp: Calculate STQ/DMA read engines based
+on link-width for PEC”) update the CAPP init sequence by calculating
+the needed STQ/DMA-read engines based on link width and populating it
+in XPEC_NEST_CAPP_CNTL register. This however needs to be synchronized
+with the value set in CAPP APC FSM Read Machine Mask Register.</p>
+<p>Hence this patch update phb4_init_capp_regs() to calculate the link
+width of the stack on PEC2 and populate the same values as previously
+populated in PEC CAPP_CNTL register.</p>
+</li>
+<li><p class="first">core/cpu: Call memset with proper cpu_thread offset</p>
+</li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../process/index.html">Development Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">op-build Release Notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-21">v1.21</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-22">v1.22</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#v2-0">v2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-1">v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-2">v2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-3">v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-4">v2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-5">v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-6">v2.6</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">op-build Release Notes</a><ul>
+      <li>Previous: <a href="v2.0.8.html" title="previous chapter">Release Notes for OpenPower Firmware v2.0.8</a></li>
+      <li>Next: <a href="v2.0.10.html" title="next chapter">Release Notes for OpenPower Firmware v2.0.10</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/release-notes/v2.0.9.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

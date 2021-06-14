@@ -1,0 +1,272 @@
+Release Notes for OpenPower Firmware v2.0.6
+===========================================
+
+op-build v2.0.6 was released on Wednesday August 1st, 2018 and replaces op-build v2.0.5 as the current stable release in
+the 2.0.x series.
+
+It is recommended that v2.0.6 be used over any previous v2.0.x version due to the bug fixes contained within.
+
+Updated Packages
+----------------
+
++------------+-----------------------------+-----------------------------+--------------------------------------------+
+| Package    | Old Version                 | New Version                 | Platforms                                  |
++============+=============================+=============================+============================================+
+| hcode      | hw060818a.op920             | hw072318a.op920             | zaius, p9dsu, witherspoon, romulus         |
++------------+-----------------------------+-----------------------------+--------------------------------------------+
+| hostboot   | 63b526118e79                | 58b3d491a4354               | zaius, p9dsu, witherspoon, romulus         |
++------------+-----------------------------+-----------------------------+--------------------------------------------+
+| hostboot-b | hw063018a.op920-2-g0db27d4b | hw072318a.op920             | firestone, garrison, zaius, p9dsu,         |
+| inaries    | 993b                        |                             | palmetto, vesnin, witherspoon, habanero,   |
+|            |                             |                             | barreleye, romulus                         |
++------------+-----------------------------+-----------------------------+--------------------------------------------+
+| occ        | 016db56cbcd6                | 084756c397c4                | zaius, p9dsu, witherspoon, zz, romulus     |
++------------+-----------------------------+-----------------------------+--------------------------------------------+
+| petitboot  | v1.7.1                      | v1.7.2                      | openpower_mambo, firestone, firenze,       |
+|            |                             |                             | garrison, zaius, p9dsu, palmetto, pseries, |
+|            |                             |                             | vesnin, witherspoon, habanero,             |
+|            |                             |                             | openpower_p9_mambo, zz, barreleye, romulus |
++------------+-----------------------------+-----------------------------+--------------------------------------------+
+| sbe        | 5c55be4739b4                | 55d6eb23ddd2                | zaius, p9dsu, witherspoon, romulus         |
++------------+-----------------------------+-----------------------------+--------------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+Brian Vanderpool (1):
+
+-  `a8673e5364a6 <https://github.com/open-power/hcode/commit/a8673e5364a6>`__ STOP: Clear CPPM_PECES on entry during
+   power save cycle to prevent wakeup events
+
+Greg Still (1):
+
+-  `ead6e9843244 <https://github.com/open-power/hcode/commit/ead6e9843244>`__ PM: clear Hcode error injection bits upon
+   injection and malf alert
+
+Rahul Batra (3):
+
+-  `97b15c9d2286 <https://github.com/open-power/hcode/commit/97b15c9d2286>`__ PGPE: Use PGPE Header from
+   p9_hcode_images_defines.h
+-  `76bab2be2fcc <https://github.com/open-power/hcode/commit/76bab2be2fcc>`__ PGPE: Fixes and Cleanup for Mfg/Char team
+-  `663f776e9066 <https://github.com/open-power/hcode/commit/663f776e9066>`__ PGPE: Fixes and Cleanup for Mfg/Char team
+
+Richard J. Knight (1):
+
+-  `d9f40ccf1389 <https://github.com/open-power/hcode/commit/d9f40ccf1389>`__ update gerrit hostname for server
+   migration
+
+Yue Du (11):
+
+-  `a9a2d59b2758 <https://github.com/open-power/hcode/commit/a9a2d59b2758>`__ STOP: Fix CME Special Attention handling
+-  `b1f8194a584a <https://github.com/open-power/hcode/commit/b1f8194a584a>`__ STOP: Fix Srr1 wrongly reported upon
+   special wakeup
+-  `5ac7e3c6d8b5 <https://github.com/open-power/hcode/commit/5ac7e3c6d8b5>`__ STOP: Fix Srr1 wrongly reported upon
+   special wakeup
+-  `ecba21b4468e <https://github.com/open-power/hcode/commit/ecba21b4468e>`__ STOP: Clean up stop state after aborted L3
+   purge during Stop 11 entry
+-  `e5815ebbc536 <https://github.com/open-power/hcode/commit/e5815ebbc536>`__ STOP: Fix Core Special Wakeup window
+   condition
+-  `0a26d44dec5d <https://github.com/open-power/hcode/commit/0a26d44dec5d>`__ PM: PGPE hang fix during VDM droop
+   workaround
+-  `c89e98776bc4 <https://github.com/open-power/hcode/commit/c89e98776bc4>`__ STOP: remove chiplet enable drop in
+   core_poweron for multicast scom
+-  `dea935a2d336 <https://github.com/open-power/hcode/commit/dea935a2d336>`__ STOP: Fix Stop1 Window conditions
+-  `fcb9ea988c8b <https://github.com/open-power/hcode/commit/fcb9ea988c8b>`__ STOP: Fix hole in 62403
+-  `9935f632a513 <https://github.com/open-power/hcode/commit/9935f632a513>`__ STOP: Fix PLS/Srr1 over reporting bug
+   (impact stop2 only)
+-  `423e0a9d9b3c <https://github.com/open-power/hcode/commit/423e0a9d9b3c>`__ STOP: Fix VDM Droop Event DB3 Window
+   condition breaking STOP
+
+hostboot (10):
+
+-  `550b2fa1dca6 <https://github.com/open-power/hcode/commit/550b2fa1dca6>`__ Release tag information updated for
+   hw062818a.op920
+-  `6fa9a55fc99d <https://github.com/open-power/hcode/commit/6fa9a55fc99d>`__ Release tag information updated for
+   hw063018a.op920
+-  `90daf24b2840 <https://github.com/open-power/hcode/commit/90daf24b2840>`__ Release tag information updated for
+   hw071018a.op920
+-  `86b1525c59f5 <https://github.com/open-power/hcode/commit/86b1525c59f5>`__ Release tag information updated for
+   hw071118a.op920
+-  `1313e9247391 <https://github.com/open-power/hcode/commit/1313e9247391>`__ Release tag information updated for
+   hw071318a.op920
+-  `bb4e62e97086 <https://github.com/open-power/hcode/commit/bb4e62e97086>`__ Release tag information updated for
+   hw071418a.op920
+-  `279348985484 <https://github.com/open-power/hcode/commit/279348985484>`__ Release tag information updated for
+   hw071518a.op920
+-  `3d121ff605e6 <https://github.com/open-power/hcode/commit/3d121ff605e6>`__ Release tag information updated for
+   hw071718a.op920
+-  `8c2de096c3ce <https://github.com/open-power/hcode/commit/8c2de096c3ce>`__ Release tag information updated for
+   hw071818a.op920
+-  `699b92d0db4d <https://github.com/open-power/hcode/commit/699b92d0db4d>`__ Release tag information updated for
+   hw072318a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _v2.0.6-patches-1:
+
+Patches
+~~~~~~~
+
+.. _v2.0.6-commits-1:
+
+Commits
+~~~~~~~
+
+Andres Lugo-Reyes (1):
+
+-  `19a4dfe717cb <https://github.com/open-power/hostboot/commit/19a4dfe717cb>`__ HTMGT: Save WOF reset reasons across
+   all WOF resets
+
+Chris Steffen (1):
+
+-  `15312c06fdfb <https://github.com/open-power/hostboot/commit/15312c06fdfb>`__ Move Xbus Erepair FIR Clearing
+
+Christian Geddes (1):
+
+-  `3e3f1abb99cd <https://github.com/open-power/hostboot/commit/3e3f1abb99cd>`__ Only switch sides and perform hreset if
+   SEEPROM side versions match
+
+Dan Crowell (1):
+
+-  `f4a736da3d50 <https://github.com/open-power/hostboot/commit/f4a736da3d50>`__ Debug improvements for exceptions and
+   OOM hangs
+
+Ilya Smirnov (2):
+
+-  `7d36982e90ab <https://github.com/open-power/hostboot/commit/7d36982e90ab>`__ Display Secure Mode Console Trace
+   During Boot
+-  `aaaf653cdc31 <https://github.com/open-power/hostboot/commit/aaaf653cdc31>`__ Attach Traces to call_mss_eff_config
+   Errors
+
+Joachim Fenkes (1):
+
+-  `c9d74dbb0501 <https://github.com/open-power/hostboot/commit/c9d74dbb0501>`__ p9_sbe_lpc_init: Add final check for
+   errors
+
+Matt Derksen (1):
+
+-  `0a0a63d6e7be <https://github.com/open-power/hostboot/commit/0a0a63d6e7be>`__ Add WOF compare data section for
+   RC_WOF_TABLE_NOT_FOUND errors
+
+Nick Bofferding (3):
+
+-  `729f4b3bb3a3 <https://github.com/open-power/hostboot/commit/729f4b3bb3a3>`__ Send errors from previous boots as
+   callhome type eSELs
+-  `7be43628c219 <https://github.com/open-power/hostboot/commit/7be43628c219>`__ I2C: Inhibit sending slave stop command
+   when SDA and SCL are not both asserted
+-  `5f7ef1613479 <https://github.com/open-power/hostboot/commit/5f7ef1613479>`__ Secure Boot: Clear XBUS FIR bits after
+   SMP enabled
+
+Prasad Bg Ranganath (2):
+
+-  `de3e4c9a406f <https://github.com/open-power/hostboot/commit/de3e4c9a406f>`__ PPB:Compute safe mode Freq and Volt
+   calculation during runtime
+-  `4447f992153d <https://github.com/open-power/hostboot/commit/4447f992153d>`__ Bug fix for the Runtime pstate bias
+   update
+
+Ryan Black (1):
+
+-  `767c08ae77b2 <https://github.com/open-power/hostboot/commit/767c08ae77b2>`__ Mask ut=0 and ut=1 mmio bad
+   cmd/length/align
+
+Sachin Gupta (1):
+
+-  `58b3d491a435 <https://github.com/open-power/hostboot/commit/58b3d491a435>`__ Disable SBE HW i2c reset sequence on
+   hreset
+
+Zane Shelley (2):
+
+-  `dcc623f78014 <https://github.com/open-power/hostboot/commit/dcc623f78014>`__ PRD: ignore SCOM errors in rule code
+   summary construct
+-  `0eda42cf2414 <https://github.com/open-power/hostboot/commit/0eda42cf2414>`__ PRD: incorrect CFAM register addresses
+   used in Hostboot
+
+Package: occ
+------------
+
+`Repository <https://github.com/open-power/occ>`__
+
+.. _v2.0.6-patches-2:
+
+Patches
+~~~~~~~
+
+.. _v2.0.6-commits-2:
+
+Commits
+~~~~~~~
+
+mbroyles (1):
+
+-  `084756c397c4 <https://github.com/open-power/occ/commit/084756c397c4>`__ Force update of OPAL-OCC memory after GPU
+   presence detected
+
+Package: petitboot
+------------------
+
+`Repository <https://github.com/open-power/petitboot>`__
+
+.. _v2.0.6-patches-3:
+
+Patches
+~~~~~~~
+
+-  `petitboot-01-autotools-Add-autopoint-generated-files.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/petitboot/petitboot-01-autotools-Add-autopoint-generated-files.patch>`__
+
+.. _v2.0.6-commits-3:
+
+Commits
+~~~~~~~
+
+Package: sbe
+------------
+
+`Repository <https://github.com/open-power/sbe>`__
+
+.. _v2.0.6-patches-4:
+
+Patches
+~~~~~~~
+
+.. _v2.0.6-commits-4:
+
+Commits
+~~~~~~~
+
+Joachim Fenkes (1):
+
+-  `c6566a7d896a <https://github.com/open-power/sbe/commit/c6566a7d896a>`__ p9_sbe_lpc_init: Add final check for errors
+
+Nick Klazynski (1):
+
+-  `d51bd3609e3b <https://github.com/open-power/sbe/commit/d51bd3609e3b>`__ Clockgate disable workaround for HW452921
+
+Prasad Bg Ranganath (1):
+
+-  `96c1383b9764 <https://github.com/open-power/sbe/commit/96c1383b9764>`__ Marking CME sram addr and cntrl register for
+   whitelist
+
+Raja Das (1):
+
+-  `4665a9b1ce24 <https://github.com/open-power/sbe/commit/4665a9b1ce24>`__ Inverted logic of hasClock bit in Clock
+   Status register
+
+Sumit Kumar (1):
+
+-  `55d6eb23ddd2 <https://github.com/open-power/sbe/commit/55d6eb23ddd2>`__ Updated gerrit hostname
+
+Yue Du (1):
+
+-  `c7f8a8572837 <https://github.com/open-power/sbe/commit/c7f8a8572837>`__ STOP: remove chiplet enable drop in
+   core_poweron for multicast scom

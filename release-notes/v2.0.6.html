@@ -1,0 +1,411 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Release Notes for OpenPower Firmware v2.0.6 &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Notes for OpenPower Firmware v2.0.7" href="v2.0.7.html" />
+    <link rel="prev" title="Release Notes for OpenPower Firmware v2.0.5" href="v2.0.5.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes-for-openpower-firmware-v2-0-6">
+<h1>Release Notes for OpenPower Firmware v2.0.6<a class="headerlink" href="#release-notes-for-openpower-firmware-v2-0-6" title="Permalink to this headline">¶</a></h1>
+<p>op-build v2.0.6 was released on Wednesday August 1st, 2018 and replaces op-build v2.0.5 as the current stable release in
+the 2.0.x series.</p>
+<p>It is recommended that v2.0.6 be used over any previous v2.0.x version due to the bug fixes contained within.</p>
+<div class="section" id="updated-packages">
+<h2>Updated Packages<a class="headerlink" href="#updated-packages" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="25%" />
+<col width="25%" />
+<col width="39%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Package</th>
+<th class="head">Old Version</th>
+<th class="head">New Version</th>
+<th class="head">Platforms</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>hcode</td>
+<td>hw060818a.op920</td>
+<td>hw072318a.op920</td>
+<td>zaius, p9dsu, witherspoon, romulus</td>
+</tr>
+<tr class="row-odd"><td>hostboot</td>
+<td>63b526118e79</td>
+<td>58b3d491a4354</td>
+<td>zaius, p9dsu, witherspoon, romulus</td>
+</tr>
+<tr class="row-even"><td>hostboot-b
+inaries</td>
+<td>hw063018a.op920-2-g0db27d4b
+993b</td>
+<td>hw072318a.op920</td>
+<td>firestone, garrison, zaius, p9dsu,
+palmetto, vesnin, witherspoon, habanero,
+barreleye, romulus</td>
+</tr>
+<tr class="row-odd"><td>occ</td>
+<td>016db56cbcd6</td>
+<td>084756c397c4</td>
+<td>zaius, p9dsu, witherspoon, zz, romulus</td>
+</tr>
+<tr class="row-even"><td>petitboot</td>
+<td>v1.7.1</td>
+<td>v1.7.2</td>
+<td>openpower_mambo, firestone, firenze,
+garrison, zaius, p9dsu, palmetto, pseries,
+vesnin, witherspoon, habanero,
+openpower_p9_mambo, zz, barreleye, romulus</td>
+</tr>
+<tr class="row-odd"><td>sbe</td>
+<td>5c55be4739b4</td>
+<td>55d6eb23ddd2</td>
+<td>zaius, p9dsu, witherspoon, romulus</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="package-hcode">
+<h2>Package: hcode<a class="headerlink" href="#package-hcode" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hcode">Repository</a></p>
+<div class="section" id="patches">
+<h3>Patches<a class="headerlink" href="#patches" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="commits">
+<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this headline">¶</a></h3>
+<p>Brian Vanderpool (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/a8673e5364a6">a8673e5364a6</a> STOP: Clear CPPM_PECES on entry during
+power save cycle to prevent wakeup events</li>
+</ul>
+<p>Greg Still (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/ead6e9843244">ead6e9843244</a> PM: clear Hcode error injection bits upon
+injection and malf alert</li>
+</ul>
+<p>Rahul Batra (3):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/97b15c9d2286">97b15c9d2286</a> PGPE: Use PGPE Header from
+p9_hcode_images_defines.h</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/76bab2be2fcc">76bab2be2fcc</a> PGPE: Fixes and Cleanup for Mfg/Char team</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/663f776e9066">663f776e9066</a> PGPE: Fixes and Cleanup for Mfg/Char team</li>
+</ul>
+<p>Richard J. Knight (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/d9f40ccf1389">d9f40ccf1389</a> update gerrit hostname for server
+migration</li>
+</ul>
+<p>Yue Du (11):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/a9a2d59b2758">a9a2d59b2758</a> STOP: Fix CME Special Attention handling</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/b1f8194a584a">b1f8194a584a</a> STOP: Fix Srr1 wrongly reported upon
+special wakeup</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/5ac7e3c6d8b5">5ac7e3c6d8b5</a> STOP: Fix Srr1 wrongly reported upon
+special wakeup</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/ecba21b4468e">ecba21b4468e</a> STOP: Clean up stop state after aborted L3
+purge during Stop 11 entry</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/e5815ebbc536">e5815ebbc536</a> STOP: Fix Core Special Wakeup window
+condition</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/0a26d44dec5d">0a26d44dec5d</a> PM: PGPE hang fix during VDM droop
+workaround</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/c89e98776bc4">c89e98776bc4</a> STOP: remove chiplet enable drop in
+core_poweron for multicast scom</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/dea935a2d336">dea935a2d336</a> STOP: Fix Stop1 Window conditions</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/fcb9ea988c8b">fcb9ea988c8b</a> STOP: Fix hole in 62403</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/9935f632a513">9935f632a513</a> STOP: Fix PLS/Srr1 over reporting bug
+(impact stop2 only)</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/423e0a9d9b3c">423e0a9d9b3c</a> STOP: Fix VDM Droop Event DB3 Window
+condition breaking STOP</li>
+</ul>
+<p>hostboot (10):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/550b2fa1dca6">550b2fa1dca6</a> Release tag information updated for
+hw062818a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/6fa9a55fc99d">6fa9a55fc99d</a> Release tag information updated for
+hw063018a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/90daf24b2840">90daf24b2840</a> Release tag information updated for
+hw071018a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/86b1525c59f5">86b1525c59f5</a> Release tag information updated for
+hw071118a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/1313e9247391">1313e9247391</a> Release tag information updated for
+hw071318a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/bb4e62e97086">bb4e62e97086</a> Release tag information updated for
+hw071418a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/279348985484">279348985484</a> Release tag information updated for
+hw071518a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/3d121ff605e6">3d121ff605e6</a> Release tag information updated for
+hw071718a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/8c2de096c3ce">8c2de096c3ce</a> Release tag information updated for
+hw071818a.op920</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/699b92d0db4d">699b92d0db4d</a> Release tag information updated for
+hw072318a.op920</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-hostboot">
+<h2>Package: hostboot<a class="headerlink" href="#package-hostboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hostboot">Repository</a></p>
+<div class="section" id="v2-0-6-patches-1">
+<span id="id1"></span><h3>Patches<a class="headerlink" href="#v2-0-6-patches-1" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-0-6-commits-1">
+<span id="id2"></span><h3>Commits<a class="headerlink" href="#v2-0-6-commits-1" title="Permalink to this headline">¶</a></h3>
+<p>Andres Lugo-Reyes (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/19a4dfe717cb">19a4dfe717cb</a> HTMGT: Save WOF reset reasons across
+all WOF resets</li>
+</ul>
+<p>Chris Steffen (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/15312c06fdfb">15312c06fdfb</a> Move Xbus Erepair FIR Clearing</li>
+</ul>
+<p>Christian Geddes (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/3e3f1abb99cd">3e3f1abb99cd</a> Only switch sides and perform hreset if
+SEEPROM side versions match</li>
+</ul>
+<p>Dan Crowell (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f4a736da3d50">f4a736da3d50</a> Debug improvements for exceptions and
+OOM hangs</li>
+</ul>
+<p>Ilya Smirnov (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7d36982e90ab">7d36982e90ab</a> Display Secure Mode Console Trace
+During Boot</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/aaaf653cdc31">aaaf653cdc31</a> Attach Traces to call_mss_eff_config
+Errors</li>
+</ul>
+<p>Joachim Fenkes (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c9d74dbb0501">c9d74dbb0501</a> p9_sbe_lpc_init: Add final check for
+errors</li>
+</ul>
+<p>Matt Derksen (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0a0a63d6e7be">0a0a63d6e7be</a> Add WOF compare data section for
+RC_WOF_TABLE_NOT_FOUND errors</li>
+</ul>
+<p>Nick Bofferding (3):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/729f4b3bb3a3">729f4b3bb3a3</a> Send errors from previous boots as
+callhome type eSELs</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7be43628c219">7be43628c219</a> I2C: Inhibit sending slave stop command
+when SDA and SCL are not both asserted</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5f7ef1613479">5f7ef1613479</a> Secure Boot: Clear XBUS FIR bits after
+SMP enabled</li>
+</ul>
+<p>Prasad Bg Ranganath (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/de3e4c9a406f">de3e4c9a406f</a> PPB:Compute safe mode Freq and Volt
+calculation during runtime</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4447f992153d">4447f992153d</a> Bug fix for the Runtime pstate bias
+update</li>
+</ul>
+<p>Ryan Black (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/767c08ae77b2">767c08ae77b2</a> Mask ut=0 and ut=1 mmio bad
+cmd/length/align</li>
+</ul>
+<p>Sachin Gupta (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/58b3d491a435">58b3d491a435</a> Disable SBE HW i2c reset sequence on
+hreset</li>
+</ul>
+<p>Zane Shelley (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/dcc623f78014">dcc623f78014</a> PRD: ignore SCOM errors in rule code
+summary construct</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0eda42cf2414">0eda42cf2414</a> PRD: incorrect CFAM register addresses
+used in Hostboot</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-occ">
+<h2>Package: occ<a class="headerlink" href="#package-occ" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/occ">Repository</a></p>
+<div class="section" id="v2-0-6-patches-2">
+<span id="id3"></span><h3>Patches<a class="headerlink" href="#v2-0-6-patches-2" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-0-6-commits-2">
+<span id="id4"></span><h3>Commits<a class="headerlink" href="#v2-0-6-commits-2" title="Permalink to this headline">¶</a></h3>
+<p>mbroyles (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/084756c397c4">084756c397c4</a> Force update of OPAL-OCC memory after GPU
+presence detected</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-petitboot">
+<h2>Package: petitboot<a class="headerlink" href="#package-petitboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/petitboot">Repository</a></p>
+<div class="section" id="v2-0-6-patches-3">
+<span id="id5"></span><h3>Patches<a class="headerlink" href="#v2-0-6-patches-3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/op-build/tree/HEAD/openpower/package/petitboot/petitboot-01-autotools-Add-autopoint-generated-files.patch">petitboot-01-autotools-Add-autopoint-generated-files.patch</a></li>
+</ul>
+</div>
+<div class="section" id="v2-0-6-commits-3">
+<span id="id6"></span><h3>Commits<a class="headerlink" href="#v2-0-6-commits-3" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="package-sbe">
+<h2>Package: sbe<a class="headerlink" href="#package-sbe" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/sbe">Repository</a></p>
+<div class="section" id="v2-0-6-patches-4">
+<span id="id7"></span><h3>Patches<a class="headerlink" href="#v2-0-6-patches-4" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-0-6-commits-4">
+<span id="id8"></span><h3>Commits<a class="headerlink" href="#v2-0-6-commits-4" title="Permalink to this headline">¶</a></h3>
+<p>Joachim Fenkes (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/c6566a7d896a">c6566a7d896a</a> p9_sbe_lpc_init: Add final check for errors</li>
+</ul>
+<p>Nick Klazynski (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/d51bd3609e3b">d51bd3609e3b</a> Clockgate disable workaround for HW452921</li>
+</ul>
+<p>Prasad Bg Ranganath (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/96c1383b9764">96c1383b9764</a> Marking CME sram addr and cntrl register for
+whitelist</li>
+</ul>
+<p>Raja Das (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/4665a9b1ce24">4665a9b1ce24</a> Inverted logic of hasClock bit in Clock
+Status register</li>
+</ul>
+<p>Sumit Kumar (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/55d6eb23ddd2">55d6eb23ddd2</a> Updated gerrit hostname</li>
+</ul>
+<p>Yue Du (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/c7f8a8572837">c7f8a8572837</a> STOP: remove chiplet enable drop in
+core_poweron for multicast scom</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../process/index.html">Development Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">op-build Release Notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-21">v1.21</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-22">v1.22</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#v2-0">v2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-1">v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-2">v2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-3">v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-4">v2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-5">v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-6">v2.6</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">op-build Release Notes</a><ul>
+      <li>Previous: <a href="v2.0.5.html" title="previous chapter">Release Notes for OpenPower Firmware v2.0.5</a></li>
+      <li>Next: <a href="v2.0.7.html" title="next chapter">Release Notes for OpenPower Firmware v2.0.7</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/release-notes/v2.0.6.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

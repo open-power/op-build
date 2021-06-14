@@ -1,0 +1,26 @@
+Release Notes for OpenPower Firmware v1.21.1
+============================================
+
+This is a point release on top of op-build v1.21.
+
+Like v1.21, this release is NOT intended for GA POWER9 platforms, for that,
+op-build v2.0 is *required*.
+
+Changes since v1.21:
+
+- skiboot v5.10.1
+
+  - libflash/blocklevel: Correct miscalculation in blocklevel_smart_erase()
+  - NPU2 HMIs: dump out a *LOT* of npu2 registers for debugging
+- linux 4.14.22-openpower1
+
+  - 40be210c830e powerpc: Fix DABR match on hash based systems
+  - 3b09911d3beb powerpc/xive: Use hw CPU ids when configuring the CPU queues
+  - 892674b5058a powerpc/mm: Flush radix process translations when setting MMU type
+  - 4386f223b418 powerpc/numa: Invalidate numa_cpu_lookup_table on cpu remove
+  - 5b98d31481f9 powerpc/radix: Remove trace_tlbie call from radix__flush_tlb_all
+  - c3bdd547042f rtc-opal: Fix handling of firmware error codes, prevent busy loops
+  - 8e56a935a4b7 cpufreq: powernv: Dont assume distinct pstate values for nominal and pmin
+
+
+

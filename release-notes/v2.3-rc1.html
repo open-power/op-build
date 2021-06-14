@@ -1,0 +1,1783 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Release Notes for OpenPower Firmware v2.3-rc1 &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Notes for OpenPower Firmware v2.3-rc2" href="v2.3-rc2.html" />
+    <link rel="prev" title="Release Notes for OpenPower Firmware v2.2" href="v2.2.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes-for-openpower-firmware-v2-3-rc1">
+<h1>Release Notes for OpenPower Firmware v2.3-rc1<a class="headerlink" href="#release-notes-for-openpower-firmware-v2-3-rc1" title="Permalink to this headline">¶</a></h1>
+<p>op-build v2.3-rc1 was released on Wednesday April 3rd, 2019. It will become the new stable release
+of op-build, following on from v2.2, first released on March 9th, 2019.</p>
+<p>The op-build v2.3 release cycle is a uniquely shorter one as we’ve been working on getting ready to
+have a more reliably predictable release schedule going for future releases.</p>
+<p>op-build v2.3-rc1 contains all the fixes as of op-build v2.0.15, and we expect to continue to do
+stable 2.0.y releases of v2.0 into the forseeable future.</p>
+<p>Please note that this is a RELEASE CANDIDATE and not the final v2.3 release. We expect to do a final
+v2.3 tagged release early April 2019. Please test this release candidate heavily!</p>
+<div class="section" id="known-bugs">
+<h2>Known Bugs<a class="headerlink" href="#known-bugs" title="Permalink to this headline">¶</a></h2>
+<p>We have two known bugs that are currently release blockers for the final v2.3.</p>
+<ul class="simple">
+<li>There exists a bug where boot devices <em>may</em> not show up in petitboot until “Rescan Devices” is
+selected.</li>
+<li>There exists a bug where Control-C behaviour in the petitboot shell has changed, which may cause
+some test scripts to get confused.</li>
+</ul>
+</div>
+<div class="section" id="removed-platforms">
+<h2>Removed platforms<a class="headerlink" href="#removed-platforms" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>openpower_mambo (superseded by the generic ‘opal’ defconfig, aimed towards use with simulators)</li>
+<li>witherspoon_dev (superseded by just using the generic witherspoon defconfig)</li>
+</ul>
+</div>
+<div class="section" id="new-platforms">
+<h2>New platforms<a class="headerlink" href="#new-platforms" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>opal</li>
+</ul>
+</div>
+<div class="section" id="updated-packages">
+<h2>Updated Packages<a class="headerlink" href="#updated-packages" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="19%" />
+<col width="16%" />
+<col width="48%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Package</th>
+<th class="head">Old Version</th>
+<th class="head">New Version</th>
+<th class="head">Platforms</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>ethtool</td>
+<td>4.16</td>
+<td>4.19</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-odd"><td>eudev</td>
+<td>3.2.5</td>
+<td>3.2.7</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-even"><td>glibc</td>
+<td>2.28-69-g1e5c530
+3</td>
+<td>2.28-94-g4aef
+f335</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-odd"><td>hcode</td>
+<td>hw022319a.930</td>
+<td>hw032919a.940</td>
+<td>witherspoon, p9dsu, zaius, romulus</td>
+</tr>
+<tr class="row-even"><td>hostboot</td>
+<td>37e67698be566</td>
+<td>ca03643dd893</td>
+<td>witherspoon, p9dsu, zaius, romulus</td>
+</tr>
+<tr class="row-odd"><td>hostboot-p8</td>
+<td>a3b0cb929cbf2</td>
+<td>c2074ad87972</td>
+<td>habanero, garrison, barreleye, firestone,
+palmetto, vesnin</td>
+</tr>
+<tr class="row-even"><td>i2c-tools</td>
+<td>4.0</td>
+<td>4.1</td>
+<td>pseries, vesnin</td>
+</tr>
+<tr class="row-odd"><td>linux</td>
+<td>4.19.26</td>
+<td>4.19.30</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-even"><td>linux-firmware</td>
+<td>44d4fca9922a</td>
+<td>1baa34868b2c</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-odd"><td>linux-headers</td>
+<td>4.19.26</td>
+<td>4.19.30</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-even"><td>lvm2</td>
+<td>2.02.180</td>
+<td>2.02.183</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-odd"><td>machine-xml</td>
+<td>c994a1815bcb</td>
+<td>f44f8808fc7c</td>
+<td>vesnin</td>
+</tr>
+<tr class="row-even"><td>machine-xml</td>
+<td>f7cffdbe00f6</td>
+<td>e3e9aef82673</td>
+<td>witherspoon</td>
+</tr>
+<tr class="row-odd"><td>occ</td>
+<td>12c8088a32c5</td>
+<td>58e422dede59</td>
+<td>witherspoon, p9dsu, zaius, romulus</td>
+</tr>
+<tr class="row-even"><td>openpower-pnor</td>
+<td>0aeae23bd0c6</td>
+<td>2ea669b4aa57</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+garrison, barreleye, firestone, palmetto,
+vesnin, romulus</td>
+</tr>
+<tr class="row-odd"><td>sbe</td>
+<td>2e253cebdaff</td>
+<td>1410677b65e4</td>
+<td>witherspoon, p9dsu, zaius, romulus</td>
+</tr>
+<tr class="row-even"><td>skiboot</td>
+<td>v6.2.2</td>
+<td>v6.3-rc1</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+<tr class="row-odd"><td>util-linux</td>
+<td>2.32.1</td>
+<td>2.33</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+firestone, palmetto, vesnin, zz, romulus</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="package-hcode">
+<h2>Package: hcode<a class="headerlink" href="#package-hcode" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hcode">Repository</a></p>
+<div class="section" id="patches">
+<h3>Patches<a class="headerlink" href="#patches" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="commits">
+<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this headline">¶</a></h3>
+<p>Chris Cain (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/3330dbdae60f">3330dbdae60f</a> Proposed structure
+change for OCC</li>
+</ul>
+<p>Prasad Bg Ranganath (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/0dd012c7f495">0dd012c7f495</a> PPB: Refactor pstate
+parameter block</li>
+</ul>
+<p>hostboot (13):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/cc5c034aa468">cc5c034aa468</a> Release tag
+information updated for hw030819a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/96bdad1dc08c">96bdad1dc08c</a> Release tag
+information updated for hw030919a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/b4bd4e7e0e75">b4bd4e7e0e75</a> Release tag
+information updated for hw031219a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/b31c43a6c27e">b31c43a6c27e</a> Release tag
+information updated for hw031319a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/3d18592a7e3a">3d18592a7e3a</a> Release tag
+information updated for hw031619a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/4ffb0e57df57">4ffb0e57df57</a> Release tag
+information updated for hw031919a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/ca318ee145bf">ca318ee145bf</a> Release tag
+information updated for hw032019b.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/21fb83a0aec7">21fb83a0aec7</a> Release tag
+information updated for hw032119a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/f722a49ec15b">f722a49ec15b</a> Release tag
+information updated for hw032219a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/b072dcdd5a9a">b072dcdd5a9a</a> Release tag
+information updated for hw032319a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/33eeb29bcbf6">33eeb29bcbf6</a> Release tag
+information updated for hw032619a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/2c76877c7370">2c76877c7370</a> Release tag
+information updated for hw032719a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/0dbac1b4fde0">0dbac1b4fde0</a> Release tag
+information updated for hw032919a.940</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-hostboot">
+<h2>Package: hostboot<a class="headerlink" href="#package-hostboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hostboot">Repository</a></p>
+<div class="section" id="v2-3-rc1-patches-1">
+<span id="id1"></span><h3>Patches<a class="headerlink" href="#v2-3-rc1-patches-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch">0001-Fix-RC09-ODT-errors-on-Nimbus-dual-drop-configs.patch</a></li>
+<li><a class="reference external" href="https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch">0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch</a></li>
+<li><a class="reference external" href="https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch">hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch</a></li>
+</ul>
+</div>
+<div class="section" id="v2-3-rc1-commits-1">
+<span id="id2"></span><h3>Commits<a class="headerlink" href="#v2-3-rc1-commits-1" title="Permalink to this headline">¶</a></h3>
+<p>Alvin Wang (7):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/49a169abfa3d">49a169abfa3d</a> Adds mcbist empty
+files</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/517ec60ee50d">517ec60ee50d</a> Adds mcbist empty
+files</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f50a11628b1c">f50a11628b1c</a> Change generic
+mcbist file name</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4984330e0ef9">4984330e0ef9</a> Change generic
+mcbist file name</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d7910f680f5c">d7910f680f5c</a> Add exp_scrub empty
+files</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8765bcd2cc17">8765bcd2cc17</a> Add empty files for
+power_theraml</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/75f8277bbc20">75f8277bbc20</a> Add empty
+file(accessor_wrapper.H) for power_theraml</li>
+</ul>
+<p>Andre A. Marin (4):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c368037cb36e">c368037cb36e</a> Update phy_pharams
+structure, tests, and exp attrs</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ee476c6abdad">ee476c6abdad</a> Update phy_pharams
+structure, tests, and exp attrs</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d679e6d649ee">d679e6d649ee</a> Add
+attr_engine_traits empty files for HB to mirror</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b5e9f70eb916">b5e9f70eb916</a> Update phy_pharams
+structure, tests, and exp attrs</li>
+</ul>
+<p>Andre Marin (6):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/877a032b90cd">877a032b90cd</a> Fix SPD cas latency
+assert bug</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/9e1906f95ba3">9e1906f95ba3</a> Add
+std::remove_all_extends to HB STL library</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/2dcce4bcccc2">2dcce4bcccc2</a> Add L1 for
+p9a_mss_bulk_pwr_throttles and p9a_mss_utils_to_throttle</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/1c169fc8be5a">1c169fc8be5a</a> Add attribute
+engine algorithm for eff_config and pre_eff_config</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/018a009896d8">018a009896d8</a> Add attribute
+engine algorithm for eff_config and pre_eff_config</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/e5a493e300da">e5a493e300da</a> Add attribute
+engine algorithm for eff_config and pre_eff_config</li>
+</ul>
+<p>Ben Gass (6):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5bfda17c8018">5bfda17c8018</a> Add chip base
+address to the OMI MMIO offset in p9a_mmio_util</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d27c5e1fe431">d27c5e1fe431</a> Update ATRMISS
+registers for Axone</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/71d98844bb93">71d98844bb93</a> Update p9_l2_flush
+to check if purge is busy on anything prior to flush.</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/a4278d1df874">a4278d1df874</a> Add
+ATTR_OMI_DL_GROUP_POS and ATTR_OMI_DL_NUM for OMI targets</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/224517ac925b">224517ac925b</a> Update cmd/rsp
+endian handling in exp_inband</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5beffad6f2f2">5beffad6f2f2</a> Replace FAPI_ERR
+with FAPI_DBG when no error in exp_omi_init</li>
+</ul>
+<p>Bill Hoffa (4):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7364f2447d18">7364f2447d18</a> Initialize and test
+alt-master PNOR access in all boots</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8b9e2d415060">8b9e2d415060</a> Fix autocitest
+simics attempt numbering</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c54069667c86">c54069667c86</a> Catch Unknown
+Values for CONFIG_APPLY attribute</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/2620abc7dc62">2620abc7dc62</a> INTRP HW Workaround
+for Clockgating Issue</li>
+</ul>
+<p>Caleb Palmer (10):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/066af762a047">066af762a047</a> Add SW callout if
+invalid proc model in call_mss_scrub</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d94e5b51c9e5">d94e5b51c9e5</a> PRD: Remove old
+domain startScrubs</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0843af939876">0843af939876</a> PRD: Don’t skip ECC
+spare when no DRAM spare</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/86b0576b22dc">86b0576b22dc</a> PRD: NVDIMM reg
+review updates</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/6d28e5b524f2">6d28e5b524f2</a> PRD: Remove EccSp
+from errl when not avail</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/be07d93af71c">be07d93af71c</a> PRD: MEM_PORT
+getConnected support</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4046e66acfb6">4046e66acfb6</a> Hostboot Memory HWP
+include update</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/16024c9f92fa">16024c9f92fa</a> PRD: Axone
+PlatServices and Misc Updates</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f2837b85611f">f2837b85611f</a> PRD: Memory HWP
+include updates</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/09b6e80a55d2">09b6e80a55d2</a> PRD: NVDIMM health
+status reg errors no longer gard</li>
+</ul>
+<p>Chen Du (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c4031acbfb05">c4031acbfb05</a> Dropped messages at
+shutdown</li>
+</ul>
+<p>Chris Cain (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ad388de1a208">ad388de1a208</a> Proposed structure
+change for OCC</li>
+</ul>
+<p>Chris Steffen (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/298aa306a1f4">298aa306a1f4</a> P9A OMI Dccal /
+Scominit</li>
+</ul>
+<p>Christian Geddes (32):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8ee01af225a0">8ee01af225a0</a> Allow child/parent
+lookups between DIMM and OCMB_CHIP targets</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/6cc4d5078e34">6cc4d5078e34</a> Again try to fix
+checkpoint issue with fips930 simics</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/3452fbd95989">3452fbd95989</a> Allow for nullptr
+io_buffer in eecache read</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7ce2a9daac0c">7ce2a9daac0c</a> Add interface to
+look up model type of master processor on targetService</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/efda71702697">efda71702697</a> Set early test case
+IPL step to be 14.7 in Axone simics</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/e70d216f8e2b">e70d216f8e2b</a> Compile and add
+calls to exp_scominit in istep 13.8</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/58b845f915ea">58b845f915ea</a> Disable Mutex
+Attribute Test Cases for now</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/250291d09340">250291d09340</a> Add
+p9a_omi_training_check hwp call to istep 12.9</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/3b02a6aa674c">3b02a6aa674c</a> Fix
+getChildByAffinity call in mmio.C and add more traces</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/dafcf54942f1">dafcf54942f1</a> Remove imported
+files that were added incorrectly</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/552339eb7f78">552339eb7f78</a> Create a common
+explorer accesss module expaccess</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/281c7c93a463">281c7c93a463</a> Skip enabling PM
+complex (start_stop_engine HWP) in Axone simics</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/63afd50c3393">63afd50c3393</a> Disable SMF tests
+for Axone bringup</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5618f2f2b432">5618f2f2b432</a> Fix issues with how
+we were handling new .so added for Axone</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/9145082bb0ca">9145082bb0ca</a> Disable OCMB mmio
+communication tests until MMIO works</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b397d8d630ac">b397d8d630ac</a> Allow single dimm
+configurations in Axone</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/dd41d6161ea9">dd41d6161ea9</a> Set
+MAX_COMPUTE_NODES attribute so TOD code gets setup correctly</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/3653c5d44e88">3653c5d44e88</a> Skip establish ex
+chiplet step (15.3) during Axone for now</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0a0fe1f2857a">0a0fe1f2857a</a> Compile new
+Axone/Explorer memory libs in isteps_mss library</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d09e67a0a554">d09e67a0a554</a> Update simics
+release that Axone is using and adjust simics script</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b8cfbb22598c">b8cfbb22598c</a> Set MUX i2c slave
+port to be 1</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/1c5f03e47872">1c5f03e47872</a> Fix bug that was
+scrambling traces in errorlogs during HBRT</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ddc7b1ec95be">ddc7b1ec95be</a> Apply OBUS PG rules
+update to Axone also</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/a52d45742151">a52d45742151</a> Edit
+cxxtest.start.sh script to call runsim correctly</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c6677251ee3d">c6677251ee3d</a> Call p9a_mss_volt
+if MEM_PORT targets are available in istep 7.2</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/994299cf3d45">994299cf3d45</a> Add code to call
+p9a_mss_freq / p9a_mss_freq_system in istep 7.3</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/1564d45787ce">1564d45787ce</a> Wrap exp_draminit
+in a extern “C” to workaround name mangling</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/30a512e3d84d">30a512e3d84d</a> Disable OCMB getVPD
+tests until we get better SPD</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/33e7c6de0769">33e7c6de0769</a> Add calls to
+available p9a_mss_eff_config HWPs in istep 7.4</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/85e898e7c68e">85e898e7c68e</a> Edit autocitest to
+handle hbTrace.log generated in /src/</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/a98d9a843a71">a98d9a843a71</a> Generate P9A
+accessors for Axone</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f55c462e587c">f55c462e587c</a> Resize WOF to allow
+AXONE test pnor to fit inside 64 MB</li>
+</ul>
+<p>Christian R. Geddes (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/bcecb8a2a15a">bcecb8a2a15a</a> Revert “Update
+phy_pharams structure, tests, and exp attrs”</li>
+</ul>
+<p>Corey Swenson (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0bfacdff427f">0bfacdff427f</a> Add callouts for
+NVDIMM errors</li>
+</ul>
+<p>Dan Crowell (16):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b8720c117759">b8720c117759</a> Reset Engine E to
+handle NVDIMMs</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d505fea7f169">d505fea7f169</a> Make overrideOnly
+fapi attributes volatile-zero</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/86b5d355d643">86b5d355d643</a> Delete complextype
+fields in attributes if they have no value</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/e73d0c117548">e73d0c117548</a> Force reboot
+without visible errors for core wakeup failure</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/386165c1c5da">386165c1c5da</a> Updates to
+testcases for Axone</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ce4004d542f1">ce4004d542f1</a> Create runtime mss
+library</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4636db0ab1ec">4636db0ab1ec</a> Always use original
+defaults for attribute fields with no value</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0b3f4e146b01">0b3f4e146b01</a> Use meaningful
+values for PNOR build parms</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7d86b40c30c1">7d86b40c30c1</a> Modify rank
+variable for OCMB VPD lookup</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c2c08ea15af6">c2c08ea15af6</a> Remove old fapi
+files</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/63622494a0f3">63622494a0f3</a> Add PMIC target</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/e0f035161098">e0f035161098</a> Tweak page eviction
+parameters to handle low mem better</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/2c2978d3a443">2c2978d3a443</a> Add ASSERT trace
+buffer to task crash log</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8fc37a704410">8fc37a704410</a> Create
+p9a_disable_ocmb_i2c HWP</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/27d7ab8db738">27d7ab8db738</a> Moving libnvdimm
+into a resident module</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7c067d46c2f7">7c067d46c2f7</a> Make pci cache
+injection attributes writeable</li>
+</ul>
+<p>Dean Sanner (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/73fc80f05f07">73fc80f05f07</a> Base HWP mirroring
+control on HB policy</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/610f16673641">610f16673641</a> Allow OPAL to run
+on fused cores</li>
+</ul>
+<p>Glenn Miles (6):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0af9610f18a1">0af9610f18a1</a> Make access to
+iv_overridePtr threadsafe</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/676c584aaa70">676c584aaa70</a> Make more room for
+hbicore_extended in PNOR layout files.</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/814734326962">814734326962</a> Use thread_local
+for globals that require it</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/373d8a5fb285">373d8a5fb285</a> Run memory training
+in parallel across centaurs</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/853d251aef29">853d251aef29</a> Add 1MB to PNOR HBI
+section</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f6ddb6dc19f8">f6ddb6dc19f8</a> Add checks for
+invalid trace data in removeDuplicateTraces</li>
+</ul>
+<p>Ilya Smirnov (5):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b1c1b2cc5e78">b1c1b2cc5e78</a> Secureboot:
+Enhanced Multinode Comm: TPM_POISONED</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ed35e3da7c26">ed35e3da7c26</a> Unit Tests For SMF
+Secure Mem Distribution</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/9ece0ede203d">9ece0ede203d</a> SMF: Memory
+Distribution Logic Improvements</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/eeb5732a169d">eeb5732a169d</a> Revert “SMF: Create
+New UVBWLIST Partition”</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c7534ed92a2d">c7534ed92a2d</a> Secureboot:
+Enhanced Nomdecomm: Quote Fix</li>
+</ul>
+<p>Jacob Harvey (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/e7f0582196fb">e7f0582196fb</a> L3 work for mss
+xmls</li>
+</ul>
+<p>Jayashankar Padath (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/596bde3e93f3">596bde3e93f3</a> HDAT : Support of
+new Rugby values in P9N systems</li>
+</ul>
+<p>Jaymes Wilks (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f5475890894b">f5475890894b</a> Support thread
+local storage</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ff62338a5699">ff62338a5699</a> Thread local
+storage: Update unit tests for thread local storage</li>
+</ul>
+<p>Jenny Huynh (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/1c6429e239e2">1c6429e239e2</a> HW483672: Enable
+TLBIE WAT (version 5); fixes unintended flushing</li>
+</ul>
+<p>Joe McGill (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/87cc9b25b008">87cc9b25b008</a> cleanup references
+to chip-centric EC feature attributes</li>
+</ul>
+<p>Kahn Evans (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/e45d35734d18">e45d35734d18</a> Fix doxygen
+warnings</li>
+</ul>
+<p>Louis Stermole (11):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5fcfd69a0278">5fcfd69a0278</a> Remove MBA GARD
+from RC_CEN_MSS_DRAMINIT_MC_INSUF_RCD_PROTECT_TIME</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/835d2074b6bc">835d2074b6bc</a> Add empty files
+required for mss::index, pos, and c_str templating</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/197507fb6e80">197507fb6e80</a> Add empty file
+required for templating eff_memory_size</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ebf6fda9958f">ebf6fda9958f</a> Add empty files
+required for p9a_mss_freq</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/6f660c2b98b7">6f660c2b98b7</a> Add new files
+required for fixing mss::index, mss::pos, and mss::c_str</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0f728a100a8e">0f728a100a8e</a> Add empty file for
+explorer eff_memory_size specialization</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8fc0e7abffb0">8fc0e7abffb0</a> Add p9a version of
+eff_memory_size API</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ca025608c0c1">ca025608c0c1</a> Move p9a sync.C and
+sync.H to new names to fix collisions</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/6bdf34b9fe0a">6bdf34b9fe0a</a> Add workaround for
+Nimbus symbol mark performance hw bug</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/76a4f5d86930">76a4f5d86930</a> Move explorer
+specialization of eff_memory_size into explorer lib</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/a5d11b476381">a5d11b476381</a> Add empty files for
+DEFAULT_MC_TYPE constants</li>
+</ul>
+<p>Luis Fernandez (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/90552694307e">90552694307e</a> Secure Boot: Log
+error when attribute override attempted in secure mode</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ab6efc5935dc">ab6efc5935dc</a> HB Improvements:
+Fix compiler warnings on modern compilers</li>
+</ul>
+<p>Mark Pizzutillo (4):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/847ced968c58">847ced968c58</a> Add blank files for
+axone p10 rank API</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7b3c165b9c65">7b3c165b9c65</a> Add empty files for
+gemini IPL</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/af6712fe5c03">af6712fe5c03</a> Remove files not
+needed by gemini IPL</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/9011abf477a1">9011abf477a1</a> Add wrapper and
+utils blank files for exp_getecid</li>
+</ul>
+<p>Matt Derksen (4):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/518a05ca5136">518a05ca5136</a> Move nvdimm_update
+call to istep 21.1</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/2df122342fae">2df122342fae</a> Use NVDIMM lids for
+update</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/a5c403221e3e">a5c403221e3e</a> Fixing runtime i2c
+operation</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f5ab52ab7117">f5ab52ab7117</a> NVDIMM update code</li>
+</ul>
+<p>Matt K. Light (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/a7c8ac4df4e1">a7c8ac4df4e1</a> move
+ATTR_SPD_OVERRIDE[_ENABLE] to cronus only file</li>
+</ul>
+<p>Matt Raybuck (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4b29a1188536">4b29a1188536</a> UCD attribute and
+targeting updates</li>
+</ul>
+<p>Matthew Raybuck (10):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d2899da82cb0">d2899da82cb0</a> Improve performance
+of Partial Good logic</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/3830dc6e8fb0">3830dc6e8fb0</a> Support UCD target
+generation for Zeppelin MRW</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d47b63700d87">d47b63700d87</a> Add functions to
+get Device Id and MFR revision from UCD</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/3265b62f038c">3265b62f038c</a> Improve performance
+of general PG algorithm</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/2cfb551c4e56">2cfb551c4e56</a> TESTCASES: Improve
+performance of general PG algorithm</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/086018c231e7">086018c231e7</a> Support UCD for I2C
+callouts</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c3264eed4874">c3264eed4874</a> Add minor tweaks to
+I2C Callouts for UCD</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8684bd3d5656">8684bd3d5656</a> Add retry loop to
+UCD deviceOps</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b445b93fc21e">b445b93fc21e</a> Handle bad PEC from
+UCD device op</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ac7a4f206efe">ac7a4f206efe</a> Fix UCD retry loop
+size bug</li>
+</ul>
+<p>Mike Baiocchi (7):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d74d3932d989">d74d3932d989</a> Secureboot: Enhance
+Error Callouts For New Multinode Trustedboot Transfer</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4eb72a8bf074">4eb72a8bf074</a> Adjust I2C Reset
+for OpenPower MPIPL</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/656ba908c6f2">656ba908c6f2</a> Add UCD devices to
+ATTR_I2C_BUS_SPEED_ARRAY for ZZ</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/08d6bc305592">08d6bc305592</a> Update UCD class
+member variables and functions</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ffdc6b255981">ffdc6b255981</a> Add check to
+determine if a UCD’s I2C Master is functional</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/72fc1da005b7">72fc1da005b7</a> Invoke UCD Update
+Algorithm on UCD Devices</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/571956c7f546">571956c7f546</a> Create Attribute to
+force UCD Updates</li>
+</ul>
+<p>Murulidhar Nataraju (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/6b7bbd62febe">6b7bbd62febe</a> Enable OCC Start in
+MPIPL path for OPAL based systems</li>
+</ul>
+<p>Nick Bofferding (9):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/90b00de769e0">90b00de769e0</a> Enhance RAS for
+case where boot firmware image is too big to load</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/09a3da759682">09a3da759682</a> UCD Flash Update:
+Support I2C SMBUS operations for UCD flash update</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/10784ce5d02b">10784ce5d02b</a> Support UCD target
+generation for ZZ MRW</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/642a5f63c61b">642a5f63c61b</a> Support UCD
+discovery</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5588cf81b95d">5588cf81b95d</a> Fix bug where task
+migrates away from pinned CPU unexpectedly</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/810394f87078">810394f87078</a> UCD flash update
+invoker</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0d9e3f2cde91">0d9e3f2cde91</a> Verify UCD update
+success at end of store to UCD flash</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/de2312a44b13">de2312a44b13</a> Fix deadlock in ECC
+error shutdown path</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ca03643dd893">ca03643dd893</a> Initialize backup
+TPM in MPIPL</li>
+</ul>
+<p>Prasad Bg Ranganath (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4d983e4c8bdd">4d983e4c8bdd</a> PPB: Refactor
+pstate parameter block</li>
+</ul>
+<p>Prem Shanker Jha (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/143d03952806">143d03952806</a> Image Build: Fixed
+handling of unsecure HOMER address field.</li>
+</ul>
+<p>Raja Das (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/55260d579728">55260d579728</a> Security List
+Binary Dump Chip-op Support</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b8f4e5009a34">b8f4e5009a34</a> OPAL/MPIPL:
+Processor Dump Area Table interfaces</li>
+</ul>
+<p>Ricardo Mata Jr (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/784fe894f9ec">784fe894f9ec</a> Updated
+proc_pcie_config to support cache inject attributes</li>
+</ul>
+<p>Roland Veloz (3):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/6e84cce39773">6e84cce39773</a> Force VPD IO
+through HW (Axone) ,add plat function to get OCMB VPD</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/038631ba24f0">038631ba24f0</a> Updated file
+ddimm_get_efd.C to be in sync with file ddimm_get_efd.xml</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/17930bb348b5">17930bb348b5</a> Unit test and
+integration test for platGetVPD(OCMB) call</li>
+</ul>
+<p>Sharath Manjunath (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/bdaa5b1d2af3">bdaa5b1d2af3</a> Update exp_draminit
+to read values from attributes</li>
+</ul>
+<p>Stanley Zheng (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c23e99369c50">c23e99369c50</a> add address xlate
+to initfile</li>
+</ul>
+<p>Stephen Glancy (8):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/dadbba56f413">dadbba56f413</a> Adds SI setting for
+4R and dual-drop LRDIMM configs</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c050abede299">c050abede299</a> Updates the
+explorer training response structure</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/6fa8d0452930">6fa8d0452930</a> Updates read to
+write timers for LRDIMM</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c96464c7d525">c96464c7d525</a> Moves set bad
+bitmap into generic</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/2b943a5ba24f">2b943a5ba24f</a> Fixes MPR read ODT
+values</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b850083ce640">b850083ce640</a> Fixes LRDIMM CKE
+issue</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8e0290d32802">8e0290d32802</a> Fixes LRDIMM rank
+configuration for dual-drop</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/cd82f3ecbcef">cd82f3ecbcef</a> Adds DDIMM EFD
+decoder API</li>
+</ul>
+<p>Steven Janssen (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/85942470b223">85942470b223</a> Update function
+pointer name to correctly point to function</li>
+</ul>
+<p>Stewart Smith (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/4470dc33a126">4470dc33a126</a> Disable warnings
+that crop up a lot with GCC6</li>
+</ul>
+<p>Sumit Kumar (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/395f284926ab">395f284926ab</a> FAPI_Infra:Add new
+member to structure ErrorInfoHwCallout</li>
+</ul>
+<p>Tsung Yeung (3):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8eb0494af6a1">8eb0494af6a1</a> Enforces NVDIMM
+Pairing</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/da2c80997909">da2c80997909</a> Suppresses
+maintenance error messages due to STR exit</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/c2a9006d0552">c2a9006d0552</a> NVDIMM RCD restore
+fix and zqcal timing fix</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-occ">
+<h2>Package: occ<a class="headerlink" href="#package-occ" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/occ">Repository</a></p>
+<div class="section" id="v2-3-rc1-patches-2">
+<span id="id3"></span><h3>Patches<a class="headerlink" href="#v2-3-rc1-patches-2" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc1-commits-2">
+<span id="id4"></span><h3>Commits<a class="headerlink" href="#v2-3-rc1-commits-2" title="Permalink to this headline">¶</a></h3>
+<p>Chris Cain (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/1904821d6279">1904821d6279</a> Updates to wofparser
+tool</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/98ccba678ad4">98ccba678ad4</a> Support for PGPE error
+handling</li>
+</ul>
+<p>William Bryan (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/6e52f56bd2cc">6e52f56bd2cc</a> Fix memory bandwidth
+chom averages</li>
+</ul>
+<p>Zane Shelley (11):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/75f2dd306f18">75f2dd306f18</a> FIRDATA: fix iteration
+bug in firData.c</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/d60be21fc396">d60be21fc396</a> FIRDATA: remove
+Cumulus/Centaur targets and add Axone/Explorer</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/d85d3c5387ec">d85d3c5387ec</a> FIRDATA: add Axone
+memory subsystem SCOM support</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/18fa6f29e388">18fa6f29e388</a> FIRDATA: removed HOMER
+support for Cumulus/Centaur</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/d2801157a080">d2801157a080</a> FIRDATA: Clean up HOMER
+parsing variables in firData.c</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/d4e558e09c51">d4e558e09c51</a> FIRDATA: Simplified
+adding targets to PNOR</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/29d1d67db71c">29d1d67db71c</a> FIRDATA: Simplified
+adding chip units to PNOR</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/69bac807b007">69bac807b007</a> FIRDATA: Simplified
+iterating targets from HOMER in firData.c</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/b673f22459ca">b673f22459ca</a> FIRDATA: Further
+simplifying iteration variables in firData.c</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/6220fb3d8d7a">6220fb3d8d7a</a> FIRDATA: Simplified
+adding subunit targets to PNOR in firData.c</li>
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/58e422dede59">58e422dede59</a> FIRDATA: added
+Axone/Explorer support to firData.c</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-sbe">
+<h2>Package: sbe<a class="headerlink" href="#package-sbe" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/sbe">Repository</a></p>
+<div class="section" id="v2-3-rc1-patches-3">
+<span id="id5"></span><h3>Patches<a class="headerlink" href="#v2-3-rc1-patches-3" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc1-commits-3">
+<span id="id6"></span><h3>Commits<a class="headerlink" href="#v2-3-rc1-commits-3" title="Permalink to this headline">¶</a></h3>
+<p>Christian Geddes (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/0f9a51d0059e">0f9a51d0059e</a> Update i2c driver for
+OCMB chip</li>
+</ul>
+<p>Christopher M Riedl (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/a3b2377b7de1">a3b2377b7de1</a> Implement PBA
+Cache-Inhibited 8B Rd/Wr Access</li>
+</ul>
+<p>Dan Crowell (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/c9b85ed2ed42">c9b85ed2ed42</a> Add
+ATTR_ENABLED_OBUS_BRICKS</li>
+</ul>
+<p>Jenny Huynh (6):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/be0d09d34335">be0d09d34335</a> HW477626 Dangerous Elk -
+Applies to CDD12+</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/e18d802d082f">e18d802d082f</a> HW477626 Dangerous Elk -
+Temporarily apply to CDD13 native only</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/04c534c750c6">04c534c750c6</a> HW477626 Dangerous Elk -
+Reapply for all CDD12+ risk levels</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/f3b4f8efe1f8">f3b4f8efe1f8</a> Additional core inits
+for Nimbus DD2.3 compatibility modes</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/934ccd82e22f">934ccd82e22f</a> Axone core initfile
+update to match Nimbus DD23</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/4a5f8ddab286">4a5f8ddab286</a> Adjust PVR Version for
+Axone</li>
+</ul>
+<p>Joachim Fenkes (5):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/b9b668e5916e">b9b668e5916e</a> FAPI2: Multicast API
+1/2: Platform-breaking changes</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/8a09d58df7aa">8a09d58df7aa</a> FAPI2: Multicast API
+2/2: Introduce the actual multicast functions</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/4529a95e14de">4529a95e14de</a> Add tools to help
+measure and compare SBE image size</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/5786b04efe86">5786b04efe86</a> p9_sbe_tp_chiplet_init3:
+Mask TOD error bit 62 (osclite switched)</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/e8590a9d3a19">e8590a9d3a19</a> p9_sbe_npll_setup:
+Enable spread spectrum before starting PLL</li>
+</ul>
+<p>Joe McGill (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/81642d21704f">81642d21704f</a> whitelist update for
+ABUS CCM</li>
+</ul>
+<p>Prasad Bg Ranganath (3):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/9eba57570f29">9eba57570f29</a> PPB:New attribute
+ATTR_PMCR_MOST_RECENT_MODE for PMCR request</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/8fd8d1401c5f">8fd8d1401c5f</a> HWP:Cache stop clocks
+complete fix</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/1410677b65e4">1410677b65e4</a> PM HWP: Fix bug in stop
+clock procedure that effects mpipl</li>
+</ul>
+<p>Prem Shanker Jha (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/b6b4eafa650c">b6b4eafa650c</a> SMF: Defined new
+attribute containing unsecure HOMER memory’s size.</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/47f5faba3803">47f5faba3803</a> SMF: Populates unsecure
+HOMER with SC2 instruction.</li>
+</ul>
+<p>Pretty Mariam Jacob (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/b2548e254811">b2548e254811</a> Added Alink changes in
+attributes and initfiles</li>
+</ul>
+<p>Raja Das (5):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/0420efec88bd">0420efec88bd</a> White/Black/Grey List
+Binary dump PSU Chip-op Support</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/0321b165dad7">0321b165dad7</a> SBE scripts to update
+pib repair data</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/9f9f77cec3cb">9f9f77cec3cb</a> L1 loader Axone Pibmem
+repair parse</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/c508f8e9d96e">c508f8e9d96e</a> NVDIMM Flush update</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/57905edebf34">57905edebf34</a> Axone pibmem repair
+logic</li>
+</ul>
+<p>Soma BhanuTej (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/1d73131d1a11">1d73131d1a11</a> Update p9a_10 engd - spy
+name changes</li>
+</ul>
+<p>Srikantha Meesala (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/9b5f5c303ddc">9b5f5c303ddc</a> Befor flushNVDIMM
+chip-op make sure all core Instructions are stopped</li>
+</ul>
+<p>Stephen Glancy (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/953dc3134693">953dc3134693</a> Updates MWD_COARSE to
+run multiple patterns</li>
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/6eb2a4c0f0d8">6eb2a4c0f0d8</a> Updates MCA write and
+read timings</li>
+</ul>
+<p>Tsung Yeung (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/1ac3d5b9cd5f">1ac3d5b9cd5f</a> Adjust STR enter
+sequence to enable immediate entry</li>
+</ul>
+<p>kswaroop (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/81c848765857">81c848765857</a> PIBMEM only image</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-skiboot">
+<h2>Package: skiboot<a class="headerlink" href="#package-skiboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/skiboot">Repository</a></p>
+<div class="section" id="v2-3-rc1-patches-4">
+<span id="id7"></span><h3>Patches<a class="headerlink" href="#v2-3-rc1-patches-4" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc1-commits-4">
+<span id="id8"></span><h3>Commits<a class="headerlink" href="#v2-3-rc1-commits-4" title="Permalink to this headline">¶</a></h3>
+<p>Abhishek Goel (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b821f8c2a8e3">b821f8c2a8e3</a> power-mgmt : occ :
+Add ‘freq-domain-mask’ DT property</li>
+</ul>
+<p>Akshay Adiga (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/40b99f58ea37">40b99f58ea37</a> SLW: Remove Idle
+state support tor Power8 DD1</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c46ab3a0509c">c46ab3a0509c</a> SLW: Print verbose
+info on errors only</li>
+</ul>
+<p>Alexey Kardashevskiy (8):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/17975a6e6457">17975a6e6457</a> cpufeatures: Always
+advertise POWER8NVL as DD2</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/64627c85e648">64627c85e648</a> cpufeatures: Always
+advertise POWER8NVL as DD2</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/fd0950488f7f">fd0950488f7f</a> opal: Deprecate
+reading the PHB status</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4824d17bb53b">4824d17bb53b</a> hw/phb3/naples:
+Disable D-states</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/889dba86c3c8">889dba86c3c8</a> hw/phb3/naples:
+Disable D-states</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ba1d95a1d460">ba1d95a1d460</a> npu2: Add
+XTS_BDF_MAP wildcard refcount</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c0f17caddcd8">c0f17caddcd8</a> npu2: Allow ATSD for
+LPAR other than 0</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b392d785eb49">b392d785eb49</a> witherspoon: Add
+nvlink2 interconnect information</li>
+</ul>
+<p>Andrew Donnellan (9):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/682fa68e577c">682fa68e577c</a>
+platforms/witherspoon: Make PCIe shared slot error message more informative</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e1c3ed8224bf">e1c3ed8224bf</a> config: Get rid of
+DEBUG_MALLOC</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/647dc4aff7b6">647dc4aff7b6</a> config: Get rid of
+FAST_REBOOT_CLEARS_MEMORY</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c9bc52a250a0">c9bc52a250a0</a> core/stack: Remove
+r1 argument from ___backtrace()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b971b67ac2e1">b971b67ac2e1</a> core/stack: Define a
+backtrace metadata struct</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/80a49c7022b2">80a49c7022b2</a> core/stack: Store
+PIR in ___backtrace()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/8dddd751ef43">8dddd751ef43</a> hw/fsp, hw/ipmi:
+Convert attn code to not use backtrace wrappers</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e5a7411cd74e">e5a7411cd74e</a> core/stack: Convert
+stack check code to not use backtrace wrapper</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b965b9de25d2">b965b9de25d2</a> core/stack: Rename
+backtrace functions, get rid of wrappers</li>
+</ul>
+<p>Andrew Jeffery (115):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/bd9839684d48">bd9839684d48</a> astbmc: Try IPMI
+HIOMAP for P8</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/71ce936ffe38">71ce936ffe38</a> p8dtu: Enable HIOMAP
+support</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9dcbd1f41d98">9dcbd1f41d98</a> p8dtu: Configure BMC
+graphics</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/963629523084">963629523084</a> pflash: Don’t try
+update RO ToC</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0dec1de73e1e">0dec1de73e1e</a> libflash/test:
+Generate header dependencies for tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3852a9460abc">3852a9460abc</a> ffspart, libflash:
+Fix stack size warnings</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a7e1efe864ad">a7e1efe864ad</a> pflash: Increase
+stack frame size warning threshold</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5636d390b7f0">5636d390b7f0</a> gard: Fix warnings
+from gcc 8.2.0</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/96409597aa39">96409597aa39</a> Makefile: Paper over
+gard and pflash coverage issues</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/43ca6a2e5b12">43ca6a2e5b12</a> test-ipmi-hiomap:
+Add ability to delay some IPMI messages</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/f246cceda717">f246cceda717</a> test-ipmi-hiomap:
+Dump unexpected IPMI messages</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5293333dd1af">5293333dd1af</a> test-ipmi-hiomap:
+Ensure the completion code is set</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/f46ed4f7ee79">f46ed4f7ee79</a> test-ipmi-hiomap:
+Print some information on early scenario_exit()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1b3a5dfbdf92">1b3a5dfbdf92</a>
+libflash/ipmi-hiomap: Fix leak of msg in callback</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/64a61885a229">64a61885a229</a>
+libflash/ipmi-hiomap: Overhaul error handling</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/403d527269be">403d527269be</a>
+libflash/ipmi-hiomap: Overhaul event handling</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6d8bd2dd9eab">6d8bd2dd9eab</a>
+libflash/ipmi-hiomap: Remove unused close handling</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4af122b23402">4af122b23402</a>
+libflash/ipmi-hiomap: Enforce message size for empty response</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/41e6e8b4acf7">41e6e8b4acf7</a> test-ipmi-hiomap:
+Add protocol-persistent-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5b12dfe8dd0d">5b12dfe8dd0d</a> test-ipmi-hiomap:
+Add read-one-block test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d4b870c8524c">d4b870c8524c</a> test-ipmi-hiomap:
+Add read-two-blocks test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e1f20bfd7d91">e1f20bfd7d91</a> test-ipmi-hiomap:
+Add event-before-read</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/fd271bc570d3">fd271bc570d3</a> test-ipmi-hiomap:
+Add event-during-read test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e69b1135db38">e69b1135db38</a> test-ipmi-hiomap:
+Add write-one-block test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/eb0c85ae9868">eb0c85ae9868</a> test-ipmi-hiomap:
+Add write-two-blocks test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7f246ff2c999">7f246ff2c999</a> test-ipmi-hiomap:
+Add event-before-write test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9175028fc84a">9175028fc84a</a> test-ipmi-hiomap:
+Add event-during-write test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5ee7b0f70b04">5ee7b0f70b04</a> test-ipmi-hiomap:
+Add erase-one-block test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/275b3d12af39">275b3d12af39</a> test-ipmi-hiomap:
+Add erase-two-blocks test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/410b80725ad2">410b80725ad2</a> test-ipmi-hiomap:
+Add event-before-erase test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c2a4b4988ecc">c2a4b4988ecc</a> test-ipmi-hiomap:
+Add event-during-erase</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/077d19d82405">077d19d82405</a> test-ipmi-hiomap:
+Add bad-sequence test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ecf6430d1ee9">ecf6430d1ee9</a> test-ipmi-hiomap:
+Add action-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/f65c781eee16">f65c781eee16</a> test-ipmi-hiomap:
+Add get-flash-info test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/bcdd3f134970">bcdd3f134970</a> test-ipmi-hiomap:
+Add get-info-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0bef2695055d">0bef2695055d</a> test-ipmi-hiomap:
+Add get-flash-info-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c4d5734fde21">c4d5734fde21</a> test-ipmi-hiomap:
+Add create-read-window-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/364b433adb7d">364b433adb7d</a> test-ipmi-hiomap:
+Add create-write-window-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a4349da67c9c">a4349da67c9c</a> test-ipmi-hiomap:
+Add mark-dirty-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7798ea646fb7">7798ea646fb7</a> test-ipmi-hiomap:
+Add flush-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ff5153612f85">ff5153612f85</a> test-ipmi-hiomap:
+Add ack-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/12ca08b58e5b">12ca08b58e5b</a> test-ipmi-hiomap:
+Add erase-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4642a6c9a66b">4642a6c9a66b</a> test-ipmi-hiomap:
+Add ack-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/8745e91d48d1">8745e91d48d1</a> test-ipmi-hiomap:
+Add get-info-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5c2ada09e76d">5c2ada09e76d</a> test-ipmi-hiomap:
+Add get-flash-info-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/bd1a08ab3e12">bd1a08ab3e12</a> test-ipmi-hiomap:
+Add create-read-window-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ee0314d2d9d0">ee0314d2d9d0</a> test-ipmi-hiomap:
+Add create-write-window-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c7b8293d867a">c7b8293d867a</a> test-ipmi-hiomap:
+Add mark-dirty-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/985c7a26bcb1">985c7a26bcb1</a> test-ipmi-hiomap:
+Add flush-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7735cc354609">7735cc354609</a> test-ipmi-hiomap:
+Add erase-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d0c798252521">d0c798252521</a> test-ipmi-hiomap:
+Add protocol-recovery-failure-ack test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ce81b9364131">ce81b9364131</a> test-ipmi-hiomap:
+Add protocol-recovery-failure-get-info test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9398b84fad0e">9398b84fad0e</a> test-ipmi-hiomap:
+Add protocol-recovery-get-flash-info-failure test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b94bb54f6569">b94bb54f6569</a> test-ipmi-hiomap:
+Add read-one-block-twice test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ed35a7d04bde">ed35a7d04bde</a> test-ipmi-hiomap:
+Add write-one-block-twice test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a3777e58990f">a3777e58990f</a> test-ipmi-hiomap:
+Add erase-one-block-twice test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6a4db4c249a1">6a4db4c249a1</a> ast-io: Rework
+ast_sio_is_enabled() test sequence</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c826e1ca9e5b">c826e1ca9e5b</a> astbmc: Try IPMI
+HIOMAP for P8 (again)</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b9d7c9da583a">b9d7c9da583a</a> astbmc: Enable IPMI
+HIOMAP for AMI platforms</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5d07d064db05">5d07d064db05</a> libflash/test:
+Generate header dependencies for tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e3a3ba16a44a">e3a3ba16a44a</a> test-ipmi-hiomap:
+Add ability to delay some IPMI messages</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3056fcd0a7c4">3056fcd0a7c4</a> test-ipmi-hiomap:
+Dump unexpected IPMI messages</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7cb5eca8d6ca">7cb5eca8d6ca</a> test-ipmi-hiomap:
+Ensure the completion code is set</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/272443f7687b">272443f7687b</a> test-ipmi-hiomap:
+Print some information on early scenario_exit()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7bb5ead55bdf">7bb5ead55bdf</a>
+libflash/ipmi-hiomap: Fix leak of msg in callback</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2e29cf8d00fb">2e29cf8d00fb</a>
+libflash/ipmi-hiomap: Overhaul error handling</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5c4b51a0408f">5c4b51a0408f</a>
+libflash/ipmi-hiomap: Overhaul event handling</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/041d61e2be1d">041d61e2be1d</a>
+libflash/ipmi-hiomap: Remove unused close handling</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b64b3544d90b">b64b3544d90b</a>
+libflash/ipmi-hiomap: Enforce message size for empty response</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/cca1c08ece5e">cca1c08ece5e</a> test-ipmi-hiomap:
+Add protocol-persistent-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a215e3e547a0">a215e3e547a0</a> test-ipmi-hiomap:
+Add read-one-block test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/96ca4e26deb6">96ca4e26deb6</a> test-ipmi-hiomap:
+Add read-two-blocks test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ea318dbe989f">ea318dbe989f</a> test-ipmi-hiomap:
+Add event-before-read</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e4e76c8d2f6c">e4e76c8d2f6c</a> test-ipmi-hiomap:
+Add event-during-read test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e3497461c93b">e3497461c93b</a> test-ipmi-hiomap:
+Add write-one-block test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/bf722c0ac561">bf722c0ac561</a> test-ipmi-hiomap:
+Add write-two-blocks test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4cc5d420eeb4">4cc5d420eeb4</a> test-ipmi-hiomap:
+Add event-before-write test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/55b284e63e7d">55b284e63e7d</a> test-ipmi-hiomap:
+Add event-during-write test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/da61b9e8dc1f">da61b9e8dc1f</a> test-ipmi-hiomap:
+Add erase-one-block test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a6f3245eda74">a6f3245eda74</a> test-ipmi-hiomap:
+Add erase-two-blocks test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6432db36f0b1">6432db36f0b1</a> test-ipmi-hiomap:
+Add event-before-erase test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7d666e226bd9">7d666e226bd9</a> test-ipmi-hiomap:
+Add event-during-erase</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d69b6567669b">d69b6567669b</a> test-ipmi-hiomap:
+Add bad-sequence test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4f9facdacef9">4f9facdacef9</a> test-ipmi-hiomap:
+Add action-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b20312eb6ee5">b20312eb6ee5</a> test-ipmi-hiomap:
+Add get-flash-info test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/852d38850654">852d38850654</a> test-ipmi-hiomap:
+Add get-info-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/21bed4d078d9">21bed4d078d9</a> test-ipmi-hiomap:
+Add get-flash-info-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/05e1dabcb97d">05e1dabcb97d</a> test-ipmi-hiomap:
+Add create-read-window-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1c97112ba0b9">1c97112ba0b9</a> test-ipmi-hiomap:
+Add create-write-window-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/14959a69eeac">14959a69eeac</a> test-ipmi-hiomap:
+Add mark-dirty-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4de5c234518b">4de5c234518b</a> test-ipmi-hiomap:
+Add flush-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c38fccd32df0">c38fccd32df0</a> test-ipmi-hiomap:
+Add ack-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5e1559af3394">5e1559af3394</a> test-ipmi-hiomap:
+Add erase-error test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/66b4b2e49d46">66b4b2e49d46</a> test-ipmi-hiomap:
+Add ack-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/90ae8a0767ce">90ae8a0767ce</a> test-ipmi-hiomap:
+Add get-info-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7ae038042951">7ae038042951</a> test-ipmi-hiomap:
+Add get-flash-info-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/dba42852b0de">dba42852b0de</a> test-ipmi-hiomap:
+Add create-read-window-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/564d5e4ba7e4">564d5e4ba7e4</a> test-ipmi-hiomap:
+Add create-write-window-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b812fa3d16ce">b812fa3d16ce</a> test-ipmi-hiomap:
+Add mark-dirty-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0ebf921c1a0a">0ebf921c1a0a</a> test-ipmi-hiomap:
+Add flush-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4769cb645e20">4769cb645e20</a> test-ipmi-hiomap:
+Add erase-malformed tests</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/35a6cbe24717">35a6cbe24717</a> test-ipmi-hiomap:
+Add protocol-recovery-failure-ack test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ffe09809c035">ffe09809c035</a> test-ipmi-hiomap:
+Add protocol-recovery-failure-get-info test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0e8e03ee34ba">0e8e03ee34ba</a> test-ipmi-hiomap:
+Add protocol-recovery-get-flash-info-failure test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/75622fe738cd">75622fe738cd</a> test-ipmi-hiomap:
+Add read-one-block-twice test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1a8a5c352762">1a8a5c352762</a> test-ipmi-hiomap:
+Add write-one-block-twice test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2d8b0043aa9d">2d8b0043aa9d</a> test-ipmi-hiomap:
+Add erase-one-block-twice test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/381a7e6553d7">381a7e6553d7</a> ast-io: Rework
+ast_sio_is_enabled() test sequence</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6e7145a55afc">6e7145a55afc</a> astbmc: Try IPMI
+HIOMAP for P8 (again)</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/52be9b85e455">52be9b85e455</a> zaius: Add BMC
+description</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4ff0e16df304">4ff0e16df304</a> p8dtu: Enable HIOMAP
+support</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/137b11c77feb">137b11c77feb</a> p8dtu: Configure BMC
+graphics</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b7594b26929e">b7594b26929e</a> astbmc: Enable IPMI
+HIOMAP for AMI platforms</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/cccf5d79de07">cccf5d79de07</a> core/flash: Retry
+requests as necessary in flash_load_resource()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6225d1192493">6225d1192493</a> astbmc: Handle
+failure to initialise raw flash</li>
+</ul>
+<p>Anju T Sudhakar (7):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6d9a87cec05a">6d9a87cec05a</a> doc/imc: Edit
+imc.rst documentation to include</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/09e912109070">09e912109070</a> doc/device-tree:
+Edit device tree documentation for imc to include trace-node information.</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/f3a0fb699040">f3a0fb699040</a> doc/opal-api: Edit
+documentation for IMC opal call to include trace-imc</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5506d8a45882">5506d8a45882</a> include/imc: Trace
+IMC Macro definitions</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/fa8f3f3fcead">fa8f3f3fcead</a> hw/imc: Refactor
+opal init call for core-imc</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/df2a1e579aaa">df2a1e579aaa</a> hw/imc: Enable opal
+calls to init/start/stop IMC Trace mode</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/027d87475eff">027d87475eff</a> external/mambo:
+Mambo hack to add trace-imc nodes in the device-tree</li>
+</ul>
+<p>Artem Senichev (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/eb83850ee1de">eb83850ee1de</a> platforms/vesnin:
+Disable PCIe port bifurcation</li>
+</ul>
+<p>Cédric Le Goater (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/bbcbbd3e071f">bbcbbd3e071f</a> xive: Add calls to
+save/restore the queues and VPs HW state</li>
+</ul>
+<p>Deb McLemore (6):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/31231ed300f2">31231ed300f2</a> p9dsu: Fix p9dsu
+default variant</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/87517c8737b9">87517c8737b9</a> p9dsu: Fix p9dsu
+slot tables</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/83f06eec281d">83f06eec281d</a> p9dsu: Fix p9dsu
+default variant</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c8941393f452">c8941393f452</a> p9dsu: Fix p9dsu
+slot tables</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/64a16ae05bb2">64a16ae05bb2</a> p9dsu: Fix slot
+labels for p9dsu2u</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c470806a2e5e">c470806a2e5e</a> p9dsu: Undo slot
+label name changes</li>
+</ul>
+<p>Frederic Barrat (10):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/536c8fbf932d">536c8fbf932d</a> npu2-opencapi:
+Rework ODL register access</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e621b7b67951">e621b7b67951</a> npu2-opencapi: Setup
+perf counters to detect CRC errors</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9f3cdff99656">9f3cdff99656</a> npu2-opencapi:
+Rename functions used to reset an adapter</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ce9dd46d36d0">ce9dd46d36d0</a> npu2-opencapi: Keep
+ODL and adapter in reset at the same time</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e4efac7d8c90">e4efac7d8c90</a> npu2-opencapi: ODL
+should be in reset when enabled</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d75436f0d3d0">d75436f0d3d0</a> npu2-opencapi:
+Extend delay after releasing reset on adapter</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/998911498597">998911498597</a> npu2-opencapi: Fix
+adapter reset when using 2 adapters</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/8cf6758e1889">8cf6758e1889</a> npu2-hw-procedures:
+Don’t set iovalid for opencapi devices</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/11c5faa66aa0">11c5faa66aa0</a> npu2-hw-procedures:
+Fix zcal in mixed opencapi and nvlink mode</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/14a78d5c2e85">14a78d5c2e85</a> npu2/hw-procedures:
+Fix parallel zcal for opencapi</li>
+</ul>
+<p>Jeff Scheel (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/abd17b24a5ae">abd17b24a5ae</a> doc: Adjusting tags
+in release notes to eliminate global conflict for singlehtml builds</li>
+</ul>
+<p>Joel Stanley (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/23470f10d0b1">23470f10d0b1</a> Revert “astbmc: Try
+IPMI HIOMAP for P8”</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/cd2b103f2488">cd2b103f2488</a> Makefile: Check
+-Wno-stringop-truncation is supported</li>
+</ul>
+<p>Mahesh Salgaonkar (4):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/017da88b2d05">017da88b2d05</a> opal/hmi: Fix double
+unlock of hmi lock in failure path.</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ca349b836d02">ca349b836d02</a> opal/hmi: Don’t
+retry TOD recovery if it is already in failed state.</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/497734984231">497734984231</a> opal/hmi: set a flag
+to inform OS that TOD/TB has failed.</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2c71d7032484">2c71d7032484</a> Fix hang in
+pnv_platform_error_reboot path due to TOD failure.</li>
+</ul>
+<p>Michael Neuling (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/740904858586">740904858586</a> xive: Make no_sync
+parameter affermative in __xive_set_irq_config()</li>
+</ul>
+<p>Michal Suchanek (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/bef1ddc40813">bef1ddc40813</a> libffs: Fix string
+truncation gcc warning.</li>
+</ul>
+<p>Nicholas Piggin (20):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3500a606c6db">3500a606c6db</a> phb4: remove POWER9N
+DD1 creset workaround</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3b4ae3a2e2a5">3b4ae3a2e2a5</a> xive: remove POWER9N
+DD1 NVT table size workaround</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0b0d15e3c170">0b0d15e3c170</a> Remove POWER9N DD1
+support</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d27180b55d77">d27180b55d77</a> core/cpu: HID update
+race</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/57610a3681bc">57610a3681bc</a> external/mambo:
+allow CPU targeting for most debug utils</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0d44d7f7d29d">0d44d7f7d29d</a> core/init: rename
+setup_reset_vector</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9e075d75274c">9e075d75274c</a> core/cpu: do not
+inline cpu_relax</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9c58bbd720b7">9c58bbd720b7</a> core/exceptions:
+save current MSR in exception frame</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e1d44e8c117f">e1d44e8c117f</a> asm/head: use HSRR
+exception registers in FIXUP_ENDIAN</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/02aea4c8760a">02aea4c8760a</a> core/init: rearrange
+final boot steps</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d25287a167fd">d25287a167fd</a> core/fast-reboot:
+improve NMI handling during fast reset</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ebb814a80369">ebb814a80369</a> core/init: enable
+machine check on secondaries</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/75669cb37067">75669cb37067</a> asm/head: provide
+asm support for interrupts to be returned from</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/37baa9731d0d">37baa9731d0d</a> core/fast-reboot:
+fast reboot specific sreset patch</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4ebb78cffda8">4ebb78cffda8</a> asm/head: sreset
+handler remove FIXUP_ENDIAN</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/8a43bf86b7d4">8a43bf86b7d4</a> core/exceptions:
+implement an exception handler for non-powersave sresets</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/22524e901744">22524e901744</a> core/exceptions:
+allow recoverable sreset exceptions</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5d86cebd5368">5d86cebd5368</a> core/exceptions:
+implement support for MCE interrupts in powersave</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c51c7a5df601">c51c7a5df601</a> core/cpu: HID update
+race</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/450b429feb43">450b429feb43</a> asm/head: move
+unnecessary code out of head</li>
+</ul>
+<p>Oliver O’Halloran (28):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/08981e62e1d9">08981e62e1d9</a> phb4: Rework BDFN
+filtering in phb4_set_pe()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2f5d15f167b0">2f5d15f167b0</a> phb4: Remove
+pointless NULL checks</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e19f14e3134b">e19f14e3134b</a> phb4: Eliminate
+p-&gt;rte_cache</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a3a64a4b8737">a3a64a4b8737</a> phb4: Eliminate
+peltv_cache</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/639f67285c2c">639f67285c2c</a> phb4: Update some
+comments</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3eadafbd35ae">3eadafbd35ae</a> hdata/test: Fix up
+linux,sml-base property</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/fa3dee2a63e6">fa3dee2a63e6</a> hdata/test: Add
+OP920 HDAT test data</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/f35a3c376a44">f35a3c376a44</a> hdata/memory: Remove
+find_shared()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4822a7ba9d33">4822a7ba9d33</a> hdata/memory: Add
+NVDIMM support</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9b67792c3801">9b67792c3801</a> hw/phb4: Fix
+indentation of brdgCtl</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/43f11d51e601">43f11d51e601</a> platforms/zz:
+Re-enable LXVPD slot information parsing</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1941d3f26373">1941d3f26373</a> platforms/romulus:
+Also support talos</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1c3baae4f2b3">1c3baae4f2b3</a> hdata/iohub: Look
+for IOVPD on P9</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0ec1e37004da">0ec1e37004da</a> hw/phb4: Look for
+the hub-id from in the PBCQ node</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/14372fc9fb60">14372fc9fb60</a> core/pci: Increase
+the max slot string size</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/99937b943845">99937b943845</a> core/pcie-slot: Set
+power state from the PWRCTL flag</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/efc568c1e30b">efc568c1e30b</a> fsp/lxvpd: Print
+more LXVPD slot information</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0c86fef7e502">0c86fef7e502</a> firenze-pci: Always
+init slot info from LXVPD</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1ef5a64b85d5">1ef5a64b85d5</a> core/pcie-slot:
+Better explain suprise_check</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/84aa25921a09">84aa25921a09</a> core/pcie-slot:
+Don’t bail early in the power on case</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/70edcbb4b39d">70edcbb4b39d</a> hw/phb4: Skip FRESET
+PERST when coming from CRESET</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e89d3f32d216">e89d3f32d216</a> hw/phb4: Remove
+FRESET presence check</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b8b4c79d4419">b8b4c79d4419</a> hw/phb4: Factor out
+PERST control</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/722cf1c2ed56">722cf1c2ed56</a> hw/phb4: Drop
+FRESET_DEASSERT_DELAY state</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a31085d7d432">a31085d7d432</a> core/i2c: Add
+request state tracking</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d290b244efbc">d290b244efbc</a> core/i2c: Poll on
+request state in i2c_request_send()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/319e7d935f13">319e7d935f13</a> core/i2c: split
+i2c_request_send()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/517f088a8e39">517f088a8e39</a> platforms/firenze:
+Rework I2C controller fixups</li>
+</ul>
+<p>Reza Arbab (18):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/aa56d9a2abdb">aa56d9a2abdb</a> Remove duplicate
+npu2-common.o from $(HW_OBJS)</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/552cb9e371d8">552cb9e371d8</a> npu2: Remove dead
+code from npu2_cfg_write_bar()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/69ca8a8ff7a9">69ca8a8ff7a9</a> npu2: Remove unused
+npu2::bdf2pe_cache</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2d12672a812f">2d12672a812f</a> npu2: Remove unused
+npu2::lxive_cache</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/237882bfc84f">237882bfc84f</a> npu2: Remove unused
+npu2_dev::procedure_data</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b496cab97086">b496cab97086</a> npu2: Remove unused
+npu2_dev_nvlink::vendor_cap</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/cd5ddbe3b40c">cd5ddbe3b40c</a> npu2: Fix missing
+iteration in tce kill loop</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3f79ab6cdb4d">3f79ab6cdb4d</a> npu2: Remove
+redundant assignment to p-&gt;phb_nvlink.scan_map</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/38cf215cb505">38cf215cb505</a> npu2: Replace open
+coded dt_find_by_name_addr()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9ef153f6f013">9ef153f6f013</a> core/lock: Stop
+drop_my_locks() from always causing abort</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d3803711f8a9">d3803711f8a9</a> Add PVR_TYPE_P9P</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1ab11ac8b4b9">1ab11ac8b4b9</a> core/lock: Stop
+drop_my_locks() from always causing abort</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/855465aa7804">855465aa7804</a> devicetree: Fix
+syntax error in power9-phb4.dts</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/85c4c823ab11">85c4c823ab11</a> devicetree: Fix typo
+in power9-phb4.dts</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/eecd9083f1bd">eecd9083f1bd</a> devicetree: Add nx
+node to power9-phb4.dts</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/13926b45897b">13926b45897b</a> devicetree: Move
+power9-phb4.dts</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/50d1a089deef">50d1a089deef</a> devicetree: Add
+p9-simics.dts</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9f9dd8d71de9">9f9dd8d71de9</a> devicetree: Add
+Makefile to build dtb binaries</li>
+</ul>
+<p>Russell Currey (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/8d8a9ca30453">8d8a9ca30453</a> external/mambo:
+Populate kernel-base-address in the DT</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/edf7e841ff9d">edf7e841ff9d</a> external/mambo:
+Error out if kernel is too large</li>
+</ul>
+<p>Santosh Sivaraj (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3ac2db0a83e7">3ac2db0a83e7</a> flash: Add support
+for async decompression</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c86fb12c07a6">c86fb12c07a6</a> imc/catalog:
+Decompress catalog asynchronously</li>
+</ul>
+<p>Shilpasri G Bhat (4):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a96739c6c1cd">a96739c6c1cd</a> powercap: occ: Fix
+the powercapping range allowed for user</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0fe8ecd59fc0">0fe8ecd59fc0</a> powercap: occ: Fix
+the powercapping range allowed for user</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/27e4943eade2">27e4943eade2</a> fast-reboot: occ:
+Remove ‘freq-domain-mask’ from fast-reboot path</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/961b7128ebd8">961b7128ebd8</a> fast-reboot: occ:
+Call occ_pstates_init() on fast-reset on all machines</li>
+</ul>
+<p>Stewart Smith (38):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/44aa41061a9f">44aa41061a9f</a> qemu: bt device
+isn’t always hanging off /</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/59a21fc87f54">59a21fc87f54</a> sparse: Make tree
+‘constant is so big’ warning clean</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/625f9ac034f1">625f9ac034f1</a> zz: platform_ocapi
+can be static</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ec65b9ab4c4c">ec65b9ab4c4c</a> zaius: zaius_ocapi
+can be static</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c2c426ef668b">c2c426ef668b</a> doc: clarify
+OPAL_RTC_READ return values</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3170270be92a">3170270be92a</a> firmware-versions:
+Add test case for parsing VERSION</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6bb72e8f7b9d">6bb72e8f7b9d</a> firmware-versions:
+Add test case for parsing VERSION</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/816a1d7bb2ef">816a1d7bb2ef</a> pflash: Support
+encoding/decoding ECC’d partitions</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0647f2a2c4eb">0647f2a2c4eb</a> skiboot v6.2.1
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/75382eb708c0">75382eb708c0</a> skiboot v6.2.1
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7ac85e4517cc">7ac85e4517cc</a> skiboot v6.0.17
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/40b377a01ef5">40b377a01ef5</a> hw/test: generalise
+makefile</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/81847dd347ef">81847dd347ef</a> doc: fix definition
+lists in opal-imc-counters</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/f3ad5bb09249">f3ad5bb09249</a> sparse: symbol
+‘sbe_timer_lock’ was not declared. Should it be static?</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/96c0ec2ab78b">96c0ec2ab78b</a> sparse: symbol
+‘xive_buddy_lock/xive_vp_buddy’ was not declared. Should it be static?</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/f9b79a611501">f9b79a611501</a> sparse: symbol
+’NPU2_PHY_*’ was not declared. Should it be static?</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/655e0bc6865c">655e0bc6865c</a> sparse: symbol
+’procedure_*’ was not declared. Should it be static?</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/039d184dda21">039d184dda21</a> sparse: symbols in
+imc.c weren’t declared, Should they be static?</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3b8b7e8c4e78">3b8b7e8c4e78</a> sparse: symbol
+‘<em>bar</em>’ was not declared. Should it be static?</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/0eea56b06b4f">0eea56b06b4f</a> Don’t use variable
+length arrays in exception code</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ee01ef4ed82a">ee01ef4ed82a</a> i2c: Fix sparse
+warnings for type assignment</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/428cb852e3a0">428cb852e3a0</a> qemu: bt device
+isn’t always hanging off /</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3ef409d43de9">3ef409d43de9</a> doc:
+s/stb_init()/secureboot_init()/ to match reality</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2b96407921a6">2b96407921a6</a> opal-ci: Drop
+CentOS6 support</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6c36257bf32f">6c36257bf32f</a> opal-ci: Drop
+unneded reference to ubuntu 12.04</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/e4a06f098c4f">e4a06f098c4f</a> opal-ci: drop fedora
+28</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7cd8402c3bec">7cd8402c3bec</a> Drop old Coverity
+jobs (we build via separate .travis.yml in a branch)</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/043e85bf7477">043e85bf7477</a>
+hw/ipmi/test/run-fru: Fix string truncation warning, enhance test</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/fedb949b7179">fedb949b7179</a> Fix broken
+opal-ci/build-fedora-rawhide.sh symlink</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c0faa9232168">c0faa9232168</a> hdata: Add
+protection against corrupt ntuples structure</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/a2c13f1d6119">a2c13f1d6119</a> hdata_to_dt: fail
+“gracefully” on fatal op_display()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/bee7be6ab780">bee7be6ab780</a> hdata: Prevent NULL
+dereference on duplicate slot map info</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d0e56d97d4cd">d0e56d97d4cd</a> ci: Remove
+debian-jessie boot test.</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/cb87cf17279b">cb87cf17279b</a> ci: qemu boot tests
+should use built skiboot</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/133cc8cea258">133cc8cea258</a> ci/fedora29:
+–allowerasing to work around conflicting packages</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/11374f20e8f1">11374f20e8f1</a> Bump allowed stack
+frame size for unit tests/host programs</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3e0eef2e9a92">3e0eef2e9a92</a> Force noinline for
+pci_add_(<a href="#id13"><span class="problematic" id="id14">one_</span></a>)device_node(s)()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/050d8165ab05">050d8165ab05</a> skiboot v6.3-rc1
+release notes</li>
+</ul>
+<p>Timothy Pearson (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/8b26e29acbc8">8b26e29acbc8</a> Retry link training
+at PCIe GEN1 if presence detected but training repeatedly failed</li>
+</ul>
+<p>Vaibhav Jain (8):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/658c39dda366">658c39dda366</a> opal: Update
+opal_del_host_sync_notifier() to accept ’void *data’</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/9d2d0115eaca">9d2d0115eaca</a> core/pci: Introduce
+a new pci_slot_op named completed_sm_run()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/763f397d5be7">763f397d5be7</a> capp/phb: Introduce
+‘struct capp’ to hold capp related info in ‘struct phb’</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/1a87f8f97175">1a87f8f97175</a> phb4/capp: Update
+and re-factor phb4_set_capi_mode()</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/78ccc722c2fd">78ccc722c2fd</a> capp/phb4: Force
+CAPP to PCIe mode during kernel shutdown</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/52fa634e2152">52fa634e2152</a> capp/phb4: Introduce
+PHB4 flag, PHB4_CAPP_DISABLE to disable CAPP</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3dc87605be7a">3dc87605be7a</a> phb4/capp: Implement
+sequence to disable CAPP and enable fast-reset</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d572d3a72fa2">d572d3a72fa2</a> capp/phb4: Prevent
+HMI from getting triggered when disabling CAPP</li>
+</ul>
+<p>Vasant Hegde (30):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/06ef9bd2d9a6">06ef9bd2d9a6</a> skiboot v6.0.15
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/7516e3827e50">7516e3827e50</a> core/ipmi: Improve
+error message</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/554062d7fe5a">554062d7fe5a</a> core/opal: Print PIR
+value in exit path</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/67fc150c82a7">67fc150c82a7</a> skiboot v6.0.16
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/ab10b2e62e58">ab10b2e62e58</a> core/ipmi: Improve
+error message</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/d07a5622a9e1">d07a5622a9e1</a> core/opal: Print PIR
+value in exit path</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b1d421875b4c">b1d421875b4c</a> ipmi/power: Fix
+system reboot issue</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/dd9b61cdfca7">dd9b61cdfca7</a> hdata/i2c: Reduce
+severity of log message</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/b570fb646289">b570fb646289</a> libflash/ecc: Fix
+compilation warning</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/cadaf7c36e83">cadaf7c36e83</a> libflash/ecc: Fix
+compilation warning</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/fdd27ca27231">fdd27ca27231</a> hw/bt: Fix message
+retry handler</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/01f977c33d46">01f977c33d46</a> hw/bt: Add backend
+interface to disable ipmi message retry option</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c526a280dcd1">c526a280dcd1</a> hdata/memory: Fix
+warning message</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4f0ceb63e951">4f0ceb63e951</a> hdata/memory:
+Removed share-id property</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/61978c2c54d0">61978c2c54d0</a> hw/bt: Introduce
+separate list for synchronous messages</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/968c30905d7a">968c30905d7a</a> core/ipmi: Add ipmi
+sync messages to top of the list</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c0ab7b45db3d">c0ab7b45db3d</a> hw/bt: Do not
+disable ipmi message retry during OPAL boot</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2e2bf87b42f7">2e2bf87b42f7</a> ipmi/power: Fix
+system reboot issue</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/73fa7be132a4">73fa7be132a4</a> hw/bt: Fix message
+retry handler</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/44f90875712f">44f90875712f</a> hw/bt: Add backend
+interface to disable ipmi message retry option</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/788c9ac2b926">788c9ac2b926</a> hw/bt: Introduce
+separate list for synchronous messages</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/28f5fe3a6edc">28f5fe3a6edc</a> core/ipmi: Add ipmi
+sync messages to top of the list</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/af5c2978dbcd">af5c2978dbcd</a> hw/bt: Do not
+disable ipmi message retry during OPAL boot</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/5da21e2cc79d">5da21e2cc79d</a> skiboot v6.2.2
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/6aa3bd8ab6ad">6aa3bd8ab6ad</a> skiboot v6.0.18
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/261ca8e779e5">261ca8e779e5</a> skiboot v6.2.2
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/2ba5ce84a197">2ba5ce84a197</a> Update skiboot
+stable tree rules</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/4456616272a4">4456616272a4</a> skiboot v6.0.19
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/92a5c57a14e2">92a5c57a14e2</a> skiboot v6.2.3
+release notes</li>
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/08de14aaa937">08de14aaa937</a> core/ipmi: Print
+correct netfn value</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-vesnin-xml">
+<h2>Package: vesnin-xml<a class="headerlink" href="#package-vesnin-xml" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/vesnin-xml">Repository</a></p>
+<div class="section" id="v2-3-rc1-patches-5">
+<span id="id9"></span><h3>Patches<a class="headerlink" href="#v2-3-rc1-patches-5" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc1-commits-5">
+<span id="id10"></span><h3>Commits<a class="headerlink" href="#v2-3-rc1-commits-5" title="Permalink to this headline">¶</a></h3>
+<p>Artem Senichev (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/vesnin-xml/commit/6549b6d2bf42">6549b6d2bf42</a> Disable PCIe port
+bifurcation</li>
+<li><a class="reference external" href="https://github.com/open-power/vesnin-xml/commit/f44f8808fc7c">f44f8808fc7c</a> Fix
+IBSCOM_MCS_BASE_ADDR formatting</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-witherspoon-xml">
+<h2>Package: witherspoon-xml<a class="headerlink" href="#package-witherspoon-xml" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/witherspoon-xml">Repository</a></p>
+<div class="section" id="v2-3-rc1-patches-6">
+<span id="id11"></span><h3>Patches<a class="headerlink" href="#v2-3-rc1-patches-6" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc1-commits-6">
+<span id="id12"></span><h3>Commits<a class="headerlink" href="#v2-3-rc1-commits-6" title="Permalink to this headline">¶</a></h3>
+<p>Bill Hoffa (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/witherspoon-xml/commit/ed1f0ebe2e2e">ed1f0ebe2e2e</a> The
+CONFIG_APPLY attribute needs a default value</li>
+</ul>
+<p>Erich Hauptli (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/witherspoon-xml/commit/c47cddbcd13b">c47cddbcd13b</a> Picked up
+PROC_COMPAT* attribute</li>
+<li><a class="reference external" href="https://github.com/open-power/witherspoon-xml/commit/00f0727053e8">00f0727053e8</a> Fixing GPU
+I2C Addresses</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../process/index.html">Development Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">op-build Release Notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-21">v1.21</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-22">v1.22</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-0">v2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-1">v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-2">v2.2</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#v2-3">v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-4">v2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-5">v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-6">v2.6</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">op-build Release Notes</a><ul>
+      <li>Previous: <a href="v2.2.html" title="previous chapter">Release Notes for OpenPower Firmware v2.2</a></li>
+      <li>Next: <a href="v2.3-rc2.html" title="next chapter">Release Notes for OpenPower Firmware v2.3-rc2</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/release-notes/v2.3-rc1.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

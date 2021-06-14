@@ -1,0 +1,149 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Development Process &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing to op-build" href="CONTRIBUTING.html" />
+    <link rel="prev" title="Testing op-build" href="../testing.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="development-process">
+<h1>Development Process<a class="headerlink" href="#development-process" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing to op-build</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#development-philosophy">Development Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#development-process">Development Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#developer-certificate-of-origin">Developer Certificate of Origin</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="KernelTree.html">op-build Linux Kernel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="KernelTree.html#submitting-a-patch">Submitting a patch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelTree.html#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelTree.html#versioning">Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelTree.html#tree-and-patches">Tree and patches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelTree.html#patches-in-the-tree">Patches in the tree</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-ci.html">Building with ci scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stable-rules.html">op-build stable tree rules and releases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="stable-rules.html#what-patches-are-accepted">What patches are accepted?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stable-rules.html#howto-submit-to-stable">HOWTO submit to stable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stable-rules.html#trees">Trees</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html">Contributing to op-build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KernelTree.html">op-build Linux Kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-with-ci.html">Building with ci scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stable-rules.html">op-build stable tree rules and releases</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release-notes/index.html">op-build Release Notes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../testing.html" title="previous chapter">Testing op-build</a></li>
+      <li>Next: <a href="CONTRIBUTING.html" title="next chapter">Contributing to op-build</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/process/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

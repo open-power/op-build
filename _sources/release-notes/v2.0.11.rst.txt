@@ -1,0 +1,432 @@
+Release Notes for OpenPower Firmware v2.0.11
+============================================
+
+op-build v2.0.11 was released on Thursday November 29th, 2018 and replaces
+op-build v2.0.10 as the current stable release in the 2.0.x series.
+
+It is recommended that v2.0.11 be used over any previous v2.0.x version on
+POWER9 systems due to the bug fixes contained within.
+
+Updated Packages
+----------------
+
++-------------------+-----------------+-----------------+------------------------------------------+
+| Package           | Old Version     | New Version     | Platforms                                |
++===================+=================+=================+==========================================+
+| hcode             | hw101018a.op920 | hw112818a.op920 | p9dsu, romulus, witherspoon, zaius       |
++-------------------+-----------------+-----------------+------------------------------------------+
+| hostboot          | 7a402b0bc32     | 3bf7fcf3596     | p9dsu, romulus, witherspoon, zaius       |
++-------------------+-----------------+-----------------+------------------------------------------+
+| hostboot-binaries | hw101018a.op920 | hw112818a.op920 | barreleye, firestone, garrison,          |
+|                   |                 |                 | habanero, p9dsu, palmetto, romulus,      |
+|                   |                 |                 | vesnin, witherspoon, zaius               |
++-------------------+-----------------+-----------------+------------------------------------------+
+| occ               | 3cb1ba3042e     | 3a505ffc175     | p9dsu, romulus, witherspoon, zaius, zz   |
++-------------------+-----------------+-----------------+------------------------------------------+
+| openpower-pnor    | 491ac2632f9     | 2e68ed6a605     | barreleye, firestone, garrison,          |
+|                   |                 |                 | habanero, p9dsu, palmetto, romulus,      |
+|                   |                 |                 | vesnin, witherspoon, witherspoon_dev,    |
+|                   |                 |                 | zaius                                    |
++-------------------+-----------------+-----------------+------------------------------------------+
+| sbe               | eae2a18c584     | 7aa21f6c0b1     | p9dsu, romulus, witherspoon, zaius       |
++-------------------+-----------------+-----------------+------------------------------------------+
+| skiboot           | v6.0.9          | v6.0.14         | barreleye, firenze, firestone, garrison, |
+|                   |                 |                 | habanero, openpower_mambo,               |
+|                   |                 |                 | openpower_p9_mambo, p9dsu, palmetto,     |
+|                   |                 |                 | pseries, romulus, vesnin, witherspoon,   |
+|                   |                 |                 | witherspoon_dev, zaius, zz               |
++-------------------+-----------------+-----------------+------------------------------------------+
+
+Package: hcode
+--------------
+
+`Repository <https://github.com/open-power/hcode>`__
+
+Patches
+~~~~~~~
+
+Commits
+~~~~~~~
+
+Rahul Batra (1):
+
+-  `a13f21bb8264 <https://github.com/open-power/hcode/commit/a13f21bb8264>`__ PGPE: Only ack pending
+   Quad Exit on WOF Disable
+
+hostboot (4):
+
+-  `a8a1e493ee03 <https://github.com/open-power/hcode/commit/a8a1e493ee03>`__ Release tag
+   information updated for hw110718a.op920
+-  `14a103eb369c <https://github.com/open-power/hcode/commit/14a103eb369c>`__ Release tag
+   information updated for hw110918a.op920
+-  `aa29996aa300 <https://github.com/open-power/hcode/commit/aa29996aa300>`__ Release tag
+   information updated for hw112718a.op920
+-  `2f9ef5344d1a <https://github.com/open-power/hcode/commit/2f9ef5344d1a>`__ Release tag
+   information updated for hw112818a.op920
+
+Package: hostboot
+-----------------
+
+`Repository <https://github.com/open-power/hostboot>`__
+
+.. _v2.0.11-patches-1:
+
+Patches
+~~~~~~~
+
+-  `0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/0007-Disable-warnings-that-crop-up-a-lot-with-GCC6.patch>`__
+-  `hostboot-0002-Revert-Mark-Read-Only-Partitions-as-Such.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-0002-Revert-Mark-Read-Only-Partitions-as-Such.patch>`__
+-  `hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch <https://github.com/open-power/op-build/tree/HEAD/openpower/package/hostboot/hostboot-1020-Revert-jgr17071200-Removed-pdwn-settings.patch>`__
+
+.. _v2.0.11-commits-1:
+
+Commits
+~~~~~~~
+
+Andrew Jeffery (22):
+
+-  `bd961754223f <https://github.com/open-power/hostboot/commit/bd961754223f>`__ ipmi: Replace
+   incorrect dependency on ipmibt with ipmimsg
+-  `828d8608b4bb <https://github.com/open-power/hostboot/commit/828d8608b4bb>`__ ipmi: Break
+   circular dependency between ipmimsg and ipmibt
+-  `175679c45a77 <https://github.com/open-power/hostboot/commit/175679c45a77>`__ assert: Print the
+   backtrace for critical and kernel assertions
+-  `72084f68c72f <https://github.com/open-power/hostboot/commit/72084f68c72f>`__ assert: Include
+   file name in assert output
+-  `76fc880a286a <https://github.com/open-power/hostboot/commit/76fc880a286a>`__ ipmi: Introduce
+   register_for_event() interface
+-  `70398ea39909 <https://github.com/open-power/hostboot/commit/70398ea39909>`__ ipmi: Drop
+   unnecessary ipmibt dependency from ipmifru
+-  `46438c46da91 <https://github.com/open-power/hostboot/commit/46438c46da91>`__ ipmi: Drop
+   unnecessary ipmiconfig dependencies
+-  `733dc2bda19f <https://github.com/open-power/hostboot/commit/733dc2bda19f>`__ ipmi: Break
+   circular dependency between IpmiDD and IpmiRP
+-  `d2e83450bcbd <https://github.com/open-power/hostboot/commit/d2e83450bcbd>`__ initservice: Flush
+   trace buffers before shutdown syscall
+-  `72ef7e552930 <https://github.com/open-power/hostboot/commit/72ef7e552930>`__ ipmi: Terminate SEL
+   task via shutdown event
+-  `715448652b8d <https://github.com/open-power/hostboot/commit/715448652b8d>`__ ipmi: IpmiDD and
+   IpmiRP must never free resources
+-  `27a305e6eacc <https://github.com/open-power/hostboot/commit/27a305e6eacc>`__ ipmi: Split into
+   ipmibase and ipmiext modules
+-  `469142642d04 <https://github.com/open-power/hostboot/commit/469142642d04>`__ ipmi: Remove IpmiRP
+   dependency on targeting
+-  `4bd42945974a <https://github.com/open-power/hostboot/commit/4bd42945974a>`__ initservice: Move
+   ipmibase module to base image
+-  `4126c2c06d4b <https://github.com/open-power/hostboot/commit/4126c2c06d4b>`__ pnor: Introduce an
+   IPMI-based PNOR driver implementation
+-  `30cc12393168 <https://github.com/open-power/hostboot/commit/30cc12393168>`__ pnor: Rename the
+   SFC-based PnorDD class to PnorSfcDD
+-  `1d34f7399f30 <https://github.com/open-power/hostboot/commit/1d34f7399f30>`__ pnor: ipmidd:
+   Rename class to PnorIpmiDD
+-  `aa42e9dd4fc0 <https://github.com/open-power/hostboot/commit/aa42e9dd4fc0>`__ pnor: mboxdd:
+   Rename class to PnorMboxDD
+-  `d649d2d867bb <https://github.com/open-power/hostboot/commit/d649d2d867bb>`__ pnor: Fall back to
+   AST mbox transport if IPMI is unavailable
+-  `daad484beb6b <https://github.com/open-power/hostboot/commit/daad484beb6b>`__ errl: Mark
+   errlogMsgHandler() as detached
+-  `ae46c0e9d2bf <https://github.com/open-power/hostboot/commit/ae46c0e9d2bf>`__ sio: Add test for
+   availability
+-  `3b407d471769 <https://github.com/open-power/hostboot/commit/3b407d471769>`__ ipmi: Increase
+   polling rate to decrease boot time
+
+Corey Swenson (2):
+
+-  `aed7e4e74ffd <https://github.com/open-power/hostboot/commit/aed7e4e74ffd>`__ Enable IPMI errl
+   after targeting is initialized
+-  `3bf7fcf35960 <https://github.com/open-power/hostboot/commit/3bf7fcf35960>`__ Extend multicast
+   workaround and add tests
+
+Dan Crowell (8):
+
+-  `b9ff0e6ab036 <https://github.com/open-power/hostboot/commit/b9ff0e6ab036>`__ Make Boootloader
+   trace tool follow HRMOR
+-  `5bcbca7f3316 <https://github.com/open-power/hostboot/commit/5bcbca7f3316>`__ Break down Dump
+   requests into 1MB chunks
+-  `6bedb6794509 <https://github.com/open-power/hostboot/commit/6bedb6794509>`__ Increase ipmi
+   polling frequency to every 1ms
+-  `8226322626b0 <https://github.com/open-power/hostboot/commit/8226322626b0>`__ Add missing mutex
+   in LPC error path
+-  `9435e74228cb <https://github.com/open-power/hostboot/commit/9435e74228cb>`__ Reduce ipmi trace
+   spam for pnor hiomap messages
+-  `51d23526e5ed <https://github.com/open-power/hostboot/commit/51d23526e5ed>`__ Only save the CME
+   FIR Masks after they have been setup once
+-  `929270216149 <https://github.com/open-power/hostboot/commit/929270216149>`__ Clear out HOMER
+   attributes and reset PM in PHYP mode
+-  `c112438736e8 <https://github.com/open-power/hostboot/commit/c112438736e8>`__ Clear out FIR Init
+   parameters after extra PM Resets
+
+Dean Sanner (1):
+
+-  `9ffcb906952b <https://github.com/open-power/hostboot/commit/9ffcb906952b>`__ Support a default
+   risk/init level per MRW
+
+Jenny Huynh (1):
+
+-  `f2691140aea5 <https://github.com/open-power/hostboot/commit/f2691140aea5>`__ HW471413 Aggressive
+   Uncle: disable ERAT thread sharing
+
+Mike Baiocchi (1):
+
+-  `8e2f7e910291 <https://github.com/open-power/hostboot/commit/8e2f7e910291>`__ Make TOC partion
+   Read-Only in all PNOR Layouts
+
+Nick Bofferding (3):
+
+-  `b72789bde76c <https://github.com/open-power/hostboot/commit/b72789bde76c>`__ Add
+   lib_isteps_mss.so as an istep 15 dependency
+-  `eaa2604f9df4 <https://github.com/open-power/hostboot/commit/eaa2604f9df4>`__ Fix shutdown race
+   condition and task start error in IPMI SEL library
+-  `801ca2a0b25c <https://github.com/open-power/hostboot/commit/801ca2a0b25c>`__ Remove trace buffer
+   flush at end of shutdown path
+
+Prem Shanker Jha (1):
+
+-  `af26129b7229 <https://github.com/open-power/hostboot/commit/af26129b7229>`__ PM: Fixed handling
+   of CME LFIR mask during PM complex reset.
+
+Samuel Mendoza-Jonas (1):
+
+-  `26f5df72578a <https://github.com/open-power/hostboot/commit/26f5df72578a>`__ genPnorImages: Add
+   VERSION to signed partitions
+
+Sheldon Bailey (1):
+
+-  `891bdf54e189 <https://github.com/open-power/hostboot/commit/891bdf54e189>`__ HTMGT: Check for
+   OCC elog action bit to force sending an error log to BMC
+
+Thi Tran (1):
+
+-  `5172324220a1 <https://github.com/open-power/hostboot/commit/5172324220a1>`__ Only call PRD
+   attention handling in resetPMComplex function at runtime.
+
+Yue Du (1):
+
+-  `6c9db8103b05 <https://github.com/open-power/hostboot/commit/6c9db8103b05>`__ STOP: Fix Bug
+   introduced by 66511
+
+Package: occ
+------------
+
+`Repository <https://github.com/open-power/occ>`__
+
+.. _v2.0.11-patches-2:
+
+Patches
+~~~~~~~
+
+.. _v2.0.11-commits-2:
+
+Commits
+~~~~~~~
+
+mbroyles (1):
+
+-  `3a505ffc1751 <https://github.com/open-power/occ/commit/3a505ffc1751>`__ Fix memory OT throttling
+   on Nimbus
+
+Package: sbe
+------------
+
+`Repository <https://github.com/open-power/sbe>`__
+
+.. _v2.0.11-patches-3:
+
+Patches
+~~~~~~~
+
+.. _v2.0.11-commits-3:
+
+Commits
+~~~~~~~
+
+Dan Crowell (1):
+
+-  `d50f588fcca6 <https://github.com/open-power/sbe/commit/d50f588fcca6>`__ Only save the CME FIR
+   Masks after they have been setup once
+
+Dean Sanner (1):
+
+-  `7aa21f6c0b11 <https://github.com/open-power/sbe/commit/7aa21f6c0b11>`__ Leave scratch valid bits
+   alone to allow HB to query
+
+Jenny Huynh (1):
+
+-  `446cf71b4174 <https://github.com/open-power/sbe/commit/446cf71b4174>`__ HW471413 Aggressive
+   Uncle: disable ERAT thread sharing
+
+Prem Shanker Jha (1):
+
+-  `421b1db8df54 <https://github.com/open-power/sbe/commit/421b1db8df54>`__ PM: Fixed handling of
+   CME LFIR mask during PM complex reset.
+
+Package: skiboot
+----------------
+
+`Repository <https://github.com/open-power/skiboot>`__
+
+.. _v2.0.11-patches-4:
+
+Patches
+~~~~~~~
+
+.. _v2.0.11-commits-4:
+
+Commits
+~~~~~~~
+
+Adriana Kobylak (1):
+
+-  `977aa1ef5fa6 <https://github.com/open-power/skiboot/commit/977aa1ef5fa6>`__ pflash: Add –skip
+   option for reading
+
+Andrew Jeffery (29):
+
+-  `e9accca5570e <https://github.com/open-power/skiboot/commit/e9accca5570e>`__ ast-bmc: Move copy
+   routines to ast-sf-ctrl
+-  `668d88c3e9b7 <https://github.com/open-power/skiboot/commit/668d88c3e9b7>`__ core/pci-quirk:
+   Remove broken comment in quirk_astbmc_vga()
+-  `c7dd603a460c <https://github.com/open-power/skiboot/commit/c7dd603a460c>`__ core/pci-quirk:
+   Clean up commented code in quirk_astbmc_vga()
+-  `5421d79dd212 <https://github.com/open-power/skiboot/commit/5421d79dd212>`__ ast-bmc: Rename LPC
+   FW cycle helpers
+-  `20e3d130d003 <https://github.com/open-power/skiboot/commit/20e3d130d003>`__ ast-io: Rework
+   setup/tear-down of communication with the BMC
+-  `79c821bcfc4b <https://github.com/open-power/skiboot/commit/79c821bcfc4b>`__ lpc: Silence LPC
+   SYNC no-response error when necessary
+-  `c1208aee6955 <https://github.com/open-power/skiboot/commit/c1208aee6955>`__ ipmi: Introduce
+   registration for SEL command handlers
+-  `c8edac1b2f32 <https://github.com/open-power/skiboot/commit/c8edac1b2f32>`__ core/lock: Use
+   try_lock_caller() in lock_caller() to capture owner
+-  `f976e7788a3b <https://github.com/open-power/skiboot/commit/f976e7788a3b>`__ core/flash: Only
+   lock around flashes update in flash_register()
+-  `67531d1deacc <https://github.com/open-power/skiboot/commit/67531d1deacc>`__ core/flash: Unlock
+   around blocklevel calls in NVRAM accessors
+-  `8b8dbd4e3353 <https://github.com/open-power/skiboot/commit/8b8dbd4e3353>`__ libflash: Add
+   ipmi-hiomap
+-  `ae947a88fec9 <https://github.com/open-power/skiboot/commit/ae947a88fec9>`__ astbmc: Prefer
+   ipmi-hiomap for PNOR access
+-  `dacc40af25fb <https://github.com/open-power/skiboot/commit/dacc40af25fb>`__ astbmc: Remove
+   coordinated isolation support
+-  `494221e68052 <https://github.com/open-power/skiboot/commit/494221e68052>`__ lpc: Introduce
+   generic probe capability
+-  `8d95e373c274 <https://github.com/open-power/skiboot/commit/8d95e373c274>`__ astbmc: Use LPC
+   probe calls to determine SIO presence
+-  `d2649636ba4d <https://github.com/open-power/skiboot/commit/d2649636ba4d>`__ platform:
+   Restructure bmc_platform type
+-  `e4197f8b56b4 <https://github.com/open-power/skiboot/commit/e4197f8b56b4>`__ astbmc: Fail SFC
+   init if SIO is unavailable
+-  `70c83a425670 <https://github.com/open-power/skiboot/commit/70c83a425670>`__ lpc: Clear sync
+   no-response field prior to device probe
+-  `aac9abe6ccab <https://github.com/open-power/skiboot/commit/aac9abe6ccab>`__
+   libflash/ipmi-hiomap: Cleanup allocation on init failure
+-  `516f41649ff1 <https://github.com/open-power/skiboot/commit/516f41649ff1>`__ p9dsu: Add
+   HIOMAP-over-IPMI support
+-  `ee6a266a2b23 <https://github.com/open-power/skiboot/commit/ee6a266a2b23>`__ p9dsu: Describe
+   platform BMC register configuration
+-  `f145626d6227 <https://github.com/open-power/skiboot/commit/f145626d6227>`__
+   libflash/ipmi-hiomap: Improve event handling
+-  `3f49e5220086 <https://github.com/open-power/skiboot/commit/3f49e5220086>`__
+   libflash/ipmi-hiomap: Restore window state on window/protocol reset
+-  `bec5a5f89adc <https://github.com/open-power/skiboot/commit/bec5a5f89adc>`__
+   libflash/ipmi-hiomap: Use error codes rather than abort()
+-  `9555cf21ba5b <https://github.com/open-power/skiboot/commit/9555cf21ba5b>`__ core/flash: Log
+   return code when ffs_init() fails
+-  `d0f50f9166c5 <https://github.com/open-power/skiboot/commit/d0f50f9166c5>`__ libflash/test:
+   Rewrite Makefile.check to improve scalability
+-  `353040cfc500 <https://github.com/open-power/skiboot/commit/353040cfc500>`__
+   libflash/ipmi-hiomap: Fix argument type warning on x86-64
+-  `d2b06e9e89ef <https://github.com/open-power/skiboot/commit/d2b06e9e89ef>`__
+   libflash/ipmi-hiomap: Add support for unit tests
+-  `83bf0c167280 <https://github.com/open-power/skiboot/commit/83bf0c167280>`__
+   libflash/ipmi-hiomap: Respect daemon presence and flash control
+
+Joel Stanley (3):
+
+-  `6433d05f9b5c <https://github.com/open-power/skiboot/commit/6433d05f9b5c>`__ ast-bmc: Document
+   BMC scratch register
+-  `3b7aaba71f6d <https://github.com/open-power/skiboot/commit/3b7aaba71f6d>`__ astbmc: Enable mbox
+   depending on scratch reg
+-  `9da1e28ed4c0 <https://github.com/open-power/skiboot/commit/9da1e28ed4c0>`__ opal-ci: qemu: Use
+   the powernv-3.0 branch
+
+Oliver O’Halloran (3):
+
+-  `a130f3e08481 <https://github.com/open-power/skiboot/commit/a130f3e08481>`__ hdata/i2c: Add
+   whitelisting for Host I2C devices
+-  `afef7d511178 <https://github.com/open-power/skiboot/commit/afef7d511178>`__ hdata/i2c: Make SPD
+   workaround more workaroundy
+-  `125cecaa0f23 <https://github.com/open-power/skiboot/commit/125cecaa0f23>`__ phb4: Check for RX
+   errors after link training
+
+Samuel Mendoza-Jonas (4):
+
+-  `fbe074c81fcf <https://github.com/open-power/skiboot/commit/fbe074c81fcf>`__ astbmc: Set romulus
+   BMC type to OpenBMC
+-  `c7e090237b96 <https://github.com/open-power/skiboot/commit/c7e090237b96>`__ Recognise signed
+   VERSION partition
+-  `467770ef95f4 <https://github.com/open-power/skiboot/commit/467770ef95f4>`__ libflash: Restore
+   blocklevel tests
+-  `d0dce2b973d1 <https://github.com/open-power/skiboot/commit/d0dce2b973d1>`__ libflash: Don’t
+   merge ECC-protected ranges
+
+Stewart Smith (21):
+
+-  `cac09fda2839 <https://github.com/open-power/skiboot/commit/cac09fda2839>`__ hdata/i2c.c: fix
+   building with gcc8
+-  `4550c1a18501 <https://github.com/open-power/skiboot/commit/4550c1a18501>`__ hdata/tests/stubs.c:
+   fix GCC8 warning
+-  `88275cf25800 <https://github.com/open-power/skiboot/commit/88275cf25800>`__
+   core/test/run_mem_region: fix GCC8 compile error
+-  `b76911b9cadf <https://github.com/open-power/skiboot/commit/b76911b9cadf>`__ Add
+   -Wno-stringop-truncation for GCC8
+-  `fd4bbc869b02 <https://github.com/open-power/skiboot/commit/fd4bbc869b02>`__ AMI BMC: use 0x3a as
+   OEM command
+-  `dd8b717f30a4 <https://github.com/open-power/skiboot/commit/dd8b717f30a4>`__ hdata/spira.c: fix
+   iplparams feature name string handling
+-  `e0959fa04815 <https://github.com/open-power/skiboot/commit/e0959fa04815>`__ Fixup pflash build
+   for ast refactor
+-  `240eb43b982b <https://github.com/open-power/skiboot/commit/240eb43b982b>`__ Quieten ‘warnings’
+   now that SIO is disabled
+-  `64f24480050e <https://github.com/open-power/skiboot/commit/64f24480050e>`__ Add fast-reboot
+   property to /ibm,opal DT node
+-  `0cc0d4f8018b <https://github.com/open-power/skiboot/commit/0cc0d4f8018b>`__ Actually add
+   /ibm,opal/fast-reboot property
+-  `4e607093833e <https://github.com/open-power/skiboot/commit/4e607093833e>`__ hiomap: free ipmi
+   message in callback
+-  `77ac2fe061b8 <https://github.com/open-power/skiboot/commit/77ac2fe061b8>`__ hiomap: fix missing
+   newline at end of ‘Flushing writes’ prlog()
+-  `fc7af9ac4efd <https://github.com/open-power/skiboot/commit/fc7af9ac4efd>`__ Run pollers in
+   time_wait() when not booting
+-  `b93b22df1a8b <https://github.com/open-power/skiboot/commit/b93b22df1a8b>`__ skiboot v6.0.10
+   release notes
+-  `3e2024d903ee <https://github.com/open-power/skiboot/commit/3e2024d903ee>`__ skiboot 6.0.11
+   release notes
+-  `e5b282ae5d4a <https://github.com/open-power/skiboot/commit/e5b282ae5d4a>`__ libflash: fix gcov
+   build
+-  `e02e17b713d5 <https://github.com/open-power/skiboot/commit/e02e17b713d5>`__ hiomap: quieten
+   warning on failing to move a window
+-  `450975e708bf <https://github.com/open-power/skiboot/commit/450975e708bf>`__ skiboot v6.0.12
+   release notes
+-  `e550528a74af <https://github.com/open-power/skiboot/commit/e550528a74af>`__ skiboot v6.0.13
+   release notes
+-  `a41470c94920 <https://github.com/open-power/skiboot/commit/a41470c94920>`__ ipmi: Reduce
+   ipmi_queue_msg_sync() polling loop time to 10ms
+-  `f4afd85a84ab <https://github.com/open-power/skiboot/commit/f4afd85a84ab>`__ skiboot v6.0.14
+   release notes
+
+Vaibhav Jain (3):
+
+-  `0d42e9b441f2 <https://github.com/open-power/skiboot/commit/0d42e9b441f2>`__ phb4/capp: Update
+   the expected Eye-catcher for CAPP ucode lid
+-  `84ca6d0ce15f <https://github.com/open-power/skiboot/commit/84ca6d0ce15f>`__ phb4/capp: Use link
+   width to allocate STQ engines to CAPP
+-  `bf93742f5c04 <https://github.com/open-power/skiboot/commit/bf93742f5c04>`__ phb4/capp: Only
+   reset FIR bits that cause capp machine check
+
+Vasant Hegde (2):
+
+-  `5e66c88ece46 <https://github.com/open-power/skiboot/commit/5e66c88ece46>`__ hdata/i2c: Skip
+   unknown device type
+-  `184d7e4aca1a <https://github.com/open-power/skiboot/commit/184d7e4aca1a>`__ opal-prd: Fix
+   opal-prd crash

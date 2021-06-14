@@ -1,0 +1,17 @@
+Release Notes for OpenPower Firmware v2.0.7
+===========================================
+
+op-build v2.0.6 was released on Friday August 3rd, 2018 and replaces op-build v2.0.6 as the current stable release in
+the 2.0.x series.
+
+It is recommended that v2.0.7 be used over any previous v2.0.x version on POWER9 systems due to the bug fixes contained within.
+
+The only update in this release is to skiboot v6.0.7 to work around a hardware errata in the interrupt controller on POWER9.
+
+The bug fix is:
+
+- xive: Disable block tracker
+
+  Due to some HW errata, the block tracking facility (performance
+  optimisation for large systems) should be disabled on Nimbus chips.
+  Disable it unconditionally for now.

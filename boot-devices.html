@@ -1,0 +1,267 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Supported Boot Devices &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Version Scheme" href="versioning.html" />
+    <link rel="prev" title="op-build stable tree rules and releases" href="process/stable-rules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="supported-boot-devices">
+<h1>Supported Boot Devices<a class="headerlink" href="#supported-boot-devices" title="Permalink to this headline">¶</a></h1>
+<p>The OpenPower firmware uses Linux as a bootloader in order to discover boot
+devices, and boot the final operating system. In order to discover boot devices
+and load the operating system image from them, the bootloader’s kernel needs to
+include support for that hardware.</p>
+<p>This table lists the network adaptors and disk controllers that are currently
+enabled.</p>
+<p>If you are adding a device to the kernel, please add the details here including
+your email address in the owner field. We will use this to contact users when
+considering the removal of modules.</p>
+<p>Likewise, if you are removing an option from the kernel config, please remove
+it from this table and notify the person mentioned in the owner field.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="26%" />
+<col width="9%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Device name</th>
+<th class="head">Kconfig option</th>
+<th class="head">System</th>
+<th class="head">Owner</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>AOC-SG-I2 NIC</td>
+<td>IGB</td>
+<td>Boston</td>
+<td><a class="reference external" href="mailto:maurosr&#37;&#52;&#48;linux&#46;vnet&#46;ibm&#46;com">maurosr<span>&#64;</span>linux<span>&#46;</span>vnet<span>&#46;</span>ibm<span>&#46;</span>com</a></td>
+</tr>
+<tr class="row-odd"><td>Broadcom NetExtreme II</td>
+<td>BNX2X</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>Mellanox ConnectX-4</td>
+<td>MLX5_CORE_EN</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>Alteon AceNIC</td>
+<td>ACENIC</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>Broadcom Tigon3</td>
+<td>TIGON3</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>Chelsio 10Gb Ethernet</td>
+<td>CHELSIO_T1</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>SeverEngine BladeEngine 10Gb</td>
+<td>BE2NET</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>Exar Xframe 10Gb</td>
+<td>S2IO</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>Intel PRO/1000 PCIe
+Intel PRO/1000</td>
+<td>E1000E
+E1000</td>
+<td>Qemu</td>
+<td><a class="reference external" href="mailto:stewart&#37;&#52;&#48;linux&#46;vnet&#46;ibm&#46;com">stewart<span>&#64;</span>linux<span>&#46;</span>vnet<span>&#46;</span>ibm<span>&#46;</span>com</a></td>
+</tr>
+<tr class="row-odd"><td>Intel PRO/10GbE</td>
+<td>IXGB</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>Intel 10GbE PCIe</td>
+<td>IXGBE</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>Intel XL710 Ethernet</td>
+<td>I40E</td>
+<td>P9DSU</td>
+<td><a class="reference external" href="mailto:jk&#37;&#52;&#48;ozlabs&#46;org">jk<span>&#64;</span>ozlabs<span>&#46;</span>org</a></td>
+</tr>
+<tr class="row-even"><td>Mellanox 1/10/40Gbit Ethernet</td>
+<td>MLX4_EN</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>Myricom Myri-10G Ethernet</td>
+<td>MYRI10GE</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>QLogic QLGE 10Gb Ethernet</td>
+<td>QLGE</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>NetXen Gigabit Ethernet</td>
+<td>NETXEN_NIC</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>Adaptec AACRAID</td>
+<td>SCSI_AACRAID</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>QLogic BNX2</td>
+<td>SCSI_BNX2_ISCSI</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>Chelsio T3 iSCSI</td>
+<td>SCSI_CXGB3_ISCSI</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>Chelsio T4 iSCSI</td>
+<td>SCSI_CXGB4_ISCSI</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>LSI Logic MegaRAID</td>
+<td>MEGARAID_NEWGEN</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>LSI MPT Fusion SAS (legacy)</td>
+<td>SCSI_MPT2SAS</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>QLogic QLA2xxx Fibrechannel</td>
+<td>SCSI_QLA_FC</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>QLogic ISP4xxx and ISP82xxx</td>
+<td>SCSI_QLA_ISCSI</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="process/index.html">Development Process</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="versioning.html">Version Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-notes/index.html">op-build Release Notes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="process/stable-rules.html" title="previous chapter">op-build stable tree rules and releases</a></li>
+      <li>Next: <a href="versioning.html" title="next chapter">Version Scheme</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/boot-devices.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

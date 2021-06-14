@@ -1,0 +1,359 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Release Notes for OpenPower Firmware v2.0.3 &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Notes for OpenPower Firmware v2.0.4" href="v2.0.4.html" />
+    <link rel="prev" title="Release Notes for OpenPower Firmware v2.0.2" href="v2.0.2.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes-for-openpower-firmware-v2-0-3">
+<h1>Release Notes for OpenPower Firmware v2.0.3<a class="headerlink" href="#release-notes-for-openpower-firmware-v2-0-3" title="Permalink to this headline">¶</a></h1>
+<p>op-build v2.0.3 was released on Friday June 1st, 2018 and replaces
+op-build v2.0.2 as the current stable release in the 2.0.x series.</p>
+<p>It is recommended that v2.0.3 be used over any previous v2.0.x version
+due to the bug fixes contained within.</p>
+<div class="section" id="updated-packages">
+<h2>Updated Packages<a class="headerlink" href="#updated-packages" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="59%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Package</th>
+<th class="head">Old
+Version</th>
+<th class="head">New
+Version</th>
+<th class="head">Platforms</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>hcode</td>
+<td>hw051718
+a.op920</td>
+<td>hw052418
+a.op920</td>
+<td>zaius, p9dsu, witherspoon, romulus</td>
+</tr>
+<tr class="row-odd"><td>hostboot</td>
+<td>a4eb7f02</td>
+<td>acedcb2b</td>
+<td>zaius, p9dsu, witherspoon, romulus</td>
+</tr>
+<tr class="row-even"><td>linux</td>
+<td>4.16.8</td>
+<td>4.16.13</td>
+<td>openpower_mambo, firestone, firenze,
+garrison, zaius, p9dsu, palmetto,
+pseries, vesnin, witherspoon, habanero,
+openpower_p9_mambo, zz, barreleye,
+romulus</td>
+</tr>
+<tr class="row-odd"><td>linux-
+headers</td>
+<td>4.16.8</td>
+<td>4.16.13</td>
+<td>openpower_mambo, firestone, firenze,
+garrison, zaius, p9dsu, palmetto,
+pseries, vesnin, witherspoon, habanero,
+openpower_p9_mambo, zz, barreleye,
+romulus</td>
+</tr>
+<tr class="row-even"><td>occ</td>
+<td>77bb5e60</td>
+<td>90208bbb</td>
+<td>zaius, p9dsu, witherspoon, zz, romulus</td>
+</tr>
+<tr class="row-odd"><td>sbe</td>
+<td>8e0105e5</td>
+<td>a5969753</td>
+<td>zaius, p9dsu, witherspoon, romulus</td>
+</tr>
+<tr class="row-even"><td>skiboot</td>
+<td>v6.0.3</td>
+<td>v6.0.4</td>
+<td>openpower_mambo, firestone, firenze,
+garrison, zaius, p9dsu, palmetto,
+pseries, vesnin, witherspoon, habanero,
+openpower_p9_mambo, zz, barreleye,
+romulus</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="package-hcode">
+<h2>Package: hcode<a class="headerlink" href="#package-hcode" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hcode">Repository</a></p>
+<div class="section" id="patches">
+<h3>Patches<a class="headerlink" href="#patches" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="commits">
+<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this headline">¶</a></h3>
+<p>hostboot (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/e7a16c0c8685">e7a16c0c8685</a>
+Release tag information updated for hw052418a.op920</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-hostboot">
+<h2>Package: hostboot<a class="headerlink" href="#package-hostboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hostboot">Repository</a></p>
+<div class="section" id="op-build-v2-0-3-patches-1">
+<span id="id1"></span><h3>Patches<a class="headerlink" href="#op-build-v2-0-3-patches-1" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="op-build-v2-0-3-commits-1">
+<span id="id2"></span><h3>Commits<a class="headerlink" href="#op-build-v2-0-3-commits-1" title="Permalink to this headline">¶</a></h3>
+<p>Ben Gass (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/7395b3d68c7d">7395b3d68c7d</a>
+Build p9n 10 and 20 by default.</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5ccd37ccb190">5ccd37ccb190</a>
+Shorten A-link timers for sim. Add polling for A-link training.</li>
+</ul>
+<p>CHRISTINA L. GRAVES (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/064aabffd3fc">064aabffd3fc</a>
+p9_fab_iovalid fix to clear action0/1 bits corresponding w/ link
+being enabled</li>
+</ul>
+<p>Dan Crowell (3):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5ad4c1b7c7c2">5ad4c1b7c7c2</a>
+Modify debug framework to be build-independent</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/b74ac8a05e42">b74ac8a05e42</a>
+Remove some files to remirror</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f0648a1fff9a">f0648a1fff9a</a>
+Increase default watchdog timeout to 10 minutes</li>
+</ul>
+<p>Daniel Howe (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/95b92ae46750">95b92ae46750</a>
+dd1.1+ DL training procedure updates</li>
+</ul>
+<p>Jim Yuan (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/a19b501b6f44">a19b501b6f44</a>
+Fix FRU board mfg date and time.</li>
+</ul>
+<p>Joe McGill (9):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5ee0dcd495f9">5ee0dcd495f9</a>
+FBC Level 1 procedures</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ac3743759da3">ac3743759da3</a>
+L2 HWPs – p9_smp_link_layer and p9_fab_iovalid</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5310a333a942">5310a333a942</a>
+L2 - Fabric updates for multi-chip support</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/fc24bef6f147">fc24bef6f147</a>
+p9_fab_iovalid – invoke link validation subroutine</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/d6f8088eaffb">d6f8088eaffb</a>
+L3 update – p9_fab_iovalid</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/be6b65540fef">be6b65540fef</a>
+update HWP level metadata for nest, common files</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/22160ff310f2">22160ff310f2</a>
+IO, FBC updates to enable ABUS for Fleetwood</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/29144e081adb">29144e081adb</a>
+shift XBUS FIR programming inits for secure boot</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/fa7073699742">fa7073699742</a>
+p9_fab_iovalid – secure ABUS mailboxes after iovalid is asserted</li>
+</ul>
+<p>Louis Stermole (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/acedcb2b0fb2">acedcb2b0fb2</a>
+Add extra DRAM reset after RCD load on Nimbus</li>
+</ul>
+<p>Mike Baiocchi (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8ab6717da706">8ab6717da706</a>
+Skip Diagnostic Mode for I2C Resets over FSI In All Cases</li>
+</ul>
+<p>Nick Klazynski (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/714f4c95797c">714f4c95797c</a>
+Disable 2-for-1 on NDD2.2- and CDD1.2-</li>
+</ul>
+<p>dchowe (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/0a40c1b23c1a">0a40c1b23c1a</a>
+Initfile updates for FBC DD2</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-occ">
+<h2>Package: occ<a class="headerlink" href="#package-occ" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/occ">Repository</a></p>
+<div class="section" id="op-build-v2-0-3-patches-2">
+<span id="id3"></span><h3>Patches<a class="headerlink" href="#op-build-v2-0-3-patches-2" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="op-build-v2-0-3-commits-2">
+<span id="id4"></span><h3>Commits<a class="headerlink" href="#op-build-v2-0-3-commits-2" title="Permalink to this headline">¶</a></h3>
+<p>Douglas Gilbert (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/occ/commit/90208bbb6260">90208bbb6260</a>
+captureFir: Add delay and sbefifo reset</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-sbe">
+<h2>Package: sbe<a class="headerlink" href="#package-sbe" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/sbe">Repository</a></p>
+<div class="section" id="op-build-v2-0-3-patches-3">
+<span id="id5"></span><h3>Patches<a class="headerlink" href="#op-build-v2-0-3-patches-3" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="op-build-v2-0-3-commits-3">
+<span id="id6"></span><h3>Commits<a class="headerlink" href="#op-build-v2-0-3-commits-3" title="Permalink to this headline">¶</a></h3>
+<p>Nick Klazynski (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/sbe/commit/a59697535068">a59697535068</a>
+Disable 2-for-1 on NDD2.2- and CDD1.2-</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-skiboot">
+<h2>Package: skiboot<a class="headerlink" href="#package-skiboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/skiboot">Repository</a></p>
+<div class="section" id="op-build-v2-0-3-patches-4">
+<span id="id7"></span><h3>Patches<a class="headerlink" href="#op-build-v2-0-3-patches-4" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="op-build-v2-0-3-commits-4">
+<span id="id8"></span><h3>Commits<a class="headerlink" href="#op-build-v2-0-3-commits-4" title="Permalink to this headline">¶</a></h3>
+<p>Akshay Adiga (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/cc52c5620095">cc52c5620095</a>
+SLW: Remove stop1_lite and stop2_lite</li>
+</ul>
+<p>Mahesh Salgaonkar (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/3efceb169184">3efceb169184</a>
+opal-prd: Do not error out on first failure for soft/hard offline.</li>
+</ul>
+<p>Stewart Smith (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/skiboot/commit/c55a54bbf38b">c55a54bbf38b</a>
+skiboot 6.0.4 release notes</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../process/index.html">Development Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">op-build Release Notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-21">v1.21</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-22">v1.22</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#v2-0">v2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-1">v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-2">v2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-3">v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-4">v2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-5">v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-6">v2.6</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">op-build Release Notes</a><ul>
+      <li>Previous: <a href="v2.0.2.html" title="previous chapter">Release Notes for OpenPower Firmware v2.0.2</a></li>
+      <li>Next: <a href="v2.0.4.html" title="next chapter">Release Notes for OpenPower Firmware v2.0.4</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/release-notes/v2.0.3.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

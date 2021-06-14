@@ -1,0 +1,184 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>op-build Linux Kernel &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Building with ci scripts" href="building-with-ci.html" />
+    <link rel="prev" title="Contributing to op-build" href="CONTRIBUTING.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="op-build-linux-kernel">
+<h1>op-build Linux Kernel<a class="headerlink" href="#op-build-linux-kernel" title="Permalink to this headline">¶</a></h1>
+<p>The skiroot/Petitboot kernel is currently based on the 5.3 series.</p>
+<div class="section" id="submitting-a-patch">
+<h2>Submitting a patch<a class="headerlink" href="#submitting-a-patch" title="Permalink to this headline">¶</a></h2>
+<p>If you require a patch added to the firmware, follow these steps:</p>
+<ol class="arabic simple">
+<li>Submit your patch upstream. It doesn’t need to be upstream, but it
+should be on it’s way</li>
+<li>Send a pull request or a <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">format-patch</span></code> formatted patch series
+to <a class="reference external" href="mailto:openpower-firmware&#37;&#52;&#48;lists&#46;ozlabs&#46;org">openpower-firmware<span>&#64;</span>lists<span>&#46;</span>ozlabs<span>&#46;</span>org</a>, and cc <a class="reference external" href="mailto:joel&#37;&#52;&#48;jms&#46;id&#46;au">joel<span>&#64;</span>jms<span>&#46;</span>id<span>&#46;</span>au</a>. Be
+sure to use <code class="docutils literal notranslate"><span class="pre">--suppress-cc=sob</span></code> when generating the patches so we
+don’t spam the community. The current tree is based on 5.1-stable
+(although we will always move to the latest stable kernel ASAP).</li>
+</ol>
+</div>
+<div class="section" id="bug-fixes">
+<h2>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h2>
+<p>Whenever a stable release is tagged in
+<a class="reference external" href="https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/">https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/</a>,
+we will rebase our patches on top of that and create a new release.</p>
+<p>If you are submitting patches upstream that you want to be included,
+then ensure you cc stable as per the
+<a class="reference external" href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/plain/Documentation/stable_kernel_rules.txt">rules</a>.</p>
+</div>
+<div class="section" id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h2>
+<p>Versions are the upstream version number, followed by <code class="docutils literal notranslate"><span class="pre">-openpowerN</span></code>,
+where N is the revision that counts up from 1 for the given upstream
+version number. These versions will be present as tags in the git
+repository hosted at <a class="reference external" href="https://github.com/open-power/linux">https://github.com/open-power/linux</a>.</p>
+<p>We aim to follow “the latest upstream release”.</p>
+<p>For op-build stable trees, we follow the latest stable release of the
+kernel that particular op-build release was made with. Since op-build
+stable releases may outlast how long an upstream kernel is maintain for,
+we will move up the kernel version we use until the next LTS kernel.
+Once on an LTS kernel, an op-build stable release will stick with that
+version.</p>
+</div>
+<div class="section" id="tree-and-patches">
+<h2>Tree and patches<a class="headerlink" href="#tree-and-patches" title="Permalink to this headline">¶</a></h2>
+<p>The kernel tree hosted at <a class="reference external" href="https://github.com/open-power/linux">https://github.com/open-power/linux</a> contains
+the current release plus a set of patches that we carry. Ideally there
+would be no patches carried, as everything should be upstream.</p>
+<p>We take the commits in this tree between the upstream tag and the
+openpower tag and generate a series of patches that are imported into
+the op-build Buildroot overlay, and placed in
+<a class="reference external" href="https://github.com/open-power/op-build/tree/master/openpower/linux">op-build/openpower/linux</a>.
+op-build then fetches the upstream tarball and applies these patches.
+This way we don’t have to clone an entire tree when doing an op-build
+build.</p>
+<p>All patches are to head upstream <em>first</em>. There is a zero chance that
+op-build will carry kernel patches for any time greater than “until the
+next kernel release”, and even then, only in <em>exceptional</em> circumstances.</p>
+</div>
+<div class="section" id="patches-in-the-tree">
+<h2>Patches in the tree<a class="headerlink" href="#patches-in-the-tree" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>xhci: Reset controller on xhci shutdown</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Development Process</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html">Contributing to op-build</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">op-build Linux Kernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-with-ci.html">Building with ci scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stable-rules.html">op-build stable tree rules and releases</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release-notes/index.html">op-build Release Notes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Development Process</a><ul>
+      <li>Previous: <a href="CONTRIBUTING.html" title="previous chapter">Contributing to op-build</a></li>
+      <li>Next: <a href="building-with-ci.html" title="next chapter">Building with ci scripts</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/process/KernelTree.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

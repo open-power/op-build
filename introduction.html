@@ -1,0 +1,201 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Introduction to OpenPOWER Firmware &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Testing op-build" href="testing.html" />
+    <link rel="prev" title="Welcome to OpenPOWER Firmware’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction-to-openpower-firmware">
+<h1>Introduction to OpenPOWER Firmware<a class="headerlink" href="#introduction-to-openpower-firmware" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">op-build</span></code> project constructs a host firmware image for OpenPOWER
+machines.</p>
+<div class="section" id="firmware-components">
+<h2>Firmware Components<a class="headerlink" href="#firmware-components" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><a class="reference external" href="https://github.com/open-power/buildroot">Buildroot</a></dt>
+<dd>We use <a class="reference external" href="http://buildroot.net/">http://buildroot.net/</a> as the build system for assembling a firmware
+image. <cite>op-build</cite> is a “Buildroot overlay”. We build a kernel and initramfs
+using buildroot to run the Petitboot boot loader in. We maintain a branch
+with a minimum number of patches on top of upstream buildroot.</dd>
+<dt><a class="reference external" href="https://github.com/open-power/op-build">op-build</a></dt>
+<dd>A buildroot overlay that assembles OpenPOWER Firmware images.</dd>
+<dt><a class="reference external" href="https://github.com/open-power/sbe">SBE</a></dt>
+<dd>the Self Boot Engine is the first unit inside the POWER processor to start
+executing. It’s job is to set up a core and load Hostboot.</dd>
+<dt><a class="reference external" href="https://github.com/open-power/hostboot">Hostboot</a></dt>
+<dd>Low level system boot firmware. It brings up CPU cores, the OCC, Memory
+and hands control over to OPAL (skiboot)</dd>
+<dt><a class="reference external" href="https://github.com/open-power/occ">OCC</a></dt>
+<dd>The On Chip Controller is responsible for thermal limits and frequency
+management.</dd>
+<dt>OPAL</dt>
+<dd>The OpenPOWER Abstraction Layer, provided by skiboot</dd>
+<dt><a class="reference external" href="https://open-power.github.io/skiboot/">skiboot</a></dt>
+<dd>skiboot implements OPAL (the OpenPOWER Abstraction Layer). Skiboot is
+boot and runtime firmware and is responsible for bringing up PCI and
+providing runtime abstractions to the running OS.</dd>
+<dt><a class="reference external" href="https://github.com/open-power/linux">Linux</a></dt>
+<dd>Once skiboot has finished setting up the machine, it hands control over
+to a Linux kernel. This kernel provides device drivers and userspace to
+run the bootloader, Petitboot. We maintain our own branch with a minimal
+number of patches on top of the latest upstream stable release.</dd>
+<dt><a class="reference external" href="https://github.com/open-power/petitboot/">Petitboot</a></dt>
+<dd>The bootloader. It is a normal user-space process running on Linux that
+searches the system for disks and network devices that it can boot the
+OS from.</dd>
+<dt><a class="reference external" href="https://github.com/open-power/hcode">HCODE</a></dt>
+<dd>Firmware for the power management PPE. Implements heavy lifting for deeper
+STOP states.</dd>
+</dl>
+</div>
+<div class="section" id="introductory-videos">
+<h2>Introductory Videos<a class="headerlink" href="#introductory-videos" title="Permalink to this headline">¶</a></h2>
+<p>There are a number of good recorded presentations from various conferences
+around the world that have overviews and deep dives into various parts of
+the firmware stack.</p>
+<p>Here, we present technical presentations that may be useful in learning
+about topics relevant to OpenPOWER firmware development.</p>
+<p>For broader OpenPOWER topics, check out the following channels:</p>
+<ul class="simple">
+<li><cite>OpenPOWER Foundation</cite> &lt;<a class="reference external" href="https://github.com/open-power/op-build/pull/2983">https://github.com/open-power/op-build/pull/2983</a>&gt;`_</li>
+</ul>
+<div class="section" id="introductory">
+<h3>Introductory<a class="headerlink" href="#introductory" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/a4XGvssR-ag?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe><iframe width="640" height="360" src="//www.youtube.com/embed/hcLhKjxa-40?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="secure-boot">
+<h3>Secure Boot<a class="headerlink" href="#secure-boot" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/hwB1bkXQep4?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="interfaces-and-standards">
+<h3>Interfaces and standards<a class="headerlink" href="#interfaces-and-standards" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/2TroT3ORw0s?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="opencapi">
+<h3>OpenCAPI<a class="headerlink" href="#opencapi" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/h3pLBDCqY-I?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe><iframe width="640" height="360" src="//www.youtube.com/embed/K4dhx0ctjkQ?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="xive-interrupt-controller">
+<h3>XIVE Interrupt Controller<a class="headerlink" href="#xive-interrupt-controller" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/s88beMQWkks?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="id1">
+<h3>Petitboot<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/4JbDb4bRBK4?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe><iframe width="640" height="360" src="//www.youtube.com/embed/oxmMJMibZQ8?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="booting-faster">
+<h3>Booting Faster<a class="headerlink" href="#booting-faster" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/fTLsS_QZ8us?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="testing">
+<h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/znEM2xqJhBU?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+<div class="section" id="bringup-and-customisation">
+<h3>Bringup and customisation<a class="headerlink" href="#bringup-and-customisation" title="Permalink to this headline">¶</a></h3>
+<iframe width="640" height="360" src="//www.youtube.com/embed/v73Nw7NDxYI?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe><iframe width="640" height="360" src="//www.youtube.com/embed/dBEBQQYP_eI?feature=player_detailpage" frameborder="0" allowfullscreen="1">&nbsp;</iframe></div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction to OpenPOWER Firmware</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#firmware-components">Firmware Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#introductory-videos">Introductory Videos</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="process/index.html">Development Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="versioning.html">Version Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-notes/index.html">op-build Release Notes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to OpenPOWER Firmware’s documentation!</a></li>
+      <li>Next: <a href="testing.html" title="next chapter">Testing op-build</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/introduction.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

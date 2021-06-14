@@ -1,0 +1,346 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Release Notes for OpenPower Firmware v2.3-rc2 &#8212; OpenPOWER Firmware v2.6-257-g5b5624c2
+ documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Notes for OpenPower Firmware v2.3" href="v2.3.html" />
+    <link rel="prev" title="Release Notes for OpenPower Firmware v2.3-rc1" href="v2.3-rc1.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes-for-openpower-firmware-v2-3-rc2">
+<h1>Release Notes for OpenPower Firmware v2.3-rc2<a class="headerlink" href="#release-notes-for-openpower-firmware-v2-3-rc2" title="Permalink to this headline">¶</a></h1>
+<p>op-build v2.3-rc2 was released on Friday April 5th, 2019. It will become the new stable release of
+op-build, following on from v2.2, first released on March 9th, 2019.</p>
+<p>The op-build v2.3 release cycle is a uniquely shorter one as we’ve been working on getting ready to
+have a more reliably predictable release schedule going for future releases.</p>
+<p>op-build v2.3-rc2 contains all the fixes as of op-build v2.0.15, and we expect to continue to do
+stable 2.0.y releases of v2.0 into the forseeable future.</p>
+<p>Please note that this is a RELEASE CANDIDATE and not the final v2.3 release. We expect to do a final
+v2.3 tagged release early April 2019. Please test this release candidate heavily!</p>
+<div class="section" id="known-bugs">
+<h2>Known Bugs<a class="headerlink" href="#known-bugs" title="Permalink to this headline">¶</a></h2>
+<p>We have one known bug (carried over from rc1) that are currently release blockers for the final
+v2.3.</p>
+<ul class="simple">
+<li>There exists a bug where Control-C behaviour in the petitboot shell has changed, which may cause
+some test scripts to get confused.</li>
+</ul>
+</div>
+<div class="section" id="fixed-bugs">
+<h2>Fixed Bugs<a class="headerlink" href="#fixed-bugs" title="Permalink to this headline">¶</a></h2>
+<p>One of the two bugs listed in “known bugs” for rc1 has been fixed:</p>
+<ul class="simple">
+<li>There exists a bug where boot devices <em>may</em> not show up in petitboot until “Rescan Devices” is
+selected.</li>
+</ul>
+</div>
+<div class="section" id="updated-packages">
+<h2>Updated Packages<a class="headerlink" href="#updated-packages" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="19%" />
+<col width="16%" />
+<col width="48%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Package</th>
+<th class="head">Old Version</th>
+<th class="head">New Version</th>
+<th class="head">Platforms</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>hcode</td>
+<td>hw032919a.940</td>
+<td>hw040319a.940</td>
+<td>witherspoon, p9dsu, zaius, romulus</td>
+</tr>
+<tr class="row-odd"><td>hostboot</td>
+<td>ca03643dd893</td>
+<td>e5622fb032dc</td>
+<td>witherspoon, p9dsu, zaius, romulus</td>
+</tr>
+<tr class="row-even"><td>hostboot-p8</td>
+<td>c2074ad87972</td>
+<td>dc218d94c57b9</td>
+<td>habanero, garrison, barreleye, firestone,
+palmetto, vesnin</td>
+</tr>
+<tr class="row-odd"><td>linux</td>
+<td>4.19.30</td>
+<td>5.0.5</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+opal, firestone, palmetto, vesnin, zz,
+romulus</td>
+</tr>
+<tr class="row-even"><td>linux-headers</td>
+<td>4.19.30</td>
+<td>5.0.5</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+opal, firestone, palmetto, vesnin, zz,
+romulus</td>
+</tr>
+<tr class="row-odd"><td>petitboot</td>
+<td>v1.10.2</td>
+<td>v1.10.3</td>
+<td>witherspoon, p9dsu, zaius, habanero,
+firenze, garrison, barreleye, pseries,
+opal, firestone, palmetto, vesnin, zz,
+romulus</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="package-hcode">
+<h2>Package: hcode<a class="headerlink" href="#package-hcode" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hcode">Repository</a></p>
+<div class="section" id="patches">
+<h3>Patches<a class="headerlink" href="#patches" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="commits">
+<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this headline">¶</a></h3>
+<p>hostboot (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/f89e3fc16469">f89e3fc16469</a> Release tag
+information updated for hw040219a.940</li>
+<li><a class="reference external" href="https://github.com/open-power/hcode/commit/2e3a283588c1">2e3a283588c1</a> Release tag
+information updated for hw040319a.940</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-hostboot">
+<h2>Package: hostboot<a class="headerlink" href="#package-hostboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/hostboot">Repository</a></p>
+<div class="section" id="v2-3-rc2-patches-1">
+<span id="id1"></span><h3>Patches<a class="headerlink" href="#v2-3-rc2-patches-1" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc2-commits-1">
+<span id="id2"></span><h3>Commits<a class="headerlink" href="#v2-3-rc2-commits-1" title="Permalink to this headline">¶</a></h3>
+<p>Andre A. Marin (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ee76c2ca5927">ee76c2ca5927</a> Fix c_str and pos
+DIMM specialization</li>
+</ul>
+<p>Andre Marin (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/8daf280f7d24">8daf280f7d24</a> Fix true_type and
+false_ type typdef with integral_constant</li>
+</ul>
+<p>Caleb Palmer (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/f7937e802748">f7937e802748</a> PRD: Fix isEccSp
+capture data check</li>
+</ul>
+<p>Chen Du (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/5da79e14c316">5da79e14c316</a> Get ring override
+failing</li>
+</ul>
+<p>Christian Geddes (4):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/9882fe3c773b">9882fe3c773b</a> Set REL_POS to 0 on
+all DIMM target in simics Axone</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/215eaa2074f5">215eaa2074f5</a> Stop overwriting
+OCMB vpd info in standalone and handle DDIMM modules</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/9fd0af32313c">9fd0af32313c</a> Set
+ATTR_MSS_INTERLEAVE_ENABLE to be 0xAF to allow all grouping sizes</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/16378af2527d">16378af2527d</a> Compile Explorer
+MSS libs in our istepsmss lib</li>
+</ul>
+<p>Corey Swenson (2):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/201a39f54be6">201a39f54be6</a> Add part callout
+for the Backup Power Module</li>
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/e5622fb032dc">e5622fb032dc</a> Insufficient
+Resources check needs to handle NVDIMM logic</li>
+</ul>
+<p>Dan Crowell (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/54178321414b">54178321414b</a> Constants for
+future DIMMs</li>
+</ul>
+<p>Ilya Smirnov (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/25c1b412b86a">25c1b412b86a</a> Process Core and EQ
+Gard Records in MPIPL Path</li>
+</ul>
+<p>Jennifer A. Stofer (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/12b139b58521">12b139b58521</a> Revert “P9 Xbus/DMI
+CM Workaround”</li>
+</ul>
+<p>Mike Baiocchi (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/1b5381224824">1b5381224824</a> Cleanup UCD Update
+Algorithm Code</li>
+</ul>
+<p>Murulidhar Nataraju (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ed1208121086">ed1208121086</a> Istep 18 - MPIPL on
+OPAL System update</li>
+</ul>
+<p>Nick Bofferding (1):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/hostboot/commit/ec86a5683941">ec86a5683941</a> Decrease WOFDATA
+partition by 1 MB until HBI space can be reduced</li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-occ">
+<h2>Package: occ<a class="headerlink" href="#package-occ" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/occ">Repository</a></p>
+<div class="section" id="v2-3-rc2-patches-2">
+<span id="id3"></span><h3>Patches<a class="headerlink" href="#v2-3-rc2-patches-2" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc2-commits-2">
+<span id="id4"></span><h3>Commits<a class="headerlink" href="#v2-3-rc2-commits-2" title="Permalink to this headline">¶</a></h3>
+<p>No changes.</p>
+</div>
+</div>
+<div class="section" id="package-petitboot">
+<h2>Package: petitboot<a class="headerlink" href="#package-petitboot" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/open-power/petitboot">Repository</a></p>
+<div class="section" id="v2-3-rc2-patches-3">
+<span id="id5"></span><h3>Patches<a class="headerlink" href="#v2-3-rc2-patches-3" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="v2-3-rc2-commits-3">
+<span id="id6"></span><h3>Commits<a class="headerlink" href="#v2-3-rc2-commits-3" title="Permalink to this headline">¶</a></h3>
+<p>Samuel Mendoza-Jonas (6):</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/open-power/petitboot/commit/df1a234c15fb">df1a234c15fb</a> lib/system: Add
+cryptsetup utility</li>
+<li><a class="reference external" href="https://github.com/open-power/petitboot/commit/ba8144f917f5">ba8144f917f5</a> lib/process: Add
+option to pipe to process stdin</li>
+<li><a class="reference external" href="https://github.com/open-power/petitboot/commit/5f8fa2c151b8">5f8fa2c151b8</a> lib: Add
+AUTH_MSG_DECRYPT</li>
+<li><a class="reference external" href="https://github.com/open-power/petitboot/commit/f583f0cf35fc">f583f0cf35fc</a> discover:
+Recognise and open LUKS encrypted partitions</li>
+<li><a class="reference external" href="https://github.com/open-power/petitboot/commit/1ad18bf128c4">1ad18bf128c4</a> ui/ncurses: Add
+prompt for LUKS device password</li>
+<li><a class="reference external" href="https://github.com/open-power/petitboot/commit/1cd261748c00">1cd261748c00</a> utils/pb-console:
+Use -m to run shell in own process group</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenPOWER Firmware</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction to OpenPOWER Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing op-build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../process/index.html">Development Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../boot-devices.html">Supported Boot Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../versioning.html">Version Scheme</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">op-build Release Notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-21">v1.21</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v1-22">v1.22</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-0">v2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-1">v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-2">v2.2</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#v2-3">v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-4">v2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-5">v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#v2-6">v2.6</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">op-build Release Notes</a><ul>
+      <li>Previous: <a href="v2.3-rc1.html" title="previous chapter">Release Notes for OpenPower Firmware v2.3-rc1</a></li>
+      <li>Next: <a href="v2.3.html" title="next chapter">Release Notes for OpenPower Firmware v2.3</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, OpenPOWER Foundation System Software Work Group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/release-notes/v2.3-rc2.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
