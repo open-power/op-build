@@ -6,10 +6,7 @@
 
 PDATA_VERSION = $(call qstrip,$(BR2_PDATA_VERSION))
 ifeq ($(BR2_PDATA_GITHUB_PROJECT),y)
-# after that, when code is propagated to a public repo
-#PDATA_SITE = $(call github,phal,pdata,$(PDATA_VERSION))
-PDATA_SITE = git@github.ibm.com:phal/pdata.git
-PDATA_SITE_METHOD = git
+PDATA_SITE = $(call github,open-power,pdata,$(PDATA_VERSION))
 else ifeq ($(BR2_PDATA_CUSTOM_GIT),y)
 PDATA_SITE = $(BR2_PDATA_CUSTOM_GIT_VALUE)
 PDATA_SITE_METHOD = git

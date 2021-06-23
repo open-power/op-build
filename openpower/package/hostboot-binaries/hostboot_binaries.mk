@@ -5,11 +5,7 @@
 ################################################################################
 
 HOSTBOOT_BINARIES_VERSION = $(call qstrip,$(BR2_HOSTBOOT_BINARIES_VERSION))
-# TODO: WORKAROUND: Need to reenable next line and comment out the two lines
-# after that, when code is propagated to a public repo
-#HOSTBOOT_BINARIES_SITE ?= $(call github,open-power,hostboot-binaries,$(HOSTBOOT_BINARIES_VERSION))
-HOSTBOOT_BINARIES_SITE ?= git@github.ibm.com:open-power/hostboot-binaries.git
-HOSTBOOT_BINARIES_SITE_METHOD ?= git
+HOSTBOOT_BINARIES_SITE ?= $(call github,open-power,hostboot-binaries,$(HOSTBOOT_BINARIES_VERSION))
 
 HOSTBOOT_BINARIES_LICENSE = Apache-2.0
 HOSTBOOT_BINARIES_LICENSE_FILES = LICENSE
