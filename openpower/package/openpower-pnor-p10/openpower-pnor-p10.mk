@@ -5,12 +5,7 @@
 ################################################################################
 
 OPENPOWER_PNOR_P10_VERSION ?= b63d81085a4ab5582185c2370b4624701c79c127
-
-# TODO: WORKAROUND: Need to reenable next line and comment out the two lines
-# after that, when code is propagated to a public repo
-#OPENPOWER_PNOR_P10_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P10_VERSION))
-OPENPOWER_PNOR_P10_SITE = git@github.ibm.com:open-power/pnor.git
-OPENPOWER_PNOR_P10_SITE_METHOD=git
+OPENPOWER_PNOR_P10_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P10_VERSION))
 
 OPENPOWER_PNOR_P10_LICENSE = Apache-2.0
 OPENPOWER_PNOR_P10_LICENSE_FILES = LICENSE

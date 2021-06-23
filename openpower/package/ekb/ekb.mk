@@ -5,11 +5,7 @@
 ################################################################################
 
 EKB_VERSION = $(call qstrip,$(BR2_EKB_VERSION))
-# TODO: WORKAROUND: Need to reenable next line and comment out the two lines
-# after that, when code is propagated to a public repo
-#EKB_SITE = $(call github,openbmc,ekb,$(EKB_VERSION))
-EKB_SITE = git@github.ibm.com:openbmc/pub-ekb.git
-EKB_SITE_METHOD = git
+EKB_SITE = $(call github,open-power,pub-ekb,$(EKB_VERSION))
 
 EKB_INSTALL_STAGING = YES
 EKB_INSTALL_TARGET = NO
