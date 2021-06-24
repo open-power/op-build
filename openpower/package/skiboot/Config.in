@@ -31,7 +31,7 @@ config BR2_SKIBOOT_CUSTOM_VERSION_VALUE
 
 config BR2_SKIBOOT_VERSION
 	string
-	default "v6.6-338-g85df0812" if BR2_SKIBOOT_LATEST_VERSION
+	default "v6.6-85-gabe4c4799" if BR2_SKIBOOT_LATEST_VERSION
 	default BR2_SKIBOOT_CUSTOM_VERSION_VALUE \
 		if BR2_SKIBOOT_CUSTOM_VERSION
 
@@ -41,7 +41,7 @@ config BR2_SKIBOOT_CUSTOM_GIT
 
 config BR2_SKIBOOT_CUSTOM_REPO_URL
 	string "URL of custom repository"
-	default "git@github.ibm.com:p10/skiboot.git"
+	default "git@github.com:open-power/skiboot.git"
 	depends on BR2_SKIBOOT_CUSTOM_GIT
 
 config BR2_SKIBOOT_DEVICETREE
