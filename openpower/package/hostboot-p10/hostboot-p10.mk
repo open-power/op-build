@@ -21,13 +21,30 @@ HOSTBOOT_P10_ENV_VARS=$(TARGET_MAKE_ENV) PERL_USE_UNSAFE_INC=1 \
 
 FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 
+# If BR2_PACKAGE_IBM_FW_PROPRIETARY_P10 is defined then
+#  * Include repo ibm-fw-proprietary-p10 as a dependency (HOSTBOOT_P10_DEPENDENCIES)
+#    to get access to any needed IBM proprietary files.
+#  * Create a variable (IBM_FW_PROPRIETARY_P10_BUILD_DIR) to point to the location
+#    of the ibm-fw-proprietary-p10 repo for easy access to any files needed.
+ifeq ($(BR2_PACKAGE_IBM_FW_PROPRIETARY_P10),y)
+    HOSTBOOT_P10_DEPENDENCIES += ibm-fw-proprietary-p10
+    IBM_FW_PROPRIETARY_P10_BUILD_DIR = $(BUILD_DIR)/ibm-fw-proprietary-p10-$(IBM_FW_PROPRIETARY_P10_VERSION)
+endif
+
 # TODO: WORKAROUND: Currently the git clone causes a bad symlink
 # to be created for src/include/usr/tracinterface.H; so delete it and rebuild it
 # manually
+# Copy the VPD ECC algorithm files from the repo ibm-fw-proprietary-p10 to hostboot's
+# 'src/user/vpd' directory if environment variable 'IBM_FW_PROPRIETARY_P10_BUILD_DIR'
+# is defined.  Whether the VPD ECC algorithm files get compiled or not will be determined
+# by flag 'COMPILE_VPD_ECC_ALGORITHMS' within file openpower/configs/hostboot/<systemx>.config.
 define HOSTBOOT_P10_BUILD_CMDS
         $(HOSTBOOT_P10_ENV_VARS) bash -c 'cd $(@D) \
                                           && if ! cmp --quiet src/include/usr/trace/interface.H src/include/usr/tracinterface.H ; then \
                                                  rm -f src/include/usr/tracinterface.H && cp src/include/usr/trace/interface.H src/include/usr/tracinterface.H ; \
+                                             fi \
+                                          && if [ -n "$(IBM_FW_PROPRIETARY_P10_BUILD_DIR)" ] ; then \
+                                                 cp $(IBM_FW_PROPRIETARY_P10_BUILD_DIR)/vpd/* src/usr/vpd ; \
                                              fi \
                                           && source ./env.bash && $(MAKE)'
 endef
