@@ -1,4 +1,5 @@
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/openpower-ffs/Config.in"
+source "$BR2_EXTERNAL_OP_BUILD_PATH/package/ibm-fw-proprietary-p10/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/hostboot/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/hostboot-p10/Config.in"
 source "$BR2_EXTERNAL_OP_BUILD_PATH/package/hostboot-binaries/Config.in"
