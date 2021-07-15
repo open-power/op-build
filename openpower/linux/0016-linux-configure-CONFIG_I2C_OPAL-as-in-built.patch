@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 29 Sep 2020 16:07:53 +0930
-Subject: [PATCH 18/19] linux: configure CONFIG_I2C_OPAL as in-built.
+Subject: [PATCH 16/17] linux: configure CONFIG_I2C_OPAL as in-built.
 
 Currently, skiroot_defconfig CONFIG_I2C_OPAL is built as a loadable
 module rather than builtin, even if CONFIG_I2C=y is defined. This

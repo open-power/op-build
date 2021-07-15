@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:30 -0400
-Subject: [PATCH 06/19] ima: Make process_buffer_measurement() generic
+Subject: [PATCH 06/17] ima: Make process_buffer_measurement() generic
 
 process_buffer_measurement() is limited to measuring the kexec boot
 command line. This patch makes process_buffer_measurement() more

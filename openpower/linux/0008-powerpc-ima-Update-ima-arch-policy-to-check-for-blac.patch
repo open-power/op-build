@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:33 -0400
-Subject: [PATCH 09/19] powerpc/ima: Update ima arch policy to check for
+Subject: [PATCH 08/17] powerpc/ima: Update ima arch policy to check for
  blacklist
 
 This patch updates the arch-specific policies for PowerNV system to

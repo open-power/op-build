@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Wed, 30 Oct 2019 23:31:32 -0400
-Subject: [PATCH 08/19] ima: Check against blacklisted hashes for files with
+Subject: [PATCH 07/17] ima: Check against blacklisted hashes for files with
  modsig
 
 Asymmetric private keys are used to sign multiple files. The kernel

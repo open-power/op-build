@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Tue, 5 Nov 2019 17:02:07 -0600
-Subject: [PATCH 04/19] powerpc: Detect the trusted boot state of the system
+Subject: [PATCH 04/17] powerpc: Detect the trusted boot state of the system
 
 While secure boot permits only properly verified signed kernels to be
 booted, trusted boot calculates the file hash of the kernel image and

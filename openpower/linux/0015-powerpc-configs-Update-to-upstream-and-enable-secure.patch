@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Tue, 23 Jun 2020 16:22:10 +0930
-Subject: [PATCH 17/19] powerpc/configs: Update to upstream and enable
+Subject: [PATCH 15/17] powerpc/configs: Update to upstream and enable
  secureboot
 
 Pulls in the following updates from upstream:

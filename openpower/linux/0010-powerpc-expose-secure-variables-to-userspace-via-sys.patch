@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Sun, 10 Nov 2019 21:10:34 -0600
-Subject: [PATCH 11/19] powerpc: expose secure variables to userspace via sysfs
+Subject: [PATCH 10/17] powerpc: expose secure variables to userspace via sysfs
 
 PowerNV secure variables, which store the keys used for OS kernel
 verification, are managed by the firmware. These secure variables need to
@@ -80,7 +80,7 @@ index 000000000000..feebb8c57294
 +		variable. The size of the file represents the maximum size of
 +		the variable data that can be written.
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 9a5b15ab93b6..159a25017c7f 100644
+index 95d3069fc115..20212908dd67 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -947,6 +947,17 @@ config PPC_SECURE_BOOT
