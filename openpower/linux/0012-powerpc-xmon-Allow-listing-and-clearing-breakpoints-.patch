@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "Christopher M. Riedl" <cmr@informatik.wtf>
 Date: Sat, 7 Sep 2019 01:11:23 -0500
-Subject: [PATCH 14/19] powerpc/xmon: Allow listing and clearing breakpoints in
+Subject: [PATCH 12/17] powerpc/xmon: Allow listing and clearing breakpoints in
  read-only mode
 
 Read-only mode should not prevent listing and clearing any active

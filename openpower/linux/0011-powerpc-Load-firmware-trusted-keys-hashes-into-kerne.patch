@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nayna Jain <nayna@linux.ibm.com>
 Date: Sun, 10 Nov 2019 21:10:36 -0600
-Subject: [PATCH 13/19] powerpc: Load firmware trusted keys/hashes into kernel
+Subject: [PATCH 11/17] powerpc: Load firmware trusted keys/hashes into kernel
  keyring
 
 The keys used to verify the Host OS kernel are managed by firmware as
