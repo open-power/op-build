@@ -13,6 +13,13 @@ config BR2_PACKAGE_SKIBOOT_EMBED_PAYLOAD
 	bool "Embed kernel payload in skiboot image"
 	depends on BR2_LINUX_KERNEL_ZIMAGE_EPAPR
 
+config BR2_SKIBOOT_EXTRA_CONFIG_OPTIONS
+	string "Additional skiboot config options"
+	help
+	  Any additional configuration options you may want to
+	  include (ex: CONFIG_FSP=0). These options are applied
+	  while building skiboot.
+
 choice
 	prompt "Skiboot version"
 	default BR2_SKIBOOT_LATEST_VERSION
