@@ -1,0 +1,29 @@
+From bc7eb1924e5de56c0bbc691ad26537fd5cd657b1 Mon Sep 17 00:00:00 2001
+From: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+Date: Wed, 28 Jul 2021 15:20:00 +0530
+Subject: [PATCH] P10: Increase PAYLOAD partition size to 1MB
+
+After adding P10 support PAYLOAD (skiboot) size is crossing
+512K size. Hence increase PAYLOAD size to 1MB.
+
+Signed-off-by: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+---
+ p10Layouts/defaultPnorLayout_64.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/p10Layouts/defaultPnorLayout_64.xml b/p10Layouts/defaultPnorLayout_64.xml
+index c2ebc14..9d75f08 100644
+--- a/p10Layouts/defaultPnorLayout_64.xml
++++ b/p10Layouts/defaultPnorLayout_64.xml
+@@ -173,7 +173,7 @@ Layout Description
+     <section>
+         <description>Payload (512KiB)</description>
+         <eyeCatch>PAYLOAD</eyeCatch>
+-        <physicalRegionSize>0x80000</physicalRegionSize>
++        <physicalRegionSize>0x100000</physicalRegionSize>
+         <sha512Version/>
+         <side>sideless</side>
+         <readOnly/>
+-- 
+2.31.1
+
