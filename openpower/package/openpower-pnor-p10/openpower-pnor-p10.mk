@@ -67,6 +67,9 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
         echo "***PNOR scratch directory: $(PNOR_SCRATCH_DIR)"
         mkdir -p $(PNOR_SCRATCH_DIR)
 
+        echo "***BINARIES_DIR: $(BINARIES_DIR)"
+        echo "***STAGING_DIR: $(STAGING_DIR)"
+
 
         $(TARGET_MAKE_ENV) $(@D)/update_image.pl \
             -release p10 \
@@ -172,9 +175,16 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/hostboot_extended.header.bin.ecc \
                 $(BINARIES_DIR)/mmc/HBI.P10
 
-        # HBD
+        # HBD.bin SECTION is the COMBO (RO and RW) as built by genPnorImages.pl
         $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/$(TARGETING_BINARY_FILENAME) \
             $(BINARIES_DIR)/mmc/HBD.$(XML_VAR)
+
+        # HBD_RW.bin SECTION conditionally built by genPnorImages.pl
+        # Not consumed as a LID today since its a PNOR partition
+        if [ -e $(PNOR_SCRATCH_DIR)/$(TARGETING_BINARY_FILENAME).unprotected ]; then \
+            $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/$(TARGETING_BINARY_FILENAME).unprotected \
+                $(BINARIES_DIR)/mmc/HBD_RW.$(XML_VAR) ; \
+        fi
 
         # SBE
         test -f "$(BINARIES_DIR)/mmc/SBE.P10" ||\
@@ -326,6 +336,7 @@ endef
 
 define OPENPOWER_PNOR_P10_INSTALL_IMAGES_CMDS
 
+        # CLEANUP OLD IMAGES
         if [ -n "$(BR2_OPENPOWER_PNOR_P10_LEGACY_PNOR_TARGET)" ] ; then  \
             rm -f $(BINARIES_DIR)/*.pnor \
                 $(BINARIES_DIR)/*.pnor.squashfs.tar \
@@ -334,6 +345,8 @@ define OPENPOWER_PNOR_P10_INSTALL_IMAGES_CMDS
                 $(BINARIES_DIR)/*.ebmc_lids.tar.gz ;\
             rm -rf $(STAGING_DIR)/openpower_pnor_scratch \
                 $(STAGING_DIR)/openpower_pnor_scratch.* ;\
+            rm -rf $(BINARIES_DIR)/mmc \
+                $(BINARIES_DIR)/mmc.tar.gz ;\
         fi
 
         $(foreach xmlpkg,$(BR2_OPENPOWER_P10_XMLS),\
