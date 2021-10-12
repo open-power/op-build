@@ -8,14 +8,14 @@ if BR2_PACKAGE_OCMB_EXPLORER_FW
 
 config BR2_OCMB_EXPLORER_FW_VERSION
 	string
-	default "CL439412"
+	default "CL444714"
 
 config BR2_OCMB_EXPLORER_FW_SITE
         string
-        default "https://github.com/open-power/ocmb-explorer-fw/releases/download/CL439412"
+        default "https://github.com/open-power/ocmb-explorer-fw/releases/download/CL444714"
 
 config BR2_OCMB_EXPLORER_FW_SOURCE
         string
-        default "FW439412BinaryOnly.zip"
+        default "FW444714BinaryOnly.zip"
 
 endif
