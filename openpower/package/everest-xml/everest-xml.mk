@@ -44,6 +44,8 @@ endif
 ifeq ($(BR2_EVEREST_XML_TARGET_TYPES_OPENPOWER_XML),y)
 EVEREST_XML_TARGET_TYPES_OPENPOWER_XML = $(EVEREST_XML_MRW_HB_TOOLS)/target_types_openpower.xml
 endif
+WOF_TOOL = wof_data_xlator.pl
+WOF_BIN_OVERRIDE_LIST = wof_bins_for_override.txt
 
 define EVEREST_XML_FILTER_UNWANTED_ATTRIBUTES
        chmod +x $(EVEREST_XML_MRW_HB_TOOLS)/filter_out_unwanted_attributes.pl
@@ -66,6 +68,12 @@ define EVEREST_XML_BUILD_CMDS
             $(EVEREST_XML_MRW_SCRATCH)/$(call qstrip,$(BR2_EVEREST_XML_FILENAME))
         $(INSTALL) -m 0644 -D $(@D)/$(call qstrip,$(BR2_EVEREST_XML_BIOS_FILENAME)) \
             $(EVEREST_XML_MRW_SCRATCH)/$(call qstrip,$(BR2_EVEREST_XML_BIOS_FILENAME))
+        $(eval WOF_SETS_DIR = $$(patsubst %.xml,%.WofSetBins,$(call qstrip,$(BR2_EVEREST_XML_FILENAME))))
+        $(eval WOF_SETS_TAR = $(WOF_SETS_DIR).tar.gz)
+	if [ -e $(@D)/$(call qstrip,$(WOF_SETS_TAR)) ]; then \
+	    $(INSTALL) -m 0644 -D $(@D)/$(call qstrip,$(WOF_SETS_TAR)) \
+	        $(EVEREST_XML_MRW_SCRATCH)/$(call qstrip,$(WOF_SETS_TAR)); \
+	fi
 
         # generate the system mrw xml
         perl -I $(EVEREST_XML_MRW_HB_TOOLS) \
@@ -113,18 +121,19 @@ define EVEREST_XML_BUILD_CMDS
             $(EVEREST_XML_BIOS_METADATA_FILE)
 
         # Create the wofdata
-        if [ -e $(EVEREST_XML_MRW_HB_TOOLS)/wof-tables-img ]; then \
-            chmod +x $(EVEREST_XML_MRW_HB_TOOLS)/wof-tables-img; \
+        if [ -e $(EVEREST_XML_MRW_HB_TOOLS)/$(WOF_TOOL) ]; then \
+            chmod +x $(EVEREST_XML_MRW_HB_TOOLS)/$(WOF_TOOL); \
         fi
 
-        if [ -d $(EVEREST_XML_MRW_SCRATCH)/$(call qstrip, \
-            $(BR2_EVEREST_XML_FILENAME:.xml=.wofdata)) ]; then \
-            $(EVEREST_XML_MRW_HB_TOOLS)/wof-tables-img \
-                --create $(EVEREST_XML_MRW_SCRATCH)/$(call qstrip, \
-                    $(EVEREST_XML_FILENAME:.xml=.wof_output)) \
-                $(EVEREST_XML_MRW_SCRATCH)/$(call qstrip, \
-                    $(BR2_EVEREST_XML_FILENAME:.xml=wofdata)); \
-        fi
+        # Create WOF override image
+	$(eval WOF_OVERRIDE_BIN = $$(patsubst %.xml,%.wofdata,$(call qstrip,$(BR2_EVEREST_XML_FILENAME))))
+	if [ -e $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_TAR) ]; then \
+	    rm $(EVEREST_XML_MRW_SCRATCH)/$(WOF_OVERRIDE_BIN); \
+	    cd $(EVEREST_XML_MRW_SCRATCH) && mkdir $(WOF_SETS_DIR); \
+            cd $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR) && tar -xzvf $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_TAR); \
+            cd $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && ls | grep -i "\.bin" > $(WOF_BIN_OVERRIDE_LIST); \
+	    cd $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && $(EVEREST_XML_MRW_HB_TOOLS)/$(WOF_TOOL) --create $(EVEREST_XML_MRW_SCRATCH)/$(WOF_OVERRIDE_BIN) --combine $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins/$(WOF_BIN_OVERRIDE_LIST); \
+	fi
 
         # Create the MEMD binary
         if [ -e $(EVEREST_XML_MRW_HB_TOOLS)/memd_creation.pl ]; then \
