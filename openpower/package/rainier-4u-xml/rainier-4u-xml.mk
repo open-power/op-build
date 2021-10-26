@@ -44,6 +44,8 @@ endif
 ifeq ($(BR2_RAINIER_4U_XML_TARGET_TYPES_OPENPOWER_XML),y)
 RAINIER_4U_XML_TARGET_TYPES_OPENPOWER_XML = $(RAINIER_4U_XML_MRW_HB_TOOLS)/target_types_openpower.xml
 endif
+WOF_TOOL = wof_data_xlator.pl
+WOF_BIN_OVERRIDE_LIST = wof_bins_for_override.txt
 
 define RAINIER_4U_XML_FILTER_UNWANTED_ATTRIBUTES
        chmod +x $(RAINIER_4U_XML_MRW_HB_TOOLS)/filter_out_unwanted_attributes.pl
@@ -66,6 +68,12 @@ define RAINIER_4U_XML_BUILD_CMDS
             $(RAINIER_4U_XML_MRW_SCRATCH)/$(call qstrip,$(BR2_RAINIER_4U_XML_FILENAME))
         $(INSTALL) -m 0644 -D $(@D)/$(call qstrip,$(BR2_RAINIER_4U_XML_BIOS_FILENAME)) \
             $(RAINIER_4U_XML_MRW_SCRATCH)/$(call qstrip,$(BR2_RAINIER_4U_XML_BIOS_FILENAME))
+        $(eval WOF_SETS_DIR = $$(patsubst %.xml,%.WofSetBins,$(call qstrip,$(BR2_RAINIER_4U_XML_FILENAME))))
+        $(eval WOF_SETS_TAR = $(WOF_SETS_DIR).tar.gz)
+	if [ -e $(@D)/$(call qstrip,$(WOF_SETS_TAR)) ]; then \
+	    $(INSTALL) -m 0644 -D $(@D)/$(call qstrip,$(WOF_SETS_TAR)) \
+	        $(RAINIER_4U_XML_MRW_SCRATCH)/$(call qstrip,$(WOF_SETS_TAR)); \
+	fi
 
         # generate the system mrw xml
         perl -I $(RAINIER_4U_XML_MRW_HB_TOOLS) \
@@ -113,18 +121,19 @@ define RAINIER_4U_XML_BUILD_CMDS
             $(RAINIER_4U_XML_BIOS_METADATA_FILE)
 
         # Create the wofdata
-        if [ -e $(RAINIER_4U_XML_MRW_HB_TOOLS)/wof-tables-img ]; then \
-            chmod +x $(RAINIER_4U_XML_MRW_HB_TOOLS)/wof-tables-img; \
+        if [ -e $(RAINIER_4U_XML_MRW_HB_TOOLS)/$(WOF_TOOL) ]; then \
+            chmod +x $(RAINIER_4U_XML_MRW_HB_TOOLS)/$(WOF_TOOL); \
         fi
 
-        if [ -d $(RAINIER_4U_XML_MRW_SCRATCH)/$(call qstrip, \
-            $(BR2_RAINIER_4U_XML_FILENAME:.xml=.wofdata)) ]; then \
-            $(RAINIER_4U_XML_MRW_HB_TOOLS)/wof-tables-img \
-                --create $(RAINIER_4U_XML_MRW_SCRATCH)/$(call qstrip, \
-                    $(RAINIER_4U_XML_FILENAME:.xml=.wof_output)) \
-                $(RAINIER_4U_XML_MRW_SCRATCH)/$(call qstrip, \
-                    $(BR2_RAINIER_4U_XML_FILENAME:.xml=wofdata)); \
-        fi
+        # Create WOF override image
+	$(eval WOF_OVERRIDE_BIN = $$(patsubst %.xml,%.wofdata,$(call qstrip,$(BR2_RAINIER_4U_XML_FILENAME))))
+	if [ -e $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_SETS_TAR) ]; then \
+	    rm $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_OVERRIDE_BIN); \
+	    cd $(RAINIER_4U_XML_MRW_SCRATCH) && mkdir $(WOF_SETS_DIR); \
+            cd $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR) && tar -xzvf $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_SETS_TAR); \
+            cd $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && ls | grep -i "\.bin" > $(WOF_BIN_OVERRIDE_LIST); \
+	    cd $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && $(RAINIER_4U_XML_MRW_HB_TOOLS)/$(WOF_TOOL) --create $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_OVERRIDE_BIN) --combine $(RAINIER_4U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins/$(WOF_BIN_OVERRIDE_LIST); \
+	fi
 
         # Create the MEMD binary
         if [ -e $(RAINIER_4U_XML_MRW_HB_TOOLS)/memd_creation.pl ]; then \
