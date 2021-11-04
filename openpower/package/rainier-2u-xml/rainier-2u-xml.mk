@@ -112,7 +112,8 @@ define RAINIER_2U_XML_BUILD_CMDS
             --vmm-consts-file=$(RAINIER_2U_XML_MRW_HB_TOOLS)/vmmconst.h --noshort-enums \
             --bios-xml-file=$(RAINIER_2U_XML_BIOS_CONFIG_FILE) \
             --bios-schema-file=$(RAINIER_2U_XML_BIOS_SCHEMA_FILE) \
-            --bios-output-file=$(RAINIER_2U_XML_BIOS_METADATA_FILE)
+            --bios-output-file=$(RAINIER_2U_XML_BIOS_METADATA_FILE) \
+			--build-hbd-preserved
 
         # Transform BIOS XML into Petitboot specific BIOS XML via the schema
         xsltproc -o \
