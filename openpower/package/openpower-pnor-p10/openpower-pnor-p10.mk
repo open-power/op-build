@@ -83,7 +83,6 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             -targeting_RO_binary_filename $(TARGETING_BINARY_FILENAME).protected \
             -targeting_RO_binary_source $(TARGETING_BINARY_SOURCE).protected \
             -targeting_RW_binary_filename $(TARGETING_BINARY_FILENAME).unprotected \
-            -targeting_RW_binary_source $(TARGETING_BINARY_SOURCE).unprotected \
             -sbe_binary_filename $(BR2_HOSTBOOT_P10_BINARY_SBE_FILENAME) \
             -sbe_binary_dir $(STAGING_DIR)/sbe_binaries \
             -sbec_binary_filename $(BR2_HOSTBOOT_P10_BINARY_SBEC_FILENAME) \
