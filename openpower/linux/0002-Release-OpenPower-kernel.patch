@@ -14,10 +14,10 @@ index c09d5a4d2e7a..6a59ef669154 100644
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 5
- PATCHLEVEL = 4
- SUBLEVEL = 33
+ PATCHLEVEL = 10
+ SUBLEVEL = 50
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
- NAME = Kleptomaniac Octopus
+ NAME = Dare mighty things
  
  # *DOCUMENTATION*
