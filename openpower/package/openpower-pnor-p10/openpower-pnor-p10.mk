@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENPOWER_PNOR_P10_VERSION ?= 6d866d38266f683fa1f09df2b40779c6cb02bf0d
+OPENPOWER_PNOR_P10_VERSION ?= dc5cc252ab2c81eb6d0754f95d5212ca3c4269b6
 OPENPOWER_PNOR_P10_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P10_VERSION))
 
 OPENPOWER_PNOR_P10_LICENSE = Apache-2.0
@@ -23,6 +23,10 @@ endif
 
 ifneq ($(BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE),"")
 OPENPOWER_PNOR_P10_SIGN_MODE_ARG = -sign_mode $(BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE)
+endif
+
+ifneq ($(BR2_OPENPOWER_SIGNED_SECURITY_VERSION),"")
+SECURITY_VERSION=-security_version $(BR2_OPENPOWER_SIGNED_SECURITY_VERSION)
 endif
 
 OPENPOWER_PNOR_P10_INSTALL_IMAGES = YES
@@ -105,7 +109,8 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             -devtree_binary_filename $(STAGING_DIR)/usr/share/pdata/$(DEVTREE_BINARY_FILENAME) \
             -xz_compression \
             $(OPENPOWER_PNOR_P10_KEY_TRANSITION_ARG) \
-            $(OPENPOWER_PNOR_P10_SIGN_MODE_ARG)
+            $(OPENPOWER_PNOR_P10_SIGN_MODE_ARG) \
+            $(SECURITY_VERSION) \
 
         if [ -n "$(BR2_OPENPOWER_PNOR_P10_LEGACY_PNOR_TARGET)" ] ; then \
             echo "***Generating legacy pnor targets..." ;\

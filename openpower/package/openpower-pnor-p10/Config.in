@@ -116,4 +116,9 @@ config BR2_OCMBFW_P10_PROCESSED_FILENAME
         help
             String used to define the name of the OCMBFW update binary file after processing, ecc protected
 
+config BR2_OPENPOWER_SIGNED_SECURITY_VERSION
+        string "Security Version to be included in signed partitions"
+        help
+            String used to define the security version to be included in signed partition
+
 endmenu
