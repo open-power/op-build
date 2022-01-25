@@ -29,7 +29,7 @@ To build an image for a Blackbird system:
 ```
 git clone --recursive git@github.com:open-power/op-build.git
 cd op-build
-./op-build rainier_defconfig && ./op-build
+./op-build p10ebmc_defconfig && ./op-build
 ```
 
 There are also default configurations for other platforms in
