@@ -137,7 +137,7 @@ endef # OPENPOWER_SUBPACKAGE_VERSION
 
 ####
 # $(1) is the lowercase package version
-# $(2) is the uppercase pacakge version
+# $(2) is the uppercase package version
 ####
 define INNER_OPENPOWER_VERSION
 
@@ -206,6 +206,11 @@ echo -n "	buildroot-" >> $$($(2)_VERSION_FILE);
 	| xargs echo \
 	>> $$($(2)_VERSION_FILE); \
 
+# Include the named pnor build name if there is one
+if [ -n "$$(OPBUILD_BUILDNAME)" ]; then \
+     echo -n "	op-build-buildname-" >> $$($(2)_VERSION_FILE); \
+     echo $$(OPBUILD_BUILDNAME) >> $$($(2)_VERSION_FILE); \
+fi
 
 # Combing subpackage version files into $$($(2)_VERSION_FILE)
 $$(foreach verFile,$$(ALL_SUBPACKAGE_VERSIONS),
