@@ -26,9 +26,16 @@ FSP_TRACE_IMAGES_DIR = $(STAGING_DIR)/fsp-trace/
 #    to get access to any needed IBM proprietary files.
 #  * Create a variable (IBM_FW_PROPRIETARY_P10_BUILD_DIR) to point to the location
 #    of the ibm-fw-proprietary-p10 repo for easy access to any files needed.
+# Note that if libecc_static.a exists in the $(HOSTBOOT_PRECOMPILED_LIBRARIES)
+# directory then we don't require access to the ibm-fw-proprietary repository.
 ifeq ($(BR2_PACKAGE_IBM_FW_PROPRIETARY_P10),y)
+ifeq ($(wildcard $(HOSTBOOT_PRECOMPILED_LIBRARIES)/libecc_static.a),)
+    $(info Using ibm-fw-proprietary for ECC implementation)
     HOSTBOOT_P10_DEPENDENCIES += ibm-fw-proprietary-p10
     IBM_FW_PROPRIETARY_P10_BUILD_DIR = $(BUILD_DIR)/ibm-fw-proprietary-p10-$(IBM_FW_PROPRIETARY_P10_VERSION)
+else
+    $(info Using $(HOSTBOOT_PRECOMPILED_LIBRARIES)/libecc_static.a for ECC implementation)
+endif
 endif
 
 # TODO: WORKAROUND: Currently the git clone causes a bad symlink
@@ -44,7 +51,10 @@ define HOSTBOOT_P10_BUILD_CMDS
                                                  rm -f src/include/usr/tracinterface.H && cp src/include/usr/trace/interface.H src/include/usr/tracinterface.H ; \
                                              fi \
                                           && if [ -n "$(IBM_FW_PROPRIETARY_P10_BUILD_DIR)" ] ; then \
-                                                 cp $(IBM_FW_PROPRIETARY_P10_BUILD_DIR)/vpd/* src/usr/vpd ; \
+                                                 cp --no-clobber $(IBM_FW_PROPRIETARY_P10_BUILD_DIR)/vpd/* src/usr/vpd ; \
+                                                 mkdir -p src/build/tools/extern/ibm-fw-proprietary/ ; \
+                                                 cp --no-clobber -r $(IBM_FW_PROPRIETARY_P10_BUILD_DIR)/* src/build/tools/extern/ibm-fw-proprietary/ ; \
+                                                 echo $(IBM_FW_PROPRIETARY_P10_VERSION) >src/build/tools/extern/ibm-fw-proprietary/LIBECC_COMMIT_HASH ; \
                                              fi \
                                           && source ./env.bash && $(MAKE)'
 endef
