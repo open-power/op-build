@@ -10,6 +10,8 @@
 define OPENPOWER_SUBPACKAGE_VERSION
 
 $(2)_VERSION_FILE = $$(OPENPOWER_VERSION_DIR)/$(1).version.txt
+$(2)_FW_VERSION_SHORT_FILE = $$(OPENPOWER_VERSION_DIR)/$(1).fwversion_short.txt
+$(2)_FW_VERSION_LONG_FILE = $$(OPENPOWER_VERSION_DIR)/$(1).fwversion_long.txt
 ALL_SUBPACKAGE_VERSIONS += $$($(2)_VERSION_FILE)
 
 ### Create subpackage patch file
@@ -100,8 +102,48 @@ if [ -f $$(OPENPOWER_VERSION_DIR)/$(1).patch.txt ]; then \
 	cat $$(OPENPOWER_VERSION_DIR)/$(1).patch.txt >> $$($(2)_VERSION_FILE); fi \
 fi
 
+# Check the package name against HOSTBOOT_P to filter out other
+# packages such as HOSTBOOT_BINARIES, we only want HOSTBOOT_P10, HOSTBOOT_P11, etc.
+# This allows future usage of this logic since the Hostboot repo build process
+# seeds from this output file and does -NOT- know about package names, etc.
+# All Hostboot repo build needs is the git hashes built which are cat'd to the
+# _FW_VERSION_*_FILE
+#
+# If OPBUILD_VERSION is used in the environment then we trim
+# the string since we are limited to 16 chars for the PELs in Hostboot.
+# If OPBUILD_VERSION is empty we run the git commands to get the hashes.
+# Sample OPBUILD_VERSION  OP10-v2.7-10.146 gets trimmed to v2.7-10.146
+# sed 's/[^\-]*-//' up until first dash
+#
+# The *_FW_VERSION_SHORT_FILE is the FW subsystem identifier to aide
+# mapping op-build images to proper build level.  The FW subsystem
+# string is subsequently embedded in the Hostboot images built.
+#
+$(if $(findstring HOSTBOOT_P, $(2)),
+if [ -n "$$(OPBUILD_VERSION)" ]; then \
+	echo -n "$$(OPBUILD_VERSION)" \
+	| sed 's/[^\-]*-//' | xargs echo -n\
+	> $$($(2)_FW_VERSION_SHORT_FILE); \
+else \
+cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; (git describe --always || echo "unknown") \
+	| sed -e 's/\(.*\)-.*/\1/' | xargs echo -n\
+	> $$($(2)_FW_VERSION_SHORT_FILE); \
+fi\)
+
+# Remove with sed any empty line
+# /./ matches any character, including newline
+# ! negates the select, makes the command apply to lines which do -NOT- match selector, i.e. empty lines
+# d deletes the selected lines
+# sed `/./!d'
+$(if $(findstring HOSTBOOT_P, $(2)),
+cd "$$(BR2_EXTERNAL_OP_BUILD_PATH)"; (git describe --always --long || echo "unknown") \
+	| sed '/./!d' | xargs echo -n\
+	> $$($(2)_FW_VERSION_LONG_FILE); \)
+
 # Add new line to version.txt
 echo "" >> $$($(2)_VERSION_FILE);
+echo "" >> $$($(2)_FW_VERSION_SHORT_FILE);
+echo "" >> $$($(2)_FW_VERSION_LONG_FILE);
 
 endef # $(2)_OPENPOWER_VERSION_FILE
 
@@ -161,6 +203,7 @@ define $(2)_OPENPOWER_VERSION_FILE
 mkdir -p "$$(OPENPOWER_VERSION_DIR)"
 
 # Add vendor or default open-power
+
 if [ -n "$$(OPBUILD_VENDOR)" ]; then \
 echo -n "$$(OPBUILD_VENDOR)-" > $$($(2)_VERSION_FILE); \
 else \
