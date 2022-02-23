@@ -1,0 +1,30 @@
+From 9e7f7360fd0134305233d5f098daa5697c140eb5 Mon Sep 17 00:00:00 2001
+From: hostboot <hostboot@us.ibm.com>
+Date: Wed, 23 Feb 2022 08:42:40 -0600
+Subject: [PATCH] Fix bug building HCODE in ppc64
+
+---
+ tools/build/common.dir/order.final.mk | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/tools/build/common.dir/order.final.mk b/tools/build/common.dir/order.final.mk
+index 2d9ebe1..4fe359e 100644
+--- a/tools/build/common.dir/order.final.mk
++++ b/tools/build/common.dir/order.final.mk
+@@ -79,13 +79,6 @@ _BUILD/IMAGE_TARGETS: _BUILD/PRE_IMAGE_TARGETS
+ _BUILD/IMAGE_TARGETS/ACT: $(IMAGE_TARGETS) suppress_nothing_to_do
+ 
+ .PHONY: all _BUILD/ALL_TARGETS/ACT
+-# Image build is not supported on ppc64le, due to lack of self restore compiler
+-# The other parts of image build do work and have a compiler for both arch's
+-# In that case, change the all target to just exe and earlier
+-ifneq ($(ECMD_ARCH), ppc64le)
+ all: _BUILD/IMAGE_TARGETS
+-else
+-all: _BUILD/EXE_TARGETS
+-endif
+ 		@$(MAKE) _BUILD/ALL_TARGETS/ACT
+ _BUILD/ALL_TARGETS/ACT: $(ALL_TARGETS) suppress_nothing_to_do
+-- 
+1.8.3.1
+
