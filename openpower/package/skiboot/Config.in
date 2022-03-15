@@ -37,11 +37,9 @@ config BR2_SKIBOOT_VERSION
 
 config BR2_SKIBOOT_CUSTOM_GIT
 	bool "Custom git repository"
-	default y
 
 config BR2_SKIBOOT_CUSTOM_REPO_URL
 	string "URL of custom repository"
-	default "git@github.com:open-power/skiboot.git"
 	depends on BR2_SKIBOOT_CUSTOM_GIT
 
 config BR2_SKIBOOT_DEVICETREE
