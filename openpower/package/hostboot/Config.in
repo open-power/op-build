@@ -25,7 +25,7 @@ config BR2_HOSTBOOT_CUSTOM_VERSION_VALUE
 
 config BR2_HOSTBOOT_VERSION
 	string
-	default "15795187349adc018e36cb88f865acbb0e20834f" if BR2_HOSTBOOT_LATEST_VERSION
+	default "393fbe94077cd31670e50a31f72c1390ff8691af" if BR2_HOSTBOOT_LATEST_VERSION
 	default BR2_HOSTBOOT_CUSTOM_VERSION_VALUE \
 		if BR2_HOSTBOOT_CUSTOM_VERSION
 
@@ -35,5 +35,13 @@ config BR2_HOSTBOOT_CONFIG_FILE
         help
             String used to define hw specific make config file
 
-endif
 
+config BR2_HOSTBOOT_USE_ALTERNATE_GCC
+		bool "use Alternate GCC to build hostboot"
+		default n
+		select BR2_PACKAGE_ALTERNATE_GCC
+		help
+		  Select to enable using an alternate version of GCC
+		  to build hostboot.
+
+endif
