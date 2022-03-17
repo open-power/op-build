@@ -1,0 +1,32 @@
+From 953f2631d1aadbb4f8eca50c4420a80778cfe4ed Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@linux.ibm.com>
+Date: Thu, 17 Mar 2022 14:34:15 +1030
+Subject: [PATCH 4/4] cflags: Disable stack protector
+
+ powerpc64le-buildroot-linux-gnu-ld: ../obj/core/bootloader.o: in function `Bootloader::verifyComponentId(void const*, char const*)':
+ src/bootloader/bootloader.C:279: undefined reference to `__stack_chk_fail'
+
+We should provide an implementation of __stack_chk_fail.
+
+Change-Id: I2af514278b0eaa87a0b7f17fa1908d2b26adf3c4
+Signed-off-by: Joel Stanley <joel@linux.ibm.com>
+---
+ src/build/mkrules/cflags.env.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/build/mkrules/cflags.env.mk b/src/build/mkrules/cflags.env.mk
+index 2bd5ca9a6640..b30c82d65255 100644
+--- a/src/build/mkrules/cflags.env.mk
++++ b/src/build/mkrules/cflags.env.mk
+@@ -46,7 +46,7 @@ COMMONFLAGS += $(OPT_LEVEL) -nostdlib
+ CFLAGS += $(COMMONFLAGS) -mcpu=power7 -nostdinc -g -mno-vsx -mno-altivec\
+           -Werror -Wall -mtraceback=no -pipe -mabi=elfv1 \
+ 	  -ffunction-sections -fdata-sections -ffreestanding -mbig-endian \
+-	  -Wno-address-of-packed-member
++	  -Wno-address-of-packed-member -fno-stack-protector
+ ASMFLAGS += $(COMMONFLAGS) -mcpu=power7 -mbig-endian -ffreestanding -mabi=elfv1
+ CXXFLAGS += $(CFLAGS) -nostdinc++ -fno-rtti -fno-exceptions -Werror -Wall \
+ 	    -fuse-cxa-atexit -std=gnu++14 -fpermissive
+-- 
+2.35.1
+

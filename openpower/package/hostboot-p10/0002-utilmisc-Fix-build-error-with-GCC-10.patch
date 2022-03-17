@@ -1,0 +1,96 @@
+From 6fbd93ed7307402027aa336fc6dc512022e7baeb Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@linux.ibm.com>
+Date: Thu, 17 Mar 2022 14:00:52 +1030
+Subject: [PATCH 2/4] utilmisc: Fix build error with GCC 10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+From when this was introduced (2737de709eae) it wasn't commented why it
+was done this way. Clean it up.
+
+utilmisc.C:31:6: error: ‘bool Util::isSimics()’ specifies less restrictive attribute than its target ‘bool Util::__isSimicsRunning()’: ‘nothrow’ [-Werror=missing-attributes]
+   31 | bool isSimics() __attribute__((alias("__isSimicsRunning")));
+      |      ^~~~~~~~
+utilmisc.C:34:6: note: ‘bool Util::isSimics()’ target declared here
+   34 | bool __isSimicsRunning()
+      |      ^~~~~~~~~~~~~~~~~
+utilmisc.C:48:6: error: ‘bool Util::isQmeModelEnabled()’ specifies less restrictive attribute than its target ‘bool Util::__isQmeEnabled()’: ‘nothrow’ [-Werror=missing-attributes]
+   48 | bool isQmeModelEnabled() __attribute__((alias("__isQmeEnabled")));
+      |      ^~~~~~~~~~~~~~~~~
+utilmisc.C:51:6: note: ‘bool Util::isQmeModelEnabled()’ target declared here
+   51 | bool __isQmeEnabled()
+      |      ^~~~~~~~~~~~~~
+
+Change-Id: Id5291022b09dca6789175d69e54a30d55f1bde13
+Signed-off-by: Joel Stanley <joel@linux.ibm.com>
+---
+ src/lib/utilmisc.C | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/src/lib/utilmisc.C b/src/lib/utilmisc.C
+index b3ca1ac04c53..85665c824487 100644
+--- a/src/lib/utilmisc.C
++++ b/src/lib/utilmisc.C
+@@ -28,8 +28,7 @@
+ namespace Util
+ {
+ 
+-bool isSimics() __attribute__((alias("__isSimicsRunning")));
+-extern "C" bool __isSimicsRunning() NEVER_INLINE;
++bool __isSimicsRunning() NEVER_INLINE;
+ 
+ bool __isSimicsRunning()
+ {
+@@ -40,12 +39,11 @@ bool __isSimicsRunning()
+ 
+ bool isSimicsRunning()
+ {
+-    static bool simics = isSimics();
++    static bool simics = __isSimicsRunning();
+     return simics;
+ }
+ 
+ 
+-bool isQmeModelEnabled() __attribute__((alias("__isQmeEnabled")));
+ extern "C" bool __isQmeEnabled() NEVER_INLINE;
+ 
+ bool __isQmeEnabled()
+@@ -58,7 +56,7 @@ bool __isQmeEnabled()
+ bool requiresSecondaryCoreWorkaround()
+ {
+     static const auto required =
+-        isSimicsRunning() && !isQmeModelEnabled();
++        isSimicsRunning() && !__isQmeEnabled();
+     return required;
+ }
+ 
+@@ -86,10 +84,14 @@ void setIsConsoleStarted()
+     g_isConsoleStarted = true;
+ }
+ 
+-bool isMultiprocSupported() __attribute__((alias("__isMultiprocSupported")));
+ extern "C" bool __isMultiprocSupported() NEVER_INLINE;
+ 
+-bool __isMultiprocSupported()
++bool __isMulitprocSupported()
++{
++	return MAGIC_INST_CHECK_FEATURE(MAGIC_FEATURE__MULTIPROC);
++}
++
++bool isMultiprocSupported()
+ {
+     bool multiprocSupport = true;
+ 
+@@ -98,7 +100,7 @@ bool __isMultiprocSupported()
+ #else
+     if (isSimicsRunning())
+     {
+-        multiprocSupport = MAGIC_INST_CHECK_FEATURE(MAGIC_FEATURE__MULTIPROC);
++        multiprocSupport = __isMulitprocSupported();
+     }
+ #endif
+ 
+-- 
+2.35.1
+

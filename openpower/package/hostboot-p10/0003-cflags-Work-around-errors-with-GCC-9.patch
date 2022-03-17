@@ -1,0 +1,32 @@
+From b2d596f1116dfb13f0f980b5a85aa92fe6a795dd Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@linux.ibm.com>
+Date: Thu, 17 Mar 2022 12:52:49 +1030
+Subject: [PATCH 3/4] cflags: Work around errors with GCC 9
+
+Change-Id: Ib0542c1fc53a5f1480981158eed10f9a46029446
+Signed-off-by: Joel Stanley <joel@linux.ibm.com>
+---
+ src/build/mkrules/cflags.env.mk | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/build/mkrules/cflags.env.mk b/src/build/mkrules/cflags.env.mk
+index 9b1d30266e30..2bd5ca9a6640 100644
+--- a/src/build/mkrules/cflags.env.mk
++++ b/src/build/mkrules/cflags.env.mk
+@@ -45,10 +45,11 @@ CFLAGS += -include config.h
+ COMMONFLAGS += $(OPT_LEVEL) -nostdlib
+ CFLAGS += $(COMMONFLAGS) -mcpu=power7 -nostdinc -g -mno-vsx -mno-altivec\
+           -Werror -Wall -mtraceback=no -pipe -mabi=elfv1 \
+-	  -ffunction-sections -fdata-sections -ffreestanding -mbig-endian
++	  -ffunction-sections -fdata-sections -ffreestanding -mbig-endian \
++	  -Wno-address-of-packed-member
+ ASMFLAGS += $(COMMONFLAGS) -mcpu=power7 -mbig-endian -ffreestanding -mabi=elfv1
+ CXXFLAGS += $(CFLAGS) -nostdinc++ -fno-rtti -fno-exceptions -Werror -Wall \
+-	    -fuse-cxa-atexit -std=gnu++14
++	    -fuse-cxa-atexit -std=gnu++14 -fpermissive
+ LDFLAGS += --nostdlib --sort-common -EB $(COMMONFLAGS)
+ 
+ INCFLAGS = $(addprefix -I, $(INCDIR) )
+-- 
+2.35.1
+
