@@ -1,0 +1,27 @@
+From fd9ca28d5fd2a4428add2e4c04b3514d5d1dae3f Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@linux.ibm.com>
+Date: Thu, 17 Mar 2022 12:46:15 +1030
+Subject: [PATCH 1/4] util: Fix unique_ptr with GCC 9
+
+Change-Id: I08ead07fe5b587b43e06410b31dbfdba54d9a442
+Signed-off-by: Joel Stanley <joel@linux.ibm.com>
+---
+ src/include/util/impl/unique_ptr.H | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/include/util/impl/unique_ptr.H b/src/include/util/impl/unique_ptr.H
+index 689794330196..5c486526b81b 100644
+--- a/src/include/util/impl/unique_ptr.H
++++ b/src/include/util/impl/unique_ptr.H
+@@ -402,7 +402,7 @@ namespace std
+              * @return        Value of T::operator[](i)
+              */
+             template<typename Index, typename X = T>
+-            typename enable_if<is_array<X>::value, decltype(declval<X>()[declval<Index>()])>::type
++            typename enable_if<is_array<X>::value, decltype(declval<X>()[declval<Index>()])>::type&
+             operator[](const Index i)
+             {
+                 return iv_ptr[i];
+-- 
+2.35.1
+
