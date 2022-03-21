@@ -1,0 +1,37 @@
+menu "ekb"
+
+config BR2_PACKAGE_EKB
+        bool "ekb"
+        default y if (BR2_OPENPOWER_POWER10)
+        help
+          To boot the server, the bmc application and hostboot will expect
+          hardware functional details which are maintained in xml files by ekb.
+          So, this packge is used to get all those xml files and pdata will
+          consume those xml files to add hardware functional details into
+          device tree.
+
+if BR2_PACKAGE_EKB
+
+choice
+    prompt "EKB version"
+    default BR2_EKB_LATEST_VERSION
+
+config BR2_EKB_LATEST_VERSION
+    bool "Use latest EKB master"
+
+config BR2_EKB_CUSTOM_VERSION
+    bool "Custom EKB version"
+
+endchoice
+
+config BR2_EKB_CUSTOM_VERSION_VALUE
+    string "EKB version"
+    depends on BR2_EKB_CUSTOM_VERSION
+
+config BR2_EKB_VERSION
+    string
+    default "efd3569c4d8c4c545620539edc0515ec68b78f43" if BR2_EKB_LATEST_VERSION
+    default BR2_EKB_CUSTOM_VERSION_VALUE if BR2_EKB_CUSTOM_VERSION
+endif
+
+endmenu

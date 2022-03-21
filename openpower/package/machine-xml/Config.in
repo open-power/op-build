@@ -17,17 +17,17 @@ endchoice
 
 config BR2_OPENPOWER_MACHINE_XML_FILTER_UNWANTED_ATTRIBUTES
        bool "Filter Unwanted Attributes"
-       default y if (BR2_OPENPOWER_POWER9)
+       default y if (BR2_OPENPOWER_POWER9 || BR2_OPENPOWER_POWER10)
        default n
 
 config BR2_OPENPOWER_MACHINE_XML_OPPOWERVM_ATTRIBUTES
        bool "OPPOWERVM Attributes/Target"
-       default y if (BR2_OPENPOWER_POWER9)
+       default y if (BR2_OPENPOWER_POWER9 || BR2_OPENPOWER_POWER10)
        default n
 
 config BR2_OPENPOWER_MACHINE_XML_TARGET_TYPES_OPENPOWER_XML
        bool "Include target_types_openpower.xml"
-       default y if (BR2_OPENPOWER_POWER9)
+       default y if (BR2_OPENPOWER_POWER9 || BR2_OPENPOWER_POWER10)
        default n
 
 config BR2_OPENPOWER_MACHINE_XML_CUSTOM_GIT_VALUE

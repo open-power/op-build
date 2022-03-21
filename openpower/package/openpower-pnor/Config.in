@@ -1,6 +1,7 @@
 config BR2_PACKAGE_OPENPOWER_PNOR
         bool "openpower_pnor"
-        default y if (BR2_OPENPOWER_PLATFORM)
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER9)
+        depends on (!BR2_PACKAGE_OPENPOWER_PNOR_P10)
         select BR2_PACKAGE_HOSTBOOT
         select BR2_PACKAGE_HOSTBOOT_BINARIES
         select BR2_PACKAGE_SKIBOOT

@@ -1,0 +1,50 @@
+config BR2_PACKAGE_OCC_P10
+        bool "OCC (POWER10)"
+        default y if (BR2_OPENPOWER_PLATFORM && BR2_OPENPOWER_POWER10)
+        select BR2_CPP
+        help
+            Project to build OCC for P10
+
+if BR2_PACKAGE_OCC_P10
+
+config BR2_OCC_P10_BIN_FILENAME
+        string "Name of P10 OCC image file"
+	default "occ.bin"
+        help
+            String used to define name of the P10 OCC binary image file
+
+config BR2_OCC_P10_GPU_BIN_BUILD
+        bool "Enables Compilation of P10 GPU Binary Image"
+        default n
+        select BR2_PACKAGE_HOSTBOOT_BINARIES
+        help
+            Boolean used to flag whether to compile P10 OCC GPU binary
+
+config BR2_OCC_P10_GPU_GPE_BIN_FILENAME
+        string "Name of P10 OCC GPU GPE Binary file"
+        help
+            String used to define name of the P10 OCC GPUE GPE binary image file
+
+choice
+	prompt "P10 OCC version"
+	default BR2_OCC_P10_LATEST_VERSION
+
+config BR2_OCC_P10_LATEST_VERSION
+	bool "Use latest P10 OCC master"
+
+config BR2_OCC_P10_CUSTOM_VERSION
+	bool "Custom P10 OCC version"
+
+endchoice
+
+config BR2_OCC_P10_CUSTOM_VERSION_VALUE
+	string "P10 OCC version"
+	depends on BR2_OCC_P10_CUSTOM_VERSION
+
+config BR2_OCC_P10_VERSION
+	string
+	default "1f8515d8bc1e9881591e565d6e2e30f9eab6e426" if BR2_OCC_P10_LATEST_VERSION
+	default BR2_OCC_P10_CUSTOM_VERSION_VALUE \
+		if BR2_OCC_P10_CUSTOM_VERSION
+
+endif

@@ -1,0 +1,55 @@
+menu "pdata"
+
+config BR2_PACKAGE_PDATA
+        bool "pdata"
+        default y if (BR2_OPENPOWER_POWER10)
+        select BR2_PACKAGE_HOST_DTC
+        depends on BR2_PACKAGE_EKB
+        depends on (BR2_PACKAGE_MACHINE_XML || BR2_PACKAGE_RAINIER_2U_XML || BR2_PACKAGE_RAINIER_4U_XML)
+        help
+          To initialize and boot a server, various software components
+          ( BMC apps and Hostboot) will interact. PDATA provides device tree
+          based infrastructure to get the attributes which are required
+          to boot the server and run time usage. Also provides API's
+          to manage the attributes data.
+
+if BR2_PACKAGE_PDATA
+
+choice
+    prompt "PDATA location"
+
+config BR2_PDATA_GITHUB_PROJECT
+    bool "PDATA located at default Github project"
+
+config BR2_PDATA_CUSTOM_GIT
+    bool "PDATA located at Custom Git repository"
+
+endchoice
+
+config BR2_PDATA_CUSTOM_GIT_VALUE
+    string "URL of PDATA Custom Git repository"
+
+choice
+    prompt "PDATA version"
+    default BR2_PDATA_LATEST_VERSION
+
+config BR2_PDATA_LATEST_VERSION
+    bool "Use latest PDATA master"
+
+config BR2_PDATA_CUSTOM_VERSION
+    bool "Custom PDATA version"
+
+endchoice
+
+config BR2_PDATA_CUSTOM_VERSION_VALUE
+    string "PDATA version"
+    depends on BR2_PDATA_CUSTOM_VERSION
+
+config BR2_PDATA_VERSION
+    string
+    default "9b011eb6b212a00c35d0c28eb16c75b082356130" if BR2_PDATA_LATEST_VERSION
+    default BR2_PDATA_CUSTOM_VERSION_VALUE if BR2_PDATA_CUSTOM_VERSION
+
+endif
+
+endmenu

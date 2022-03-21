@@ -117,7 +117,6 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
             -targeting_RO_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME).protected \
             -targeting_RO_binary_source $(BR2_OPENPOWER_TARGETING_BIN_FILENAME).protected \
             -targeting_RW_binary_filename $(BR2_OPENPOWER_TARGETING_ECC_FILENAME).unprotected \
-            -targeting_RW_binary_source $(BR2_OPENPOWER_TARGETING_BIN_FILENAME).unprotected \
             -sbe_binary_filename $(BR2_HOSTBOOT_BINARY_SBE_FILENAME) \
             -sbe_binary_dir $(SBE_BINARY_DIR) \
             -sbec_binary_filename $(BR2_HOSTBOOT_BINARY_SBEC_FILENAME) \
