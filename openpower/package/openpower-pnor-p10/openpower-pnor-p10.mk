@@ -148,6 +148,9 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor.ubi.mtd $(BINARIES_DIR) ;\
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbicore.syms $(PNOR_SCRATCH_DIR)/HBICORE_SYMS.ipllid ;\
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbotStringFile $(PNOR_SCRATCH_DIR)/HBOTSTRINGFILE.ipllid ;\
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_binaries/sbeMeasurementStringFile $(PNOR_SCRATCH_DIR)/SBEMSTRINGFILE.ipllid ;\
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_binaries/sbeStringFile $(PNOR_SCRATCH_DIR)/SBESTRINGFILE.ipllid ;\
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_binaries/sbeVerificationStringFile $(PNOR_SCRATCH_DIR)/SBEVSTRINGFILE.ipllid ;\
             $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
                 $(BINARIES_DIR)/$(XML_VAR).ebmc_lids.tar.gz \
                 $(PNOR_SCRATCH_DIR); \
