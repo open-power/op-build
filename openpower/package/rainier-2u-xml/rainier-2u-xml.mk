@@ -133,6 +133,8 @@ define RAINIER_2U_XML_BUILD_CMDS
             cd $(RAINIER_2U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR) && tar -xzvf $(RAINIER_2U_XML_MRW_SCRATCH)/$(WOF_SETS_TAR); \
             cd $(RAINIER_2U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && ls | grep -i "\.bin" > $(WOF_BIN_OVERRIDE_LIST); \
 	    cd $(RAINIER_2U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && $(RAINIER_2U_XML_MRW_HB_TOOLS)/$(WOF_TOOL) --create $(RAINIER_2U_XML_MRW_SCRATCH)/$(WOF_OVERRIDE_BIN) --combine $(RAINIER_2U_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins/$(WOF_BIN_OVERRIDE_LIST); \
+	else \
+	    cd $(RAINIER_2U_XML_MRW_SCRATCH) && dd if=/dev/zero of=$(WOF_OVERRIDE_BIN) bs=4096 count=1; \
 	fi
 
         # Create the MEMD binary
