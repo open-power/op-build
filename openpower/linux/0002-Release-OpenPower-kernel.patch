@@ -15,7 +15,7 @@ index 695f8e739a91..f2280292b96e 100644
 @@ -2,7 +2,7 @@
  VERSION = 5
  PATCHLEVEL = 10
- SUBLEVEL = 50
+ SUBLEVEL = 108
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Dare mighty things
