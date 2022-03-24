@@ -133,6 +133,8 @@ define EVEREST_XML_BUILD_CMDS
             cd $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR) && tar -xzvf $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_TAR); \
             cd $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && ls | grep -i "\.bin" > $(WOF_BIN_OVERRIDE_LIST); \
 	    cd $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins && $(EVEREST_XML_MRW_HB_TOOLS)/$(WOF_TOOL) --create $(EVEREST_XML_MRW_SCRATCH)/$(WOF_OVERRIDE_BIN) --combine $(EVEREST_XML_MRW_SCRATCH)/$(WOF_SETS_DIR)/WofSetBins/$(WOF_BIN_OVERRIDE_LIST); \
+	else \
+	    cd $(EVEREST_XML_MRW_SCRATCH) && dd if=/dev/zero of=$(WOF_OVERRIDE_BIN) bs=4096 count=1; \
 	fi
 
         # Create the MEMD binary
