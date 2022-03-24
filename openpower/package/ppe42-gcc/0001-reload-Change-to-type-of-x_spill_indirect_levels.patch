@@ -1,0 +1,43 @@
+From 492c1398f248f579d6e186ce6787bb90bee33e26 Mon Sep 17 00:00:00 2001
+From: Joel Stanley <joel@jms.id.au>
+Date: Thu, 24 Mar 2022 12:16:54 +1030
+Subject: [PATCH] reload: Change to type of x_spill_indirect_levels
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+When building with GCC 11, which defaults to C++17:
+
+../.././gcc/reload1.c: In function ‘void init_reload()’:
+../.././gcc/reload1.c:89:24: error: use of an operand of type ‘bool’ in ‘operator++’ is forbidden in C++17
+   89 |   (this_target_reload->x_spill_indirect_levels)
+      |   ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+../.././gcc/reload1.c:444:7: note: in expansion of macro ‘spill_indirect_levels’
+  444 |       spill_indirect_levels++;
+      |       ^~~~~~~~~~~~~~~~~~~~~
+
+Make the same fix as was made upstream:
+
+ https://github.com/gcc-mirror/gcc/commit/d57c99458933a21fdf94f508191f145ad8d5ec58
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+ gcc/reload.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gcc/reload.h b/gcc/reload.h
+index 65fa29c2bd26..e3ec30ac858c 100644
+--- a/gcc/reload.h
++++ b/gcc/reload.h
+@@ -166,7 +166,7 @@ struct target_reload {
+      value indicates the level of indirect addressing supported, e.g., two
+      means that (MEM (MEM (REG n))) is also valid if (REG n) does not get
+      a hard register.  */
+-  bool x_spill_indirect_levels;
++  unsigned char x_spill_indirect_levels;
+ 
+   /* True if caller-save has been reinitialized.  */
+   bool x_caller_save_initialized_p;
+-- 
+2.35.1
+
