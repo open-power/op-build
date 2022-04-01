@@ -52,18 +52,14 @@ BR2_HOSTBOOT_P10_CONFIG_FILE="p10ebmc.config"
 BR2_OPENPOWER_MACHINE_XML_CUSTOM_GIT=y
 BR2_RAINIER_2U_XML_CUSTOM_GIT=y
 # TODO: Update the level when the XML is synced to public
-#BR2_RAINIER_2U_XML_CUSTOM_GIT_VALUE="git@github.com:open-power/rainier-xml.git"
-#BR2_RAINIER_2U_XML_VERSION="d5127bbed1a181d39cbc24ea33ea7b6df15baa4e"
-BR2_RAINIER_2U_XML_CUSTOM_GIT_VALUE="git@github.ibm.com:openbmc/rainier-xml.git"
-BR2_RAINIER_2U_XML_VERSION="2a21b74ce3629406c824e17212486f2dd8b960e5"
+BR2_RAINIER_2U_XML_CUSTOM_GIT_VALUE="git@github.com:open-power/rainier-xml.git"
+BR2_RAINIER_2U_XML_VERSION="06b3ce1591ff4b145b17f4f28126a4ad1ac30bee"
 BR2_RAINIER_2U_XML_SYSTEM_FILENAME="Rainier-2U-MRW_hb.system.xml"
 BR2_RAINIER_2U_XML_TARGETING_FILENAME="Rainier-2U-MRW_hb.mrw.xml"
 BR2_RAINIER_4U_XML_CUSTOM_GIT=y
 # TODO: Update the level when the XML is synced to public
-#BR2_RAINIER_4U_XML_CUSTOM_GIT_VALUE="git@github.com:open-power/rainier-xml.git"
-#BR2_RAINIER_4U_XML_VERSION="d5127bbed1a181d39cbc24ea33ea7b6df15baa4e"
-BR2_RAINIER_4U_XML_CUSTOM_GIT_VALUE="git@github.ibm.com:openbmc/rainier-xml.git"
-BR2_RAINIER_4U_XML_VERSION="2a21b74ce3629406c824e17212486f2dd8b960e5"
+BR2_RAINIER_4U_XML_CUSTOM_GIT_VALUE="git@github.com:open-power/rainier-xml.git"
+BR2_RAINIER_4U_XML_VERSION="06b3ce1591ff4b145b17f4f28126a4ad1ac30bee"
 BR2_RAINIER_4U_XML_SYSTEM_FILENAME="Rainier-4U-MRW_hb.system.xml"
 BR2_RAINIER_4U_XML_TARGETING_FILENAME="Rainier-4U-MRW_hb.mrw.xml"
 BR2_PACKAGE_EVEREST_XML=y
