@@ -151,6 +151,7 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeMeasurementStringFile $(PNOR_SCRATCH_DIR)/SBEMSTRINGFILE.ipllid ;\
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeStringFile_DD1 $(PNOR_SCRATCH_DIR)/SBESTRINGFILE.ipllid ;\
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeVerificationStringFile $(PNOR_SCRATCH_DIR)/SBEVSTRINGFILE.ipllid ;\
+            $(INSTALL) -m 0644 -D $(OCC_STAGING_DIR)/occStringFile $(PNOR_SCRATCH_DIR)/OCCSTRINGFILE.ipllid ;\
             $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
                 $(BINARIES_DIR)/$(XML_VAR).ebmc_lids.tar.gz \
                 $(PNOR_SCRATCH_DIR); \
