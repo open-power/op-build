@@ -17,6 +17,7 @@ OCC_P10_INSTALL_TARGET = NO
 OCC_P10_STAGING_DIR = $(STAGING_DIR)/occ
 
 OCC_P10_IMAGE_BIN_PATH = obj/image.bin
+OCC_P10_STRING_PATH = obj/occStringFile
 
 OCC_P10_DEPENDENCIES = host-binutils host-ppe42-gcc
 ifeq ($(BR2_OCC_P10_GPU_BIN_BUILD),y)
@@ -38,6 +39,7 @@ OCC_P10_BUILD_CMDS ?= $(OCC_BUILD_CMDS_P9)
 define OCC_P10_INSTALL_IMAGES_CMDS
        mkdir -p $(STAGING_DIR)/occ
        cp $(@D)/$(OCC_P10_IMAGE_BIN_PATH) $(OCC_P10_STAGING_DIR)/$(BR2_OCC_P10_BIN_FILENAME)
+       cp $(@D)/$(OCC_P10_STRING_PATH)    $(OCC_P10_STAGING_DIR)/occStringFile
 endef
 
 $(eval $(generic-package))
