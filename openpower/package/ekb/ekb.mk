@@ -20,6 +20,7 @@ EKB_HWP_ATTRS_XML_FILES = chips/p10/procedures/xml/attribute_info/p10_clock_attr
            chips/p10/procedures/xml/attribute_info/p10_pervasive_attributes.xml \
            chips/p10/procedures/xml/attribute_info/p10_runn_attributes.xml \
            chips/p10/procedures/xml/attribute_info/p10_bars_attributes.xml \
+           chips/p10/procedures/xml/attribute_info/pm_plat_attributes.xml \
            hwpf/fapi2/xml/attribute_info/unit_attributes.xml \
            hwpf/fapi2/xml/attribute_info/common_attributes.xml \
            hwpf/fapi2/xml/attribute_info/chip_attributes.xml
