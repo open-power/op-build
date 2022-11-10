@@ -58,6 +58,12 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
         $(eval XML_FILENAME = $$(call qstrip,$$(BR2_$(XML_VAR)_FILENAME)))
         echo "***XML_FILENAME: $(XML_FILENAME)"
 
+        $(eval PSPD_DATA_FILENAME = $$(patsubst %.xml,%.pspddata,$(XML_FILENAME)))
+        echo "***PSPD_DATA_FILENAME: $(PSPD_DATA_FILENAME)"
+
+        $(eval PSPD_BINARY_FILENAME = $$(patsubst %.xml,%.PSPD.bin,$(XML_FILENAME)))
+        echo "***PSPD_BINARY_FILENAME: $(PSPD_BINARY_FILENAME)"
+
         $(eval WOF_BINARY_FILENAME = $$(patsubst %.xml,%.wofdata,$(XML_FILENAME)))
         echo "***WOF_BINARY_FILENAME: $(WOF_BINARY_FILENAME)"
 
@@ -94,6 +100,7 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             -occ_binary_filename $(OCC_STAGING_DIR)/$(BR2_OCC_P10_BIN_FILENAME) \
             -ima_catalog_binary_filename $(BINARIES_DIR)/$(BR2_IMA_CATALOG_P10_FILENAME) \
             -openpower_version_filename $(OPENPOWER_PNOR_P10_VERSION_FILE) \
+            -pspd_binary_filename $(STAGING_DIR)/openpower_mrw_scratch/$(PSPD_BINARY_FILENAME) \
             -wof_binary_filename $(STAGING_DIR)/openpower_mrw_scratch/$(WOF_BINARY_FILENAME) \
             -memd_binary_filename $(STAGING_DIR)/openpower_mrw_scratch/$(MEMD_BINARY_FILENAME) \
             -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_P10_LID_NAME) \
@@ -135,7 +142,8 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
                 -memddata_binary_filename $(PNOR_SCRATCH_DIR)/memd_extra_data.bin.ecc \
                 -ocmbfw_binary_filename $(PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_P10_PROCESSED_FILENAME) \
                 -openpower_version_filename $(PNOR_SCRATCH_DIR)/openpower_pnor_version.bin  \
-                -devtree_binary_filename $(PNOR_SCRATCH_DIR)/DEVTREE.bin ;\
+                -devtree_binary_filename $(PNOR_SCRATCH_DIR)/DEVTREE.bin \
+                -pspd_binary_filename $(PNOR_SCRATCH_DIR)/PSPD.bin ;\
             $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor $(BINARIES_DIR) ;\
             PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i squashfs \
                 -m $(XML_VAR) \
@@ -341,6 +349,12 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
         # DEVTREE
         $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/DEVTREE.bin \
             $(BINARIES_DIR)/mmc/DEVTREE.$(XML_VAR)
+
+        # PSPD.bin SECTION conditionally built by genPnorImages.pl
+        if [ -e $(PNOR_SCRATCH_DIR)/PSPD.bin ]; then \
+            $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/PSPD.bin \
+                $(BINARIES_DIR)/mmc/PSPD.$(XML_VAR) ; \
+        fi
 
 endef
 
