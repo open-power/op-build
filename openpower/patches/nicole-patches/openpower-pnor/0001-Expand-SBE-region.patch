@@ -1,0 +1,47 @@
+From d0b0e02c19bf7ba4f3db7f2d75438cebc26c6d9a Mon Sep 17 00:00:00 2001
+From: Konstantin Yurchenko <k.yurchenko@yadro.com>
+Date: Mon, 19 Dec 2022 12:42:51 +0300
+Subject: [PATCH] Expand SBE region
+
+Increases the size of the SBE region by decreasing the size of
+the HCODE region and shifting its base address.
+
+Signed-off-by: Konstantin Yurchenko <k.yurchenko@yadro.com>
+---
+ p9Layouts/defaultPnorLayout_64.xml | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/p9Layouts/defaultPnorLayout_64.xml b/p9Layouts/defaultPnorLayout_64.xml
+index 1e74c51..b78bc93 100644
+--- a/p9Layouts/defaultPnorLayout_64.xml
++++ b/p9Layouts/defaultPnorLayout_64.xml
+@@ -182,10 +182,10 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>SBE-IPL (Staging Area) (520K)</description>
++        <description>SBE-IPL (Staging Area) (0.98MB)</description>
+         <eyeCatch>SBE</eyeCatch>
+         <physicalOffset>0x16E5000</physicalOffset>
+-        <physicalRegionSize>0xBC000</physicalRegionSize>
++        <physicalRegionSize>0xFC000</physicalRegionSize>
+         <side>A</side>
+         <sha512Version/>
+         <sha512perEC/>
+@@ -193,10 +193,10 @@ Layout Description
+         <ecc/>
+     </section>
+     <section>
+-        <description>HCODE Ref Image (1.125MB)</description>
++        <description>HCODE Ref Image (0.88MB)</description>
+         <eyeCatch>HCODE</eyeCatch>
+-        <physicalOffset>0x17A1000</physicalOffset>
+-        <physicalRegionSize>0x120000</physicalRegionSize>
++        <physicalOffset>0x17E1000</physicalOffset>
++        <physicalRegionSize>0xE0000</physicalRegionSize>
+         <side>A</side>
+         <sha512Version/>
+         <readOnly/>
+-- 
+2.38.1
+

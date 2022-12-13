@@ -1,17 +1,17 @@
-From a1bc15a3c44b21e658fbef940082e46f3e8f7007 Mon Sep 17 00:00:00 2001
-From: Artem Senichev <artemsen@gmail.com>
-Date: Tue, 25 Oct 2022 12:55:14 +0300
-Subject: [PATCH] Bring back DD 2.0 support
+From 8cd227fe6f0abc7ba696bac82254154ad25d2f77 Mon Sep 17 00:00:00 2001
+From: Konstantin Yurchenko <k.yurchenko@yadro.com>
+Date: Tue, 13 Dec 2022 15:19:44 +0300
+Subject: [PATCH] Add support for 4 versions of SBE
 
-Allows to use old processors on Nicole machines.
+Adds support for four SBE versions: 2.0, 2.1, 2.2 and 2.3.
 
-Signed-off-by: Artem Senichev <artemsen@gmail.com>
+Signed-off-by: Konstantin Yurchenko <k.yurchenko@yadro.com>
 ---
  src/build/sbeOpDistribute.py | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/build/sbeOpDistribute.py b/src/build/sbeOpDistribute.py
-index cb735b732..ea51e2fd1 100755
+index cb735b732..320f67136 100755
 --- a/src/build/sbeOpDistribute.py
 +++ b/src/build/sbeOpDistribute.py
 @@ -90,7 +90,7 @@ def main(argv):
@@ -19,7 +19,7 @@ index cb735b732..ea51e2fd1 100755
      #input SBE binary name.
      CHIPID = 'p9n'
 -    eclist = {'21':'DD2', '22':'DD2', '23':'DD2'}
-+    eclist = {'20':'DD2', '21':'DD2', '22':'DD2'}
++    eclist = {'20':'DD2', '21':'DD2', '22':'DD2', '23':'DD2'}
  
      #Update if the script is called for Axone chips
      if (sbe_binary_filename == "axone_sbe.img.ecc"):
