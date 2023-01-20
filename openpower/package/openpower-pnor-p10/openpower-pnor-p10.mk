@@ -58,9 +58,6 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
         $(eval XML_FILENAME = $$(call qstrip,$$(BR2_$(XML_VAR)_FILENAME)))
         echo "***XML_FILENAME: $(XML_FILENAME)"
 
-        $(eval PSPD_DATA_FILENAME = $$(patsubst %.xml,%.pspddata,$(XML_FILENAME)))
-        echo "***PSPD_DATA_FILENAME: $(PSPD_DATA_FILENAME)"
-
         $(eval PSPD_BINARY_FILENAME = $$(patsubst %.xml,%.PSPD.bin,$(XML_FILENAME)))
         echo "***PSPD_BINARY_FILENAME: $(PSPD_BINARY_FILENAME)"
 
@@ -120,8 +117,8 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             $(SECURITY_VERSION) \
 
         if [ -n "$(BR2_OPENPOWER_PNOR_P10_LEGACY_PNOR_TARGET)" ] ; then \
-            echo "***Generating legacy pnor targets..." ;\
-            mkdir -p $(STAGING_DIR)/pnor.$(XML_VAR) ; \
+            echo "***Generating legacy pnor targets..." && \
+            mkdir -p $(STAGING_DIR)/pnor.$(XML_VAR) && \
             $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
                 -release p10 \
                 -xml_layout_file $(@D)/p10Layouts/$(BR2_OPENPOWER_P10_PNOR_XML_LAYOUT_FILENAME) \
@@ -143,26 +140,26 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
                 -ocmbfw_binary_filename $(PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_P10_PROCESSED_FILENAME) \
                 -openpower_version_filename $(PNOR_SCRATCH_DIR)/openpower_pnor_version.bin  \
                 -devtree_binary_filename $(PNOR_SCRATCH_DIR)/DEVTREE.bin \
-                -pspd_binary_filename $(PNOR_SCRATCH_DIR)/PSPD.bin ;\
-            $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor $(BINARIES_DIR) ;\
+                -pspd_binary_filename $(PNOR_SCRATCH_DIR)/PSPD.bin && \
+            $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor $(BINARIES_DIR) && \
             PATH=$(HOST_DIR)/usr/bin:$(PATH) $(HOST_DIR)/usr/bin/generate-tar -i squashfs \
                 -m $(XML_VAR) \
                 -f $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor.squashfs.tar \
-                $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor -s ;\
-            $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor.squashfs.tar $(BINARIES_DIR) ;\
-            cd $(STAGING_DIR)/pnor.$(XML_VAR) ;\
+                $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor -s && \
+            $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor.squashfs.tar $(BINARIES_DIR) && \
+            cd $(STAGING_DIR)/pnor.$(XML_VAR) && \
             PATH=$(HOST_DIR)/usr/sbin:$(PATH) $(HOST_DIR)/usr/bin/generate-ubi \
-                $(XML_VAR).pnor.squashfs.tar ;\
-            $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor.ubi.mtd $(BINARIES_DIR) ;\
-            $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbicore.syms $(PNOR_SCRATCH_DIR)/HBICORE_SYMS.ipllid ;\
-            $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbotStringFile $(PNOR_SCRATCH_DIR)/HBOTSTRINGFILE.ipllid ;\
-            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeMeasurementStringFile $(PNOR_SCRATCH_DIR)/SBEMSTRINGFILE.ipllid ;\
-            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeStringFile_DD1 $(PNOR_SCRATCH_DIR)/SBESTRINGFILE.ipllid ;\
-            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeVerificationStringFile $(PNOR_SCRATCH_DIR)/SBEVSTRINGFILE.ipllid ;\
-            $(INSTALL) -m 0644 -D $(OCC_STAGING_DIR)/occStringFile $(PNOR_SCRATCH_DIR)/OCCSTRINGFILE.ipllid ;\
+                $(XML_VAR).pnor.squashfs.tar && \
+            $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor.ubi.mtd $(BINARIES_DIR) && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbicore.syms $(PNOR_SCRATCH_DIR)/HBICORE_SYMS.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbotStringFile $(PNOR_SCRATCH_DIR)/HBOTSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeMeasurementStringFile $(PNOR_SCRATCH_DIR)/SBEMSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeStringFile_DD1 $(PNOR_SCRATCH_DIR)/SBESTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeVerificationStringFile $(PNOR_SCRATCH_DIR)/SBEVSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(OCC_STAGING_DIR)/occStringFile $(PNOR_SCRATCH_DIR)/OCCSTRINGFILE.ipllid && \
             $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
                 $(BINARIES_DIR)/$(XML_VAR).ebmc_lids.tar.gz \
-                $(PNOR_SCRATCH_DIR); \
+                $(PNOR_SCRATCH_DIR) && \
             if [ -e $(STAGING_DIR)/openpower_pnor_scratch ] ; then \
                 echo "*** Reusing existing $(STAGING_DIR)/openpower_pnor_scratch => $$(readlink -f $(STAGING_DIR)/openpower_pnor_scratch)";\
             else \
