@@ -47,15 +47,6 @@ endif
 WOF_TOOL = wof_data_xlator.pl
 WOF_BIN_OVERRIDE_LIST = wof_bins_for_override.txt
 
-NEXT_EC=10
-IMAGE_TOKEN=--ecImg_10
-
-define build_ecImgs
-    $(eval SPD_FILES_TOKENED += $$(addprefix $(2) , $(1)))
-    $(eval NEXT_EC=$(shell echo $$(($(NEXT_EC)+10))))
-    $(eval IMAGE_TOKEN = --ecImg_$(NEXT_EC))
-endef
-
 define RAINIER_2U_XML_FILTER_UNWANTED_ATTRIBUTES
        chmod +x $(RAINIER_2U_XML_MRW_HB_TOOLS)/filter_out_unwanted_attributes.pl
 
@@ -145,31 +136,6 @@ define RAINIER_2U_XML_BUILD_CMDS
 	else \
 	    cd $(RAINIER_2U_XML_MRW_SCRATCH) && dd if=/dev/zero of=$(WOF_OVERRIDE_BIN) bs=4096 count=1; \
 	fi
-
-	$(eval PSPD_BIN = $$(patsubst %.xml,%.PSPD.bin,$(call qstrip,$(BR2_RAINIER_2U_XML_FILENAME))))
-        $(eval SPD_IMAGE_FILES = $$(wildcard $(RAINIER_2U_XML_MRW_SCRATCH)/*.pspddata*))
-
-        # Cleanup old PSPD.bin
-        if [ -e "$(RAINIER_2U_XML_MRW_SCRATCH)/$(PSPD_BIN)" ]; then \
-            rm $(RAINIER_2U_XML_MRW_SCRATCH)/$(PSPD_BIN); \
-        fi
-
-        $(foreach spd_image_file, $(SPD_IMAGE_FILES), \
-            $(call build_ecImgs,$(spd_image_file),$(IMAGE_TOKEN)))
-
-        # SPD_FILES_TOKENED is what is used as input for the --ecImg_'s to buildSPDImages.pl
-        #
-        # If SPD_FILES_TOKENED is empty we get zero SPD Images built (tocCount=0)
-        #
-        # SPD_ARG_ITEMS (will only output debug info if buildSPDImages.pl will result in tocCount more than zero)
-        $(foreach spd_arg, $(SPD_FILES_TOKENED), echo SPD_ARG_ITEMS $(spd_arg);)
-
-        # If we have SPD images the PSPD.bin will be built containing the data, otherwise we get PSPD.bin with all FF's
-        if [ -e "$(RAINIER_2U_XML_MRW_HB_TOOLS)/buildSPDImages.pl" ] && [ -n "$(SPD_IMAGE_FILES)" ]; then \
-            chmod +x $(RAINIER_2U_XML_MRW_HB_TOOLS)/buildSPDImages.pl; \
-            echo "*** RUNNING buildSPDImages.pl ***";\
-            $(RAINIER_2U_XML_MRW_HB_TOOLS)/buildSPDImages.pl --spdOutBin $(RAINIER_2U_XML_MRW_SCRATCH)/$(PSPD_BIN) $(SPD_FILES_TOKENED); \
-        fi
 
         # Create the MEMD binary
         if [ -e $(RAINIER_2U_XML_MRW_HB_TOOLS)/memd_creation.pl ]; then \

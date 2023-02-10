@@ -12,6 +12,7 @@ config BR2_PACKAGE_OPENPOWER_PNOR_P10
         select BR2_PACKAGE_RAINIER_2U_XML
         select BR2_PACKAGE_RAINIER_4U_XML
         select BR2_PACKAGE_HCODE_P10
+        select BR2_PACKAGE_BONNELL_XML
         help
             Utilites for building a targeting Power10 binary image
 
