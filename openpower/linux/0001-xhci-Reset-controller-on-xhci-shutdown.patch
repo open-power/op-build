@@ -14,10 +14,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index a8d97e23f601..308ab396bd88 100644
+index 473b0b64dd57..ca0c642ce935 100644
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -793,6 +793,9 @@ void xhci_shutdown(struct usb_hcd *hcd)
+@@ -812,6 +812,9 @@ void xhci_shutdown(struct usb_hcd *hcd)
  	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
  			"xhci_shutdown completed - status = %x",
  			readl(&xhci->op_regs->status));
