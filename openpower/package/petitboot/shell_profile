@@ -1,2 +1,10 @@
 export ENV="/home/petituser/.shrc"
-/usr/libexec/petitboot/pb-console
+TTY=${TTY:=`tty`}
+FBTERM=${FBTERM:=`which fbterm`}
+
+if [ -z "${TTY##/dev/tty[1-7]}" -a -x "$FBTERM" -a -w "/dev/fb0" ]
+then
+	exec $FBTERM -- /usr/libexec/petitboot/pb-console
+else
+	/usr/libexec/petitboot/pb-console
+fi

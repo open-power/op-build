@@ -1,5 +1,5 @@
 
 # spawn a petitboot UI on common user-visible interface devices
 SUBSYSTEM=="tty", KERNEL=="hvc*", RUN+="/usr/libexec/petitboot/pb-console --getty=/sbin/agetty --detach -- -a petituser -n -i $name linux"
-SUBSYSTEM=="tty", KERNEL=="tty0", RUN+="/usr/libexec/petitboot/pb-console --getty=/sbin/agetty --detach -- -a petituser -n -i $name linux"
+SUBSYSTEM=="graphics", KERNEL=="fb0", RUN+="/usr/libexec/petitboot/pb-console --getty=/sbin/agetty --detach -- -a petituser -n -i tty1 linux"
 SUBSYSTEM=="tty", KERNEL=="ttyS*", RUN+="/usr/libexec/petitboot/pb-console --getty=/sbin/agetty --detach -- -a petituser -n -i $name linux"

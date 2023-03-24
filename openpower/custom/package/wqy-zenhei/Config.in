@@ -1,0 +1,4 @@
+config BR2_PACKAGE_WQY_ZENHEI
+	bool "wqy-zenhei (Free Chinese-capable fonts)"
+	help
+	  Chinese-capable fonts for Framebuffer of X usage
