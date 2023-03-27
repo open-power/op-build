@@ -3,7 +3,7 @@
 # openpower_pnor_p10
 #
 ################################################################################
-
+HCODE_STAGE_DIR = $(STAGING_DIR)/../../../build/hcode-p10-*opmst10/output/images
 OPENPOWER_PNOR_P10_VERSION ?= 38b8d4759092a42d77a4f28939a0e3730f00e1f3
 OPENPOWER_PNOR_P10_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P10_VERSION))
 
@@ -157,6 +157,9 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeStringFile_DD1 $(PNOR_SCRATCH_DIR)/SBESTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeVerificationStringFile $(PNOR_SCRATCH_DIR)/SBEVSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(OCC_STAGING_DIR)/occStringFile $(PNOR_SCRATCH_DIR)/OCCSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(HCODE_STAGE_DIR)/qme_p10dd20/trexStringFile $(PNOR_SCRATCH_DIR)/QMESTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(HCODE_STAGE_DIR)/xgpe_p10dd20/trexStringFile $(PNOR_SCRATCH_DIR)/XGPESTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(HCODE_STAGE_DIR)/pgpe_p10dd20/trexStringFile $(PNOR_SCRATCH_DIR)/PGPESTRINGFILE.ipllid && \
             $(TARGET_MAKE_ENV) $(@D)/makelidpkg \
                 $(BINARIES_DIR)/$(XML_VAR).ebmc_lids.tar.gz \
                 $(PNOR_SCRATCH_DIR) && \
