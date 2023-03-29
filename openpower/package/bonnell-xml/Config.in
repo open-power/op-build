@@ -1,0 +1,86 @@
+menu "Bonnell XML (MRW)"
+
+config BR2_PACKAGE_BONNELL_XML
+        bool "bonnell_xml"
+
+if BR2_PACKAGE_BONNELL_XML
+
+choice
+	prompt "Bonnell XML location"
+
+config BR2_BONNELL_XML_GITHUB_PROJECT
+       bool "OpenPOWER Github project name"
+
+config BR2_BONNELL_XML_CUSTOM_GIT
+       bool "Custom URL of Bonnell xml repository"
+
+endchoice
+
+config BR2_BONNELL_XML_FILTER_UNWANTED_ATTRIBUTES
+       bool "Filter Unwanted Attributes"
+       default y
+
+config BR2_BONNELL_XML_OPPOWERVM_ATTRIBUTES
+       bool "OPPOWERVM Attributes/Target"
+       default y
+
+config BR2_BONNELL_XML_TARGET_TYPES_OPENPOWER_XML
+       bool "Include target_types_openpower.xml"
+       default y
+
+config BR2_BONNELL_XML_CUSTOM_GIT_VALUE
+	string "URL of Bonnell xml repository"
+	depends on BR2_BONNELL_XML_CUSTOM_GIT
+
+config BR2_BONNELL_XML_GITHUB_PROJECT_VALUE
+       string "The Github project name (e.g. bonnell-xml)"
+       default "bonnell-xml"
+       depends on BR2_BONNELL_XML_GITHUB_PROJECT
+
+config BR2_BONNELL_XML_VERSION
+       string "Version of Bonnell XML"
+
+config BR2_BONNELL_XML_FILENAME
+       string "Bonnell XML filename (e.g. bonnell-mrw.xml)"
+       default "bonnell-mrw.xml"
+       help
+           The name of the MRW XML file. Note that this file MUST
+           come with the '.xml' prefix (all lowercase)
+
+config BR2_BONNELL_XML_SYSTEM_FILENAME
+       string "Targeting Bonnell system xml filename"
+       default ""
+       help
+           Defines the name of the system XML filename
+           to be used when creating targeting binary image
+
+config BR2_BONNELL_XML_TARGETING_FILENAME
+       string "Targeting Bonnell mrw xml filename"
+       default ""
+       help
+           Defines the name of the mrw XML filename
+           to be used when creating targeting binary image
+
+config BR2_BONNELL_XML_BIOS_FILENAME
+       string "BIOS Bonnell metadata XML filename"
+       default "Bonnell-MRW_bios.xml"
+       help
+           Defines the name of the BIOS XML filename
+           to parse when generating BIOS metadata
+
+config BR2_BONNELL_XML_TARGETING_BIN_FILENAME
+       string "Name of the openpower binary targeting file"
+       default "Bonnell-MRW.targeting.bin"
+       help
+           String used to define name of openpower targeting binary file
+
+config BR2_BONNELL_XML_TARGETING_ECC_FILENAME
+       string "Name of the openpower binary targeting ecc file"
+       default "Bonnell-MRW.targeting.bin.ecc"
+       help
+           String used to define name of openpower
+           targeting binary file, ecc protected
+
+endif
+
+endmenu
