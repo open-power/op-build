@@ -48,13 +48,13 @@ WOF_TOOL = wof_data_xlator.pl
 WOF_BIN_OVERRIDE_LIST = wof_bins_for_override.txt
 
 # Defines for SPD file creation
-NEXT_EC=10
-IMAGE_TOKEN=--ecImg_10
+NEXT_INDEX=1
+IMAGE_TOKEN=--spdImg_1
 
-define build_ecImgs
+define build_spdImgs
     $(eval SPD_FILES_TOKENED += $$(addprefix $(2) , $(1)))
-    $(eval NEXT_EC=$(shell echo $$(($(NEXT_EC)+10))))
-    $(eval IMAGE_TOKEN = --ecImg_$(NEXT_EC))
+    $(eval NEXT_INDEX=$(shell echo $$(($(NEXT_INDEX)+1))))
+    $(eval IMAGE_TOKEN = --spdImg_$(NEXT_INDEX))
 endef
 
 define BONNELL_XML_FILTER_UNWANTED_ATTRIBUTES
@@ -157,9 +157,9 @@ define BONNELL_XML_BUILD_CMDS
         fi
 
         $(foreach spd_image_file, $(SPD_IMAGE_FILES), \
-            $(call build_ecImgs,$(spd_image_file),$(IMAGE_TOKEN)))
+            $(call build_spdImgs,$(spd_image_file),$(IMAGE_TOKEN)))
 
-        # SPD_FILES_TOKENED is what is used as input for the --ecImg_'s to buildSPDImages.pl
+        # SPD_FILES_TOKENED is what is used as input for the --spdImg_'s to buildSPDImages.pl
         #
         # If SPD_FILES_TOKENED is empty we get zero SPD Images built (tocCount=0)
         #
