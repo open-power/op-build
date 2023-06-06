@@ -9,15 +9,18 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 695f8e739a91..f2280292b96e 100644
+index 3450b061e8d69..a89fcaa4301fd 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 5
  PATCHLEVEL = 10
- SUBLEVEL = 108
+ SUBLEVEL = 184
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
  NAME = Dare mighty things
  
  # *DOCUMENTATION*
+-- 
+2.40.1
+
