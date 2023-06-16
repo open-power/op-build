@@ -1,0 +1,11 @@
+config BR2_PACKAGE_OP_IMAGE_TOOLS
+    bool "op-image-tools"
+    depends on BR2_PACKAGE_OPENPOWER_PNOR_P10
+    select BR2_PACKAGE_HOST_PYTHON3
+    select BR2_PACKAGE_HOST_PYTHON3_SSL
+    help
+        OpenPOWER Image Tools package.
+
+config BR2_OP_IMAGE_TOOLS_VERSION
+    string
+    default "6fa77de0a55cad0ad9c4e655bd73e155d4a81868"
