@@ -1,0 +1,110 @@
+properties([buildDiscarder(logRotator(  daysToKeepStr: '30', numToKeepStr: '100',
+                                        artifactDaysToKeepStr: '7', artifactNumToKeepStr: '30')),
+    parameters([
+        string( name: 'EBMC_PIPELINES_BRANCH',
+                defaultValue: 'master',
+                description: "power-devops/ebmc-pipelines branch identifier, Can be branch or refspec (refs/remotes/origin/pr/#)"),
+        string( name: 'AGENT',
+                defaultValue: "redhat-8",
+                description: "Jenkins agent, Accepts label or single node name"),
+        string( name: 'BUILD_PATH',
+                defaultValue: '',
+                description: 'Where artifacts will be saved'),
+        // for opbuild
+        string( name: 'CONFIG',
+                defaultValue: "p10ebmc",
+                description: "Hostboot config to build"),
+        // for gerrit
+        string( name: 'GERRIT_PROJECT',
+                defaultValue: 'hostboot',
+                description: ''),
+        string( name: 'GERRIT_BRANCH',
+                defaultValue: 'master-p10',
+                description: ''),
+        string( name: 'GERRIT_PATCHSET_REVISION',
+                defaultValue: '',
+                description: ''),
+        string( name: 'GERRIT_REFSPEC',
+                defaultValue: '',
+                description: ''),
+        // for github
+        string( name: 'ghprbTargetBranch',
+                defaultValue: '',
+                description: ''),
+        string( name: 'ghprbPullLink',
+                defaultValue: '',
+                description: ''),
+        string( name: 'ghprbActualCommit',
+                defaultValue: '',
+                description: ''),
+        string( name: 'ghprbGhRepository',
+                defaultValue: '',
+                description: '')
+    ])
+])
+
+ansiColor('xterm') {
+    timestamps {
+        timeout('120') {
+            node(env.AGENT) {
+                library identifier: "ebmc-pipelines@${env.EBMC_PIPELINES_BRANCH}",
+                        retriever: modernSCM([
+                            $class: 'GitSCMSource',
+                            credentialsId: 'GHE-opjenkins',
+                            remote: 'https://github.ibm.com/power-devops/ebmc-pipelines.git',
+                            traits: [
+                        [$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait'],
+                        [
+                        $class: 'RefSpecsSCMSourceTrait',
+                        templates: [
+                            [value: '+refs/heads/*:refs/remotes/origin/*'],
+                            [value: '+refs/pull/*/head:refs/remotes/origin/pr/*']
+                        ]
+                        ]
+                    ]
+                ])
+                // default to redhat
+                def os_type = 'redhat'
+                if (env.AGENT.contains('ubuntu')) {
+                    os_type = 'ubuntu'
+                }
+                stage ("op-build/${env.CONFIG}/${os_type}") {
+                    try {
+                        login('hostboot')
+                        cleanWs()
+                        post_status(env.STAGE_NAME, 'Started', 'PENDING')
+                        // post status
+                        // forgot the exact details but it has some conflicting tools that was running on priority
+                        env.PATH = env.PATH.replace('/afs/austin.ibm.com/projects/esw/bin:', '')
+                        // hack for op-ci-build.sh
+                        env.AGENT = 'rhel'
+                        env.PYTHONUNBUFFERED = '1'
+                        sh script:  """#!/bin/bash -e
+                        source "/etc/profile.d/conda.sh"
+                        conda activate python38
+                        git clone --depth 1 git@github.ibm.com:power-devops/openpower-ci.git $WORKSPACE/openpower-ci
+
+                        $WORKSPACE/openpower-ci/build-auto/op-ci-build.sh -p -r $GERRIT_BRANCH
+                        #$WORKSPACE/openpower-ci/build-auto/op-ci-build.sh -p -r master-p10
+                        echo $BUILD_URL > $WORKSPACE/SUCCESS
+                        """
+                        def src = ["SUCCESS"]
+                                
+                        upload src: src
+                        
+                        post_status(env.STAGE_NAME, 'Passed', 'SUCCESS')
+                    } catch (Exception e) {
+                        catchError( message: "Failure in ${env.STAGE_NAME}",
+                                    stageResult: 'FAILURE',
+                                    buildResult: 'FAILURE') {
+                            post_status(env.STAGE_NAME, 'Failed', 'FAILURE')
+                            error(e.getMessage())
+                        }
+                    } finally {
+                        archiveArtifacts artifacts: 'build/output_img/**/*', allowEmptyArchive: true
+                    }
+                }
+            }
+        }
+    }
+}
