@@ -73,7 +73,7 @@ node('redhat-8') {
 
   def job_config = job_utility.setup fw_level: env?.FW_LEVEL ?: 'fw1060', scm_type: 'multibranch-github'
   
-  def ubuntu_build = [job_path: 'op-build/ubuntu',
+  def ubuntu_build = [job_path: '../op-build/ubuntu',
                       agent: 'ubuntu && ppc',
                       config: 'p10ebmc',
                       build_path: "${job_config.build_path}/op-build/ubuntu-ppc/",
@@ -81,38 +81,38 @@ node('redhat-8') {
                       patched_branch: env?.CHANGE_TARGET ?: "master-p10",
                       allow_failure: true]
 
-  def redhat_build = [job_path: 'op-build/redhat-8',
+  def redhat_build = [job_path: '../op-build/redhat-8',
                       agent: 'redhat-8 && build && aus.stglabs.ibm.com',
                       config: 'p10ebmc',
                       build_path: "${job_config.build_path}/op-build/redhat-8-x86/",
                       patched_repo: "open-power/op-build",
                       patched_branch: env?.CHANGE_TARGET ?: "master-p10"]
 
-  def ebmc_build = [job_path: 'ebmc-pkg/p10ebmc',
+  def ebmc_build = [job_path: '../ebmc-pkg/p10ebmc',
                   agent: 'redhat-8 && build',
                   chip: 'p10ebmc',
                   build_path: "${job_config.build_path}/ebmc-build/",
                   pnor: redhat_build.build_path]
   
-  def simics_rainier_2s2u =  [job_path: 'simics-ci/rainier_2s2u',
+  def simics_rainier_2s2u =  [job_path: '../simics-ci/rainier_2s2u',
                               agent: 'redhat-8 && simics',
                               machine: 'rainier_2s2u_openbmc-test',
                               build_path: "${job_config.build_path}/simics-ci/rainier_2s2u/",
                               ebmc_build: ebmc_build.build_path]
 
-  def simics_everest =    [  job_path: 'simics-ci/everest',
+  def simics_everest =    [  job_path: '../simics-ci/everest',
                               agent: 'redhat-8 && simics',
                               machine: 'everest_openbmc-test',
                               build_path: "${job_config.build_path}/simics-ci/everest/",
                               ebmc_build: ebmc_build.build_path]
 
-  def rainier_hardware = [job_path: 'hardware-ci/rainier',
+  def rainier_hardware = [job_path: '../hardware-ci/rainier',
                           agent: 'ubuntu && x86',
                           machine: 'rainier',
                           build_path: "${job_config.build_path}/hardware-ci/rainier/",
                           ebmc_build: ebmc_build.build_path]
 
-  def everest_hardware = [job_path: 'hardware-ci/everest',
+  def everest_hardware = [job_path: '../hardware-ci/everest',
                           agent: 'ubuntu && x86',
                           machine: 'everest',
                           build_path: "${job_config.build_path}/hardware-ci/everest/",
