@@ -1,110 +1,135 @@
-properties([buildDiscarder(logRotator(  daysToKeepStr: '30', numToKeepStr: '100',
-                                        artifactDaysToKeepStr: '7', artifactNumToKeepStr: '30')),
+properties([buildDiscarder(logRotator(daysToKeepStr: '30')),
     parameters([
         string( name: 'EBMC_PIPELINES_BRANCH',
-                defaultValue: 'master',
-                description: "power-devops/ebmc-pipelines branch identifier, Can be branch or refspec (refs/remotes/origin/pr/#)"),
-        string( name: 'AGENT',
-                defaultValue: "redhat-8",
-                description: "Jenkins agent, Accepts label or single node name"),
-        string( name: 'BUILD_PATH',
+                defaultValue: 'main',
+                description: "power-devops/ebmc-pipelines branch identifier, Can be branch or refspec"),
+        string( name: 'FW_LEVEL',
+                defaultValue: "",
+                description: 'fwXXXX'),
+        string( name: 'EBMC_BUILD',
+                defaultValue: "",
+                description: "<a href=https://rchweb.rchland.ibm.com/afs/rchland/projects/esw/fw1020.html>fw</a> build. 1020, 1030, 1040"),
+        string( name: 'EBMC_PKG_TOOLS',
+                defaultValue: "",
+                description: "<a href=https://github.ibm.com/ebmc-pkg/ebmc-pkg-tools>ebmc-pkg/ebmc-pkg-tools</a> commit"),
+        string( name: 'SIMICS_BUILD',
+                defaultValue: "",
+                description: "<a href=https://ausgsa.ibm.com/gsa/ausgsa/projects/s/simics_published_builds/p10_published_builds.txt>simics</a> build"),
+        string( name: 'SIMULATION_TEST',
+                defaultValue: "",
+                description: "<a href=https://github.ibm.com/power-devops/simulation-test>power-devops/simulation-test</a> commit"),
+        string( name: 'OPENBMC_TEST_AUTOMATION',
+                defaultValue: "",
+                description: "<a href=https://github.com/openbmc/openbmc-test-automation>openbmc/openbmc-test-automation</a> commit"),
+        string( name: 'OPENBMC_BUILD_SCRIPTS',
+                defaultValue: "",
+                description: "<a href=https://github.com/openbmc/openbmc-build-scripts/>openbmc/openbmc-build-scripts</a> commit"),
+        string( name: 'CHANGE_URL',
                 defaultValue: '',
-                description: 'Where artifacts will be saved'),
-        // for opbuild
-        string( name: 'CONFIG',
-                defaultValue: "p10ebmc",
-                description: "Hostboot config to build"),
-        // for gerrit
-        string( name: 'GERRIT_PROJECT',
-                defaultValue: 'hostboot',
-                description: ''),
-        string( name: 'GERRIT_BRANCH',
-                defaultValue: 'master-p10',
-                description: ''),
-        string( name: 'GERRIT_PATCHSET_REVISION',
+                description: 'Previously ghprbPullLink || GERRIT_REFSPEC'),
+        string( name: 'CHANGE_COMMIT_HASH',
                 defaultValue: '',
-                description: ''),
-        string( name: 'GERRIT_REFSPEC',
+                description: 'Previously ghprbActualCommit || GERRIT_PATCHSET_REVISION'),
+        string( name: 'CHANGE_TARGET',
                 defaultValue: '',
-                description: ''),
-        // for github
-        string( name: 'ghprbTargetBranch',
+                description: 'Previously ghprbTargetBranch || GERRIT_BRANCH'),
+        string( name: 'CHANGE_REPO',
                 defaultValue: '',
-                description: ''),
-        string( name: 'ghprbPullLink',
+                description: 'Previously ghprbGhRepository || GERRIT_PROJECT'),
+        string( name: 'CHANGE_AUTHOR_DISPLAY_NAME',
                 defaultValue: '',
-                description: ''),
-        string( name: 'ghprbActualCommit',
+                description: 'Previously ghprbActualCommitAuthor || GERRIT_CHANGE_OWNER_NAME'),
+        string( name: 'CHANGE_AUTHOR_EMAIL',
                 defaultValue: '',
-                description: ''),
-        string( name: 'ghprbGhRepository',
+                description: 'Previously ghprbTriggerAuthorEmail || GERRIT_CHANGE_OWNER_EMAIL'),
+        string( name: 'CHANGE_TITLE',
                 defaultValue: '',
-                description: '')
+                description: 'Previously ghprbPullTitle || GERRIT_CHANGE_SUBJECT')
     ])
 ])
 
-ansiColor('xterm') {
-    timestamps {
-        timeout('120') {
-            node(env.AGENT) {
-                library identifier: "ebmc-pipelines@${env.EBMC_PIPELINES_BRANCH}",
-                        retriever: modernSCM([
-                            $class: 'GitSCMSource',
-                            credentialsId: 'GHE-opjenkins',
-                            remote: 'https://github.ibm.com/power-devops/ebmc-pipelines.git',
-                            traits: [
-                        [$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait'],
-                        [
-                        $class: 'RefSpecsSCMSourceTrait',
-                        templates: [
-                            [value: '+refs/heads/*:refs/remotes/origin/*'],
-                            [value: '+refs/pull/*/head:refs/remotes/origin/pr/*']
-                        ]
-                        ]
-                    ]
-                ])
-                // default to redhat
-                def os_type = 'redhat'
-                if (env.AGENT.contains('ubuntu')) {
-                    os_type = 'ubuntu'
-                }
-                stage ("op-build/${env.CONFIG}/${os_type}") {
-                    try {
-                        login('hostboot')
-                        cleanWs()
-                        post_status(env.STAGE_NAME, 'Started', 'PENDING')
-                        // post status
-                        // forgot the exact details but it has some conflicting tools that was running on priority
-                        env.PATH = env.PATH.replace('/afs/austin.ibm.com/projects/esw/bin:', '')
-                        // hack for op-ci-build.sh
-                        env.AGENT = 'rhel'
-                        env.PYTHONUNBUFFERED = '1'
-                        sh script:  """#!/bin/bash -e
-                        source "/etc/profile.d/conda.sh"
-                        conda activate python38
-                        git clone --depth 1 git@github.ibm.com:power-devops/openpower-ci.git $WORKSPACE/openpower-ci
+timestamps {
+ansiColor("xterm") {
+node('redhat-8') {
+              // this is for the jenkins shared libary, used for library development
+  def branch = env?.EBMC_PIPELINES_BRANCH ?: 'main'
+  def refspec = "+refs/heads/${branch}:refs/remotes/origin/${branch}"
+  
+  // for pr
+  if (branch.contains('refs/remotes/origin/pr/')) {
+    pr_num = env.EBMC_PIPELINES_BRANCH.split('refs/remotes/origin/pr/')[1]
+    refspec = "+refs/pull/${pr_num}/head:refs/remotes/origin/pr/${pr_num}"
+  }
 
-                        $WORKSPACE/openpower-ci/build-auto/op-ci-build.sh -p -r $GERRIT_BRANCH
-                        #$WORKSPACE/openpower-ci/build-auto/op-ci-build.sh -p -r master-p10
-                        echo $BUILD_URL > $WORKSPACE/SUCCESS
-                        """
-                        def src = ["SUCCESS"]
-                                
-                        upload src: src
-                        
-                        post_status(env.STAGE_NAME, 'Passed', 'SUCCESS')
-                    } catch (Exception e) {
-                        catchError( message: "Failure in ${env.STAGE_NAME}",
-                                    stageResult: 'FAILURE',
-                                    buildResult: 'FAILURE') {
-                            post_status(env.STAGE_NAME, 'Failed', 'FAILURE')
-                            error(e.getMessage())
-                        }
-                    } finally {
-                        archiveArtifacts artifacts: 'build/output_img/**/*', allowEmptyArchive: true
-                    }
-                }
-            }
-        }
-    }
+  library identifier: "ebmc-pipelines@${branch}",
+          retriever: modernSCM([$class: 'GitSCMSource',
+                                credentialsId: 'GHE-opjenkins',
+                                remote: 'https://github.ibm.com/power-devops/ebmc-pipelines.git',
+                                traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait'],
+                                        [$class: 'RefSpecsSCMSourceTrait', templates: [[value: refspec]]]]])
+
+  currentBuild.displayName = "#${env.BUILD_NUMBER} ${env?.CHANGE_TITLE}"
+  currentBuild.description = "${env?.CHANGE_AUTHOR_DISPLAY_NAME}<br>${env?.CHANGE_URL}"
+
+  def job_config = job_utility.setup fw_level: env?.FW_LEVEL ?: 'fw1060', scm_type: 'multibranch-github'
+  
+  def ubuntu_build = [job_path: 'op-build/ubuntu',
+                      agent: 'ubuntu && ppc',
+                      config: 'p10ebmc',
+                      build_path: "${job_config.build_path}/op-build/ubuntu-ppc/",
+                      patched_repo: "open-power/op-build",
+                      patched_branch: env?.CHANGE_TARGET ?: "master-p10",
+                      allow_failure: true]
+
+  def redhat_build = [job_path: 'op-build/redhat-8',
+                      agent: 'redhat-8 && build && aus.stglabs.ibm.com',
+                      config: 'p10ebmc',
+                      build_path: "${job_config.build_path}/op-build/redhat-8-x86/",
+                      patched_repo: "open-power/op-build",
+                      patched_branch: env?.CHANGE_TARGET ?: "master-p10"]
+
+  def ebmc_build = [job_path: 'ebmc-pkg/p10ebmc',
+                  agent: 'redhat-8 && build',
+                  chip: 'p10ebmc',
+                  build_path: "${job_config.build_path}/ebmc-build/",
+                  pnor: redhat_build.build_path]
+  
+  def simics_rainier_2s2u =  [job_path: 'simics-ci/rainier_2s2u',
+                              agent: 'redhat-8 && simics',
+                              machine: 'rainier_2s2u_openbmc-test',
+                              build_path: "${job_config.build_path}/simics-ci/rainier_2s2u/",
+                              ebmc_build: ebmc_build.build_path]
+
+  def simics_everest =    [  job_path: 'simics-ci/everest',
+                              agent: 'redhat-8 && simics',
+                              machine: 'everest_openbmc-test',
+                              build_path: "${job_config.build_path}/simics-ci/everest/",
+                              ebmc_build: ebmc_build.build_path]
+
+  def rainier_hardware = [job_path: 'hardware-ci/rainier',
+                          agent: 'ubuntu && x86',
+                          machine: 'rainier',
+                          build_path: "${job_config.build_path}/hardware-ci/rainier/",
+                          ebmc_build: ebmc_build.build_path]
+
+  def everest_hardware = [job_path: 'hardware-ci/everest',
+                          agent: 'ubuntu && x86',
+                          machine: 'everest',
+                          build_path: "${job_config.build_path}/hardware-ci/everest/",
+                          ebmc_build: ebmc_build.build_path]
+
+  // run the jobs
+  parallel 'ubuntu' :  { launch_job (job_config + ubuntu_build) },
+           'redhat' :  { launch_job (job_config + redhat_build) 
+                         launch_job (job_config + ebmc_build) 
+  
+                         parallel   'rainier_2s2u'       : { launch_job (job_config + simics_rainier_2s2u) },
+                                    'everest'            : { launch_job (job_config + simics_everest) }
+  
+                         parallel    'rainier'   : { launch_job (job_config + rainier_hardware) },
+                                      'everest'   : { launch_job (job_config + everest_hardware) }}
+
+  job_utility.archive()
+}
+}
 }
