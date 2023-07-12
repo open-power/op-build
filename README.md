@@ -57,7 +57,7 @@ a handful of other packages (see below).
           python language-pack-en texinfo gawk cpio xxd \
           build-essential g++ git bison flex unzip \
           libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
-          wget bc rsync
+          wget bc rsync python3-venv
 
 ### Dependencies for *64-bit* Fedora systems
 
