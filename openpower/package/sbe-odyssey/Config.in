@@ -3,6 +3,7 @@ config BR2_PACKAGE_SBE_ODYSSEY
     depends on BR2_PACKAGE_OPENPOWER_PNOR_P10
     select BR2_PACKAGE_HOST_PYTHON3
     select BR2_PACKAGE_HOST_PYTHON3_SSL
+    select BR2_PACKAGE_HOST_PYTHON3_BZIP2
     select BR2_PACKAGE_OP_IMAGE_TOOLS
     help
         Odyssey SBE package.
