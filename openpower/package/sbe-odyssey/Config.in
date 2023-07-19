@@ -1,0 +1,12 @@
+config BR2_PACKAGE_SBE_ODYSSEY
+    bool "sbe-odyssey"
+    depends on BR2_PACKAGE_OPENPOWER_PNOR_P10
+    select BR2_PACKAGE_HOST_PYTHON3
+    select BR2_PACKAGE_HOST_PYTHON3_SSL
+    select BR2_PACKAGE_OP_IMAGE_TOOLS
+    help
+        Odyssey SBE package.
+
+config BR2_SBE_ODYSSEY_VERSION
+    string
+    default "9bc603e6ff40d64680a9364066928b04b14b39af"
