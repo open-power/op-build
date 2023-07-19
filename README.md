@@ -53,7 +53,7 @@ a handful of other packages (see below).
         sudo add-apt-repository universe
 3. Install the packages necessary for the build:
 
-        sudo apt-get install cscope ctags libz-dev libexpat-dev \
+        sudo apt-get install cscope ctags libz-dev libbz2-dev libexpat-dev \
           python language-pack-en texinfo gawk cpio xxd \
           build-essential g++ git bison flex unzip \
           libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
@@ -70,5 +70,5 @@ a handful of other packages (see below).
           "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" "perl(ExtUtils::MakeMaker)" \
           "perl(FindBin)" "perl(English)" "perl(Time::localtime)" \
           libxml2-devel which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
-          openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname
+          openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname bzip2-devel
 
