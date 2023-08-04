@@ -2,7 +2,7 @@
 
 tag_name=op-build:$(git rev-parse --abbrev-ref HEAD)
 #--no-cache
-podman build --build-arg UID=$UID --build-arg GID=$(id -g) --build-arg USER=$USER -t $tag_name -f ci/ibm/Dockerfile ci/ibm 
+podman build --no-cache --build-arg UID=$UID --build-arg GID=$(id -g) --build-arg USER=$USER -t $tag_name -f ci/ibm/Dockerfile ci/ibm 
 
 #podman run -it --userns=keep-id -v /home/$USER/op-build-dlarson:/home/$USER/op-build:z -v /home/$USER/.ssh:/home/$USER/.ssh:z -w /home/$USER/op-build demo:v1
 containier_id=$(podman run -dit --userns=keep-id -v /home/$USER/.ssh:/home/$USER/.ssh:z $tag_name)
@@ -10,10 +10,10 @@ containier_id=$(podman run -dit --userns=keep-id -v /home/$USER/.ssh:/home/$USER
 # download
 start_time=$(date +%s)
 
-podman cp $HOME/op-build $containier_id:op-build
+podman cp $WORKSPACE/op-build $containier_id:op-build
 
 end_time=$(date +%s)
-echo "cp $HOME/op-build $containier_id:op-build" > timings.txt
+echo "cp $WORKSPACE/op-build $containier_id:op-build" > timings.txt
 echo "Elapsed Time: $(($end_time-$start_time)) seconds" >> timings.txt
 
 
