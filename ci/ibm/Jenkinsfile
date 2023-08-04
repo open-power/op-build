@@ -14,7 +14,7 @@ ansiColor("xterm") {
         cd $WORKSPACE/op-build
         if [[ "$CHANGE_ID" != "" ]]; then   
             git fetch origin pull/$CHANGE_ID/head
-            git checkout FETCH_HEAD                
+            git checkout -b $CHANGE_ID FETCH_HEAD 
         fi
 
         ci/ibm/podman_start.sh

@@ -10,10 +10,10 @@ containier_id=$(podman run -dit --userns=keep-id -v /home/$USER/.ssh:/home/$USER
 # download
 start_time=$(date +%s)
 
-podman cp /home/dlarson/op-build-dlarson $containier_id:op-build
+podman cp $HOME/op-build $containier_id:op-build
 
 end_time=$(date +%s)
-echo "cp /home/dlarson/op-build-dlarson $containier_id:op-build" > timings.txt
+echo "cp $HOME/op-build $containier_id:op-build" > timings.txt
 echo "Elapsed Time: $(($end_time-$start_time)) seconds" >> timings.txt
 
 
