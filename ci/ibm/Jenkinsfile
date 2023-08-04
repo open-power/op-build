@@ -1,0 +1,27 @@
+properties([buildDiscarder(logRotator(daysToKeepStr: '30')),
+    parameters([
+    ])
+])
+node ('podman_test'){
+timestamps {
+ansiColor("xterm") {
+    stage('op-build compile') {
+                
+        cleanWs()
+
+        sh '''#!/bin/bash
+        git clone --recurse-submodules --single-branch --branch master-p10 git@github.com:open-power/op-build.git $WORKSPACE/op-build
+        $WORKSPACE/op-build
+        if [[ "$CHANGE_ID" != "" ]];   
+            git fetch origin pull/$CHANGE_ID/head
+            git checkout FETCH_HEAD                
+        fi
+
+        ./ci/ibm/podman_start.sh
+
+        '''
+
+    }
+}
+}
+}
