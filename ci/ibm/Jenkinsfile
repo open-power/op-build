@@ -12,7 +12,7 @@ ansiColor("xterm") {
         sh '''#!/bin/bash
         git clone --recurse-submodules --single-branch --branch master-p10 git@github.com:open-power/op-build.git $WORKSPACE/op-build
         $WORKSPACE/op-build
-        if [[ "$CHANGE_ID" != "" ]];   
+        if [[ "$CHANGE_ID" != "" ]]; then   
             git fetch origin pull/$CHANGE_ID/head
             git checkout FETCH_HEAD                
         fi
