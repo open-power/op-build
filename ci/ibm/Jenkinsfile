@@ -17,7 +17,7 @@ ansiColor("xterm") {
             git checkout -b $CHANGE_ID FETCH_HEAD 
         fi
 
-        ci/ibm/podman_start.sh
+        ci/ibm/podman_jenkins.sh
 
         '''
 
