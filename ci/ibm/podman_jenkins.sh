@@ -34,15 +34,14 @@ end_time=$(date +%s)
 echo "cp $opbuild_dir $container_id:$working_dir took $(($end_time-$start_time)) seconds" >> timings.txt
 
 # do the compile
-
-podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build source"
 end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
 
 
 # Upload build images to artifactory
 start_time=$(date +%s)
-podman exec -w $working_dir $container_id /bin/bash -c "./rt_upload.sh"
+podman exec -w $working_dir $container_id /bin/bash -c "./ci/ibm/upload_artifactory.sh"
 end_time=$(date +%s)
 echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
 echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
@@ -59,9 +58,13 @@ start_time=$(date +%s)
 podman push $remote_tag
 end_time=$(date +%s)
 echo "podman push took $(($end_time-$start_time)) seconds" >> timings.txt
-
 echo "Browse https://$remote_tag"
 
+echo "To recreate\n\
+        podman run -itd --userns=keep-id --user \
+                -v /home/$USER/.ssh:/home/$USER/.ssh:z \
+                -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \
+                -w $working_dir $remote_tag"
 
 # Stop and remove the container upon successful run
 podman stop $container_id 
