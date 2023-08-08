@@ -9,6 +9,7 @@ opbuild_dir=${1:-${WORKSPACE}/op-build}
 local_tag=${2:-op-build:pr-${CHANGE_ID}}
 # create unique tag for artifactory
 remote_tag=${3:-docker-na-public.artifactory.swg-devops.com/pse-jet-docker-local/op-build/pr-${CHANGE_ID}:${BUILD_NUMBER}}
+latest_tag=${4:-docker-na-public.artifactory.swg-devops.com/pse-jet-docker-local/op-build/pr-${CHANGE_ID}:latest}
 
 working_dir=/home/$USER/op-build
 
@@ -43,7 +44,7 @@ echo "cp $opbuild_dir $container_id:$working_dir took $(($end_time-$start_time))
 
 start_time=$(date +%s)
 # do the compile
-podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig"
 end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
 
@@ -62,6 +63,7 @@ echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-
 start_time=$(date +%s)
 # create unique tag for artifactory
 podman commit $container_id $remote_tag
+podman tag $remote_tag $latest_tag
 end_time=$(date +%s)
 echo "podman commit took $(($end_time-$start_time)) seconds" >> timings.txt
 
@@ -70,6 +72,7 @@ echo "podman commit took $(($end_time-$start_time)) seconds" >> timings.txt
 start_time=$(date +%s)
 # push to artifactory to save this version of the environment
 podman push $remote_tag
+podman push $latest_tag
 end_time=$(date +%s)
 echo "podman push took $(($end_time-$start_time)) seconds" >> timings.txt
 echo "Browse tags https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-docker-local/op-build/pr-$CHANGE_ID"
