@@ -1,10 +1,6 @@
 #!/bin/bash
 set -xeo pipefail
 
-artifactory_docker_repo=docker-na-public.artifactory.swg-devops.com/pse-jet-docker-local
-artifactory_file_repo=na-public.artifactory.swg-devops.com
-artifactory_path=op-build/pr-${CHANGE_ID}:${BUILD_NUMBER}
-
 # used by jenkins processes
 WORKSPACE=${WORKSPACE:-${HOME}}
 # allows user to volume mount a op-build repo
@@ -12,10 +8,9 @@ opbuild_dir=${1:-${WORKSPACE}/op-build}
 # uses git branch name by default 
 local_tag=${2:-op-build:pr-${CHANGE_ID}}
 # create unique tag for artifactory
-remote_tag=${3:-${artifactory_docker_repo}/${artifactory_path}}
+remote_tag=${3:-docker-na-public.artifactory.swg-devops.com/pr-${CHANGE_ID}:${BUILD_NUMBER}}
 
 working_dir=/home/$USER/op-build
-
 
 #--no-cache
 start_time=$(date +%s)
@@ -46,7 +41,7 @@ echo "cp $opbuild_dir $container_id:$working_dir took $(($end_time-$start_time))
 
 # do the compile
 start_time=$(date +%s)
-podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig"
 end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
 
@@ -57,12 +52,13 @@ podman exec -w $working_dir $container_id /bin/bash -c "./ci/ibm/upload_artifact
 podman cp $container_id:$working_dir/upload.log $WORKSPACE
 end_time=$(date +%s)
 echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
-echo "Browse https://${artifactory_file_repo}/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
+echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
 
 
 # create unique tag for artifactory
 start_time=$(date +%s)
 podman commit $container_id $remote_tag
+podman push $remote_tag
 end_time=$(date +%s)
 echo "podman tag took $(($end_time-$start_time)) seconds" >> timings.txt
 
@@ -72,7 +68,7 @@ start_time=$(date +%s)
 podman push $remote_tag
 end_time=$(date +%s)
 echo "podman push took $(($end_time-$start_time)) seconds" >> timings.txt
-echo "Browse https://${artifactory_file_repo}/ui/native/$remote_tag"
+echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-docker-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
 
 echo "To recreate\n\
         podman run -itd --userns=keep-id --user hostboot\
