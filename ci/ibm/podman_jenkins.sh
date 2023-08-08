@@ -19,8 +19,8 @@ end_time=$(date +%s)
 echo "podman build took $(($end_time-$start_time)) seconds" > timings.txt
 
 
-# start the environment in the background
 start_time=$(date +%s)
+# start the environment in the background
 container_id=$(podman run -dit --userns=keep-id \
                 -e BUILD_NUMBER=$BUILD_NUMBER \
                 -e CHANGE_ID=$CHANGE_ID \
@@ -32,27 +32,30 @@ end_time=$(date +%s)
 echo "podman run took $(($end_time-$start_time)) seconds" >> timings.txt
 
 
-# copy the repo in. all files now stay inside container
+
 start_time=$(date +%s)
+# copy the repo in. all files now stay inside container
 podman cp $opbuild_dir $container_id:$working_dir
 end_time=$(date +%s)
 echo "cp $opbuild_dir $container_id:$working_dir took $(($end_time-$start_time)) seconds" >> timings.txt
 
 
-# do the compile
+
 start_time=$(date +%s)
-podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig"
+# do the compile
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
 end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
 
 
-# Upload build images to artifactory
+
 start_time=$(date +%s)
+# Upload build images to artifactory
 podman exec -w $working_dir $container_id /bin/bash -c "./ci/ibm/upload_artifactory.sh"
 podman cp $container_id:$working_dir/upload.log $WORKSPACE
 end_time=$(date +%s)
 echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
-echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
+echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER"
 
 
 
@@ -60,15 +63,16 @@ start_time=$(date +%s)
 # create unique tag for artifactory
 podman commit $container_id $remote_tag
 end_time=$(date +%s)
-echo "podman tag took $(($end_time-$start_time)) seconds" >> timings.txt
+echo "podman commit took $(($end_time-$start_time)) seconds" >> timings.txt
 
 
-# push to artifactory to save this version of the environment
+
 start_time=$(date +%s)
+# push to artifactory to save this version of the environment
 podman push $remote_tag
 end_time=$(date +%s)
 echo "podman push took $(($end_time-$start_time)) seconds" >> timings.txt
-echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-docker-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
+echo "Browse tags https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-docker-local/op-build/pr-$CHANGE_ID"
 
 echo "To recreate\n\
         podman run -itd --userns=keep-id --user hostboot\
@@ -76,8 +80,9 @@ echo "To recreate\n\
                 -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \
                 -w $working_dir $remote_tag"
 
-# Stop and remove the container upon successful run
+
 start_time=$(date +%s)
+# Stop and remove the container upon successful run
 podman stop $container_id
 end_time=$(date +%s)
 echo "podman stop took $(($end_time-$start_time)) seconds" >> timings.txt
