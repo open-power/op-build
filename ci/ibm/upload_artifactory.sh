@@ -46,4 +46,4 @@ cp $origin/.config $op_build_path/build/output_img/$agent_os/$CONFIG/p10ebmc.con
 cp $HOME/Podman_Tutorial/p10ebmc_upload_spec.txt $op_build_path/.
 
 # upload to artifactory
-jf rt u --spec=p10ebmc_upload_spec.txt >> upload.log
+jf rt u --spec=ci/ibm/p10ebmc_upload_spec.txt >> upload.log
