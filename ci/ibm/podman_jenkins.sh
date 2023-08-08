@@ -55,10 +55,10 @@ echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) sec
 echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
 
 
-# create unique tag for artifactory
+
 start_time=$(date +%s)
+# create unique tag for artifactory
 podman commit $container_id $remote_tag
-podman push $remote_tag
 end_time=$(date +%s)
 echo "podman tag took $(($end_time-$start_time)) seconds" >> timings.txt
 
