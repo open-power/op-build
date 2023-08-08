@@ -8,7 +8,7 @@ ansiColor("xterm") {
                 
         cleanWs()
 
-        sh '''#!/bin/bash
+        sh '''#!/bin/bash -e
         git clone --recurse-submodules --single-branch --branch master-p10 git@github.com:open-power/op-build.git $WORKSPACE/op-build
         cd $WORKSPACE/op-build
         if [[ "$CHANGE_ID" != "" ]]; then   
