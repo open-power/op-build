@@ -43,7 +43,7 @@ cp $origin/host/powerpc64le-buildroot-linux-gnu/sysroot/sbe_sim_data/* $powerpc_
 cp $origin/.config $op_build_path/build/output_img/$agent_os/$CONFIG/p10ebmc.config
 
 # upload to artifactory
-echo "{\"files\": [{\"pattern\": \"build/output_img/**/*\",	\"target\": \"pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/\", \"flat\": \"false\"}]} > ci/ibm/p10ebmc_upload_spec.txt
+echo "{\"files\": [{\"pattern\": \"build/output_img/**/*\",	\"target\": \"pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/\", \"flat\": \"false\"}]}" > ci/ibm/p10ebmc_upload_spec.txt
 
 jf rt u --spec=ci/ibm/p10ebmc_upload_spec.txt >> upload.log
 #jf rt u build/output_img/**/* pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/ >> upload.log
