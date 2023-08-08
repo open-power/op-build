@@ -20,7 +20,7 @@ start_time=$(date +%s)
 container_id=$(podman run -dit --userns=keep-id \
                 -v /home/$USER/.ssh:/home/$USER/.ssh:z \
                 -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \
-                -w $working_dir $tag_name)
+                $tag_name)
 
 end_time=$(date +%s)
 echo "podman run took $(($end_time-$start_time)) seconds" >> timings.txt
