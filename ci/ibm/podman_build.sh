@@ -12,13 +12,13 @@ tag_name=${2:-op-build:$(git rev-parse --abbrev-ref HEAD)}
 podman build --build-arg UID=$UID --build-arg GID=$(id -g) --build-arg USER=$USER -t $tag_name -f ci/ibm/Dockerfile ci/ibm 
 
 # start the environment
-containier_id=$(podman run -dit --userns=keep-id -v /home/$USER/.ssh:/home/$USER/.ssh:z $tag_name)
+container_id=$(podman run -dit --userns=keep-id -v /home/$USER/.ssh:/home/$USER/.ssh:z $tag_name)
 
 # copy in the required files
-podman cp $opbuild_dir $containier_id:op-build
+podman cp $opbuild_dir $container_id:op-build
 
 # do the compile
-podman exec -w /home/$USER/op-build $containier_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w /home/$USER/op-build $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
 
 
 

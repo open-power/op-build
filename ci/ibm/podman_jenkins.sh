@@ -17,17 +17,35 @@ end_time=$(date +%s)
 echo "podman build\n$(($end_time-$start_time)) took seconds" > timings.txt
 
 start_time=$(date +%s)
-containier_id=$(podman run -dit --userns=keep-id -v /home/$USER/.ssh:/home/$USER/.ssh:z $tag_name)
+container_id=$(podman run -dit --userns=keep-id \
+                -v /home/$USER/.ssh:/home/$USER/.ssh:z \
+                -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \ 
+                $tag_name)
 end_time=$(date +%s)
 echo "podman run took seconds" >> timings.txt
 
+# copy the repo in. all files now stay inside container
 start_time=$(date +%s)
-podman cp $opbuild_dir $containier_id:$working_dir
+podman cp $opbuild_dir $container_id:$working_dir
 end_time=$(date +%s)
-echo "cp $opbuild_dir $containier_id:$working_dir $(($end_time-$start_time)) took seconds" >> timings.txt
+echo "cp $opbuild_dir $container_id:$working_dir $(($end_time-$start_time)) took seconds" >> timings.txt
 
 # do the compile
 start_time=$(date +%s)
-podman exec -w $working_dir $containier_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
 end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build $(($end_time-$start_time)) took seconds" >> timings.txt
+
+# now set up jfrog cli setting to upload
+podman exec -w $working_dir $container_id /bin/bash -c "cat jfrog_rt_access_token | jf c add \
+        --interactive=false \
+        --user=hostboot@us.ibm.com \
+        --url=https://na-public.artifactory.swg-devops.com \
+        --access-token-stdin=true \
+        na-artifactory"
+
+# Upload artifacts
+podman exec -w $working_dir $container_id /bin/bash -c "./rt_upload.sh"
+
+# Stop and remove the container upon successful run
+podman stop $container_id 

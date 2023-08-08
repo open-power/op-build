@@ -1,0 +1,6 @@
+{"files": [{"pattern": "build/output_img/**/*",
+        	"target": "pse-jet-sys-powerfw-generic-local/op_build_demo/",
+        	"flat": "false"},
+{"pattern": "SUCCESS",
+        	"target": "pse-jet-sys-powerfw-generic-local/op_build_demo/",
+        	"flat": "false"}]}
