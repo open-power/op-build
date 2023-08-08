@@ -3,7 +3,7 @@ set -xeo pipefail
 
 artifactory_docker_repo=docker-na-public.artifactory.swg-devops.com/pse-jet-docker-local
 artifactory_file_repo=na-public.artifactory.swg-devops.com
-artifactory_path=op-build/pr-$CHANGE_ID:$BUILD_NUMBER
+artifactory_path=op-build/pr-${CHANGE_ID}:${BUILD_NUMBER}
 
 # used by jenkins processes
 WORKSPACE=${WORKSPACE:-${HOME}}
