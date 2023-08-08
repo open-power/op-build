@@ -44,7 +44,7 @@ echo "cp $opbuild_dir $container_id:$working_dir took $(($end_time-$start_time))
 
 # do the compile
 start_time=$(date +%s)
-podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig"
 #podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
 end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
