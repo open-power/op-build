@@ -18,6 +18,7 @@ podman build --build-arg UID=$UID --build-arg GID=$(id -g) --build-arg USER=$USE
 end_time=$(date +%s)
 echo "podman build took $(($end_time-$start_time)) seconds" > timings.txt
 
+# start the environment in the background
 start_time=$(date +%s)
 container_id=$(podman run -dit --userns=keep-id \
                 -v /home/$USER/.ssh:/home/$USER/.ssh:z \
@@ -27,25 +28,27 @@ container_id=$(podman run -dit --userns=keep-id \
 end_time=$(date +%s)
 echo "podman run took $(($end_time-$start_time)) seconds" >> timings.txt
 
+
 # copy the repo in. all files now stay inside container
 start_time=$(date +%s)
 podman cp $opbuild_dir $container_id:$working_dir
 end_time=$(date +%s)
 echo "cp $opbuild_dir $container_id:$working_dir took $(($end_time-$start_time)) seconds" >> timings.txt
 
+
 # do the compile
 start_time=$(date +%s)
-podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build source"
 end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
 
 
 # Upload build images to artifactory
-start_time=$(date +%s)
-podman exec -w $working_dir $container_id /bin/bash -c "./ci/ibm/upload_artifactory.sh"
-end_time=$(date +%s)
-echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
-echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
+#start_time=$(date +%s)
+#podman exec -w $working_dir $container_id /bin/bash -c "./ci/ibm/upload_artifactory.sh"
+#end_time=$(date +%s)
+#echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
+#echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
 
 
 # create unique tag for artifactory
