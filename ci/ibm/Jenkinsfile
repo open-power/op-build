@@ -19,7 +19,10 @@ ansiColor("xterm") {
         ci/ibm/podman_jenkins.sh
 
         '''
+        def artifacts = ['ci/ibm', 'timings.txt']
+        archiveArtifacts artifacts: artifacts.join(', '), allowEmptyArchive: true
 
+        cleanWs()
     }
 }
 }

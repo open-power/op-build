@@ -6,7 +6,8 @@ WORKSPACE=${WORKSPACE:-${HOME}}
 # allows user to volume mount a op-build repo
 opbuild_dir=${1:-${WORKSPACE}/op-build}
 # uses git branch name by default 
-tag_name=${2:-op-build:$(git rev-parse --abbrev-ref HEAD)}
+local_tag=${2:-op-build:-${CHANGE_ID}}
+remote_tag=${3:-docker-na-public.artifactory.swg-devops.com/pse-jet-docker-local/op-build/pr-${CHANGE_ID}:${BUILD_NUMBER}}
 
 working_dir=/home/$USER/op-build
 
@@ -20,7 +21,7 @@ start_time=$(date +%s)
 container_id=$(podman run -dit --userns=keep-id \
                 -v /home/$USER/.ssh:/home/$USER/.ssh:z \
                 -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \
-                $tag_name)
+                $local_tag)
 
 end_time=$(date +%s)
 echo "podman run took $(($end_time-$start_time)) seconds" >> timings.txt
@@ -38,11 +39,27 @@ end_time=$(date +%s)
 echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
 
 
-# Upload artifacts
+# Upload build images to artifactory
 start_time=$(date +%s)
 podman exec -w $working_dir $container_id /bin/bash -c "./rt_upload.sh"
 end_time=$(date +%s)
 echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
+echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
+
+
+# create unique tag in artifactory
+start_time=$(date +%s)
+podman tag localhost/$local_tag $remote_tag
+end_time=$(date +%s)
+echo "podman tag took $(($end_time-$start_time)) seconds" >> timings.txt
+
+# push to artifactory to save this version of the environment
+start_time=$(date +%s)
+podman push $remote_tag
+end_time=$(date +%s)
+echo "podman push took $(($end_time-$start_time)) seconds" >> timings.txt
+
+echo "Browse https://$remote_tag"
 
 
 # Stop and remove the container upon successful run
