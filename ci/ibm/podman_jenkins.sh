@@ -28,6 +28,7 @@ container_id=$(podman run -dit --userns=keep-id \
 podman cp $opbuild_dir $container_id:$working_dir
 
 # do the compile
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && "
 podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig"
 
 # Upload build images to artifactory
@@ -46,11 +47,7 @@ podman push $remote_tag
 podman push $latest_tag
 echo "Browse tags https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-docker-local/op-build/pr-$CHANGE_ID"
 
-echo "To recreate\n\
-        podman run -itd --userns=keep-id --user hostboot\
-                -v /home/$USER/.ssh:/home/$USER/.ssh:z \
-                -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \
-                -w $working_dir $remote_tag"
+echo "To recreate podman run -itd --userns=keep-id --user hostboot -v /home/$USER/.ssh:/home/$USER/.ssh:z -v /home/$USER/.jfrog:/home/$USER/.jfrog:z -w $working_dir $remote_tag"
 
 
 start_time=$(date +%s)

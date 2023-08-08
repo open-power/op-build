@@ -1,5 +1,6 @@
 //parameters([
 //    ])
+//[disableConcurrentBuilds(abortPrevious: true)]
 properties([buildDiscarder(logRotator(daysToKeepStr: '30'))])
 node ('podman_test'){
 timestamps {
