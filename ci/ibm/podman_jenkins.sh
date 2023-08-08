@@ -6,7 +6,7 @@ WORKSPACE=${WORKSPACE:-${HOME}}
 # allows user to volume mount a op-build repo
 opbuild_dir=${1:-${WORKSPACE}/op-build}
 # uses git branch name by default 
-local_tag=${2:-op-build:-${CHANGE_ID}}
+local_tag=${2:-op-build:${CHANGE_ID}}
 remote_tag=${3:-docker-na-public.artifactory.swg-devops.com/pse-jet-docker-local/op-build/pr-${CHANGE_ID}:${BUILD_NUMBER}}
 
 working_dir=/home/$USER/op-build
