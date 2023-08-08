@@ -27,6 +27,8 @@ echo "podman build took $(($end_time-$start_time)) seconds" > timings.txt
 # start the environment in the background
 start_time=$(date +%s)
 container_id=$(podman run -dit --userns=keep-id \
+                -e BUILD_NUMBER=$BUILD_NUMBER \
+                -e CHANGE_ID=$CHANGE_ID \
                 -v /home/$USER/.ssh:/home/$USER/.ssh:z \
                 -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \
                 $local_tag)
