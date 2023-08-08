@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 OS="fedora"
 agent_os="FEDORA"
