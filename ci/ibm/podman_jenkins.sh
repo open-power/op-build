@@ -7,13 +7,14 @@ WORKSPACE=${WORKSPACE:-${HOME}}
 opbuild_dir=${1:-${WORKSPACE}/op-build}
 # uses git branch name by default 
 local_tag=${2:-op-build:${CHANGE_ID}}
+# create unique tag for artifactory
 remote_tag=${3:-docker-na-public.artifactory.swg-devops.com/pse-jet-docker-local/op-build/pr-${CHANGE_ID}:${BUILD_NUMBER}}
 
 working_dir=/home/$USER/op-build
 
 #--no-cache
 start_time=$(date +%s)
-podman build --build-arg UID=$UID --build-arg GID=$(id -g) --build-arg USER=$USER -t $tag_name -f ci/ibm/Dockerfile ci/ibm
+podman build --build-arg UID=$UID --build-arg GID=$(id -g) --build-arg USER=$USER -t $local_tag -f ci/ibm/Dockerfile ci/ibm
 end_time=$(date +%s)
 echo "podman build took $(($end_time-$start_time)) seconds" > timings.txt
 
@@ -47,7 +48,7 @@ echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) sec
 echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
 
 
-# create unique tag in artifactory
+# create unique tag for artifactory
 start_time=$(date +%s)
 podman tag localhost/$local_tag $remote_tag
 end_time=$(date +%s)
