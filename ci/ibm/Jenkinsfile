@@ -1,7 +1,6 @@
-properties([buildDiscarder(logRotator(daysToKeepStr: '30')),
-    parameters([
-    ])
-])
+//parameters([
+//    ])
+properties([buildDiscarder(logRotator(daysToKeepStr: '30'))])
 node ('podman_test'){
 timestamps {
 ansiColor("xterm") {

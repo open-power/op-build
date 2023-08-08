@@ -14,7 +14,7 @@ working_dir=/home/$USER/op-build
 start_time=$(date +%s)
 podman build --build-arg UID=$UID --build-arg GID=$(id -g) --build-arg USER=$USER -t $tag_name -f ci/ibm/Dockerfile ci/ibm
 end_time=$(date +%s)
-echo "podman build\n$(($end_time-$start_time)) took seconds" > timings.txt
+echo "podman build took $(($end_time-$start_time)) seconds" > timings.txt
 
 start_time=$(date +%s)
 container_id=$(podman run -dit --userns=keep-id \
@@ -22,30 +22,27 @@ container_id=$(podman run -dit --userns=keep-id \
                 -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \ 
                 $tag_name)
 end_time=$(date +%s)
-echo "podman run took seconds" >> timings.txt
+echo "podman run took $(($end_time-$start_time)) seconds" >> timings.txt
 
 # copy the repo in. all files now stay inside container
 start_time=$(date +%s)
 podman cp $opbuild_dir $container_id:$working_dir
 end_time=$(date +%s)
-echo "cp $opbuild_dir $container_id:$working_dir $(($end_time-$start_time)) took seconds" >> timings.txt
+echo "cp $opbuild_dir $container_id:$working_dir took $(($end_time-$start_time)) seconds" >> timings.txt
 
 # do the compile
-start_time=$(date +%s)
+
 podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
 end_time=$(date +%s)
-echo "./op-build p10ebmc_defconfig && ./op-build $(($end_time-$start_time)) took seconds" >> timings.txt
+echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time)) seconds" >> timings.txt
 
-# now set up jfrog cli setting to upload
-podman exec -w $working_dir $container_id /bin/bash -c "cat jfrog_rt_access_token | jf c add \
-        --interactive=false \
-        --user=hostboot@us.ibm.com \
-        --url=https://na-public.artifactory.swg-devops.com \
-        --access-token-stdin=true \
-        na-artifactory"
 
 # Upload artifacts
+start_time=$(date +%s)
 podman exec -w $working_dir $container_id /bin/bash -c "./rt_upload.sh"
+end_time=$(date +%s)
+echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
+
 
 # Stop and remove the container upon successful run
 podman stop $container_id 
