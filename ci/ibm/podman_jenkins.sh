@@ -28,14 +28,13 @@ container_id=$(podman run -dit --userns=keep-id \
 podman cp $opbuild_dir $container_id:$working_dir
 
 # do the compile
-podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
-#podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig"
+#podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig && ./op-build"
+podman exec -w $working_dir $container_id /bin/bash -c "./op-build p10ebmc_defconfig"
 
 # Upload build images to artifactory
 podman exec -w $working_dir $container_id /bin/bash -c "./ci/ibm/upload_artifactory.sh"
 podman cp $container_id:$working_dir/upload.log $WORKSPACE
 echo "Browse https://na-public.artifactory.swg-devops.com/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER"
-
 
 
 # create unique tag for artifactory
