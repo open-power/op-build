@@ -53,6 +53,7 @@ podman tag localhost/$local_tag $remote_tag
 end_time=$(date +%s)
 echo "podman tag took $(($end_time-$start_time)) seconds" >> timings.txt
 
+
 # push to artifactory to save this version of the environment
 start_time=$(date +%s)
 podman push $remote_tag
@@ -61,7 +62,7 @@ echo "podman push took $(($end_time-$start_time)) seconds" >> timings.txt
 echo "Browse https://$remote_tag"
 
 echo "To recreate\n\
-        podman run -itd --userns=keep-id --user \
+        podman run -itd --userns=keep-id --user hostboot\
                 -v /home/$USER/.ssh:/home/$USER/.ssh:z \
                 -v /home/$USER/.jfrog:/home/$USER/.jfrog:z \
                 -w $working_dir $remote_tag"
