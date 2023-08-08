@@ -19,10 +19,10 @@ ansiColor("xterm") {
         ci/ibm/podman_jenkins.sh
 
         '''
-        def artifacts = ['op-build/ci/ibm', 'op-build/timings.txt', 'op-build/upload.log']
+        def artifacts = ['op-build/ci/ibm', 'op-build/timings.txt', 'upload.log']
         archiveArtifacts artifacts: artifacts.join(', '), allowEmptyArchive: true
 
-        cleanWs()
+        //cleanWs()
     }
 }
 }

@@ -53,6 +53,7 @@ echo "./op-build p10ebmc_defconfig && ./op-build took $(($end_time-$start_time))
 # Upload build images to artifactory
 start_time=$(date +%s)
 podman exec -w $working_dir $container_id /bin/bash -c "./ci/ibm/upload_artifactory.sh"
+podman cp $container_id:$working_dir $WORKSPACE
 end_time=$(date +%s)
 echo "jf rt u --spec=p10ebmc_upload_spec.txt took $(($end_time-$start_time)) seconds" >> timings.txt
 echo "Browse https://${artifactory_file_repo}/ui/native/pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/"
