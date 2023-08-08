@@ -44,4 +44,4 @@ cp $origin/.config $op_build_path/build/output_img/$agent_os/$CONFIG/p10ebmc.con
 
 # upload to artifactory
 #jf rt u --spec=ci/ibm/p10ebmc_upload_spec.txt >> upload.log
-jf rt u builWd/output_img/**/* pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/ >> upload.log
+jf rt u build/output_img/**/* pse-jet-sys-powerfw-generic-local/op-build/pr-$CHANGE_ID/$BUILD_NUMBER/ >> upload.log
