@@ -46,15 +46,16 @@ a handful of other packages (see below).
 
 ### Dependencies for *64-bit* Ubuntu/Debian systems
 
-1. Install Ubuntu (>= 18.04) or Debian (>= 9) 64-bit.
+1. Install Ubuntu (>= 22.04) or Debian (>= 9) 64-bit.
 2. Enable Universe (Ubuntu only):
 
         sudo apt-get install software-properties-common
         sudo add-apt-repository universe
+
 3. Install the packages necessary for the build:
 
-        sudo apt-get install cscope ctags libz-dev libexpat-dev \
-          python language-pack-en texinfo gawk cpio xxd \
+        sudo apt-get install cscope universal-ctags libz-dev libexpat-dev \
+          python2 python-is-python3 language-pack-en texinfo gawk cpio xxd \
           build-essential g++ git bison flex unzip \
           libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
           wget bc rsync
