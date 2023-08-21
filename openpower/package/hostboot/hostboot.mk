@@ -37,4 +37,6 @@ define HOSTBOOT_INSTALL_IMAGES_CMDS
         cd $(@D) && source ./env.bash && $(@D)/src/build/tools/hbDistribute --openpower $(STAGING_DIR)/hostboot_build_images/
 endef
 
+# TEST
+
 $(eval $(generic-package))
