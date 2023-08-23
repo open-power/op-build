@@ -157,6 +157,7 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             PATH=$(HOST_DIR)/usr/sbin:$(PATH) $(HOST_DIR)/usr/bin/generate-ubi \
                 $(XML_VAR).pnor.squashfs.tar && \
             $(INSTALL) $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor.ubi.mtd $(BINARIES_DIR) && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hb_tooldata.tar.gz $(PNOR_SCRATCH_DIR)/HBTOOLDATA.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbicore.syms $(PNOR_SCRATCH_DIR)/HBICORE_SYMS.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hostboot_build_images/hbotStringFile $(PNOR_SCRATCH_DIR)/HBOTSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeMeasurementStringFile $(PNOR_SCRATCH_DIR)/SBEMSTRINGFILE.ipllid && \
