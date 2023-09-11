@@ -3,8 +3,8 @@
 # openpower_pnor_p10
 #
 ################################################################################
-OPENPOWER_PNOR_P10_VERSION ?= 7e1f587a33fa89fe5b52b165e319c6db2af8de36
-OPENPOWER_PNOR_P10_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P10_VERSION))
+OPENPOWER_PNOR_P10_VERSION ?= 428c0fffb9d8d68ff5e1e085b2915568d8bb1b41
+OPENPOWER_PNOR_P10_SITE ?= $(call github,mabaiocchi,mab_pnor,$(OPENPOWER_PNOR_P10_VERSION))
 
 OPENPOWER_PNOR_P10_LICENSE = Apache-2.0
 OPENPOWER_PNOR_P10_LICENSE_FILES = LICENSE
