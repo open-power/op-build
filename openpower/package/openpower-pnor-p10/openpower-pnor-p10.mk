@@ -39,6 +39,10 @@ OPENPOWER_PNOR_P10_INSTALL_TARGET = NO
 # This is used inside pkg-versions.mk
 OPENPOWER_PNOR_P10_VERSIONED_SUBPACKAGES = skiboot linux petitboot hostboot-binaries pdata hostboot-p10 occ-p10 sbe-p10 hcode-p10 ocmb-explorer-fw $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
 
+ifeq ($(BR2_PACKAGE_SBE_ODYSSEY),y)
+OPENPOWER_PNOR_P10_VERSIONED_SUBPACKAGES += sbe-odyssey
+endif
+
 OPENPOWER_PNOR_P10_OCMB_URL = $(call qstrip,$(OCMB_EXPLORER_FW_SITE)/$(OCMB_EXPLORER_FW_SOURCE))
 
 #######
