@@ -29,8 +29,10 @@ endef
 
 define SBE_ODYSSEY_INSTALL_IMAGES_CMDS
 	mkdir -p $(STAGING_DIR)/ody_binaries
+	mkdir -p $(STAGING_DIR)/poz_debug_tools
         cp $(STAGING_DIR)/ody-pak-files/gen/final/boot.pak $(STAGING_DIR)/ody_binaries/
         cp $(STAGING_DIR)/ody-pak-files/gen/final/rt.pak $(STAGING_DIR)/ody_binaries/
+        cp $(@D)/images/odyssey/odyssey_sbe_debug_DD1.tar.gz $(STAGING_DIR)/poz_debug_tools/
 endef
 
 $(eval $(generic-package))
