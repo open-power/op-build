@@ -10,4 +10,4 @@ config BR2_PACKAGE_SBE_ODYSSEY
 
 config BR2_SBE_ODYSSEY_VERSION
     string
-    default "9bc603e6ff40d64680a9364066928b04b14b39af"
+    default "29a66c63d0d9a2dda3e1974a4cff701ee24554d7"
