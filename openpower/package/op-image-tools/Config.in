@@ -8,4 +8,4 @@ config BR2_PACKAGE_OP_IMAGE_TOOLS
 
 config BR2_OP_IMAGE_TOOLS_VERSION
     string
-    default "6fa77de0a55cad0ad9c4e655bd73e155d4a81868"
+    default "bcc5c038552362415121aa24c2a549d710861dc2"
