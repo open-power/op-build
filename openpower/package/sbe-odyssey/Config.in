@@ -8,6 +8,15 @@ config BR2_PACKAGE_SBE_ODYSSEY
     help
         Odyssey SBE package.
 
+choice
+    prompt "SBE Odyssey version"
+    default BR2_SBE_ODYSSEY_LATEST_VERSION
+
+config BR2_SBE_ODYSSEY_LATEST_VERSION
+    bool "Use latest SBE Odyssey main branch"
+
+endchoice
+
 config BR2_SBE_ODYSSEY_VERSION
     string
-    default "29a66c63d0d9a2dda3e1974a4cff701ee24554d7"
+    default "29a66c63d0d9a2dda3e1974a4cff701ee24554d7" if BR2_SBE_ODYSSEY_LATEST_VERSION
