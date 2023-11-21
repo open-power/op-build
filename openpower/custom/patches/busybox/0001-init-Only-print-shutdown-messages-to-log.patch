@@ -1,4 +1,4 @@
-From eb48b173dc3d09db483b97c4210303eee27df1db Mon Sep 17 00:00:00 2001
+From 1939276efa4a12ef9e14ea139a525c887de2bb77 Mon Sep 17 00:00:00 2001
 From: Joel Stanley <joel@jms.id.au>
 Date: Thu, 25 Oct 2018 15:18:56 +1030
 Subject: [PATCH] init: Only print shutdown messages to log
@@ -17,10 +17,10 @@ Signed-off-by: Joel Stanley <joel@jms.id.au>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/init/init.c b/init/init.c
-index 6439e2bcd862..11561143e5f1 100644
+index efab5dcb44c0..afac0fd7dee5 100644
 --- a/init/init.c
 +++ b/init/init.c
-@@ -763,16 +763,16 @@ static void run_shutdown_and_kill_processes(void)
+@@ -762,16 +762,16 @@ static void run_shutdown_and_kill_processes(void)
  	 * shut things down gracefully... */
  	run_actions(SHUTDOWN);
  
@@ -32,14 +32,14 @@ index 6439e2bcd862..11561143e5f1 100644
 -	message(L_CONSOLE, "Sent SIG%s to all processes", "TERM");
 +	message(L_LOG, "Sent SIG%s to all processes", "TERM");
  	sync();
- 	sleep(1);
+ 	sleep1();
  
  	kill(-1, SIGKILL);
 -	message(L_CONSOLE, "Sent SIG%s to all processes", "KILL");
 +	message(L_LOG, "Sent SIG%s to all processes", "KILL");
  	sync();
- 	/*sleep(1); - callers take care about making a pause */
+ 	/*sleep1(); - callers take care about making a pause */
  }
 -- 
-2.19.1
+2.32.0
 
