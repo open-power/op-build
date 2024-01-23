@@ -3,7 +3,7 @@
 # openpower_pnor_p10
 #
 ################################################################################
-OPENPOWER_PNOR_P10_VERSION ?= 5c1dad64c3d442cd3587da9eb94e1abd976e908d
+OPENPOWER_PNOR_P10_VERSION ?= 7ef152303c12a4cb44d65aafc4c5eeb095962abd
 OPENPOWER_PNOR_P10_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P10_VERSION))
 
 OPENPOWER_PNOR_P10_LICENSE = Apache-2.0
@@ -116,6 +116,7 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             -ocmbfw_url $(OPENPOWER_PNOR_P10_OCMB_URL) \
             -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_P10_FILENAME) \
             -ocmbfw_binary_filename $(PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_P10_PROCESSED_FILENAME) \
+            -ody_build sbe-odyssey-$(call qstrip,$(BR2_SBE_ODYSSEY_VERSION)) \
             -ody_rt_pak_file $(STAGING_DIR)/ody_binaries/rt.pak \
             -ody_bldr_pak_file $(STAGING_DIR)/ody_binaries/boot.pak \
             -pnor_layout $(@D)/p10Layouts/$(BR2_OPENPOWER_P10_PNOR_XML_LAYOUT_FILENAME) \
@@ -409,4 +410,3 @@ endef
 $(eval $(generic-package))
 # Generate openPOWER pnor version string by combining subpackage version string files
 $(eval $(OPENPOWER_VERSION))
-
