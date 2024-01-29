@@ -116,6 +116,7 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             -ocmbfw_url $(OPENPOWER_PNOR_P10_OCMB_URL) \
             -ocmbfw_original_filename $(BINARIES_DIR)/$(BR2_OCMBFW_P10_FILENAME) \
             -ocmbfw_binary_filename $(PNOR_SCRATCH_DIR)/$(BR2_OCMBFW_P10_PROCESSED_FILENAME) \
+            -ody_build sbe-odyssey-$(call qstrip,$(BR2_SBE_ODYSSEY_VERSION)) \
             -ody_rt_pak_file $(STAGING_DIR)/ody_binaries/rt.pak \
             -ody_bldr_pak_file $(STAGING_DIR)/ody_binaries/boot.pak \
             -pnor_layout $(@D)/p10Layouts/$(BR2_OPENPOWER_P10_PNOR_XML_LAYOUT_FILENAME) \
@@ -409,4 +410,3 @@ endef
 $(eval $(generic-package))
 # Generate openPOWER pnor version string by combining subpackage version string files
 $(eval $(OPENPOWER_VERSION))
-
