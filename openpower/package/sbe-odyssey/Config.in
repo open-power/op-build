@@ -19,4 +19,4 @@ endchoice
 
 config BR2_SBE_ODYSSEY_VERSION
     string
-    default "e6cb113ec0e182aecbaebbbccc9193a3363acca0" if BR2_SBE_ODYSSEY_LATEST_VERSION
+    default "35b126669aa9b904d9d7e9291a6563269416a505" if BR2_SBE_ODYSSEY_LATEST_VERSION
