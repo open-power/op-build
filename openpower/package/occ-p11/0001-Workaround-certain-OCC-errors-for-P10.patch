@@ -1,0 +1,28 @@
+From 48c944978a8fea129b4fce39063386237881871b Mon Sep 17 00:00:00 2001
+From: Nick Bofferding <bofferdn@us.ibm.com>
+Date: Thu, 3 Oct 2019 14:36:31 -0500
+Subject: [PATCH] Workaround certain OCC errors for P10
+
+To allow P10 OCC code to compile, temporarily suppress errors for:
+  aggressive-loop-optimizations
+  unused-but-set-variable
+---
+ src/occ_405/occ_defs.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/occ_405/occ_defs.mk b/src/occ_405/occ_defs.mk
+index c87c44a..fa06a42 100644
+--- a/src/occ_405/occ_defs.mk
++++ b/src/occ_405/occ_defs.mk
+@@ -23,7 +23,7 @@
+ #
+ # IBM_PROLOG_END_TAG
+ 
+-GCC-CFLAGS += -Werror
++GCC-CFLAGS += -Werror -Wno-error=aggressive-loop-optimizations  -Wno-error=unused-but-set-variable
+ 
+ %.o: %.c
+ $(OBJDIR)/%.o: %.c
+-- 
+1.8.2.2
+

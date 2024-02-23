@@ -16,9 +16,11 @@ OCMB_EXPLORER_FW_INSTALL_IMAGES = YES
 OCMB_EXPLORER_FW_INSTALL_TARGET = NO
 
 ifeq ($(BR2_PACKAGE_OPENPOWER_PNOR_P10),y)
-OCMBFW_FILENAME = $(call qstrip,$(BR2_OCMBFW_FILENAME))
-else
 OCMBFW_FILENAME = $(call qstrip,$(BR2_OCMBFW_P10_FILENAME))
+else ifeq ($(BR2_PACKAGE_OPENPOWER_PNOR_P11),y)
+OCMBFW_FILENAME = $(call qstrip,$(BR2_OCMBFW_P11_FILENAME))
+else
+OCMBFW_FILENAME = $(call qstrip,$(BR2_OCMBFW_FILENAME))
 endif
 
 # Commands to extract and install the Open Capi Memory Buffer Firmware (OCMBFW)
