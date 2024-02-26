@@ -12,7 +12,7 @@ SBE_ODYSSEY_INSTALL_TARGET = NO
 CMD_VARS = LD_LIBRARY_PATH=$(HOST_DIR)/lib PATH="$(HOST_DIR)/bin:$$PATH"
 
 OP_IMAGE_TOOLS_PATH = $(BUILD_DIR)/op-image-tools-$(BR2_OP_IMAGE_TOOLS_VERSION)
-
+HB_BINARY_VERSION = $(call qstrip,$(BR2_HOSTBOOT_BINARIES_VERSION))
 define SBE_ODYSSEY_BUILD_CMDS
 	$(CMD_VARS) bash -c "python3 -m ensurepip"
 	echo 'export LD_LIBRARY_PATH=$(HOST_DIR)/lib:$$LD_LIBRARY_PATH' >> $(@D)/customrc
@@ -30,9 +30,15 @@ endef
 define SBE_ODYSSEY_INSTALL_IMAGES_CMDS
 	mkdir -p $(STAGING_DIR)/ody_binaries
 	mkdir -p $(STAGING_DIR)/poz_debug_tools
+        mkdir -p $(STAGING_DIR)/ody_stringfiles/runtime
+        mkdir -p $(STAGING_DIR)/ody_stringfiles/gldn
         cp $(STAGING_DIR)/ody-pak-files/gen/final/boot.pak $(STAGING_DIR)/ody_binaries/
         cp $(STAGING_DIR)/ody-pak-files/gen/final/rt.pak $(STAGING_DIR)/ody_binaries/
         cp $(@D)/images/odyssey/odyssey_sbe_debug_DD1.tar.gz $(STAGING_DIR)/poz_debug_tools/
+        cp $(@D)/images/odyssey/runtime/sppe/odysseySppeStringFile_DD1 $(STAGING_DIR)/ody_stringfiles/runtime/
+        tar -xvf $(BUILD_DIR)/hostboot-binaries-$(HB_BINARY_VERSION)/sbe_images/odyssey_dd1_0/golden/ody_sbe_golden_debug.tar.gz sppe/odysseySppeStringFile_DD1
+        cp sppe/odysseySppeStringFile_DD1 $(STAGING_DIR)/ody_stringfiles/gldn/
+        rm  -rf sppe/
 endef
 
 $(eval $(generic-package))
