@@ -5,7 +5,7 @@
 
 BONNELL_XML_VERSION ?= $(call qstrip,$(BR2_BONNELL_XML_VERSION))
 ifeq ($(BR2_BONNELL_XML_GITHUB_PROJECT),y)
-BONNELL_XML_SITE = $(call github,openbmc,$(BR2_BONNELL_XML_GITHUB_PROJECT_VALUE),$(BONNELL_XML_VERSION))
+BONNELL_XML_SITE = $(call github,open-power,$(BR2_BONNELL_XML_GITHUB_PROJECT_VALUE),$(BONNELL_XML_VERSION))
 else ifeq ($(BR2_BONNELL_XML_CUSTOM_GIT),y)
 BONNELL_XML_SITE_METHOD = git
 BONNELL_XML_SITE = $(BR2_BONNELL_XML_CUSTOM_GIT_VALUE)
@@ -13,7 +13,7 @@ endif
 
 BONNELL_XML_LICENSE = Apache-2.0
 BONNELL_XML_LICENSE_FILES = LICENSE
-BONNELL_XML_DEPENDENCIES += hostboot-p10
+BONNELL_XML_DEPENDENCIES += hostboot-p11
 
 BONNELL_XML_INSTALL_IMAGES = YES
 BONNELL_XML_INSTALL_TARGET = YES
@@ -26,11 +26,11 @@ BONNELL_XML_BIOS_SCHEMA_FILE = $(BONNELL_XML_MRW_HB_TOOLS)/bios.xsd
 BONNELL_XML_BIOS_CONFIG_FILE = \
     $(call qstrip,$(BONNELL_XML_MRW_SCRATCH)/$(BR2_BONNELL_XML_BIOS_FILENAME))
 BONNELL_XML_BIOS_METADATA_FILE = \
-    $(call qstrip,$(BONNELL_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P10_CONFIG_NAME)_bios_metadata.xml)
+    $(call qstrip,$(BONNELL_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P11_CONFIG_NAME)_bios_metadata.xml)
 BONNELL_XML_PETITBOOT_XSLT_FILE = $(BONNELL_XML_MRW_HB_TOOLS)/bios_metadata_petitboot.xslt
 BONNELL_XML_PETITBOOT_BIOS_METADATA_FILE = \
     $(call qstrip, \
-        $(BONNELL_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P10_CONFIG_NAME)_bios_metadata_petitboot.xml)
+        $(BONNELL_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P11_CONFIG_NAME)_bios_metadata_petitboot.xml)
 # XXX TODO: Figure out what to do with the bios_metadata.xml. Right now, the last xml
 #           package file processed 'wins' and all previously processed xml packages are
 #           overriden.

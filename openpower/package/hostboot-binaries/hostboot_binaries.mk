@@ -5,7 +5,13 @@
 ################################################################################
 
 HOSTBOOT_BINARIES_VERSION = $(call qstrip,$(BR2_HOSTBOOT_BINARIES_VERSION))
-HOSTBOOT_BINARIES_SITE ?= $(call github,open-power,hostboot-binaries,$(HOSTBOOT_BINARIES_VERSION))
+
+#Public
+#HOSTBOOT_BINARIES_SITE ?= $(call github,open-power,hostboot-binaries,$(HOSTBOOT_BINARIES_VERSION))
+
+#Private
+HOSTBOOT_BINARIES_SITE ?= git@github.ibm.com:open-power/hostboot-binaries.git
+HOSTBOOT_BINARIES_SITE_METHOD ?= git
 
 HOSTBOOT_BINARIES_LICENSE = Apache-2.0
 HOSTBOOT_BINARIES_LICENSE_FILES = LICENSE
@@ -44,13 +50,8 @@ endif
 # P10:
 ifeq ($(BR2_OPENPOWER_POWER10),y)
 
-ifeq ($(BR2_PACKAGE_OPENPOWER_PNOR_P10),y)
 BINARY_IONV_FILENAME=$(BR2_HOSTBOOT_P10_BINARY_IONV_FILENAME)
 BINARY_SBEC_FILENAME=$(BR2_HOSTBOOT_P10_BINARY_SBEC_FILENAME)
-else
-BINARY_IONV_FILENAME=$(BR2_HOSTBOOT_BINARY_IONV_FILENAME)
-BINARY_SBEC_FILENAME=$(BR2_HOSTBOOT_BINARY_SBEC_FILENAME)
-endif
 
 P10_RING_DYNAMIC_FILE=p10.hw.dynamic.bin
 P10_RING_OVERLAYS_FILE=p10.hw.overlays.bin
@@ -79,5 +80,36 @@ define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
      $(INSTALL) -D $(@D)/$(P10_RING_HDCT_FILE)  $(STAGING_DIR)/hostboot_binaries/
 endef
 endif
+
+###################################
+# P11:
+ifeq ($(BR2_OPENPOWER_POWER11),y)
+
+P10_RING_DYNAMIC_FILE=p10.hw.dynamic.bin
+P10_RING_OVERLAYS_FILE=p10.hw.overlays.bin
+P10_RING_QME_FILE=p10.hw.qme.rings.bin
+P10_RING_SBE_FILE=p10.hw.sbe.rings.bin
+P10_RING_FA_EC_CL2_FILE=p10.hw.fa_ec_cl2_far.bin
+P10_RING_FA_EC_MMA_FILE=p10.hw.fa_ec_mma_far.bin
+P10_RING_FA_OVRD_FILE=p10.hw.fa_ring_ovrd.bin
+P10_RING_DYNAMIC_FEATURES_FILE=p10.dynamic_features.bin
+P10_RING_DYNAMIC_SERVICES_FILE=p10.dynamic_services.bin
+P10_RING_HDCT_FILE=p10.hw.hdct.bin
+
+define HOSTBOOT_BINARIES_INSTALL_IMAGES_CMDS
+     $(INSTALL) -D $(@D)/gpu_gpe1.bin  $(STAGING_DIR)/hostboot_binaries/gpu_gpe1.bin
+     $(INSTALL) -D $(@D)/$(P10_RING_DYNAMIC_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_OVERLAYS_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_QME_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_SBE_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_FA_EC_CL2_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_FA_EC_MMA_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_FA_OVRD_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_DYNAMIC_FEATURES_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_DYNAMIC_SERVICES_FILE)  $(STAGING_DIR)/hostboot_binaries/
+     $(INSTALL) -D $(@D)/$(P10_RING_HDCT_FILE)  $(STAGING_DIR)/hostboot_binaries/
+endef
+endif
+
 
 $(eval $(generic-package))

@@ -13,7 +13,7 @@ endif
 
 RAINIER_2U_XML_LICENSE = Apache-2.0
 RAINIER_2U_XML_LICENSE_FILES = LICENSE
-RAINIER_2U_XML_DEPENDENCIES += hostboot-p10
+RAINIER_2U_XML_DEPENDENCIES += hostboot-p11
 
 RAINIER_2U_XML_INSTALL_IMAGES = YES
 RAINIER_2U_XML_INSTALL_TARGET = YES
@@ -26,11 +26,11 @@ RAINIER_2U_XML_BIOS_SCHEMA_FILE = $(RAINIER_2U_XML_MRW_HB_TOOLS)/bios.xsd
 RAINIER_2U_XML_BIOS_CONFIG_FILE = \
     $(call qstrip,$(RAINIER_2U_XML_MRW_SCRATCH)/$(BR2_RAINIER_2U_XML_BIOS_FILENAME))
 RAINIER_2U_XML_BIOS_METADATA_FILE = \
-    $(call qstrip,$(RAINIER_2U_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P10_CONFIG_NAME)_bios_metadata.xml)
+    $(call qstrip,$(RAINIER_2U_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P11_CONFIG_NAME)_bios_metadata.xml)
 RAINIER_2U_XML_PETITBOOT_XSLT_FILE = $(RAINIER_2U_XML_MRW_HB_TOOLS)/bios_metadata_petitboot.xslt
 RAINIER_2U_XML_PETITBOOT_BIOS_METADATA_FILE = \
     $(call qstrip, \
-        $(RAINIER_2U_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P10_CONFIG_NAME)_bios_metadata_petitboot.xml)
+        $(RAINIER_2U_XML_MRW_HB_TOOLS)/$(BR2_OPENPOWER_P11_CONFIG_NAME)_bios_metadata_petitboot.xml)
 # XXX TODO: Figure out what to do with the bios_metadata.xml. Right now, the last xml
 #           package file processed 'wins' and all previously processed xml packages are
 #           overriden.
