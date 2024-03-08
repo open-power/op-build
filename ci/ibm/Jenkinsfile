@@ -1,30 +1,152 @@
-//parameters([
-//    ])
-//[disableConcurrentBuilds(abortPrevious: true)]
-properties([buildDiscarder(logRotator(daysToKeepStr: '30'))])
-node ('podman_test'){
+properties([buildDiscarder(logRotator(daysToKeepStr: '30')),
+    parameters([
+        booleanParam(   name: 'RESET_CI_PROGRESS',
+                        defaultValue: false,
+                        description: "Change to \'true\' to erase CI job progress. This will start again at the build, then simics and hardware<br>This is useful for picking up a newer backing build"),
+        string( name: 'EBMC_PIPELINES_BRANCH',
+                defaultValue: 'refs/remotes/origin/pr/1283',
+                description: "power-devops/ebmc-pipelines branch identifier, Can be branch name or refspec (refs/remotes/origin/pr/#)")        
+    ])
+])
+
+ansiColor('xterm') {
+node('redhat-8') {
 timestamps {
-ansiColor("xterm") {
-    stage('op-build compile') {
-                
+    stage('Load libraries') {
         cleanWs()
+        load_library    ebmc_pipelines: env.EBMC_PIPELINES_BRANCH,
+                        ebmc_verified: 'main'
 
-        sh '''#!/bin/bash -e
-        git clone --recurse-submodules --single-branch --branch master-p10 git@github.com:open-power/op-build.git $WORKSPACE/op-build
-        cd $WORKSPACE/op-build
-        if [[ "$CHANGE_ID" != "" ]]; then   
-            git fetch origin pull/$CHANGE_ID/head
-            git checkout -b $CHANGE_ID FETCH_HEAD 
-        fi
-
-        ci/ibm/podman_jenkins.sh
-
-        '''
-        def artifacts = ['upload.log']
-        archiveArtifacts artifacts: artifacts.join(', '), allowEmptyArchive: true
-
-        //cleanWs()
     }
+    def fw_level = 'fw1060' // master-p10
+    def job_build_path = "pse-jet-sys-powerfw-generic-local/${currentBuild.fullProjectName}/${currentBuild.id}/"
+    def change_identifiers = [:]
+    if (env.ghprbActualCommit) {
+        //ibm-release-fw1020
+        //release-fw1030
+        if (env.ghprbTargetBranch.contains('release-fw10')) {
+            fw_level = env.ghprbTargetBranch.split('-')[-1]
+        }
+        job_build_path = "pse-jet-sys-powerfw-generic-local/${github.get_org_name()}/${github.get_repo_name()}/${env.ghprbTargetBranch}/${github.get_pr_number()}/${github.get_short_hash()}/"
+        currentBuild.displayName = "#${env.BUILD_NUMBER} ${env?.ghprbPullTitle}"
+        currentBuild.description = "${env?.ghprbActualCommitAuthor}<br><a href=${env?.ghprbPullLink}>${github.get_short_hash()}</a>"
+    
+        change_identifiers.CHANGE_URL = env?.ghprbPullLink
+        change_identifiers.CHANGE_REPO = env?.ghprbGhRepository
+        change_identifiers.CHANGE_ID = "pull/${github.get_pr_number()}"
+        change_identifiers.CHANGE_TARGET = env?.ghprbTargetBranch
+        change_identifiers.CHANGE_COMMIT_HASH = env?.ghprbActualCommit
+        change_identifiers.CHANGE_AUTHOR_DISPLAY_NAME = env?.ghprbActualCommitAuthor
+        change_identifiers.CHANGE_AUTHOR_EMAIL = env?.ghprbActualCommitAuthorEmail
+        change_identifiers.CHANGE_TITLE = env?.ghprbPullTitle
+        change_identifiers.EBMC_PIPELINES_BRANCH = env.EBMC_PIPELINES_BRANCH    
+    }
+
+    if (env?.RESET_CI_PROGRESS == 'true') {
+        sh script:"""#!/bin/bash -e
+        jf rt search ${job_build_path}
+        jf rt delete --quiet ${job_build_path}
+        """
+    }
+
+    def simics_configs = [  "everest",
+                            "rainier_2s2u",
+                            "rainier_2s2u_opal_rhel",
+                            "rainier_2s4u"]
+
+    // fw1060 is default
+    def hardware_configs = ["1060-rainier",
+                            "1060-everest",
+                            "bonnell"]
+
+    if (fw_level != 'fw1060') {
+        hardware_configs = ['1050-rainier']
+    } 
+
+    def fw_config = load_ebmc_verified FW_LEVEL: fw_level
+            
+    // unique to pr patchset and fw level
+    // these will be published to a 
+
+    def opbuild = [ AGENT: 'redhat-8 && aus.stglabs.ibm.com', // needs austin machine
+                    CONFIG: 'p10ebmc',
+                    PATCHED_REPO: change_identifiers.CHANGE_REPO,
+                    PATCHED_BRANCH: change_identifiers.CHANGE_TARGET,
+                    PATCHED_CHANGE: github.get_pr_number(),
+                    BUILD_PATH: "${job_build_path}/op-build/master-p10/p10ebmc",
+                    POST_STATUS: 'IBM op-build']
+    opbuild += change_identifiers
+    
+    def ebmc_pkg = [AGENT: 'redhat-8 && rchland.ibm.com', // closer to afs mounts
+                    CHIP: 'p10ebmc',
+                    OPBUILD_BUILD: opbuild.BUILD_PATH,
+                    EBMC_BUILD: fw_config.EBMC_BUILD,
+                    EBMC_PKG_TOOLS: fw_config.EBMC_PKG_TOOLS,
+                    BUILD_PATH: "${job_build_path}/ebmc-pkg/p10ebmc",
+                    POST_STATUS: 'IBM eBMC']
+    ebmc_pkg += change_identifiers
+                                        
+    def simics_jobs = [:]
+    simics_configs.each { name ->
+        def job_params = [:]
+        job_params += change_identifiers
+        job_params.MACHINE = name
+        job_params.EBMC_BUILD = ebmc_pkg.BUILD_PATH
+        job_params.SIMICS_BUILD = fw_config.SIMICS_BUILD
+        job_params.SIMULATION_TEST = fw_config.SIMULATION_TEST
+        job_params.EBMC_TEST_AUTOMATION = fw_config.EBMC_TEST_AUTOMATION
+        job_params.OPENBMC_TEST_AUTOMATION = fw_config.OPENBMC_TEST_AUTOMATION
+        job_params.BUILD_PATH = "${job_build_path}/simics-ci/${name}"
+        job_params.POST_STATUS = "IBM simics ${name}"
+
+        simics_jobs."${name}" = {   
+                                    stage("Simics ${name}") {
+                                        job retry: true,
+                                            job_path: "../simics-ci/${name}",
+                                            parameters: job_params
+                                    }
+                                }
+    }
+    def hardware_jobs = [:]
+    hardware_configs.each { name ->
+        def job_params = [:]
+        job_params += change_identifiers
+        job_params.MACHINE = name
+        job_params.EBMC_BUILD = ebmc_pkg.BUILD_PATH
+        job_params.EBMC_TEST_AUTOMATION = fw_config.EBMC_TEST_AUTOMATION
+        job_params.OPENBMC_TEST_AUTOMATION = fw_config.OPENBMC_TEST_AUTOMATION
+        job_params.OPENBMC_BUILD_SCRIPTS = fw_config.OPENBMC_BUILD_SCRIPTS
+        job_params.BUILD_PATH = "${job_build_path}/hardware-ci/${name}"
+        job_params.POST_STATUS = "IBM hardware ${name}"
+
+        hardware_jobs."${name}" = {   
+                                    stage("Hardware ${name}") {
+                                        job job_path: "../hardware-ci/${name}",
+                                            parameters: job_params
+                                    }
+                                }
+    }
+
+    //jf rt delete pse-jet-sys-powerfw-generic-local/open-power/op-build/master-p10/5767/b385b7ba
+    def result = 'SUCCESS'
+    stage("Build op-build") {
+        
+        job job_path: '../openpower-ci/p10ebmc',
+            parameters: opbuild
+
+    }
+
+    stage("Build eBMC") {
+                
+        job job_path: '../ebmc-pkg/p10ebmc',
+            parameters: ebmc_pkg
+        
+    }
+
+    parallel simics_jobs
+    
+    parallel hardware_jobs
+
 }
 }
 }
