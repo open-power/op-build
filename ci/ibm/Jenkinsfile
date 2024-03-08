@@ -40,6 +40,7 @@ timestamps {
         change_identifiers.CHANGE_AUTHOR_EMAIL = env?.ghprbActualCommitAuthorEmail
         change_identifiers.CHANGE_TITLE = env?.ghprbPullTitle
         change_identifiers.EBMC_PIPELINES_BRANCH = env.EBMC_PIPELINES_BRANCH    
+        change_identifiers += params
     }
 
     if (env?.RESET_CI_PROGRESS == 'true') {
