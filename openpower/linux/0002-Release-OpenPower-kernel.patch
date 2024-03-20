@@ -14,10 +14,10 @@ index 92accf2ddc08..18dcc81a67e4 100644
 +++ b/Makefile
 @@ -2,7 +2,7 @@
  VERSION = 5
- PATCHLEVEL = 10
- SUBLEVEL = 197
+ PATCHLEVEL = 15
+ SUBLEVEL = 134
 -EXTRAVERSION =
 +EXTRAVERSION = -openpower1
- NAME = Dare mighty things
+ NAME = Trick or Treat
  
  # *DOCUMENTATION*
