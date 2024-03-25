@@ -41,12 +41,11 @@ automatically download and build an appropriate toolchain as part of the build
 process, so you don't need to worry about setting up a
 cross-compiler. Cross-compiling from a x86-64 host is officially supported.
 
-The machine your building on will need Python 2.7, GCC 6.2 (or later), and
+The machine your building on will need Python 2.7, GCC 8.4 (or later), and
 a handful of other packages (see below).
 
 ### Dependencies for *64-bit* Ubuntu/Debian systems
-
-1. Install Ubuntu (>= 22.04) or Debian (>= 9) 64-bit.
+1. Install Ubuntu 22.04 or Debian 12 (x86_64 or ppc64le).
 2. Enable Universe (Ubuntu only):
 
         sudo apt-get install software-properties-common
@@ -62,7 +61,7 @@ a handful of other packages (see below).
 
 ### Dependencies for *64-bit* Fedora systems
 
-1. Install Fedora (>= 25) 64-bit.
+1. Install Fedora 33 (x86_64 or ppc64le).
 2. Install the packages necessary for the build:
 
         sudo dnf install gcc-c++ flex bison git ctags cscope expat-devel patch \
