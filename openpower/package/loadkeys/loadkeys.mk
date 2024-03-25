@@ -8,11 +8,11 @@ LOADKEYS_VERSION = 2.5.1
 LOADKEYS_SOURCE = kbd-$(LOADKEYS_VERSION).tar.xz
 LOADKEYS_SITE = $(BR2_KERNEL_MIRROR)/linux/utils/kbd
 LOADKEYS_CONF_OPTS = \
-		--disable-vlock \
-		--disable-tests
+	--disable-vlock \
+	--disable-tests
 LOADKEYS_DEPENDENCIES = \
-		$(TARGET_NLS_DEPENDENCIES) \
-		host-pkgconf
+	$(TARGET_NLS_DEPENDENCIES) \
+	host-pkgconf
 LOADKEYS_LICENSE = GPL-2.0+
 LOADKEYS_LICENSE_FILES = COPYING CREDITS
 LOADKEYS_INSTALL_STAGING = NO
