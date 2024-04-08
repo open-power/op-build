@@ -35,6 +35,7 @@ define SBE_ODYSSEY_INSTALL_IMAGES_CMDS
         cp $(STAGING_DIR)/ody-pak-files/gen/final/boot.pak $(STAGING_DIR)/ody_binaries/
         cp $(STAGING_DIR)/ody-pak-files/gen/final/rt.pak $(STAGING_DIR)/ody_binaries/
         cp $(@D)/images/odyssey/odyssey_sbe_debug_DD1.tar.gz $(STAGING_DIR)/poz_debug_tools/
+		cp $(@D)/images/sbe_tools.tar.gz $(STAGING_DIR)/poz_debug_tools/
         cp $(@D)/images/odyssey/runtime/sppe/odysseySppeStringFile_DD1 $(STAGING_DIR)/ody_stringfiles/runtime/
         tar -xvf $(BUILD_DIR)/hostboot-binaries-$(HB_BINARY_VERSION)/sbe_images/odyssey_dd1_0/golden/ody_sbe_golden_debug.tar.gz sppe/odysseySppeStringFile_DD1
         cp sppe/odysseySppeStringFile_DD1 $(STAGING_DIR)/ody_stringfiles/gldn/
