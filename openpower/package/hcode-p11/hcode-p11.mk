@@ -5,9 +5,15 @@
 ################################################################################
 
 HCODE_P11_VERSION = $(call qstrip,$(BR2_HCODE_P11_VERSION))
-HCODE_P11_SITE ?= $(call github,open-power,hcode,$(HCODE_P11_VERSION))
-HCODE_P11_LICENSE = Apache-2.0
 
+# Public
+#HCODE_P11_SITE ?= $(call github,open-power,hcode,$(HCODE_P11_VERSION))
+
+#Private
+HCODE_P11_SITE ?= git@github.ibm.com:open-power/hcode.git
+HCODE_P11_SITE_METHOD ?= git
+
+HCODE_P11_LICENSE = Apache-2.0
 HCODE_P11_INSTALL_IMAGES = YES
 HCODE_P11_INSTALL_TARGET = NO
 
