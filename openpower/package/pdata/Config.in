@@ -2,10 +2,10 @@ menu "pdata"
 
 config BR2_PACKAGE_PDATA
         bool "pdata"
-        default y if (BR2_OPENPOWER_POWER10)
+        default y if (BR2_OPENPOWER_POWER10 || BR2_OPENPOWER_POWER11)
         select BR2_PACKAGE_HOST_DTC
-        depends on BR2_PACKAGE_EKB
-        depends on (BR2_PACKAGE_MACHINE_XML || BR2_PACKAGE_RAINIER_2U_XML || BR2_PACKAGE_RAINIER_4U_XML)
+        depends on (BR2_PACKAGE_EKB || BR2_PACKAGE_EKB_P11)
+        depends on (BR2_PACKAGE_MACHINE_XML || BR2_PACKAGE_RAINIER_2U_XML || BR2_PACKAGE_RAINIER_4U_XML || BR2_PACKAGE_BONNELL_XML)
         help
           To initialize and boot a server, various software components
           ( BMC apps and Hostboot) will interact. PDATA provides device tree

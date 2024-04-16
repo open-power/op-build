@@ -168,6 +168,8 @@ define OPENPOWER_PNOR_P10_UPDATE_IMAGE
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeMeasurementStringFile $(PNOR_SCRATCH_DIR)/SBEMSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeStringFile_DD1 $(PNOR_SCRATCH_DIR)/SBESTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeVerificationStringFile $(PNOR_SCRATCH_DIR)/SBEVSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/ody_stringfiles/runtime/odysseySppeStringFile_DD1 $(PNOR_SCRATCH_DIR)/ODYRTSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/ody_stringfiles/gldn/odysseySppeStringFile_DD1 $(PNOR_SCRATCH_DIR)/ODYGLDNSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(OCC_STAGING_DIR)/occStringFile $(PNOR_SCRATCH_DIR)/OCCSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hcode/qme_p10dd20/trexStringFile $(PNOR_SCRATCH_DIR)/QMESTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hcode/xgpe_p10dd20/trexStringFile $(PNOR_SCRATCH_DIR)/XGPESTRINGFILE.ipllid && \

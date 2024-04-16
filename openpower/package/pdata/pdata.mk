@@ -5,12 +5,9 @@
 ################################################################################
 
 PDATA_VERSION = $(call qstrip,$(BR2_PDATA_VERSION))
-ifeq ($(BR2_PDATA_GITHUB_PROJECT),y)
-PDATA_SITE = $(call github,open-power,pdata,$(PDATA_VERSION))
-else ifeq ($(BR2_PDATA_CUSTOM_GIT),y)
-PDATA_SITE = $(BR2_PDATA_CUSTOM_GIT_VALUE)
-PDATA_SITE_METHOD = git
-endif
+
+PDATA_SITE ?= git@github.ibm.com:open-power/pdata.git
+PDATA_SITE_METHOD ?= git
 
 PDATA_LICENSE = Apache-2.0
 PDATA_LICENSE_FILES = $(@D)/LICENSE
@@ -18,22 +15,19 @@ PDATA_INSTALL_STAGING = YES
 PDATA_INSTALL_TARGET = NO
 PDATA_AUTORECONF = YES
 PDATA_AUTORECONF_OPTS += -I $(HOST_DIR)/share/autoconf-archive
-PDATA_DEPENDENCIES = ekb host-dtc host-autoconf-archive
+PDATA_DEPENDENCIES = host-dtc host-autoconf-archive
 
 EKB_STAGING_DIR = $(STAGING_DIR)/ekb
 MACHINE_XML_STAGING_DIR = $(STAGING_DIR)/openpower_mrw_scratch
 
-TARGET_PROC =
-ifeq ($(BR2_OPENPOWER_POWER10),y)
-TARGET_PROC = p10
-else ifeq ($(BR2_OPENPOWER_POWER11),y)
-TARGET_PROC = p11
-endif
+TARGET_PROC =  p10
 
 ifeq ($(BR2_PACKAGE_OPENPOWER_PNOR_P10),y)
+PDATA_DEPENDENCIES += ekb
 PDATA_DEPENDENCIES += $(call qstrip,$(BR2_OPENPOWER_P10_XMLS))
 QSTRIP_MACHINE_XMLS = $(call qstrip,$(foreach xml,$(BR2_OPENPOWER_P10_XMLS),$(MACHINE_XML_STAGING_DIR)/$(BR2_$(call UPPERCASE,$(call qstrip,$(xml)))_FILENAME)))
 else ifeq ($(BR2_PACKAGE_OPENPOWER_PNOR_P11),y)
+PDATA_DEPENDENCIES += ekb-p11
 PDATA_DEPENDENCIES += $(call qstrip,$(BR2_OPENPOWER_P11_XMLS))
 QSTRIP_MACHINE_XMLS = $(call qstrip,$(foreach xml,$(BR2_OPENPOWER_P11_XMLS),$(MACHINE_XML_STAGING_DIR)/$(BR2_$(call UPPERCASE,$(call qstrip,$(xml)))_FILENAME)))
 else
