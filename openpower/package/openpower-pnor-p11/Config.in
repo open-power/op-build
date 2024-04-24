@@ -14,6 +14,9 @@ config BR2_PACKAGE_OPENPOWER_PNOR_P11
         select BR2_PACKAGE_EVEREST_XML
         select BR2_PACKAGE_HCODE_P11
         select BR2_PACKAGE_BONNELL_XML
+        select BR2_PACKAGE_FUJI_XML
+        select BR2_PACKAGE_BLUERIDGE_2U_XML
+        select BR2_PACKAGE_BLUERIDGE_4U_XML
         help
             Utilites for building a targeting Power11 binary image
 
