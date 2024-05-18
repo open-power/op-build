@@ -23,7 +23,7 @@ define SBE_ODYSSEY_BUILD_CMDS
 	echo '. .venv/bin/activate' >> $(@D)/customrc
 	sed -i 's/--user//g' $(@D)/public/src/tools/utils/sbe/sbe-workon-utils
 	$(HOST_DIR)/bin/python3 -m venv $(@D)/.venv --prompt="SBE"
-	cd $(@D) && ./internal/src/test/framework/build-script odyssey pnor --skip-tests
+	cd $(@D) && ./public/src/test/framework/build-script odyssey pnor --skip-tests
 	BR2_OPENPOWER_SIGNED_SECURITY_VERSION=${BR2_OPENPOWER_SIGNED_SECURITY_VERSION} $(OP_IMAGE_TOOLS_PATH)/imageBuild/imageBuild.py --sbe $(BUILD_DIR)/sbe-odyssey-$(BR2_SBE_ODYSSEY_VERSION)/ --ovrd $(BUILD_DIR)/hostboot-binaries-$(BR2_HOSTBOOT_BINARIES_VERSION)/ -o $(STAGING_DIR)/ody-pak-files --build_workdir $(STAGING_DIR)/ody-pak-files.work $(OP_IMAGE_TOOLS_PATH)/imageBuild/configs/odyssey/dd1/ody_pnor_dd1_image_config
 endef
 
