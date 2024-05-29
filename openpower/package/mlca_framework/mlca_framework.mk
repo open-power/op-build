@@ -4,12 +4,7 @@
 #
 ################################################################################
 
-#MLCA_FRAMEWORK_SITE ?= $(call github,IBM,mlca,main)
 MLCA_FRAMEWORK_SITE ?= $(call github,IBM,mlca,$(MLCA_FRAMEWORK_VERSION))
-# Temporarily point to internal GHE repo until external repo is available
-#MLCA_FRAMEWORK_SITE ?= git@github.ibm.com:BHE/mlca_framework.git
-#MLCA_FRAMEWORK_SITE ?= git@github.ibm.com:BHE/mlca_framework.git
-#MLCA_FRAMEWORK_SITE_METHOD = git
 
 MLCA_FRAMEWORK_LICENSE = Apache-2.0
 MLCA_FRAMEWORK_LICENSE_FILES = LICENSE
