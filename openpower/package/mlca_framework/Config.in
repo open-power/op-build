@@ -1,0 +1,5 @@
+config BR2_PACKAGE_HOST_MLCA_FRAMEWORK
+        bool "MLCA framework signing library"
+        default y if (BR2_PACKAGE_SBE_ODYSSEY)
+        help
+            MLCA PQC library for signing OpenPOWER firmware images
