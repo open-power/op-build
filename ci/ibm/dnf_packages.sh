@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+dnf makecache --refresh
+dnf install -y \
+	sshpass \
+	iputils \
+	tree \
+	jq \
+	htop \
+	ipmitool \
+	which \
+	openssh-server \
+	openssh-clients \
+	wget \
+	git \
+	rustc \
+	python3	\
+	vim \
+	cscope \
+	expat-devel \
+	patch \
+	zlib-devel \
+	zlib-static \
+	texinfo \
+	"perl(bigint)" \
+	"perl(XML::Simple)" \
+	"perl(YAML)" \
+	"perl(XML::SAX)" \
+	"perl(Fatal)" \
+	"perl(Thread::Queue)" \
+   	"perl(Env)" \
+	"perl(XML::LibXML)" \
+	"perl(Digest::SHA1)" \
+	"perl(ExtUtils::MakeMaker)" \
+   	"perl(FindBin)" \
+	"perl(English)" \
+	"perl(Time::localtime)" \
+   	libxml2-devel \
+	unzip \
+	tar \
+	findutils \
+	ncurses-devel \
+   	openssl-devel \
+	make \
+	libxslt \
+	vim-common \
+	lzo-devel \
+	rsync \
+	hostname \
+	flex \
+	bzip2 \
+	cpio \
+	gcc-c++ \
+	bison \
+	ctags \
+	bc \
+	langpacks-en \
+	python3-devel \
+	python2
+
