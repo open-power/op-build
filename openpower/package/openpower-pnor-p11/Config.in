@@ -68,7 +68,7 @@ config BR2_OPENPOWER_PNOR_P11_LEGACY_PNOR_TARGET
 
 config BR2_OPENPOWER_P11_XMLS
         string "List of machine XMLs to include"
-        default "rainier-2u-xml rainier-4u-xml"
+        default "rainier-2u-xml rainier-4u-xml everest-xml bonnell-xml blueridge-2u-xml blueridge-4u-xml fuji-xml"
         help
             List of machine-xmls to include in the OpenPower PNOR
 
