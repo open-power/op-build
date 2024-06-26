@@ -1,7 +1,6 @@
 
 SBE_ODYSSEY_VERSION = $(call qstrip,$(BR2_SBE_ODYSSEY_VERSION))
-SBE_ODYSSEY_SITE ?= git@github.ibm.com:open-power/sbe-common.git
-SBE_ODYSSEY_SITE_METHOD = git
+SBE_ODYSSEY_SITE ?= $(call github,open-power,sbe-odyssey,$(SBE_ODYSSEY_VERSION))
 
 SBE_ODYSSEY_LICENSE = Apache-2.0
 SBE_ODYSSEY_DEPENDENCIES = host-ppe42-gcc host-meson host-python3 op-image-tools
