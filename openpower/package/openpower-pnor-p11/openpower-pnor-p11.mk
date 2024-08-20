@@ -16,6 +16,10 @@ OPENPOWER_PNOR_P11_LICENSE = Apache-2.0
 OPENPOWER_PNOR_P11_LICENSE_FILES = LICENSE
 OPENPOWER_PNOR_P11_DEPENDENCIES = hostboot-binaries skiboot host-openpower-ffs host-openpower-pnor-util host-xz host-sb-signing-utils hostboot-p11 occ-p11 sbe-p11 hcode-p11 ocmb-explorer-fw sbe-odyssey $(call qstrip,$(BR2_OPENPOWER_P11_XMLS))
 
+ifeq ($(BR2_PACKAGE_SBE_ODYSSEY),y)
+OPENPOWER_PNOR_P10_DEPENDENCIES += sbe-odyssey
+endif
+
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_P11_DEPENDENCIES += ima-catalog
 endif
@@ -40,6 +44,10 @@ OPENPOWER_PNOR_P11_INSTALL_TARGET = NO
 # Subpackages we want to include in the version info (do not include openpower-pnor-p11)
 # This is used inside pkg-versions.mk
 OPENPOWER_PNOR_P11_VERSIONED_SUBPACKAGES = skiboot linux petitboot hostboot-binaries pdata hostboot-p11 occ-p11 sbe-p11 hcode-p11 ocmb-explorer-fw sbe-odyssey $(call qstrip,$(BR2_OPENPOWER_P11_XMLS))
+
+ifeq ($(BR2_PACKAGE_SBE_ODYSSEY),y)
+OPENPOWER_PNOR_P10_VERSIONED_SUBPACKAGES += sbe-odyssey
+endif
 
 OPENPOWER_PNOR_P11_OCMB_URL = $(call qstrip,$(OCMB_EXPLORER_FW_SITE)/$(OCMB_EXPLORER_FW_SOURCE))
 
@@ -164,6 +172,8 @@ define OPENPOWER_PNOR_P11_UPDATE_IMAGE
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeMeasurementStringFile $(PNOR_SCRATCH_DIR)/SBEMSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeStringFile_DD1 $(PNOR_SCRATCH_DIR)/SBESTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/sbe_sim_data/sbeVerificationStringFile $(PNOR_SCRATCH_DIR)/SBEVSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/ody_stringfiles/runtime/odysseySppeStringFile_DD1 $(PNOR_SCRATCH_DIR)/ODYRTSTRINGFILE.ipllid && \
+            $(INSTALL) -m 0644 -D $(STAGING_DIR)/ody_stringfiles/gldn/odysseySppeStringFile_DD1 $(PNOR_SCRATCH_DIR)/ODYGLDNSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(OCC_STAGING_DIR)/occStringFile $(PNOR_SCRATCH_DIR)/OCCSTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hcode/qme_p10dd20/trexStringFile $(PNOR_SCRATCH_DIR)/QMESTRINGFILE.ipllid && \
             $(INSTALL) -m 0644 -D $(STAGING_DIR)/hcode/xgpe_p10dd20/trexStringFile $(PNOR_SCRATCH_DIR)/XGPESTRINGFILE.ipllid && \
