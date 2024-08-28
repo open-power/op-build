@@ -93,7 +93,7 @@ define OPENPOWER_PNOR_P11_UPDATE_IMAGE
         $(TARGET_MAKE_ENV) && \
         PATH="$(BUILD_DIR)/sbe-odyssey-$(call qstrip,$(BR2_SBE_ODYSSEY_VERSION))/public/src/import/public/common/utils/imageProcs/tools/:$$PATH" \
          $(@D)/update_image.pl \
-            -release p10 \
+            -release p11 \
             -op_target_dir $(STAGING_DIR)/hostboot_build_images \
             -hb_image_dir $(STAGING_DIR)/hostboot_build_images \
             -scratch_dir $(PNOR_SCRATCH_DIR) \
@@ -124,7 +124,7 @@ define OPENPOWER_PNOR_P11_UPDATE_IMAGE
             -ody_build sbe-odyssey-$(call qstrip,$(BR2_SBE_ODYSSEY_VERSION)) \
             -ody_rt_pak_file $(STAGING_DIR)/ody_binaries/rt.pak \
             -ody_bldr_pak_file $(STAGING_DIR)/ody_binaries/boot.pak \
-            -pnor_layout $(@D)/p10Layouts/$(BR2_OPENPOWER_P11_PNOR_XML_LAYOUT_FILENAME) \
+            -pnor_layout $(@D)/p11Layouts/$(BR2_OPENPOWER_P11_PNOR_XML_LAYOUT_FILENAME) \
             -sbe_img_dir $(BUILD_DIR)/sbe-p11-$(call qstrip,$(BR2_SBE_P11_VERSION))/images \
             -devtree_binary_filename $(STAGING_DIR)/usr/share/pdata/$(DEVTREE_BINARY_FILENAME) \
             -xz_compression \
@@ -136,8 +136,8 @@ define OPENPOWER_PNOR_P11_UPDATE_IMAGE
             echo "***Generating legacy pnor targets..." && \
             mkdir -p $(STAGING_DIR)/pnor.$(XML_VAR) && \
             $(TARGET_MAKE_ENV) $(@D)/create_pnor_image.pl \
-                -release p10 \
-                -xml_layout_file $(@D)/p10Layouts/$(BR2_OPENPOWER_P11_PNOR_XML_LAYOUT_FILENAME) \
+                -release p11 \
+                -xml_layout_file $(@D)/p11Layouts/$(BR2_OPENPOWER_P11_PNOR_XML_LAYOUT_FILENAME) \
                 -pnor_filename $(STAGING_DIR)/pnor.$(XML_VAR)/$(XML_VAR).pnor \
                 -hb_image_dir $(STAGING_DIR)/hostboot_build_images \
                 -scratch_dir $(PNOR_SCRATCH_DIR) \
