@@ -45,12 +45,12 @@ The machine your building on will need Python 2.7, GCC 8.4 (or later), and
 a handful of other packages (see below).
 
 ### Dependencies for *64-bit* Ubuntu/Debian systems
-
 1. Install Ubuntu 22.04 or Debian 12 (x86_64 or ppc64le).
 2. Enable Universe (Ubuntu only):
 
         sudo apt-get install software-properties-common
         sudo add-apt-repository universe
+
 3. Install the packages necessary for the build:
 
         sudo apt-get install cscope universal-ctags libz-dev libexpat-dev \
