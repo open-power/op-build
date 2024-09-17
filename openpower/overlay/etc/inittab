@@ -31,4 +31,4 @@ null::shutdown:/etc/init.d/rcK
 null::shutdown:/bin/umount -a -r
 null::shutdown:/sbin/swapoff -a
 
-null::restart:/usr/sbin/kexec-restart
+null::restart:/usr/sbin/kexec -f -e
