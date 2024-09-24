@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PPE42_GCC_VERSION ?= c5ec98b08a5efef5e72389287109068f9dd25bd7
+PPE42_GCC_VERSION ?= 7e433ff8a1470dc5c00d746761f03959efa3584c
 PPE42_GCC_SITE ?= $(call github,open-power,ppe42-gcc,$(PPE42_GCC_VERSION))
 PPE42_GCC_LICENSE = GPLv3+
 
