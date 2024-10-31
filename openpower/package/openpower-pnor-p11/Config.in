@@ -72,7 +72,7 @@ config BR2_OPENPOWER_P11_XMLS
         help
             List of machine-xmls to include in the OpenPower PNOR
 
-config BR2_SKIBOOT_P10_LID_NAME
+config BR2_SKIBOOT_P11_LID_NAME
         string "Name of skiboot lid name to be used"
         default "skiboot.lid"
         help

@@ -17,21 +17,21 @@ OPENPOWER_PNOR_P11_LICENSE_FILES = LICENSE
 OPENPOWER_PNOR_P11_DEPENDENCIES = hostboot-binaries skiboot host-openpower-ffs host-openpower-pnor-util host-xz host-sb-signing-utils hostboot-p11 occ-p11 sbe-p11 hcode-p11 ocmb-explorer-fw sbe-odyssey $(call qstrip,$(BR2_OPENPOWER_P11_XMLS))
 
 ifeq ($(BR2_PACKAGE_SBE_ODYSSEY),y)
-OPENPOWER_PNOR_P10_DEPENDENCIES += sbe-odyssey
+OPENPOWER_PNOR_P11_DEPENDENCIES += sbe-odyssey
 endif
 
 ifeq ($(BR2_PACKAGE_IMA_CATALOG),y)
 OPENPOWER_PNOR_P11_DEPENDENCIES += ima-catalog
 endif
 
-ifeq ($(BR2_OPENPOWER_P10_SECUREBOOT_KEY_TRANSITION_TO_DEV),y)
+ifeq ($(BR2_OPENPOWER_P11_SECUREBOOT_KEY_TRANSITION_TO_DEV),y)
 OPENPOWER_PNOR_P11_KEY_TRANSITION_ARG = -key_transition imprint
-else ifeq ($(BR2_OPENPOWER_P10_SECUREBOOT_KEY_TRANSITION_TO_PROD),y)
+else ifeq ($(BR2_OPENPOWER_P11_SECUREBOOT_KEY_TRANSITION_TO_PROD),y)
 OPENPOWER_PNOR_P11_KEY_TRANSITION_ARG = -key_transition production
 endif
 
-ifneq ($(BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE),"")
-OPENPOWER_PNOR_P11_SIGN_MODE_ARG = -sign_mode $(BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE)
+ifneq ($(BR2_OPENPOWER_P11_SECUREBOOT_SIGN_MODE),"")
+OPENPOWER_PNOR_P11_SIGN_MODE_ARG = -sign_mode $(BR2_OPENPOWER_P11_SECUREBOOT_SIGN_MODE)
 endif
 
 ifneq ($(BR2_OPENPOWER_SIGNED_SECURITY_VERSION),"")
@@ -46,7 +46,7 @@ OPENPOWER_PNOR_P11_INSTALL_TARGET = NO
 OPENPOWER_PNOR_P11_VERSIONED_SUBPACKAGES = skiboot linux petitboot hostboot-binaries pdata hostboot-p11 occ-p11 sbe-p11 hcode-p11 ocmb-explorer-fw sbe-odyssey $(call qstrip,$(BR2_OPENPOWER_P11_XMLS))
 
 ifeq ($(BR2_PACKAGE_SBE_ODYSSEY),y)
-OPENPOWER_PNOR_P10_VERSIONED_SUBPACKAGES += sbe-odyssey
+OPENPOWER_PNOR_P11_VERSIONED_SUBPACKAGES += sbe-odyssey
 endif
 
 OPENPOWER_PNOR_P11_OCMB_URL = $(call qstrip,$(OCMB_EXPLORER_FW_SITE)/$(OCMB_EXPLORER_FW_SOURCE))
@@ -113,7 +113,7 @@ define OPENPOWER_PNOR_P11_UPDATE_IMAGE
             -pspd_binary_filename $(STAGING_DIR)/openpower_mrw_scratch/$(PSPD_BINARY_FILENAME) \
             -wof_binary_filename $(STAGING_DIR)/openpower_mrw_scratch/$(WOF_BINARY_FILENAME) \
             -memd_binary_filename $(STAGING_DIR)/openpower_mrw_scratch/$(MEMD_BINARY_FILENAME) \
-            -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_P10_LID_NAME) \
+            -payload $(BINARIES_DIR)/$(BR2_SKIBOOT_P11_LID_NAME) \
             -payload_filename skiboot.lid.xz \
             -binary_dir $(BINARIES_DIR) \
             -bootkernel_filename $(LINUX_IMAGE_NAME) \
