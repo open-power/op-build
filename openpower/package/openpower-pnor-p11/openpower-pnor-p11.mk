@@ -374,6 +374,12 @@ define OPENPOWER_PNOR_P11_UPDATE_IMAGE
                 $(BINARIES_DIR)/mmc/PSPD.$(XML_VAR) ; \
         fi
 
+        # HB_HLL - check as this support is being phased in
+        if [ -e $(PNOR_SCRATCH_DIR)/HB_HLL.bin ]; then \
+            $(INSTALL) -m 0644 -D $(PNOR_SCRATCH_DIR)/HB_HLL.bin \
+                $(BINARIES_DIR)/mmc/HB_HLL.$(XML_VAR) ; \
+        fi
+
 endef
 
 define OPENPOWER_PNOR_P11_INSTALL_IMAGES_CMDS
