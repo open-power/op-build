@@ -6,8 +6,8 @@
 # slash is required.
 whitelist=(     'acenic/'
                 'bnx2/'
-                'bnx2x/bnx2x-e2-7.13.15.0.fw'
-                'cxgb4/t4fw-1.16.63.0.bin'
+                'bnx2x/bnx2x-e2-7.13.21.0.fw'
+                'cxgb4/t4fw-1.27.5.0.bin'
                 'cxgb4/t4fw.bin'
                 'cxgb3/'
                 'qed/qed_init_values_zipped-8.37.2.0.bin'
