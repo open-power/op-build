@@ -6,8 +6,16 @@
 
 PDATA_VERSION = $(call qstrip,$(BR2_PDATA_VERSION))
 
-PDATA_SITE ?= git@github.ibm.com:open-power/pdata.git
-PDATA_SITE_METHOD ?= git
+PDATA_VERSION = $(call qstrip,$(BR2_PDATA_VERSION))
+ifeq ($(BR2_PDATA_GITHUB_PROJECT),y)
+PDATA_SITE = $(call github,open-power,pdata,$(PDATA_VERSION))
+else ifeq ($(BR2_PDATA_CUSTOM_GIT),y)
+PDATA_SITE = $(BR2_PDATA_CUSTOM_GIT_VALUE)
+PDATA_SITE_METHOD = git
+endif
+#Private
+#PDATA_SITE ?= git@github.ibm.com:open-power/pdata.git
+#PDATA_SITE_METHOD ?= git
 
 PDATA_LICENSE = Apache-2.0
 PDATA_LICENSE_FILES = $(@D)/LICENSE

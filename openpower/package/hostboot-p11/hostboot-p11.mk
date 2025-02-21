@@ -7,11 +7,11 @@
 HOSTBOOT_P11_VERSION = $(call qstrip,$(BR2_HOSTBOOT_P11_VERSION))
 
 #Public
-#HOSTBOOT_P11_SITE ?= $(call github,open-power,hostboot,$(HOSTBOOT_P11_VERSION))
+HOSTBOOT_P11_SITE ?= $(call github,open-power,hostboot,$(HOSTBOOT_P11_VERSION))
 
 #Private
-HOSTBOOT_P11_SITE ?= git@github.ibm.com:open-power/hostboot.git
-HOSTBOOT_P11_SITE_METHOD ?= git
+#HOSTBOOT_P11_SITE ?= git@github.ibm.com:open-power/hostboot.git
+#HOSTBOOT_P11_SITE_METHOD ?= git
 
 HOSTBOOT_P11_LICENSE = Apache-2.0
 HOSTBOOT_P11_LICENSE_FILES = LICENSE

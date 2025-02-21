@@ -7,11 +7,11 @@
 SBE_P11_VERSION = $(call qstrip,$(BR2_SBE_P11_VERSION))
 
 #Public
-#SBE_P11_SITE ?= $(call github,open-power,sbe,$(SBE_P11_VERSION))
+SBE_P11_SITE ?= $(call github,open-power,sbe,$(SBE_P11_VERSION))
 
 #Private
-SBE_P11_SITE ?= git@github.ibm.com:open-power/sbe.git
-SBE_P11_SITE_METHOD ?= git
+#SBE_P11_SITE ?= git@github.ibm.com:open-power/sbe.git
+#SBE_P11_SITE_METHOD ?= git
 
 SBE_P11_LICENSE = Apache-2.0
 SBE_P11_DEPENDENCIES = host-ppe42-gcc hcode-p11
