@@ -7,11 +7,11 @@
 OCC_P11_VERSION = $(call qstrip,$(BR2_OCC_P11_VERSION))
 
 #Public
-#OCC_P11_SITE ?= $(call github,open-power,occ,$(OCC_P11_VERSION))
+OCC_P11_SITE ?= $(call github,open-power,occ,$(OCC_P11_VERSION))
 
 #Private
-OCC_P11_SITE ?= git@github.ibm.com:open-power/occ.git
-OCC_P11_SITE_METHOD ?= git
+#OCC_P11_SITE ?= git@github.ibm.com:open-power/occ.git
+#OCC_P11_SITE_METHOD ?= git
 
 OCC_P11_LICENSE = Apache-2.0
 
