@@ -44,6 +44,12 @@ config BR2_OPENPOWER_P11_SECUREBOOT_KEY_TRANSITION_TO_PROD
       Builds a driver that transitions Secure Boot development keys to
       vendor supplied production keys and powers off the system.
 
+config BR2_OPENPOWER_P11_SECUREBOOT_KEY_TRANSITION_PROD_TO_PROD
+        bool "Transition from production keys to production keys"
+        help
+            Indicates generation of production-v1 to production-v3 transition driver
+            BR2_OPENPOWER_P11_SECUREBOOT_SIGN_MODE must be production
+
 endchoice
 
 config BR2_OPENPOWER_P11_SECUREBOOT_SIGN_MODE
