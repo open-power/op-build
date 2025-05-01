@@ -3,7 +3,7 @@
 # openpower_pnor_p11
 #
 ################################################################################
-OPENPOWER_PNOR_P11_VERSION ?= e77d5ab0ee92e6945536a619ad264e3397022473
+OPENPOWER_PNOR_P11_VERSION ?= 3d95df445ebaa906f9a79259cbe93f962180c4ea
 
 #Public
 OPENPOWER_PNOR_P11_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P11_VERSION))
@@ -151,6 +151,9 @@ define OPENPOWER_PNOR_P11_UPDATE_IMAGE
             $(OPENPOWER_PNOR_P11_KEY_TRANSITION_ARG) \
             $(OPENPOWER_PNOR_P11_SIGN_MODE_ARG) \
             $(SECURITY_VERSION) \
+            -common_sbe_files_dir $(STAGING_DIR)/common_sbe_files \
+            -common_ocmbfw_files_dir $(STAGING_DIR)/common_ocmbfw_files \
+
 
         if [ -n "$(BR2_OPENPOWER_PNOR_P11_LEGACY_PNOR_TARGET)" ] ; then \
             echo "***Generating legacy pnor targets..." && \
@@ -415,6 +418,17 @@ define OPENPOWER_PNOR_P11_INSTALL_IMAGES_CMDS
                 $(STAGING_DIR)/openpower_pnor_scratch.* ;\
             rm -rf $(BINARIES_DIR)/mmc \
                 $(BINARIES_DIR)/mmc.tar.gz ;\
+        fi
+
+        # Cleanup old common SBE images
+        if [ -n "$(STAGING_DIR)/common_sbe_files/" ] ; then  \
+            rm -f $(STAGING_DIR)/common_sbe_files/* ;\
+        fi
+
+        # Cleanup old common OCMBFW images
+        if [ -n "$(STAGING_DIR)/common_ocmbfw_files/" ] ; then  \
+            rm -rf $(STAGING_DIR)/common_ocmbfw_files/* ;\
+            rm -f $(BINARIES_DIR)/$(BR2_OCMBFW_P11_FILENAME).header ;\
         fi
 
         $(foreach xmlpkg,$(BR2_OPENPOWER_P11_XMLS),\
