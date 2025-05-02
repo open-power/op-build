@@ -5,7 +5,6 @@ BR2_EXTRA_GCC_CONFIG_OPTIONS="--enable-targets=powerpc64-linux --disable-libsani
 BR2_OPTIMIZE_S=y
 BR2_TARGET_GENERIC_HOSTNAME="skiroot"
 BR2_ROOTFS_DEVICE_CREATION_DYNAMIC_EUDEV=y
-BR2_ROOTFS_DEVICE_TABLE="../openpower/device_table.txt"
 BR2_GENERATE_LOCALE="en_US.UTF-8"
 BR2_ROOTFS_OVERLAY="../openpower/overlay"
 BR2_ROOTFS_POST_BUILD_SCRIPT="../openpower/scripts/fixup-target-var ../openpower/scripts/firmware-whitelist"
