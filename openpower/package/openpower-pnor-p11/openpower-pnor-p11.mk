@@ -64,6 +64,9 @@ endif
 
 OPENPOWER_PNOR_P11_OCMB_URL = $(call qstrip,$(OCMB_EXPLORER_FW_SITE)/$(OCMB_EXPLORER_FW_SOURCE))
 
+SALT_FOR_HASH_PAGE_TABLES = $(shell xxd -l 16 -p /dev/urandom)
+export SALT_FOR_HASH_PAGE_TABLES
+
 #######
 # OPENPOWER_PNOR_P11_UPDATE_IMAGE - process/sign PNOR partitions
 # Arguments:
