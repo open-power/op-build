@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -o nounset
+
+sed -i -r -e 's/^(console|)::/null::/' "$TARGET_DIR/etc/inittab"

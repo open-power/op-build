@@ -1,9 +1,0 @@
-#!/bin/sh
-
-case "$1" in
-    start)
-        echo 1 1 1 1 > /proc/sys/kernel/printk
-        ;;
-esac
-
-exit 0
