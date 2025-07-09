@@ -26,8 +26,7 @@ my $repos =
                     DIR => "openpower/package/occ"},
     'pnor'     => { REPO => "https://github.com/open-power/pnor" ,
                     DIR => "openpower/package/openpower-pnor"},
-    'petitboot'     => { REPO => "https://github.com/open-power/petitboot" ,
-			 DIR => "openpower/package/petitboot"},
+    'petitboot'     => { REPO => "https://github.com/open-power/petitboot" },
 };
 
 my $begin_release;

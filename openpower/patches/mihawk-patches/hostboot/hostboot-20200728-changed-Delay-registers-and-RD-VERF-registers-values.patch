@@ -327,8 +327,8 @@ diff -Nuar hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/
 --- hostboot-A/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.H	2020-06-23 00:00:29.000000000 +0800
 +++ hostboot-B/src/import/chips/p9/procedures/hwp/memory/lib/workarounds/dp16_workarounds.H	2020-07-28 14:01:06.803758043 +0800
 @@ -92,6 +92,8 @@
- ///
- fapi2::ReturnCode adjust_rd_dq_delay( const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target, const uint64_t i_rp );
+ fapi2::ReturnCode is_cmd_precede_time_workaround_needed( const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target,
+         bool& o_is_needed );
  
 +fapi2::ReturnCode delay_setting_registers(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target,const uint64_t i_rp );
 +
@@ -376,3 +376,6 @@ diff -Nuar hostboot-A/src/import/chips/p9/procedures/hwp/memory/p9_mss_draminit_
 +                //Modify the value for delay
 +                FAPI_TRY( mss::workarounds::nvdimm::delay_setting_registers(p,rp)); 
 +                }	
+ 
+ #ifdef LRDIMM_CAPABLE
+                 //add workaround after all step
