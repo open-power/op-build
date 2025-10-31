@@ -11,8 +11,8 @@ if [ ! -e buildroot/Makefile ]; then
 	return -1
 fi
 
-BR2_BACKUP_SITE="https://sources.buildroot.net"
-BR2_GNU_MIRROR="https://ftpmirror.gnu.org"
+export BR2_BACKUP_SITE="https://sources.buildroot.net"
+export BR2_GNU_MIRROR="https://ftpmirror.gnu.org"
 export BR2_EXTERNAL=${__PWD}/openpower
 if [ -z "${BR2_DL_DIR-}" ]; then export BR2_DL_DIR=${__PWD}/dl; fi
 
