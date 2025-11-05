@@ -1,4 +1,4 @@
 [submodule "buildroot"]
-	path = buildroot
-	branch = 2021.02-op-build
-	url = https://github.com/open-power/buildroot
+	path = buildroot 
+	branch = bofferdn-2021.02-fix-http
+	url = https://github.com/bofferdn/buildroot
