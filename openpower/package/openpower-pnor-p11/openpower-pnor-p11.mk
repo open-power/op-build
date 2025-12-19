@@ -3,7 +3,7 @@
 # openpower_pnor_p11
 #
 ################################################################################
-OPENPOWER_PNOR_P11_VERSION ?= 3d95df445ebaa906f9a79259cbe93f962180c4ea
+OPENPOWER_PNOR_P11_VERSION ?= 99d35aae2af4e0fe80e201b71be5aef781a6b065
 
 #Public
 OPENPOWER_PNOR_P11_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P11_VERSION))
