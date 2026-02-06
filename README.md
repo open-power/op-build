@@ -44,6 +44,27 @@ cross-compiler. Cross-compiling from a x86-64 host is officially supported.
 The machine your building on will need Python 2.7, GCC 8.4 (or later), and
 a handful of other packages (see below).
 
+### GCC 14+ / GCC 15+ Compatibility
+
+If you are using GCC 14 or later (including GCC 15), you may encounter build
+errors when compiling host-m4 1.4.19 due to C23 attribute handling changes.
+The error typically looks like:
+
+```
+gl_list.h:633:40: error: expected identifier or '(' before 'int'
+  633 | GL_LIST_INLINE _GL_ATTRIBUTE_NODISCARD int
+```
+
+**Workaround:** Set the `HOST_CFLAGS` environment variable to use the gnu17
+standard:
+
+```
+HOST_CFLAGS='-std=gnu17' ./op-build
+```
+
+This forces the C compiler to use the GNU C17 standard, which avoids the
+incompatibility with the `_GL_ATTRIBUTE_NODISCARD` macro in gnulib.
+
 ### Dependencies for *64-bit* Ubuntu/Debian systems
 
 1. Install Ubuntu 22.04 or Debian 12 (x86_64 or ppc64le).
