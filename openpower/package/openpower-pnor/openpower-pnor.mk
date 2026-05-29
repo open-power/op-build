@@ -182,7 +182,7 @@ define OPENPOWER_PNOR_INSTALL_IMAGES_CMDS
 
 	#Create Debug Tarball
 	mkdir -p $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
-	cp -r $(FILES_TO_TAR) $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
+	cp -rn $(FILES_TO_TAR) $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/
 	tar -zcvf $(OUTPUT_IMAGES_DIR)/host_fw_debug.tar -C $(STAGING_DIR)/pnor/host_fw_debug_tarball_files/  .
 
 endef
