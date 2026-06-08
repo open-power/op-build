@@ -1,0 +1,26 @@
+skiboot: link final elf with -z notext for newer binutils
+
+skiboot is a self-relocating PIE and processes its own relocations at
+boot, so it legitimately contains text relocations. binutils >= 2.39
+promotes "read-only segment has dynamic relocations" from a warning to a
+hard error by default (e.g. binutils 2.46 on Fedora 44 / Ubuntu 26.04,
+2.44 on Debian 13), breaking the final link. Pass -z notext to allow it.
+
+Upstream: https://github.com/open-power/skiboot (Makefile.main)
+Signed-off-by: Trung Le <trung.le@ruby-journal.com>
+
+diff --git a/Makefile.main b/Makefile.main
+index a06d79fe..22a9cdee 100644
+--- a/Makefile.main
++++ b/Makefile.main
+@@ -197,6 +197,10 @@ LDFLAGS_FINAL = -m elf64lppc --no-multi-toc -N --build-id=none --whole-archive
+ LDFLAGS_FINAL += -static -nostdlib -pie -Ttext-segment=$(LD_TEXT) --oformat=elf64-powerpc
+ LDFLAGS_FINAL += --orphan-handling=warn
+ LDFLAGS_FINAL += $(call try-ldflag,$(LD),--no-warn-rwx-segments)
++# skiboot is a self-relocating PIE and processes its own relocations at boot,
++# so it legitimately has text relocations. binutils >= 2.39 turns "read-only
++# segment has dynamic relocations" into a hard error by default; allow it.
++LDFLAGS_FINAL += $(call try-ldflag,$(LD),-z notext)
+ 
+ LDRFLAGS=-melf64ppc
+ # Debug stuff

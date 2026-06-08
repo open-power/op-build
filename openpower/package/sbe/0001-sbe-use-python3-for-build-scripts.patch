@@ -1,0 +1,60 @@
+sbe: use python3 for build scripts
+
+GCC/host distros no longer ship python2. The SBE build invokes python2
+for buildInfo.py / securityRegListGen.py and via #!/usr/bin/python2
+shebangs; these scripts are python3-compatible, so call python3.
+
+Signed-off-by: Trung Le <trung.le@ruby-journal.com>
+
+--- a/src/build/Makefile
++++ b/src/build/Makefile
+@@ -244,7 +244,7 @@
+ 
+ # Create build Info file
+ buildInfo:
+-	python2 buildInfo.py $(GENFILES_DIR)
++	python3 buildInfo.py $(GENFILES_DIR)
+ 
+ buildtag:
+ 	./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_NAME)
+@@ -321,7 +321,7 @@
+ 
+ # generate whitelist and blacklist security algorithm
+ security: $(OBJDIR)
+-	python2 $(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
++	python3 $(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
+ 
+ # Build hwp_error_info.H.  If the script fails then print the contents of
+ # the header and then delete whatever garbage the script left to force it to
+--- a/src/build/buildInfo.py
++++ b/src/build/buildInfo.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python2
++#!/usr/bin/python3
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+--- a/src/build/parsAndCutElf.py
++++ b/src/build/parsAndCutElf.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python2
++#!/usr/bin/python3
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+--- a/src/build/updateBuildTag.py
++++ b/src/build/updateBuildTag.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python2
++#!/usr/bin/python3
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
+--- a/src/boot/sbeCompression.py
++++ b/src/boot/sbeCompression.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python2
++#!/usr/bin/python3
+ # IBM_PROLOG_BEGIN_TAG
+ # This is an automatically generated prolog.
+ #
