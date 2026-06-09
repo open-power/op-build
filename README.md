@@ -41,12 +41,12 @@ automatically download and build an appropriate toolchain as part of the build
 process, so you don't need to worry about setting up a
 cross-compiler. Cross-compiling from a x86-64 host is officially supported.
 
-The machine your building on will need Python 2.7, GCC 8.4 (or later), and
+The machine your building on will need Python 3, GCC 8.4 (or later), and
 a handful of other packages (see below).
 
 ### Dependencies for *64-bit* Ubuntu/Debian systems
 
-1. Install Ubuntu 22.04 or Debian 12 (x86_64 or ppc64le).
+1. Install Ubuntu 26.04 or Debian 13 (x86_64 or ppc64le).
 2. Enable Universe (Ubuntu only):
 
         sudo apt-get install software-properties-common
@@ -54,23 +54,23 @@ a handful of other packages (see below).
 3. Install the packages necessary for the build:
 
         sudo apt-get install cscope universal-ctags libz-dev libexpat-dev \
-          python2 python-is-python3 language-pack-en texinfo gawk cpio xxd \
+          python3 python-is-python3 language-pack-en texinfo gawk cpio xxd \
           build-essential g++ git bison flex unzip \
           libssl-dev libxml-simple-perl libxml-sax-perl libxml-parser-perl libxml2-dev libxml2-utils xsltproc \
           wget bc rsync
 
 ### Dependencies for *64-bit* Fedora systems
 
-1. Install Fedora 33 (x86_64 or ppc64le).
+1. Install Fedora 44 (x86_64 or ppc64le).
 2. Install the packages necessary for the build:
 
         sudo dnf install gcc-c++ flex bison git ctags cscope expat-devel patch \
           zlib-devel zlib-static texinfo "perl(bigint)" "perl(XML::Simple)" \
           "perl(YAML)" "perl(XML::SAX)" "perl(Fatal)" "perl(Thread::Queue)" \
           "perl(Env)" "perl(XML::LibXML)" "perl(Digest::SHA1)" "perl(ExtUtils::MakeMaker)" \
-          "perl(FindBin)" "perl(English)" "perl(Time::localtime)" "perl(open)" \
+          "perl(FindBin)" "perl(English)" "perl(Time::localtime)" "perl(open)" "perl(IPC::Cmd)" "perl(Time::Piece)" \
           libxml2-devel which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
-          openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname
+          openssl-devel make libxslt vim-common lzo-devel python3 rsync hostname
 
 ### Building on a newer Fedora host with Toolbx
 

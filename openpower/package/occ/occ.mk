@@ -31,13 +31,26 @@ OCC_TARGET_CROSS = $(TARGET_CROSS)
 OCC_DEPENDENCIES += host-binutils
 endif
 
+# OCC's host-side build tools (ppetracepp, ppe2fsp, imageHdrScript, ffdcparser,
+# ...) are old pre-C23 / K&R C that GCC >= 14 rejects by default (implicit int,
+# and "bool" being a keyword in C23). Provide a host gcc/g++ wrapper that relaxes
+# the standard for these tools only; target code is built via CROSS_PREFIX and is
+# unaffected. The flags are harmless on older host compilers (e.g. Fedora 33).
+define OCC_HOSTCC_WRAP
+	mkdir -p $(@D)/.hostcc
+	printf '#!/bin/sh\nexec /usr/bin/gcc -std=gnu17 -fpermissive "$$@"\n' > $(@D)/.hostcc/gcc
+	printf '#!/bin/sh\nexec /usr/bin/g++ -fpermissive "$$@"\n' > $(@D)/.hostcc/g++
+	chmod +x $(@D)/.hostcc/gcc $(@D)/.hostcc/g++
+endef
+
 define OCC_BUILD_CMDS
+	$(OCC_HOSTCC_WRAP)
 	if [ "$(BR2_OCC_GPU_BIN_BUILD)" == "y"  ]; then \
 	    cd $(@D)/src && \
-            make PPE_TOOL_PATH=$(PPE42_GCC_BIN) OCC_OP_BUILD=1 CROSS_PREFIX=$(OCC_TARGET_CROSS) LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib GPE1_BIN_IMAGE_PATH=$(STAGING_DIR)/hostboot_binaries/ OPOCC_GPU_SUPPORT=1 all; \
+            PATH="$(@D)/.hostcc:$$PATH" make PPE_TOOL_PATH=$(PPE42_GCC_BIN) OCC_OP_BUILD=1 CROSS_PREFIX=$(OCC_TARGET_CROSS) LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib GPE1_BIN_IMAGE_PATH=$(STAGING_DIR)/hostboot_binaries/ OPOCC_GPU_SUPPORT=1 all; \
 	else \
             cd $(@D)/src && \
-            make PPE_TOOL_PATH=$(PPE42_GCC_BIN) OCC_OP_BUILD=1 CROSS_PREFIX=$(OCC_TARGET_CROSS) LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib all; \
+            PATH="$(@D)/.hostcc:$$PATH" make PPE_TOOL_PATH=$(PPE42_GCC_BIN) OCC_OP_BUILD=1 CROSS_PREFIX=$(OCC_TARGET_CROSS) LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib all; \
 	fi;
 endef
 OCC_BUILD_CMDS ?= $(OCC_BUILD_CMDS_P9)
