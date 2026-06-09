@@ -72,3 +72,48 @@ a handful of other packages (see below).
           libxml2-devel which wget unzip tar cpio python bzip2 bc findutils ncurses-devel \
           openssl-devel make libxslt vim-common lzo-devel python2 rsync hostname
 
+### Building on a newer Fedora host with Toolbx
+
+op-build officially targets Fedora 33. On a newer Fedora release, run the build
+inside a Fedora 33 [Toolbx](https://containertoolbx.org/) container. Your home
+directory is shared with the host, so you can keep the checkout where it is.
+
+1. Create a Fedora 33 container (run on the host).
+
+   On x86_64 the official image is used automatically:
+
+        toolbox create --distro fedora --release 33 f33
+
+   On ppc64le there is no official pre-built `fedora-toolbox:33` image, so build
+   one locally first, tagging it with the name Toolbx expects, then create the
+   container from it:
+
+        git clone https://github.com/containers/toolbox.git
+        cd toolbox/images/fedora/f33
+        podman build -t localhost/fedora-toolbox:33 .
+        toolbox create --image localhost/fedora-toolbox:33 f33
+
+2. Enter the container and install the Fedora 33 build dependencies listed above
+   (the same `sudo dnf install ...` command):
+
+        toolbox enter f33
+
+3. Still inside the container, build as usual:
+
+        cd op-build
+        ./op-build blackbird_defconfig && ./op-build
+
+   Re-enter the container with `toolbox enter f33` for subsequent builds.
+
+Alternatively, you do not have to enter the container at all. Because
+`./op-build` sources the build environment itself, you can drive the build from
+the host with `toolbox run` (useful for headless or scripted builds). From the
+op-build checkout:
+
+        toolbox run -c f33 ./op-build blackbird_defconfig
+        toolbox run -c f33 ./op-build
+
+The one-time dependency install can be run the same way:
+
+        toolbox run -c f33 sudo dnf install <packages listed above>
+
