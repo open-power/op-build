@@ -10,7 +10,7 @@ EKB_P11_VERSION = $(call qstrip,$(BR2_EKB_P11_VERSION))
 EKB_P11_SITE = $(call github,open-power,pub-ekb,$(EKB_P11_VERSION))
 
 #Private
-#EKB_P11_SITE ?= git@github.ibm.com:open-power/pub-ekb.git
+#EKB_P11_SITE ?= https://github.ibm.com/open-power/pub-ekb.git
 #EKB_P11_SITE_METHOD ?= git
 
 
