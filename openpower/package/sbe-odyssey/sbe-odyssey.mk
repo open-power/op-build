@@ -6,7 +6,7 @@ SBE_ODYSSEY_VERSION = $(call qstrip,$(BR2_SBE_ODYSSEY_VERSION))
 SBE_ODYSSEY_SITE ?= $(call github,open-power,sbe-odyssey,$(SBE_ODYSSEY_VERSION))
 
 #Private
-#SBE_ODYSSEY_SITE ?= git@github.ibm.com:open-power/sbe-odyssey.git
+#SBE_ODYSSEY_SITE ?= https://github.ibm.com/open-power/sbe-odyssey.git
 #SBE_ODYSSEY_SITE_METHOD = git
 
 SBE_ODYSSEY_LICENSE = Apache-2.0

@@ -9,7 +9,7 @@ OPENPOWER_PNOR_P11_VERSION ?= 99d35aae2af4e0fe80e201b71be5aef781a6b065
 OPENPOWER_PNOR_P11_SITE ?= $(call github,open-power,pnor,$(OPENPOWER_PNOR_P11_VERSION))
 
 #Private
-#OPENPOWER_PNOR_P11_SITE ?= git@github.ibm.com:open-power/pnor.git
+#OPENPOWER_PNOR_P11_SITE ?= https://github.ibm.com/open-power/pnor.git
 #OPENPOWER_PNOR_P11_SITE_METHOD ?= git
 
 OPENPOWER_PNOR_P11_LICENSE = Apache-2.0

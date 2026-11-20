@@ -10,7 +10,7 @@ HOSTBOOT_BINARIES_VERSION = $(call qstrip,$(BR2_HOSTBOOT_BINARIES_VERSION))
 HOSTBOOT_BINARIES_SITE ?= $(call github,open-power,hostboot-binaries,$(HOSTBOOT_BINARIES_VERSION))
 
 #Private
-#HOSTBOOT_BINARIES_SITE ?= git@github.ibm.com:open-power/hostboot-binaries.git
+#HOSTBOOT_BINARIES_SITE ?= https://github.ibm.com/open-power/hostboot-binaries.git
 #HOSTBOOT_BINARIES_SITE_METHOD ?= git
 
 HOSTBOOT_BINARIES_LICENSE = Apache-2.0
