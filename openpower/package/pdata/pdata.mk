@@ -14,7 +14,7 @@ PDATA_SITE = $(BR2_PDATA_CUSTOM_GIT_VALUE)
 PDATA_SITE_METHOD = git
 endif
 #Private
-#PDATA_SITE ?= git@github.ibm.com:open-power/pdata.git
+#PDATA_SITE ?= https://github.ibm.com/open-power/pdata.git
 #PDATA_SITE_METHOD ?= git
 
 PDATA_LICENSE = Apache-2.0
